@@ -1,7 +1,6 @@
 package common
 
 import (
-	"fmt"
 	"net/http"
 	"testing"
 
@@ -13,10 +12,13 @@ import (
 	"github.com/zhongjie-cai/WebServiceTemplate/logger/logtype"
 	"github.com/zhongjie-cai/WebServiceTemplate/request"
 	"github.com/zhongjie-cai/WebServiceTemplate/response"
+	"github.com/zhongjie-cai/WebServiceTemplate/server/route"
 	"github.com/zhongjie-cai/WebServiceTemplate/session"
 )
 
 var (
+	routeGetEndpointNameExpected     int
+	routeGetEndpointNameCalled       int
 	sessionRegisterExpected          int
 	sessionRegisterCalled            int
 	sessionUnregisterExpected        int
@@ -38,6 +40,12 @@ var (
 )
 
 func createMock(t *testing.T) {
+	routeGetEndpointNameExpected = 0
+	routeGetEndpointNameCalled = 0
+	routeGetEndpointName = func(request *http.Request) string {
+		routeGetEndpointNameCalled++
+		return ""
+	}
 	sessionRegisterExpected = 0
 	sessionRegisterCalled = 0
 	sessionRegister = func(endpoint string, loginID uuid.UUID, correlationID uuid.UUID, allowedLogType logtype.LogType, request *http.Request, responseWriter http.ResponseWriter) uuid.UUID {
@@ -90,40 +98,24 @@ func createMock(t *testing.T) {
 }
 
 func verifyAll(t *testing.T) {
+	routeGetEndpointName = route.GetEndpointName
+	assert.Equal(t, routeGetEndpointNameExpected, routeGetEndpointNameCalled, "Unexpected method call to routeGetEndpointName")
 	sessionRegister = session.Register
-	if sessionRegisterExpected != sessionRegisterCalled {
-		assert.Fail(t, fmt.Sprintf("Unexpected method call to sessionRegister, expected %v, actual %v", sessionRegisterExpected, sessionRegisterCalled))
-	}
+	assert.Equal(t, sessionRegisterExpected, sessionRegisterCalled, "Unexpected method call to sessionRegister")
 	sessionUnregister = session.Unregister
-	if sessionUnregisterExpected != sessionUnregisterCalled {
-		assert.Fail(t, fmt.Sprintf("Unexpected method call to sessionUnregister, expected %v, actual %v", sessionUnregisterExpected, sessionUnregisterCalled))
-	}
+	assert.Equal(t, sessionUnregisterExpected, sessionUnregisterCalled, "Unexpected method call to sessionUnregister")
 	panicHandle = panic.Handle
-	if panicHandleExpected != panicHandleCalled {
-		assert.Fail(t, fmt.Sprintf("Unexpected method call to panicHandle, expected %v, actual %v", panicHandleExpected, panicHandleCalled))
-	}
+	assert.Equal(t, panicHandleExpected, panicHandleCalled, "Unexpected method call to panicHandle")
 	requestGetLoginID = request.GetLoginID
-	if requestGetLoginIDExpected != requestGetLoginIDCalled {
-		assert.Fail(t, fmt.Sprintf("Unexpected method call to requestGetLoginID, expected %v, actual %v", requestGetLoginIDExpected, requestGetLoginIDCalled))
-	}
+	assert.Equal(t, requestGetLoginIDExpected, requestGetLoginIDCalled, "Unexpected method call to requestGetLoginID")
 	requestGetCorrelationID = request.GetCorrelationID
-	if requestGetCorrelationIDExpected != requestGetCorrelationIDCalled {
-		assert.Fail(t, fmt.Sprintf("Unexpected method call to requestGetCorrelationID, expected %v, actual %v", requestGetCorrelationIDExpected, requestGetCorrelationIDCalled))
-	}
+	assert.Equal(t, requestGetCorrelationIDExpected, requestGetCorrelationIDCalled, "Unexpected method call to requestGetCorrelationID")
 	requestGetAllowedLogType = request.GetAllowedLogType
-	if requestGetAllowedLogTypeExpected != requestGetAllowedLogTypeCalled {
-		assert.Fail(t, fmt.Sprintf("Unexpected method call to requestGetAllowedLogType, expected %v, actual %v", requestGetAllowedLogTypeExpected, requestGetAllowedLogTypeCalled))
-	}
+	assert.Equal(t, requestGetAllowedLogTypeExpected, requestGetAllowedLogTypeCalled, "Unexpected method call to requestGetAllowedLogType")
 	responseError = response.Error
-	if responseErrorExpected != responseErrorCalled {
-		assert.Fail(t, fmt.Sprintf("Unexpected method call to responseError, expected %v, actual %v", responseErrorExpected, responseErrorCalled))
-	}
+	assert.Equal(t, responseErrorExpected, responseErrorCalled, "Unexpected method call to responseError")
 	loggerAPIEnter = logger.APIEnter
-	if loggerAPIEnterExpected != loggerAPIEnterCalled {
-		assert.Fail(t, fmt.Sprintf("Unexpected method call to loggerAPIEnter, expected %v, actual %v", loggerAPIEnterExpected, loggerAPIEnterCalled))
-	}
+	assert.Equal(t, loggerAPIEnterExpected, loggerAPIEnterCalled, "Unexpected method call to loggerAPIEnter")
 	loggerAPIExit = logger.APIExit
-	if loggerAPIExitExpected != loggerAPIExitCalled {
-		assert.Fail(t, fmt.Sprintf("Unexpected method call to loggerAPIExit, expected %v, actual %v", loggerAPIExitExpected, loggerAPIExitCalled))
-	}
+	assert.Equal(t, loggerAPIExitExpected, loggerAPIExitCalled, "Unexpected method call to loggerAPIExit")
 }

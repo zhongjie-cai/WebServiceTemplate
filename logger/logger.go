@@ -24,7 +24,8 @@ func doLogging(sessionID uuid.UUID, logType logtype.LogType, category, subcatego
 	var session = sessionGet(
 		sessionID,
 	)
-	if !session.AllowedLogType.HasFlag(logType) {
+	if !session.AllowedLogType.HasFlag(logType) &&
+		!configIsLocalhost() {
 		return
 	}
 	var logEntryString = jsonutilMarshalIgnoreError(

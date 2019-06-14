@@ -3,22 +3,20 @@ package server
 import (
 	"crypto/tls"
 	"crypto/x509"
-	"fmt"
 	"net/http"
 	"testing"
 
+	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
 	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
 	"github.com/zhongjie-cai/WebServiceTemplate/certificate"
-	"github.com/zhongjie-cai/WebServiceTemplate/config"
 	"github.com/zhongjie-cai/WebServiceTemplate/handler/favicon"
 	"github.com/zhongjie-cai/WebServiceTemplate/handler/health"
 	"github.com/zhongjie-cai/WebServiceTemplate/handler/swagger"
+	"github.com/zhongjie-cai/WebServiceTemplate/server/route"
 )
 
 var (
-	configAppPortExpected                   int
-	configAppPortCalled                     int
 	certificateGetServerCertificateExpected int
 	certificateGetServerCertificateCalled   int
 	certificateGetClientCertPoolExpected    int
@@ -31,34 +29,28 @@ var (
 	swaggerHostEntryCalled                  int
 	healthHostEntryExpected                 int
 	healthHostEntryCalled                   int
+	routeRegisterEntriesExpected            int
+	routeRegisterEntriesCalled              int
 	createServerFuncExpected                int
 	createServerFuncCalled                  int
-	listenAndServeTLSFuncExpected           int
-	listenAndServeTLSFuncCalled             int
-	hostEntriesFuncExpected                 int
-	hostEntriesFuncCalled                   int
+	listenAndServeFuncExpected              int
+	listenAndServeFuncCalled                int
 	runServerFuncExpected                   int
 	runServerFuncCalled                     int
 )
 
 func createMock(t *testing.T) {
-	configAppPortExpected = 0
-	configAppPortCalled = 0
-	configAppPort = func() string {
-		configAppPortCalled++
-		return ""
-	}
 	certificateGetServerCertificateExpected = 0
 	certificateGetServerCertificateCalled = 0
-	certificateGetServerCertificate = func() (*tls.Certificate, error) {
+	certificateGetServerCertificate = func() *tls.Certificate {
 		certificateGetServerCertificateCalled++
-		return nil, nil
+		return nil
 	}
 	certificateGetClientCertPoolExpected = 0
 	certificateGetClientCertPoolCalled = 0
-	certificateGetClientCertPool = func() (*x509.CertPool, error) {
+	certificateGetClientCertPool = func() *x509.CertPool {
 		certificateGetClientCertPoolCalled++
-		return nil, nil
+		return nil
 	}
 	apperrorWrapSimpleErrorExpected = 0
 	apperrorWrapSimpleErrorCalled = 0
@@ -68,88 +60,64 @@ func createMock(t *testing.T) {
 	}
 	faviconHostEntryExpected = 0
 	faviconHostEntryCalled = 0
-	faviconHostEntry = func() {
+	faviconHostEntry = func(router *mux.Router) {
 		faviconHostEntryCalled++
 	}
 	swaggerHostEntryExpected = 0
 	swaggerHostEntryCalled = 0
-	swaggerHostEntry = func() {
+	swaggerHostEntry = func(router *mux.Router) {
 		swaggerHostEntryCalled++
 	}
 	healthHostEntryExpected = 0
 	healthHostEntryCalled = 0
-	healthHostEntry = func() {
+	healthHostEntry = func(router *mux.Router) {
 		healthHostEntryCalled++
+	}
+	routeRegisterEntriesExpected = 0
+	routeRegisterEntriesCalled = 0
+	routeRegisterEntries = func(entryFuncs ...func(*mux.Router)) (*mux.Router, error) {
+		routeRegisterEntriesCalled++
+		return nil, nil
 	}
 	createServerFuncExpected = 0
 	createServerFuncCalled = 0
-	createServerFunc = func(serverCert *tls.Certificate, clientCertPool *x509.CertPool) *http.Server {
+	createServerFunc = func(serveHTTPS bool, validateClientCert bool, appPort string, router *mux.Router) *http.Server {
 		createServerFuncCalled++
 		return nil
 	}
-	listenAndServeTLSFuncExpected = 0
-	listenAndServeTLSFuncCalled = 0
-	listenAndServeTLSFunc = func(server *http.Server) error {
-		listenAndServeTLSFuncCalled++
-		return nil
-	}
-	hostEntriesFuncExpected = 0
-	hostEntriesFuncCalled = 0
-	hostEntriesFunc = func(entryFuncs ...func()) error {
-		hostEntriesFuncCalled++
+	listenAndServeFuncExpected = 0
+	listenAndServeFuncCalled = 0
+	listenAndServeFunc = func(server *http.Server, serveHTTPS bool) error {
+		listenAndServeFuncCalled++
 		return nil
 	}
 	runServerFuncExpected = 0
 	runServerFuncCalled = 0
-	runServerFunc = func() error {
+	runServerFunc = func(serveHTTPS bool, validateClientCert bool, appPort string, router *mux.Router) error {
 		runServerFuncCalled++
 		return nil
 	}
 }
 
 func verifyAll(t *testing.T) {
-	configAppPort = config.AppPort
-	if configAppPortExpected != configAppPortCalled {
-		assert.Fail(t, fmt.Sprintf("Unexpected method call to configAppPort, expected %v, actual %v", configAppPortExpected, configAppPortCalled))
-	}
 	certificateGetServerCertificate = certificate.GetServerCertificate
-	if certificateGetServerCertificateExpected != certificateGetServerCertificateCalled {
-		assert.Fail(t, fmt.Sprintf("Unexpected method call to certificateGetServerCertificate, expected %v, actual %v", certificateGetServerCertificateExpected, certificateGetServerCertificateCalled))
-	}
+	assert.Equal(t, certificateGetServerCertificateExpected, certificateGetServerCertificateCalled, "Unexpected method call to certificateGetServerCertificate")
 	certificateGetClientCertPool = certificate.GetClientCertPool
-	if certificateGetClientCertPoolExpected != certificateGetClientCertPoolCalled {
-		assert.Fail(t, fmt.Sprintf("Unexpected method call to certificateGetClientCertPool, expected %v, actual %v", certificateGetClientCertPoolExpected, certificateGetClientCertPoolCalled))
-	}
+	assert.Equal(t, certificateGetClientCertPoolExpected, certificateGetClientCertPoolCalled, "Unexpected method call to certificateGetClientCertPool")
 	apperrorWrapSimpleError = apperror.WrapSimpleError
-	if apperrorWrapSimpleErrorExpected != apperrorWrapSimpleErrorCalled {
-		assert.Fail(t, fmt.Sprintf("Unexpected method call to apperrorWrapSimpleError, expected %v, actual %v", apperrorWrapSimpleErrorExpected, apperrorWrapSimpleErrorCalled))
-	}
+	assert.Equal(t, apperrorWrapSimpleErrorExpected, apperrorWrapSimpleErrorCalled, "Unexpected method call to apperrorWrapSimpleError")
 	faviconHostEntry = favicon.HostEntry
-	if faviconHostEntryExpected != faviconHostEntryCalled {
-		assert.Fail(t, fmt.Sprintf("Unexpected method call to faviconHostEntry, expected %v, actual %v", faviconHostEntryExpected, faviconHostEntryCalled))
-	}
+	assert.Equal(t, faviconHostEntryExpected, faviconHostEntryCalled, "Unexpected method call to faviconHostEntry")
 	swaggerHostEntry = swagger.HostEntry
-	if swaggerHostEntryExpected != swaggerHostEntryCalled {
-		assert.Fail(t, fmt.Sprintf("Unexpected method call to swaggerHostEntry, expected %v, actual %v", swaggerHostEntryExpected, swaggerHostEntryCalled))
-	}
+	assert.Equal(t, swaggerHostEntryExpected, swaggerHostEntryCalled, "Unexpected method call to swaggerHostEntry")
 	healthHostEntry = health.HostEntry
-	if healthHostEntryExpected != healthHostEntryCalled {
-		assert.Fail(t, fmt.Sprintf("Unexpected method call to healthHostEntry, expected %v, actual %v", healthHostEntryExpected, healthHostEntryCalled))
-	}
+	assert.Equal(t, healthHostEntryExpected, healthHostEntryCalled, "Unexpected method call to healthHostEntry")
+	routeRegisterEntries = route.RegisterEntries
+	assert.Equal(t, routeRegisterEntriesExpected, routeRegisterEntriesCalled, "Unexpected method call to routeRegisterEntries")
 	createServerFunc = createServer
-	if createServerFuncExpected != createServerFuncCalled {
-		assert.Fail(t, fmt.Sprintf("Unexpected method call to createServerFunc, expected %v, actual %v", createServerFuncExpected, createServerFuncCalled))
-	}
-	listenAndServeTLSFunc = listenAndServeTLS
-	if listenAndServeTLSFuncExpected != listenAndServeTLSFuncCalled {
-		assert.Fail(t, fmt.Sprintf("Unexpected method call to listenAndServeTLSFunc, expected %v, actual %v", listenAndServeTLSFuncExpected, listenAndServeTLSFuncCalled))
-	}
-	hostEntriesFunc = hostEntries
-	if hostEntriesFuncExpected != hostEntriesFuncCalled {
-		assert.Fail(t, fmt.Sprintf("Unexpected method call to hostEntriesFunc, expected %v, actual %v", hostEntriesFuncExpected, hostEntriesFuncCalled))
-	}
+	assert.Equal(t, createServerFuncExpected, createServerFuncCalled, "Unexpected method call to createServerFunc")
+	listenAndServeFunc = listenAndServe
+	assert.Equal(t, listenAndServeFuncExpected, listenAndServeFuncCalled, "Unexpected method call to listenAndServeFunc")
 	runServerFunc = runServer
-	if runServerFuncExpected != runServerFuncCalled {
-		assert.Fail(t, fmt.Sprintf("Unexpected method call to runServerFunc, expected %v, actual %v", runServerFuncExpected, runServerFuncCalled))
-	}
+	assert.Equal(t, runServerFuncExpected, runServerFuncCalled, "Unexpected method call to runServerFunc")
 }

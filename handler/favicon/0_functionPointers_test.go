@@ -1,52 +1,41 @@
 package favicon
 
 import (
-	"fmt"
 	"net/http"
 	"testing"
 
 	"github.com/google/uuid"
+	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
-	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
 	"github.com/zhongjie-cai/WebServiceTemplate/config"
 	"github.com/zhongjie-cai/WebServiceTemplate/handler/common"
-	"github.com/zhongjie-cai/WebServiceTemplate/response"
+	"github.com/zhongjie-cai/WebServiceTemplate/server/route"
 )
 
 var (
-	httpHandleFuncExpected              int
-	httpHandleFuncCalled                int
-	httpServeFileExpected               int
-	httpServeFileCalled                 int
-	responseErrorExpected               int
-	responseErrorCalled                 int
-	configAppPathExpected               int
-	configAppPathCalled                 int
-	apperrorGetInvalidOperationExpected int
-	apperrorGetInvalidOperationCalled   int
-	commonHandleInSessionExpected       int
-	commonHandleInSessionCalled         int
-	handleFaviconLogicFuncExpected      int
-	handleFaviconLogicFuncCalled        int
-	handlerFuncExpected                 int
-	handlerFuncCalled                   int
+	routeHandleFuncExpected       int
+	routeHandleFuncCalled         int
+	httpServeFileExpected         int
+	httpServeFileCalled           int
+	configAppPathExpected         int
+	configAppPathCalled           int
+	commonHandleInSessionExpected int
+	commonHandleInSessionCalled   int
+	handleGetFaviconFuncExpected  int
+	handleGetFaviconFuncCalled    int
 )
 
 func createMock(t *testing.T) {
-	httpHandleFuncExpected = 0
-	httpHandleFuncCalled = 0
-	httpHandleFunc = func(pattern string, handler func(http.ResponseWriter, *http.Request)) {
-		httpHandleFuncCalled++
+	routeHandleFuncExpected = 0
+	routeHandleFuncCalled = 0
+	routeHandleFunc = func(router *mux.Router, endpoint string, method string, path string, handler func(http.ResponseWriter, *http.Request)) *mux.Route {
+		routeHandleFuncCalled++
+		return nil
 	}
 	httpServeFileExpected = 0
 	httpServeFileCalled = 0
 	httpServeFile = func(responseWriter http.ResponseWriter, request *http.Request, name string) {
 		httpServeFileCalled++
-	}
-	responseErrorExpected = 0
-	responseErrorCalled = 0
-	responseError = func(sessionID uuid.UUID, err error, responseWriter http.ResponseWriter) {
-		responseErrorCalled++
 	}
 	configAppPathExpected = 0
 	configAppPathCalled = 0
@@ -54,60 +43,27 @@ func createMock(t *testing.T) {
 		configAppPathCalled++
 		return ""
 	}
-	apperrorGetInvalidOperationExpected = 0
-	apperrorGetInvalidOperationCalled = 0
-	apperrorGetInvalidOperation = func(innerError error) apperror.AppError {
-		apperrorGetInvalidOperationCalled++
-		return nil
-	}
 	commonHandleInSessionExpected = 0
 	commonHandleInSessionCalled = 0
-	commonHandleInSession = func(responseWriter http.ResponseWriter, request *http.Request, endpoint string, action func(http.ResponseWriter, *http.Request, uuid.UUID)) {
+	commonHandleInSession = func(responseWriter http.ResponseWriter, request *http.Request, action func(http.ResponseWriter, *http.Request, uuid.UUID)) {
 		commonHandleInSessionCalled++
 	}
-	handleFaviconLogicFuncExpected = 0
-	handleFaviconLogicFuncCalled = 0
-	handleFaviconLogicFunc = func(responseWriter http.ResponseWriter, request *http.Request, sessionID uuid.UUID) {
-		handleFaviconLogicFuncCalled++
-	}
-	handlerFuncExpected = 0
-	handlerFuncCalled = 0
-	handlerFunc = func(responseWriter http.ResponseWriter, request *http.Request) {
-		handlerFuncCalled++
+	handleGetFaviconFuncExpected = 0
+	handleGetFaviconFuncCalled = 0
+	handleGetFaviconFunc = func(responseWriter http.ResponseWriter, request *http.Request) {
+		handleGetFaviconFuncCalled++
 	}
 }
 
 func verifyAll(t *testing.T) {
-	httpHandleFunc = http.HandleFunc
-	if httpHandleFuncExpected != httpHandleFuncCalled {
-		assert.Fail(t, fmt.Sprintf("Unexpected method call to httpHandleFunc, expected %v, actual %v", httpHandleFuncExpected, httpHandleFuncCalled))
-	}
+	routeHandleFunc = route.HandleFunc
+	assert.Equal(t, routeHandleFuncExpected, routeHandleFuncCalled, "Unexpected method call to routeHandleFunc")
 	httpServeFile = http.ServeFile
-	if httpServeFileExpected != httpServeFileCalled {
-		assert.Fail(t, fmt.Sprintf("Unexpected method call to httpServeFile, expected %v, actual %v", httpServeFileExpected, httpServeFileCalled))
-	}
-	responseError = response.Error
-	if responseErrorExpected != responseErrorCalled {
-		assert.Fail(t, fmt.Sprintf("Unexpected method call to responseError, expected %v, actual %v", responseErrorExpected, responseErrorCalled))
-	}
+	assert.Equal(t, httpServeFileExpected, httpServeFileCalled, "Unexpected method call to httpServeFile")
 	configAppPath = config.AppPath
-	if configAppPathExpected != configAppPathCalled {
-		assert.Fail(t, fmt.Sprintf("Unexpected method call to configAppPath, expected %v, actual %v", configAppPathExpected, configAppPathCalled))
-	}
-	apperrorGetInvalidOperation = apperror.GetInvalidOperation
-	if apperrorGetInvalidOperationExpected != apperrorGetInvalidOperationCalled {
-		assert.Fail(t, fmt.Sprintf("Unexpected method call to apperrorGetInvalidOperation, expected %v, actual %v", apperrorGetInvalidOperationExpected, apperrorGetInvalidOperationCalled))
-	}
+	assert.Equal(t, configAppPathExpected, configAppPathCalled, "Unexpected method call to configAppPath")
 	commonHandleInSession = common.HandleInSession
-	if commonHandleInSessionExpected != commonHandleInSessionCalled {
-		assert.Fail(t, fmt.Sprintf("Unexpected method call to commonHandleInSession, expected %v, actual %v", commonHandleInSessionExpected, commonHandleInSessionCalled))
-	}
-	handleFaviconLogicFunc = handleFaviconLogic
-	if handleFaviconLogicFuncExpected != handleFaviconLogicFuncCalled {
-		assert.Fail(t, fmt.Sprintf("Unexpected method call to handleFaviconLogicFunc, expected %v, actual %v", handleFaviconLogicFuncExpected, handleFaviconLogicFuncCalled))
-	}
-	handlerFunc = handler
-	if handlerFuncExpected != handlerFuncCalled {
-		assert.Fail(t, fmt.Sprintf("Unexpected method call to handlerFunc, expected %v, actual %v", handlerFuncExpected, handlerFuncCalled))
-	}
+	assert.Equal(t, commonHandleInSessionExpected, commonHandleInSessionCalled, "Unexpected method call to commonHandleInSession")
+	handleGetFaviconFunc = handleGetFavicon
+	assert.Equal(t, handleGetFaviconFuncExpected, handleGetFaviconFuncCalled, "Unexpected method call to handleGetFaviconFunc")
 }

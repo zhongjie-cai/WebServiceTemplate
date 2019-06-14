@@ -2,6 +2,7 @@ package config
 
 import (
 	"os"
+	"strings"
 
 	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
 	"github.com/zhongjie-cai/WebServiceTemplate/crypto"
@@ -16,9 +17,10 @@ var (
 	apperrorConsolidateAllErrors                = apperror.ConsolidateAllErrors
 	getEnvironmentVariable                      = os.Getenv
 	cryptoDecrypt                               = crypto.Decrypt
+	stringsEqualFold                            = strings.EqualFold
 	initializeBootTimeFunc                      = initializeBootTime
 	initializeCryptoKeyFunc                     = initializeCryptoKey
 	decryptFromEnvironmentVariableFunc          = decryptFromEnvironmentVariable
-	initializeEnvironmentVariablesFunc          = initializeEnvironmentVariables
+	initializeGeneralEnvironmentVariablesFunc   = initializeGeneralEnvironmentVariables
 	initializeEncryptedEnvironmentVariablesFunc = initializeEncryptedEnvironmentVariables
 )

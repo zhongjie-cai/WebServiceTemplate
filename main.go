@@ -13,11 +13,14 @@ func bootstrapApplication() error {
 		)
 	}
 	var certError = certificateInitialize(
+		configSendClientCert(),
 		configClientCertContent(),
 		configClientKeyContent(),
+		configServeHTTPS(),
 		configServerCertContent(),
 		configServerKeyContent(),
-		configCACertContent(),
+		configValidateClientCert(),
+		configCaCertContent(),
 	)
 	if certError != nil {
 		return apperrorWrapSimpleError(
@@ -50,13 +53,15 @@ func main() {
 		)
 		return
 	}
+	var appVersion = configAppVersion()
+	var appPort = configAppPort()
 	loggerAppRoot(
 		uuid.Nil,
 		"main",
 		"applicationStart",
 		"Started server (v-%v) on port %v.",
-		configAppVersion(),
-		configAppPort(),
+		appVersion,
+		appPort,
 	)
 	err = connectStoragesFunc()
 	if err != nil {
@@ -82,7 +87,11 @@ func main() {
 			return
 		}
 	}()
-	err = serverHost()
+	err = serverHost(
+		configServeHTTPS(),
+		configValidateClientCert(),
+		appPort,
+	)
 	if err != nil {
 		loggerAppRoot(
 			uuid.Nil,

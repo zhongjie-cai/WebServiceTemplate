@@ -5,7 +5,7 @@ import (
 	"strings"
 )
 
-// func pointers for injection / testing: error.go
+// func pointers for injection / testing: apperror.go
 var (
 	fmtSprintf          = fmt.Sprintf
 	fmtErrorf           = fmt.Errorf

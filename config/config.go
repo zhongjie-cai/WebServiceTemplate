@@ -1,18 +1,35 @@
 package config
 
+// These variables are injected to application during compile time
 var (
 	// appVersion is for injecting the version information from compiler
 	appVersion = "0.0.0.0"
 	// appPort is for injecting the port information from compiler
-	appPort = "443"
+	appPort = "18605"
 	// appName is for injecting the name of application from compiler
 	appName = "WebServiceTemplate"
 	// appPath is for injecting the application executable path from compiler
 	appPath = "."
-	// cryptoKey is the key phrase that is used to encrypt & decrypt secrets; consists of two parts, one in code and another configured in environment variable
-	cryptoKey = ""
+)
+
+// These variables are intialized during application startup from system info and environment variables directly
+var (
 	// bootTime is the time when the host has started execution
 	bootTime = ""
+	// isLocalhost is the control switch for whether or not the current running environment is a localhost (testing) environment; for localhost, no encryption/decryption is needed, and logs print all details
+	isLocalhost = false
+	// sendClientCert is the control switch for whether or not sending client certificate over external HTTP/S communications
+	sendClientCert = false
+	// serveHTTPS is the control switch for whether or not hosting the web-service with HTTPS
+	serveHTTPS = false
+	// validateClientCert is the control switch for whether or not validating the client certificate of incoming HTTP/S requests
+	validateClientCert = false
+	// cryptoKey is the key phrase that is used to encrypt & decrypt secrets; consists of two parts, one in code and another configured in environment variable
+	cryptoKey = ""
+)
+
+// These variables are initialized during application startup from decrypting certain environment variables
+var (
 	// clientCertContent is the client certificate cert string
 	clientCertContent = ""
 	// clientKeyContent is the client certificate key string
@@ -35,19 +52,26 @@ func initializeBootTime() {
 	bootTime = timeutilFormatDateTime(timeNowUTC)
 }
 
+func initializeGeneralEnvironmentVariables() error {
+	isLocalhost = stringsEqualFold(getEnvironmentVariable("IsLocalhost"), "true")
+	sendClientCert = stringsEqualFold(getEnvironmentVariable("SendClientCert"), "true")
+	serveHTTPS = stringsEqualFold(getEnvironmentVariable("ServeHTTPS"), "true")
+	validateClientCert = stringsEqualFold(getEnvironmentVariable("ValidateClientCert"), "true")
+	return nil
+}
+
 func initializeCryptoKey() error {
 	cryptoKey = CryptoKeyPartial + getEnvironmentVariable("CryptoKey")
 	if len(cryptoKey) != 32 {
 		cryptoKey = ""
+		if isLocalhost {
+			return nil
+		}
 		return apperrorWrapSimpleError(
 			nil,
 			"Invalid crypto key length: make sure environment variable is set properly",
 		)
 	}
-	return nil
-}
-
-func initializeEnvironmentVariables() error {
 	return nil
 }
 
@@ -61,7 +85,10 @@ func decryptFromEnvironmentVariable(name string) (string, error) {
 		cryptoKey,
 	)
 	if err != nil {
-		return value,
+		if isLocalhost {
+			return value, nil
+		}
+		return "",
 			apperrorWrapSimpleError(
 				err,
 				"Failed to decrypt environment variable [%v]",
@@ -81,7 +108,7 @@ func initializeEncryptedEnvironmentVariables() error {
 	clientKeyContent, clientKeyError = decryptFromEnvironmentVariableFunc("ClientKeyContent")
 	serverCertContent, serverCertError = decryptFromEnvironmentVariableFunc("ServerCertContent")
 	serverKeyContent, serverKeyError = decryptFromEnvironmentVariableFunc("ServerKeyContent")
-	caCertContent, caCertError = decryptFromEnvironmentVariableFunc("CACertContent")
+	caCertContent, caCertError = decryptFromEnvironmentVariableFunc("CaCertContent")
 	return apperrorConsolidateAllErrors(
 		"Failed to decrypt environment variables",
 		clientCertError,
@@ -95,18 +122,18 @@ func initializeEncryptedEnvironmentVariables() error {
 // Initialize initiates all application related configuration properties
 func Initialize() error {
 	initializeBootTimeFunc()
+	var environmentVariableError = initializeGeneralEnvironmentVariablesFunc()
+	if environmentVariableError != nil {
+		return apperrorWrapSimpleError(
+			environmentVariableError,
+			"Failed to load general environment variables",
+		)
+	}
 	var cryptoKeyError = initializeCryptoKeyFunc()
 	if cryptoKeyError != nil {
 		return apperrorWrapSimpleError(
 			cryptoKeyError,
-			"Failed to initialize crypto key",
-		)
-	}
-	var environmentVariableError = initializeEnvironmentVariablesFunc()
-	if environmentVariableError != nil {
-		return apperrorWrapSimpleError(
-			environmentVariableError,
-			"Failed to load environment variables",
+			"Failed to load crypto key from environment variables",
 		)
 	}
 	environmentVariableError = initializeEncryptedEnvironmentVariablesFunc()
@@ -139,9 +166,19 @@ func AppPath() string {
 	return appPath
 }
 
+// IsLocalhost returns the control switch for whether or not the current running environment is a localhost (testing) environment; for localhost, no encryption/decryption is needed, and logs print all details
+func IsLocalhost() bool {
+	return isLocalhost
+}
+
 // CryptoKey returns the encryption/decryption key of the application
 func CryptoKey() string {
 	return cryptoKey
+}
+
+// SendClientCert returns the control switch for whether or not sending client certificate over external HTTP/S communications
+func SendClientCert() bool {
+	return sendClientCert
 }
 
 // ClientCertContent returns the client certificate cert content of the application
@@ -154,6 +191,11 @@ func ClientKeyContent() string {
 	return clientKeyContent
 }
 
+// ServeHTTPS returns the control switch for whether or not hosting the web-service with HTTPS
+func ServeHTTPS() bool {
+	return serveHTTPS
+}
+
 // ServerCertContent returns the server certificate cert content of the application
 func ServerCertContent() string {
 	return serverCertContent
@@ -164,7 +206,12 @@ func ServerKeyContent() string {
 	return serverKeyContent
 }
 
-// CACertContent returns the CA certificate cert content of the application
-func CACertContent() string {
+// ValidateClientCert returns the control switch for whether or not validating the client certificate of incoming HTTP/S requests
+func ValidateClientCert() bool {
+	return validateClientCert
+}
+
+// CaCertContent returns the CA certificate cert content of the application
+func CaCertContent() string {
 	return caCertContent
 }

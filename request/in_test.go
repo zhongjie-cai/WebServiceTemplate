@@ -326,7 +326,7 @@ func TestGetAllowedLogType(t *testing.T) {
 func TestGetClientCertificates_RequestNil(t *testing.T) {
 	// arrange
 	var dummyRequest *http.Request
-	var expectedErrorMessage = "Invalid request or insecure communication channel"
+	var dummyMessageFormat = "Invalid request or insecure communication channel"
 	var dummySyncError = apperror.GetGeneralFailureError(nil)
 
 	// mock
@@ -337,7 +337,7 @@ func TestGetClientCertificates_RequestNil(t *testing.T) {
 	apperrorWrapSimpleError = func(innerError error, messageFormat string, parameters ...interface{}) apperror.AppError {
 		apperrorWrapSimpleErrorCalled++
 		assert.Nil(t, innerError)
-		assert.Equal(t, expectedErrorMessage, messageFormat)
+		assert.Equal(t, dummyMessageFormat, messageFormat)
 		assert.Equal(t, 0, len(parameters))
 		return dummySyncError
 	}
@@ -358,7 +358,7 @@ func TestGetClientCertificates_RequestNil(t *testing.T) {
 func TestGetClientCertificates_TLSNil(t *testing.T) {
 	// arrange
 	var dummyRequest = &http.Request{}
-	var expectedErrorMessage = "Invalid request or insecure communication channel"
+	var dummyMessageFormat = "Invalid request or insecure communication channel"
 	var dummySyncError = apperror.GetGeneralFailureError(nil)
 
 	// mock
@@ -369,7 +369,7 @@ func TestGetClientCertificates_TLSNil(t *testing.T) {
 	apperrorWrapSimpleError = func(innerError error, messageFormat string, parameters ...interface{}) apperror.AppError {
 		apperrorWrapSimpleErrorCalled++
 		assert.Nil(t, innerError)
-		assert.Equal(t, expectedErrorMessage, messageFormat)
+		assert.Equal(t, dummyMessageFormat, messageFormat)
 		assert.Equal(t, 0, len(parameters))
 		return dummySyncError
 	}

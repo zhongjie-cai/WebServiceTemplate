@@ -3,7 +3,6 @@ package certificate
 import (
 	"crypto/tls"
 	"crypto/x509"
-	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -11,18 +10,26 @@ import (
 )
 
 var (
-	tlsX509KeyPairExpected          int
-	tlsX509KeyPairCalled            int
-	x509NewCertPoolExpected         int
-	x509NewCertPoolCalled           int
-	apperrorWrapSimpleErrorExpected int
-	apperrorWrapSimpleErrorCalled   int
-	loadTLSCertificateFuncExpected  int
-	loadTLSCertificateFuncCalled    int
-	appendCertsFromPEMFuncExpected  int
-	appendCertsFromPEMFuncCalled    int
-	loadX509CertPoolFuncExpected    int
-	loadX509CertPoolFuncCalled      int
+	tlsX509KeyPairExpected               int
+	tlsX509KeyPairCalled                 int
+	x509NewCertPoolExpected              int
+	x509NewCertPoolCalled                int
+	apperrorWrapSimpleErrorExpected      int
+	apperrorWrapSimpleErrorCalled        int
+	apperrorConsolidateAllErrorsExpected int
+	apperrorConsolidateAllErrorsCalled   int
+	loadTLSCertificateFuncExpected       int
+	loadTLSCertificateFuncCalled         int
+	appendCertsFromPEMFuncExpected       int
+	appendCertsFromPEMFuncCalled         int
+	loadX509CertPoolFuncExpected         int
+	loadX509CertPoolFuncCalled           int
+	initializeClientCertFuncExpected     int
+	initializeClientCertFuncCalled       int
+	initializeServerCertFuncExpected     int
+	initializeServerCertFuncCalled       int
+	initializeCaCertPoolFuncExpected     int
+	initializeCaCertPoolFuncCalled       int
 )
 
 func createMock(t *testing.T) {
@@ -44,6 +51,12 @@ func createMock(t *testing.T) {
 		apperrorWrapSimpleErrorCalled++
 		return nil
 	}
+	apperrorConsolidateAllErrorsExpected = 0
+	apperrorConsolidateAllErrorsCalled = 0
+	apperrorConsolidateAllErrors = func(baseErrorMessage string, allErrors ...error) apperror.AppError {
+		apperrorConsolidateAllErrorsCalled++
+		return nil
+	}
 	loadTLSCertificateFuncExpected = 0
 	loadTLSCertificateFuncCalled = 0
 	loadTLSCertificateFunc = func(certFile, keyFile []byte) (*tls.Certificate, error) {
@@ -62,33 +75,47 @@ func createMock(t *testing.T) {
 		loadX509CertPoolFuncCalled++
 		return nil, nil
 	}
+	initializeClientCertFuncExpected = 0
+	initializeClientCertFuncCalled = 0
+	initializeClientCertFunc = func(sendClientCert bool, clientCertContent string, clientKeyContent string) error {
+		initializeClientCertFuncCalled++
+		return nil
+	}
+	initializeServerCertFuncExpected = 0
+	initializeServerCertFuncCalled = 0
+	initializeServerCertFunc = func(serveHTTPS bool, serverCertContent string, serverKeyContent string) error {
+		initializeServerCertFuncCalled++
+		return nil
+	}
+	initializeCaCertPoolFuncExpected = 0
+	initializeCaCertPoolFuncCalled = 0
+	initializeCaCertPoolFunc = func(validateClientCert bool, caCertContent string) error {
+		initializeCaCertPoolFuncCalled++
+		return nil
+	}
 }
 
 func verifyAll(t *testing.T) {
 	tlsX509KeyPair = tls.X509KeyPair
-	if tlsX509KeyPairExpected != tlsX509KeyPairCalled {
-		assert.Fail(t, fmt.Sprintf("Unexpected method call to tlsX509KeyPair, expected %v, actual %v", tlsX509KeyPairExpected, tlsX509KeyPairCalled))
-	}
+	assert.Equal(t, tlsX509KeyPairExpected, tlsX509KeyPairCalled, "Unexpected method call to tlsX509KeyPair")
 	x509NewCertPool = x509.NewCertPool
-	if x509NewCertPoolExpected != x509NewCertPoolCalled {
-		assert.Fail(t, fmt.Sprintf("Unexpected method call to x509NewCertPool, expected %v, actual %v", x509NewCertPoolExpected, x509NewCertPoolCalled))
-	}
+	assert.Equal(t, x509NewCertPoolExpected, x509NewCertPoolCalled, "Unexpected method call to x509NewCertPool")
 	apperrorWrapSimpleError = apperror.WrapSimpleError
-	if apperrorWrapSimpleErrorExpected != apperrorWrapSimpleErrorCalled {
-		assert.Fail(t, fmt.Sprintf("Unexpected method call to apperrorWrapSimpleError, expected %v, actual %v", apperrorWrapSimpleErrorExpected, apperrorWrapSimpleErrorCalled))
-	}
+	assert.Equal(t, apperrorWrapSimpleErrorExpected, apperrorWrapSimpleErrorCalled, "Unexpected method call to apperrorWrapSimpleError")
+	apperrorConsolidateAllErrors = apperror.ConsolidateAllErrors
+	assert.Equal(t, apperrorConsolidateAllErrorsExpected, apperrorConsolidateAllErrorsCalled, "Unexpected method call to apperrorConsolidateAllErrors")
 	loadTLSCertificateFunc = loadTLSCertificate
-	if loadTLSCertificateFuncExpected != loadTLSCertificateFuncCalled {
-		assert.Fail(t, fmt.Sprintf("Unexpected method call to loadTLSCertificateFunc, expected %v, actual %v", loadTLSCertificateFuncExpected, loadTLSCertificateFuncCalled))
-	}
+	assert.Equal(t, loadTLSCertificateFuncExpected, loadTLSCertificateFuncCalled, "Unexpected method call to loadTLSCertificateFunc")
 	appendCertsFromPEMFunc = appendCertsFromPEM
-	if appendCertsFromPEMFuncExpected != appendCertsFromPEMFuncCalled {
-		assert.Fail(t, fmt.Sprintf("Unexpected method call to appendCertsFromPEMFunc, expected %v, actual %v", appendCertsFromPEMFuncExpected, appendCertsFromPEMFuncCalled))
-	}
+	assert.Equal(t, appendCertsFromPEMFuncExpected, appendCertsFromPEMFuncCalled, "Unexpected method call to appendCertsFromPEMFunc")
 	loadX509CertPoolFunc = loadX509CertPool
-	if loadX509CertPoolFuncExpected != loadX509CertPoolFuncCalled {
-		assert.Fail(t, fmt.Sprintf("Unexpected method call to loadX509CertPoolFunc, expected %v, actual %v", loadX509CertPoolFuncExpected, loadX509CertPoolFuncCalled))
-	}
+	assert.Equal(t, loadX509CertPoolFuncExpected, loadX509CertPoolFuncCalled, "Unexpected method call to loadX509CertPoolFunc")
+	initializeClientCertFunc = initializeClientCert
+	assert.Equal(t, initializeClientCertFuncExpected, initializeClientCertFuncCalled, "Unexpected method call to initializeClientCertFunc")
+	initializeServerCertFunc = initializeServerCert
+	assert.Equal(t, initializeServerCertFuncExpected, initializeServerCertFuncCalled, "Unexpected method call to initializeServerCertFunc")
+	initializeCaCertPoolFunc = initializeCaCertPool
+	assert.Equal(t, initializeCaCertPoolFuncExpected, initializeCaCertPoolFuncCalled, "Unexpected method call to initializeCaCertPoolFunc")
 
 	clientCertificate = nil
 	serverCertificate = nil

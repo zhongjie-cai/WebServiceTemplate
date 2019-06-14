@@ -51,7 +51,7 @@ func TestEncrypt_InvalidKey(t *testing.T) {
 	// arrange
 	var expectedPlainText = "some dummy plain text"
 	var cryptoKey = "invalid key"
-	var expectedErrorMessage = "Failed to create new cipher"
+	var dummyMessageFormat = "Failed to create new cipher"
 	var dummyAppError = apperror.GetGeneralFailureError(nil)
 
 	// mock
@@ -67,7 +67,7 @@ func TestEncrypt_InvalidKey(t *testing.T) {
 	apperrorWrapSimpleError = func(innerError error, messageFormat string, parameters ...interface{}) apperror.AppError {
 		apperrorWrapSimpleErrorCalled++
 		assert.NotNil(t, innerError)
-		assert.Equal(t, expectedErrorMessage, messageFormat)
+		assert.Equal(t, dummyMessageFormat, messageFormat)
 		assert.Equal(t, 0, len(parameters))
 		return dummyAppError
 	}
@@ -87,7 +87,7 @@ func TestDecrypt_InvalidKey(t *testing.T) {
 	// arrange
 	var expectedCipherText = "some dummy cipher text"
 	var cryptoKey = "invalid key"
-	var expectedErrorMessage = "Failed to create new cipher"
+	var dummyMessageFormat = "Failed to create new cipher"
 	var dummyAppError = apperror.GetGeneralFailureError(nil)
 
 	// mock
@@ -103,7 +103,7 @@ func TestDecrypt_InvalidKey(t *testing.T) {
 	apperrorWrapSimpleError = func(innerError error, messageFormat string, parameters ...interface{}) apperror.AppError {
 		apperrorWrapSimpleErrorCalled++
 		assert.NotNil(t, innerError)
-		assert.Equal(t, expectedErrorMessage, messageFormat)
+		assert.Equal(t, dummyMessageFormat, messageFormat)
 		assert.Equal(t, 0, len(parameters))
 		return dummyAppError
 	}
@@ -123,7 +123,7 @@ func TestDecrypt_WrongBase64CipherText(t *testing.T) {
 	// arrange
 	var expectedCipherText = "some dummy cipher text"
 	var cryptoKey = "the-key-has-to-be-32-bytes-long!"
-	var expectedErrorMessage = "Failed to decode cipher text"
+	var dummyMessageFormat = "Failed to decode cipher text"
 	var dummyAppError = apperror.GetGeneralFailureError(nil)
 
 	// mock
@@ -144,7 +144,7 @@ func TestDecrypt_WrongBase64CipherText(t *testing.T) {
 	apperrorWrapSimpleError = func(innerError error, messageFormat string, parameters ...interface{}) apperror.AppError {
 		apperrorWrapSimpleErrorCalled++
 		assert.NotNil(t, innerError)
-		assert.Equal(t, expectedErrorMessage, messageFormat)
+		assert.Equal(t, dummyMessageFormat, messageFormat)
 		assert.Equal(t, 0, len(parameters))
 		return dummyAppError
 	}
@@ -164,7 +164,7 @@ func TestDecrypt_TooShortCipherText(t *testing.T) {
 	// arrange
 	var expectedCipherText = base64.StdEncoding.EncodeToString([]byte("foo"))
 	var cryptoKey = "the-key-has-to-be-32-bytes-long!"
-	var expectedErrorMessage = "Failed to decode cipher text: cipherText too short"
+	var dummyMessageFormat = "Failed to decode cipher text: cipherText too short"
 	var dummyAppError = apperror.GetGeneralFailureError(nil)
 
 	// mock
@@ -185,7 +185,7 @@ func TestDecrypt_TooShortCipherText(t *testing.T) {
 	apperrorWrapSimpleError = func(innerError error, messageFormat string, parameters ...interface{}) apperror.AppError {
 		apperrorWrapSimpleErrorCalled++
 		assert.Nil(t, innerError)
-		assert.Equal(t, expectedErrorMessage, messageFormat)
+		assert.Equal(t, dummyMessageFormat, messageFormat)
 		assert.Equal(t, 0, len(parameters))
 		return dummyAppError
 	}
@@ -205,7 +205,7 @@ func TestDecrypt_InvalidCipherText(t *testing.T) {
 	// arrange
 	var expectedCipherText = base64.StdEncoding.EncodeToString([]byte("some dummy cipher text"))
 	var cryptoKey = "the-key-has-to-be-32-bytes-long!"
-	var expectedErrorMessage = "Failed to decode using cipher text"
+	var dummyMessageFormat = "Failed to decode using cipher text"
 	var dummyAppError = apperror.GetGeneralFailureError(nil)
 
 	// mock
@@ -226,7 +226,7 @@ func TestDecrypt_InvalidCipherText(t *testing.T) {
 	apperrorWrapSimpleError = func(innerError error, messageFormat string, parameters ...interface{}) apperror.AppError {
 		apperrorWrapSimpleErrorCalled++
 		assert.NotNil(t, innerError)
-		assert.Equal(t, expectedErrorMessage, messageFormat)
+		assert.Equal(t, dummyMessageFormat, messageFormat)
 		assert.Equal(t, 0, len(parameters))
 		return dummyAppError
 	}

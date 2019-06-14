@@ -1,12 +1,13 @@
 package swagger
 
 import (
-	"fmt"
 	"net/http"
 	"testing"
 
+	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
 	"github.com/zhongjie-cai/WebServiceTemplate/config"
+	"github.com/zhongjie-cai/WebServiceTemplate/server/route"
 )
 
 var (
@@ -18,10 +19,10 @@ var (
 	httpStripPrefixCalled       int
 	httpFileServerExpected      int
 	httpFileServerCalled        int
-	httpHandleFuncExpected      int
-	httpHandleFuncCalled        int
-	httpHandleExpected          int
-	httpHandleCalled            int
+	routeHandleFuncExpected     int
+	routeHandleFuncCalled       int
+	routeHostStaticExpected     int
+	routeHostStaticCalled       int
 	redirectHandlerFuncExpected int
 	redirectHandlerFuncCalled   int
 	contentHandlerFuncExpected  int
@@ -52,15 +53,17 @@ func createMock(t *testing.T) {
 		httpFileServerCalled++
 		return nil
 	}
-	httpHandleFuncExpected = 0
-	httpHandleFuncCalled = 0
-	httpHandleFunc = func(pattern string, handler func(http.ResponseWriter, *http.Request)) {
-		httpHandleFuncCalled++
+	routeHandleFuncExpected = 0
+	routeHandleFuncCalled = 0
+	routeHandleFunc = func(router *mux.Router, endpoint string, method string, path string, handler func(http.ResponseWriter, *http.Request)) *mux.Route {
+		routeHandleFuncCalled++
+		return nil
 	}
-	httpHandleExpected = 0
-	httpHandleCalled = 0
-	httpHandle = func(pattern string, handler http.Handler) {
-		httpHandleCalled++
+	routeHostStaticExpected = 0
+	routeHostStaticCalled = 0
+	routeHostStatic = func(router *mux.Router, name string, path string, handler http.Handler) *mux.Route {
+		routeHostStaticCalled++
+		return nil
 	}
 	redirectHandlerFuncExpected = 0
 	redirectHandlerFuncCalled = 0
@@ -77,35 +80,19 @@ func createMock(t *testing.T) {
 
 func verifyAll(t *testing.T) {
 	configAppPath = config.AppPath
-	if configAppPathExpected != configAppPathCalled {
-		assert.Fail(t, fmt.Sprintf("Unexpected method call to configAppPath, expected %v, actual %v", configAppPathExpected, configAppPathCalled))
-	}
+	assert.Equal(t, configAppPathExpected, configAppPathCalled, "Unexpected method call to configAppPath")
 	httpRedirect = http.Redirect
-	if httpRedirectExpected != httpRedirectCalled {
-		assert.Fail(t, fmt.Sprintf("Unexpected method call to httpRedirect, expected %v, actual %v", httpRedirectExpected, httpRedirectCalled))
-	}
+	assert.Equal(t, httpRedirectExpected, httpRedirectCalled, "Unexpected method call to httpRedirect")
 	httpStripPrefix = http.StripPrefix
-	if httpStripPrefixExpected != httpStripPrefixCalled {
-		assert.Fail(t, fmt.Sprintf("Unexpected method call to httpStripPrefix, expected %v, actual %v", httpStripPrefixExpected, httpStripPrefixCalled))
-	}
+	assert.Equal(t, httpStripPrefixExpected, httpStripPrefixCalled, "Unexpected method call to httpStripPrefix")
 	httpFileServer = http.FileServer
-	if httpFileServerExpected != httpFileServerCalled {
-		assert.Fail(t, fmt.Sprintf("Unexpected method call to httpFileServer, expected %v, actual %v", httpFileServerExpected, httpFileServerCalled))
-	}
-	httpHandleFunc = http.HandleFunc
-	if httpHandleFuncExpected != httpHandleFuncCalled {
-		assert.Fail(t, fmt.Sprintf("Unexpected method call to httpHandleFunc, expected %v, actual %v", httpHandleFuncExpected, httpHandleFuncCalled))
-	}
-	httpHandle = http.Handle
-	if httpHandleExpected != httpHandleCalled {
-		assert.Fail(t, fmt.Sprintf("Unexpected method call to httpHandle, expected %v, actual %v", httpHandleExpected, httpHandleCalled))
-	}
+	assert.Equal(t, httpFileServerExpected, httpFileServerCalled, "Unexpected method call to httpFileServer")
+	routeHandleFunc = route.HandleFunc
+	assert.Equal(t, routeHandleFuncExpected, routeHandleFuncCalled, "Unexpected method call to routeHandleFunc")
+	routeHostStatic = route.HostStatic
+	assert.Equal(t, routeHostStaticExpected, routeHostStaticCalled, "Unexpected method call to routeHostStatic")
 	redirectHandlerFunc = redirectHandler
-	if redirectHandlerFuncExpected != redirectHandlerFuncCalled {
-		assert.Fail(t, fmt.Sprintf("Unexpected method call to redirectHandlerFunc, expected %v, actual %v", redirectHandlerFuncExpected, redirectHandlerFuncCalled))
-	}
+	assert.Equal(t, redirectHandlerFuncExpected, redirectHandlerFuncCalled, "Unexpected method call to redirectHandlerFunc")
 	contentHandlerFunc = contentHandler
-	if contentHandlerFuncExpected != contentHandlerFuncCalled {
-		assert.Fail(t, fmt.Sprintf("Unexpected method call to contentHandlerFunc, expected %v, actual %v", contentHandlerFuncExpected, contentHandlerFuncCalled))
-	}
+	assert.Equal(t, contentHandlerFuncExpected, contentHandlerFuncCalled, "Unexpected method call to contentHandlerFunc")
 }

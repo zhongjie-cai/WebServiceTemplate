@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/zhongjie-cai/WebServiceTemplate/config"
+	"github.com/zhongjie-cai/WebServiceTemplate/server/route"
 )
 
 // func pointers for injection / testing: swagger.go
@@ -12,8 +13,8 @@ var (
 	httpRedirect        = http.Redirect
 	httpStripPrefix     = http.StripPrefix
 	httpFileServer      = http.FileServer
-	httpHandleFunc      = http.HandleFunc
-	httpHandle          = http.Handle
+	routeHandleFunc     = route.HandleFunc
+	routeHostStatic     = route.HostStatic
 	redirectHandlerFunc = redirectHandler
 	contentHandlerFunc  = contentHandler
 )

@@ -1,20 +1,3 @@
-if [ -n "$1" ]
-then
-	export CryptoKey=$1
-fi
-if [ -n "$2" ]
-then
-	export OuttaskDBConnectionString=$2
-fi
-if [ -n "$3" ]
-then
-	export ItineraryServicesURL=$3
-fi
-if [ -n "$4" ]
-then
-	export T2TripStoreURL=$4
-fi
-
 mkdir -p coverage
 
 allTestCoverResultFile="coverage/all.test.cover.result"
@@ -42,7 +25,7 @@ echo ""
 echo "Coverage result:"
 
 # Echo result for visibility
-FullReportLines=$(grep -e '/SmartWorkflowEngine' $allTestCoverResultFile)
+FullReportLines=$(grep -e '/WebServiceTemplate' $allTestCoverResultFile)
 
 FailedLines=$(echo "$FullReportLines" | grep -e 'FAIL')
 if [ -n "$FailedLines" ]

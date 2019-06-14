@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/google/uuid"
@@ -20,16 +19,22 @@ var (
 	configAppVersionCalled           int
 	configInitializeExpected         int
 	configInitializeCalled           int
+	configSendClientCertExpected     int
+	configSendClientCertCalled       int
 	configClientCertContentExpected  int
 	configClientCertContentCalled    int
 	configClientKeyContentExpected   int
 	configClientKeyContentCalled     int
+	configServeHTTPSExpected         int
+	configServeHTTPSCalled           int
 	configServerCertContentExpected  int
 	configServerCertContentCalled    int
 	configServerKeyContentExpected   int
 	configServerKeyContentCalled     int
-	configCACertContentExpected      int
-	configCACertContentCalled        int
+	configValidateClientCertExpected int
+	configValidateClientCertCalled   int
+	configCaCertContentExpected      int
+	configCaCertContentCalled        int
 	certificateInitializeExpected    int
 	certificateInitializeCalled      int
 	loggerAppRootExpected            int
@@ -65,6 +70,12 @@ func createMock(t *testing.T) {
 		configInitializeCalled++
 		return nil
 	}
+	configSendClientCertExpected = 0
+	configSendClientCertCalled = 0
+	configSendClientCert = func() bool {
+		configSendClientCertCalled++
+		return false
+	}
 	configClientCertContentExpected = 0
 	configClientCertContentCalled = 0
 	configClientCertContent = func() string {
@@ -76,6 +87,12 @@ func createMock(t *testing.T) {
 	configClientKeyContent = func() string {
 		configClientKeyContentCalled++
 		return ""
+	}
+	configServeHTTPSExpected = 0
+	configServeHTTPSCalled = 0
+	configServeHTTPS = func() bool {
+		configServeHTTPSCalled++
+		return false
 	}
 	configServerCertContentExpected = 0
 	configServerCertContentCalled = 0
@@ -89,15 +106,21 @@ func createMock(t *testing.T) {
 		configServerKeyContentCalled++
 		return ""
 	}
-	configCACertContentExpected = 0
-	configCACertContentCalled = 0
-	configCACertContent = func() string {
-		configCACertContentCalled++
+	configValidateClientCertExpected = 0
+	configValidateClientCertCalled = 0
+	configValidateClientCert = func() bool {
+		configValidateClientCertCalled++
+		return false
+	}
+	configCaCertContentExpected = 0
+	configCaCertContentCalled = 0
+	configCaCertContent = func() string {
+		configCaCertContentCalled++
 		return ""
 	}
 	certificateInitializeExpected = 0
 	certificateInitializeCalled = 0
-	certificateInitialize = func(clientCertContent string, clientKeyContent string, serverCertContent string, serverKeyContent string, caCertContent string) error {
+	certificateInitialize = func(sendClientCert bool, clientCertContent string, clientKeyContent string, serveHTTPS bool, serverCertContent string, serverKeyContent string, validateClientCert bool, caCertContent string) error {
 		certificateInitializeCalled++
 		return nil
 	}
@@ -126,7 +149,7 @@ func createMock(t *testing.T) {
 	}
 	serverHostExpected = 0
 	serverHostCalled = 0
-	serverHost = func() error {
+	serverHost = func(serveHTTPS bool, validateClientCert bool, appPort string) error {
 		serverHostCalled++
 		return nil
 	}
@@ -140,65 +163,39 @@ func createMock(t *testing.T) {
 
 func verifyAll(t *testing.T) {
 	configAppPort = config.AppPort
-	if configAppPortExpected != configAppPortCalled {
-		assert.Fail(t, fmt.Sprintf("Unexpected method call to configAppPort, expected %v, actual %v", configAppPortExpected, configAppPortCalled))
-	}
+	assert.Equal(t, configAppPortExpected, configAppPortCalled, "Unexpected method call to configAppPort")
 	configAppVersion = config.AppVersion
-	if configAppVersionExpected != configAppVersionCalled {
-		assert.Fail(t, fmt.Sprintf("Unexpected method call to configAppVersion, expected %v, actual %v", configAppVersionExpected, configAppVersionCalled))
-	}
+	assert.Equal(t, configAppVersionExpected, configAppVersionCalled, "Unexpected method call to configAppVersion")
 	configInitialize = config.Initialize
-	if configInitializeExpected != configInitializeCalled {
-		assert.Fail(t, fmt.Sprintf("Unexpected method call to configInitialize, expected %v, actual %v", configInitializeExpected, configInitializeCalled))
-	}
-
+	assert.Equal(t, configInitializeExpected, configInitializeCalled, "Unexpected method call to configInitialize")
+	configSendClientCert = config.SendClientCert
+	assert.Equal(t, configSendClientCertExpected, configSendClientCertCalled, "Unexpected method call to configSendClientCert")
 	configClientCertContent = config.ClientCertContent
-	if configClientCertContentExpected != configClientCertContentCalled {
-		assert.Fail(t, fmt.Sprintf("Unexpected method call to configClientCertContent, expected %v, actual %v", configClientCertContentExpected, configClientCertContentCalled))
-	}
+	assert.Equal(t, configClientCertContentExpected, configClientCertContentCalled, "Unexpected method call to configClientCertContent")
 	configClientKeyContent = config.ClientKeyContent
-	if configClientKeyContentExpected != configClientKeyContentCalled {
-		assert.Fail(t, fmt.Sprintf("Unexpected method call to configClientKeyContent, expected %v, actual %v", configClientKeyContentExpected, configClientKeyContentCalled))
-	}
+	assert.Equal(t, configClientKeyContentExpected, configClientKeyContentCalled, "Unexpected method call to configClientKeyContent")
+	configServeHTTPS = config.ServeHTTPS
+	assert.Equal(t, configServeHTTPSExpected, configServeHTTPSCalled, "Unexpected method call to configServeHTTPS")
 	configServerCertContent = config.ServerCertContent
-	if configServerCertContentExpected != configServerCertContentCalled {
-		assert.Fail(t, fmt.Sprintf("Unexpected method call to configServerCertContent, expected %v, actual %v", configServerCertContentExpected, configServerCertContentCalled))
-	}
+	assert.Equal(t, configServerCertContentExpected, configServerCertContentCalled, "Unexpected method call to configServerCertContent")
 	configServerKeyContent = config.ServerKeyContent
-	if configServerKeyContentExpected != configServerKeyContentCalled {
-		assert.Fail(t, fmt.Sprintf("Unexpected method call to configServerKeyContent, expected %v, actual %v", configServerKeyContentExpected, configServerKeyContentCalled))
-	}
-	configCACertContent = config.CACertContent
-	if configCACertContentExpected != configCACertContentCalled {
-		assert.Fail(t, fmt.Sprintf("Unexpected method call to configCACertContent, expected %v, actual %v", configCACertContentExpected, configCACertContentCalled))
-	}
-
+	assert.Equal(t, configServerKeyContentExpected, configServerKeyContentCalled, "Unexpected method call to configServerKeyContent")
+	configValidateClientCert = config.ValidateClientCert
+	assert.Equal(t, configValidateClientCertExpected, configValidateClientCertCalled, "Unexpected method call to configValidateClientCert")
+	configCaCertContent = config.CaCertContent
+	assert.Equal(t, configCaCertContentExpected, configCaCertContentCalled, "Unexpected method call to configCaCertContent")
 	certificateInitialize = certificate.Initialize
-	if certificateInitializeExpected != certificateInitializeCalled {
-		assert.Fail(t, fmt.Sprintf("Unexpected method call to certificateInitialize, expected %v, actual %v", certificateInitializeExpected, certificateInitializeCalled))
-	}
+	assert.Equal(t, certificateInitializeExpected, certificateInitializeCalled, "Unexpected method call to certificateInitialize")
 	loggerAppRoot = logger.AppRoot
-	if loggerAppRootExpected != loggerAppRootCalled {
-		assert.Fail(t, fmt.Sprintf("Unexpected method call to loggerAppRoot, expected %v, actual %v", loggerAppRootExpected, loggerAppRootCalled))
-	}
+	assert.Equal(t, loggerAppRootExpected, loggerAppRootCalled, "Unexpected method call to loggerAppRoot")
 	bootstrapApplicationFunc = bootstrapApplication
-	if bootstrapApplicationFuncExpected != bootstrapApplicationFuncCalled {
-		assert.Fail(t, fmt.Sprintf("Unexpected method call to bootstrapApplicationFunc, expected %v, actual %v", bootstrapApplicationFuncExpected, bootstrapApplicationFuncCalled))
-	}
+	assert.Equal(t, bootstrapApplicationFuncExpected, bootstrapApplicationFuncCalled, "Unexpected method call to bootstrapApplicationFunc")
 	connectStoragesFunc = connectStorages
-	if connectStoragesFuncExpected != connectStoragesFuncCalled {
-		assert.Fail(t, fmt.Sprintf("Unexpected method call to connectStoragesFunc, expected %v, actual %v", connectStoragesFuncExpected, connectStoragesFuncCalled))
-	}
+	assert.Equal(t, connectStoragesFuncExpected, connectStoragesFuncCalled, "Unexpected method call to connectStoragesFunc")
 	disconnectStoragesFunc = disconnectStorages
-	if disconnectStoragesFuncExpected != disconnectStoragesFuncCalled {
-		assert.Fail(t, fmt.Sprintf("Unexpected method call to disconnectStoragesFunc, expected %v, actual %v", disconnectStoragesFuncExpected, disconnectStoragesFuncCalled))
-	}
+	assert.Equal(t, disconnectStoragesFuncExpected, disconnectStoragesFuncCalled, "Unexpected method call to disconnectStoragesFunc")
 	serverHost = server.Host
-	if serverHostExpected != serverHostCalled {
-		assert.Fail(t, fmt.Sprintf("Unexpected method call to serverHost, expected %v, actual %v", serverHostExpected, serverHostCalled))
-	}
+	assert.Equal(t, serverHostExpected, serverHostCalled, "Unexpected method call to serverHost")
 	apperrorWrapSimpleError = apperror.WrapSimpleError
-	if apperrorWrapSimpleErrorExpected != apperrorWrapSimpleErrorCalled {
-		assert.Fail(t, fmt.Sprintf("Unexpected method call to apperrorWrapSimpleError, expected %v, actual %v", apperrorWrapSimpleErrorExpected, apperrorWrapSimpleErrorCalled))
-	}
+	assert.Equal(t, apperrorWrapSimpleErrorExpected, apperrorWrapSimpleErrorCalled, "Unexpected method call to apperrorWrapSimpleError")
 }

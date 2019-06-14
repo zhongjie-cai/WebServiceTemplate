@@ -132,6 +132,23 @@ func TestCodeEnumString_AccessForbidden(t *testing.T) {
 	verifyAll(t)
 }
 
+func TestCodeEnumString_GetDataCorruption(t *testing.T) {
+	// mock
+	createMock(t)
+
+	// SUT
+	var testCode = CodeDataCorruption
+
+	// act
+	var convertedString = testCode.String()
+
+	// assert
+	assert.Equal(t, "DataCorruption", convertedString)
+
+	// verify
+	verifyAll(t)
+}
+
 func TestCodeEnumString_UnknownTooBig(t *testing.T) {
 	// arrange
 	var testCode Code
@@ -645,6 +662,35 @@ func TestGetAccessForbiddenError(t *testing.T) {
 	verifyAll(t)
 }
 
+func TestGetDataCorruptionError(t *testing.T) {
+	// arrange
+	var expectedInnerError = errors.New("dummy inner error")
+	var expectedResult = appError{}
+
+	// mock
+	createMock(t)
+
+	// expect
+	wrapErrorFuncExpected = 1
+	wrapErrorFunc = func(innerError error, errorCode Code, messageFormat string, parameters ...interface{}) AppError {
+		wrapErrorFuncCalled++
+		assert.Equal(t, expectedInnerError, innerError)
+		assert.Equal(t, CodeDataCorruption, errorCode)
+		assert.Equal(t, "Operation failed due to internal storage data corruption", messageFormat)
+		assert.Equal(t, 0, len(parameters))
+		return expectedResult
+	}
+
+	// SUT + act
+	var appError = GetDataCorruptionError(expectedInnerError)
+
+	// assert
+	assert.Equal(t, expectedResult, appError)
+
+	// verify
+	verifyAll(t)
+}
+
 func TestConsolidateAllErrors_NilList(t *testing.T) {
 	// arrange
 	var baseErrorMessage = "some base error message"
@@ -709,7 +755,7 @@ func TestConsolidateAllErrors_ListOfEmptyErrors(t *testing.T) {
 		nil,
 		errors.New(""),
 	}
-	var expectedErrorMessage = "Unknown Error | Unknown Error"
+	var dummyMessageFormat = "Unknown Error | Unknown Error"
 	var dummyAppError = GetGeneralFailureError(nil)
 
 	// mock
@@ -725,7 +771,7 @@ func TestConsolidateAllErrors_ListOfEmptyErrors(t *testing.T) {
 	wrapSimpleErrorFunc = func(innerError error, messageFormat string, parameters ...interface{}) AppError {
 		wrapSimpleErrorFuncCalled++
 		assert.NotNil(t, innerError)
-		assert.Equal(t, expectedErrorMessage, innerError.Error())
+		assert.Equal(t, dummyMessageFormat, innerError.Error())
 		assert.Equal(t, baseErrorMessage, messageFormat)
 		assert.Equal(t, 0, len(parameters))
 		return dummyAppError
@@ -751,7 +797,7 @@ func TestConsolidateAllErrors_ListOfValidErrors(t *testing.T) {
 		nil,
 		errors.New(errorMessage3),
 	}
-	var expectedErrorMessage = errorMessage1 + " | " + errorMessage3
+	var dummyMessageFormat = errorMessage1 + " | " + errorMessage3
 	var dummyAppError = GetGeneralFailureError(nil)
 
 	// mock
@@ -767,7 +813,7 @@ func TestConsolidateAllErrors_ListOfValidErrors(t *testing.T) {
 	wrapSimpleErrorFunc = func(innerError error, messageFormat string, parameters ...interface{}) AppError {
 		wrapSimpleErrorFuncCalled++
 		assert.NotNil(t, innerError)
-		assert.Equal(t, expectedErrorMessage, innerError.Error())
+		assert.Equal(t, dummyMessageFormat, innerError.Error())
 		assert.Equal(t, baseErrorMessage, messageFormat)
 		assert.Equal(t, 0, len(parameters))
 		return dummyAppError
@@ -791,7 +837,7 @@ func TestWrapError(t *testing.T) {
 	var dummyParameter1 = "foo"
 	var dummyParameter2 = 123
 	var dummyParameter3 = errors.New("dummy")
-	var expectedErrorMessage = "some error message"
+	var dummyErrorMessage = "some error message"
 
 	// mock
 	createMock(t)
@@ -805,7 +851,7 @@ func TestWrapError(t *testing.T) {
 		assert.Equal(t, dummyParameter1, parameters[0])
 		assert.Equal(t, dummyParameter2, parameters[1])
 		assert.Equal(t, dummyParameter3, parameters[2])
-		return errors.New(expectedErrorMessage)
+		return errors.New(dummyErrorMessage)
 	}
 
 	// SUT + act
@@ -820,7 +866,7 @@ func TestWrapError(t *testing.T) {
 
 	// assert
 	assert.True(t, ok)
-	assert.Equal(t, expectedErrorMessage, appError.error.Error())
+	assert.Equal(t, dummyErrorMessage, appError.error.Error())
 	assert.Equal(t, dummyErrorCode, appError.code)
 	assert.Equal(t, 1, len(appError.innerErrors))
 	assert.Equal(t, dummyInnerError.Error(), appError.innerErrors[0].Error())

@@ -1,7 +1,6 @@
 package request
 
 import (
-	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -77,31 +76,17 @@ func createMock(t *testing.T) {
 
 func verifyAll(t *testing.T) {
 	uuidParse = uuid.Parse
-	if uuidParseExpected != uuidParseCalled {
-		assert.Fail(t, fmt.Sprintf("Unexpected method call to uuidParse, expected %v, actual %v", uuidParseExpected, uuidParseCalled))
-	}
+	assert.Equal(t, uuidParseExpected, uuidParseCalled, "Unexpected method call to uuidParse")
 	uuidNew = uuid.New
-	if uuidNewExpected != uuidNewCalled {
-		assert.Fail(t, fmt.Sprintf("Unexpected method call to uuidNew, expected %v, actual %v", uuidNewExpected, uuidNewCalled))
-	}
+	assert.Equal(t, uuidNewExpected, uuidNewCalled, "Unexpected method call to uuidNew")
 	logtypeFromString = logtype.FromString
-	if logtypeFromStringExpected != logtypeFromStringCalled {
-		assert.Fail(t, fmt.Sprintf("Unexpected method call to logtypeFromString, expected %v, actual %v", logtypeFromStringExpected, logtypeFromStringCalled))
-	}
+	assert.Equal(t, logtypeFromStringExpected, logtypeFromStringCalled, "Unexpected method call to logtypeFromString")
 	apperrorWrapSimpleError = apperror.WrapSimpleError
-	if apperrorWrapSimpleErrorExpected != apperrorWrapSimpleErrorCalled {
-		assert.Fail(t, fmt.Sprintf("Unexpected method call to apperrorWrapSimpleError, expected %v, actual %v", apperrorWrapSimpleErrorExpected, apperrorWrapSimpleErrorCalled))
-	}
+	assert.Equal(t, apperrorWrapSimpleErrorExpected, apperrorWrapSimpleErrorCalled, "Unexpected method call to apperrorWrapSimpleError")
 	ioutilReadAll = ioutil.ReadAll
-	if ioutilReadAllExpected != ioutilReadAllCalled {
-		assert.Fail(t, fmt.Sprintf("Unexpected method call to ioutilReadAll, expected %v, actual %v", ioutilReadAllExpected, ioutilReadAllCalled))
-	}
+	assert.Equal(t, ioutilReadAllExpected, ioutilReadAllCalled, "Unexpected method call to ioutilReadAll")
 	loggerAPIRequest = logger.APIRequest
-	if loggerAPIRequestExpected != loggerAPIRequestCalled {
-		assert.Fail(t, fmt.Sprintf("Unexpected method call to loggerAPIRequest, expected %v, actual %v", loggerAPIRequestExpected, loggerAPIRequestCalled))
-	}
+	assert.Equal(t, loggerAPIRequestExpected, loggerAPIRequestCalled, "Unexpected method call to loggerAPIRequest")
 	getUUIDFromHeaderFunc = getUUIDFromHeader
-	if getUUIDFromHeaderFuncExpected != getUUIDFromHeaderFuncCalled {
-		assert.Fail(t, fmt.Sprintf("Unexpected method call to getUUIDFromHeaderFunc, expected %v, actual %v", getUUIDFromHeaderFuncExpected, getUUIDFromHeaderFuncCalled))
-	}
+	assert.Equal(t, getUUIDFromHeaderFuncExpected, getUUIDFromHeaderFuncCalled, "Unexpected method call to getUUIDFromHeaderFunc")
 }

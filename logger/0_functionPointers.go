@@ -21,6 +21,7 @@ var (
 	jsonutilMarshalIgnoreError = jsonutil.MarshalIgnoreError
 	configAppName              = config.AppName
 	configAppVersion           = config.AppVersion
+	configIsLocalhost          = config.IsLocalhost
 	sessionGet                 = session.Get
 	doLoggingFunc              = doLogging
 )

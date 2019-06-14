@@ -3,7 +3,6 @@ package crypto
 import (
 	"crypto/aes"
 	"crypto/cipher"
-	"fmt"
 	"io"
 	"testing"
 
@@ -51,19 +50,11 @@ func createMock(t *testing.T) {
 
 func verifyAll(t *testing.T) {
 	aesNewCipher = aes.NewCipher
-	if aesNewCipherExpected != aesNewCipherCalled {
-		assert.Fail(t, fmt.Sprintf("Unexpected method call to aesNewCipher, expected %v, actual %v", aesNewCipherExpected, aesNewCipherCalled))
-	}
+	assert.Equal(t, aesNewCipherExpected, aesNewCipherCalled, "Unexpected method call to aesNewCipher")
 	cipherNewGCM = cipher.NewGCM
-	if cipherNewGCMExpected != cipherNewGCMCalled {
-		assert.Fail(t, fmt.Sprintf("Unexpected method call to cipherNewGCM, expected %v, actual %v", cipherNewGCMExpected, cipherNewGCMCalled))
-	}
+	assert.Equal(t, cipherNewGCMExpected, cipherNewGCMCalled, "Unexpected method call to cipherNewGCM")
 	ioReadFull = io.ReadFull
-	if ioReadFullExpected != ioReadFullCalled {
-		assert.Fail(t, fmt.Sprintf("Unexpected method call to ioReadFull, expected %v, actual %v", ioReadFullExpected, ioReadFullCalled))
-	}
+	assert.Equal(t, ioReadFullExpected, ioReadFullCalled, "Unexpected method call to ioReadFull")
 	apperrorWrapSimpleError = apperror.WrapSimpleError
-	if apperrorWrapSimpleErrorExpected != apperrorWrapSimpleErrorCalled {
-		assert.Fail(t, fmt.Sprintf("Unexpected method call to apperrorWrapSimpleError, expected %v, actual %v", apperrorWrapSimpleErrorExpected, apperrorWrapSimpleErrorCalled))
-	}
+	assert.Equal(t, apperrorWrapSimpleErrorExpected, apperrorWrapSimpleErrorCalled, "Unexpected method call to apperrorWrapSimpleError")
 }

@@ -2,13 +2,18 @@ package swagger
 
 import (
 	"net/http"
+
+	"github.com/gorilla/mux"
 )
 
-func redirectHandler(responseWriter http.ResponseWriter, request *http.Request) {
+func redirectHandler(
+	responseWriter http.ResponseWriter,
+	request *http.Request,
+) {
 	httpRedirect(
 		responseWriter,
 		request,
-		"/docs/index.html",
+		"/docs/",
 		http.StatusPermanentRedirect,
 	)
 }
@@ -21,11 +26,18 @@ func contentHandler() http.Handler {
 }
 
 // HostEntry hosts the service entry for "/docs"
-func HostEntry() {
-	httpHandleFunc(
+func HostEntry(router *mux.Router) {
+	routeHandleFunc(
+		router,
+		"SwaggerUI",
+		http.MethodGet,
 		"/docs",
-		redirectHandlerFunc)
-	httpHandle(
+		redirectHandlerFunc,
+	)
+	routeHostStatic(
+		router,
+		"SwaggerUI",
 		"/docs/",
-		contentHandlerFunc())
+		contentHandlerFunc(),
+	)
 }

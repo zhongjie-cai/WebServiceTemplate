@@ -6,13 +6,20 @@ import (
 	"github.com/google/uuid"
 )
 
+const (
+	// RegexpForUUID is used when registering routes with path variables that use UUIDs
+	RegexpForUUID = "[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}"
+)
+
 // HandleInSession wraps the HTTP handler with session related operations
 func HandleInSession(
 	responseWriter http.ResponseWriter,
 	request *http.Request,
-	endpoint string,
 	action func(http.ResponseWriter, *http.Request, uuid.UUID),
 ) {
+	var endpoint = routeGetEndpointName(
+		request,
+	)
 	var sessionID = sessionRegister(
 		endpoint,
 		requestGetLoginID(

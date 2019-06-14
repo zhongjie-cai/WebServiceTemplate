@@ -1,7 +1,6 @@
 package timeutil
 
 import (
-	"fmt"
 	"testing"
 	"time"
 
@@ -24,7 +23,5 @@ func createMock(t *testing.T) {
 
 func verifyAll(t *testing.T) {
 	timeNow = time.Now
-	if timeNowExpected != timeNowCalled {
-		assert.Fail(t, fmt.Sprintf("Unexpected method call to timeNow, expected %v, actual %v", timeNowExpected, timeNowCalled))
-	}
+	assert.Equal(t, timeNowExpected, timeNowCalled, "Unexpected method call to timeNow")
 }

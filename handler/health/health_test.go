@@ -6,9 +6,10 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/gorilla/mux"
+
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
-	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
 )
 
 // mock struct
@@ -30,7 +31,7 @@ func (drw *dummyResponseWriter) WriteHeader(statusCode int) {
 	assert.Equal(drw.t, http.StatusMethodNotAllowed, statusCode)
 }
 
-func TestHandleHealthLogic_MethodGet(t *testing.T) {
+func TestHandleGetHealth(t *testing.T) {
 	// arrange
 	var dummySessionID = uuid.New()
 	var dummyRequest, _ = http.NewRequest(
@@ -41,7 +42,21 @@ func TestHandleHealthLogic_MethodGet(t *testing.T) {
 	var dummyResponseWriter = &dummyResponseWriter{t}
 	var dummyAppVersion = "some app version"
 
-	// mock + assert
+	// mock
+	createMock(t)
+
+	// expect
+	commonHandleInSessionExpected = 1
+	commonHandleInSession = func(responseWriter http.ResponseWriter, request *http.Request, action func(http.ResponseWriter, *http.Request, uuid.UUID)) {
+		commonHandleInSessionCalled++
+		assert.Equal(t, dummyResponseWriter, responseWriter)
+		assert.Equal(t, dummyRequest, request)
+		action(
+			dummyResponseWriter,
+			dummyRequest,
+			dummySessionID,
+		)
+	}
 	configAppVersionExpected = 1
 	configAppVersion = func() string {
 		configAppVersionCalled++
@@ -56,107 +71,95 @@ func TestHandleHealthLogic_MethodGet(t *testing.T) {
 	}
 
 	// SUT + act
-	handleHealthLogic(
+	handleGetHealth(
 		dummyResponseWriter,
 		dummyRequest,
-		dummySessionID,
 	)
 
 	// verify
 	verifyAll(t)
 }
 
-func TestHandleHealthLogic_MethodNotGet(t *testing.T) {
+func TestHandleGetHealthReport(t *testing.T) {
 	// arrange
 	var dummySessionID = uuid.New()
 	var dummyRequest, _ = http.NewRequest(
-		"whatever",
+		http.MethodGet,
 		"http://localhost",
 		nil,
 	)
 	var dummyResponseWriter = &dummyResponseWriter{t}
-	var dummyAppError = apperror.GetGeneralFailureError(nil)
-
-	// mock + assert
-	apperrorGetInvalidOperationExpected = 1
-	apperrorGetInvalidOperation = func(innerError error) apperror.AppError {
-		apperrorGetInvalidOperationCalled++
-		assert.Nil(t, innerError)
-		return dummyAppError
-	}
-	responseErrorExpected = 1
-	responseError = func(sessionID uuid.UUID, err error, responseWriter http.ResponseWriter) {
-		responseErrorCalled++
-		assert.Equal(t, dummySessionID, sessionID)
-		assert.Equal(t, dummyAppError, err)
-		assert.Equal(t, dummyResponseWriter, responseWriter)
-	}
-
-	// SUT + act
-	handleHealthLogic(
-		dummyResponseWriter,
-		dummyRequest,
-		dummySessionID,
-	)
-
-	// verify
-	verifyAll(t)
-}
-
-func TestHandler(t *testing.T) {
-	// arrange
-	var dummyRequest, _ = http.NewRequest(
-		"whatever",
-		"http://localhost",
-		nil,
-	)
-	var dummyResponseWriter = &dummyResponseWriter{t}
+	var dummyAppVersion = "some app version"
 
 	// mock
 	createMock(t)
 
 	// expect
 	commonHandleInSessionExpected = 1
-	commonHandleInSession = func(responseWriter http.ResponseWriter, request *http.Request, endpoint string, action func(http.ResponseWriter, *http.Request, uuid.UUID)) {
+	commonHandleInSession = func(responseWriter http.ResponseWriter, request *http.Request, action func(http.ResponseWriter, *http.Request, uuid.UUID)) {
 		commonHandleInSessionCalled++
 		assert.Equal(t, dummyResponseWriter, responseWriter)
 		assert.Equal(t, dummyRequest, request)
-		assert.Equal(t, "Health", endpoint)
-		var expectedPointer = fmt.Sprintf("%v", reflect.ValueOf(handleHealthLogicFunc))
-		assert.Equal(t, expectedPointer, fmt.Sprintf("%v", reflect.ValueOf(action)))
+		action(
+			dummyResponseWriter,
+			dummyRequest,
+			dummySessionID,
+		)
+	}
+	configAppVersionExpected = 1
+	configAppVersion = func() string {
+		configAppVersionCalled++
+		return dummyAppVersion
+	}
+	responseOkExpected = 1
+	responseOk = func(sessionID uuid.UUID, responseContent interface{}, responseWriter http.ResponseWriter) {
+		responseOkCalled++
+		assert.Equal(t, dummySessionID, sessionID)
+		assert.Equal(t, dummyAppVersion, responseContent)
+		assert.Equal(t, dummyResponseWriter, responseWriter)
 	}
 
 	// SUT + act
-	handler(
+	handleGetHealthReport(
 		dummyResponseWriter,
 		dummyRequest,
 	)
 
-	// assert
-
-	// tear down
+	// verify
 	verifyAll(t)
 }
 
 func TestHostEntry(t *testing.T) {
+	// arrange
+	var dummyRouter = &mux.Router{}
+
 	// mock
 	createMock(t)
 
 	// expect
-	httpHandleFuncExpected = 2
-	httpHandleFunc = func(pattern string, handler func(http.ResponseWriter, *http.Request)) {
-		httpHandleFuncCalled++
-		var expectedPointer = fmt.Sprintf("%v", reflect.ValueOf(handlerFunc))
-		assert.Equal(t, expectedPointer, fmt.Sprintf("%v", reflect.ValueOf(handler)))
-		if httpHandleFuncCalled == 1 {
-			assert.Equal(t, "/health", pattern)
-		} else if httpHandleFuncCalled == 2 {
-			assert.Equal(t, "/health/", pattern)
+	routeHandleFuncExpected = 2
+	routeHandleFunc = func(router *mux.Router, endpoint string, method string, path string, handler func(http.ResponseWriter, *http.Request)) *mux.Route {
+		routeHandleFuncCalled++
+		assert.Equal(t, dummyRouter, router)
+		assert.Equal(t, http.MethodGet, method)
+		if routeHandleFuncCalled == 1 {
+			assert.Equal(t, "Health", endpoint)
+			assert.Equal(t, "/health", path)
+			var expectedPointer = fmt.Sprintf("%v", reflect.ValueOf(handleGetHealthFunc))
+			assert.Equal(t, expectedPointer, fmt.Sprintf("%v", reflect.ValueOf(handler)))
+		} else if routeHandleFuncCalled == 2 {
+			assert.Equal(t, "HealthReport", endpoint)
+			assert.Equal(t, "/health/report", path)
+			var expectedPointer = fmt.Sprintf("%v", reflect.ValueOf(handleGetHealthReportFunc))
+			assert.Equal(t, expectedPointer, fmt.Sprintf("%v", reflect.ValueOf(handler)))
 		}
+		return nil
 	}
 
 	// SUT + act
-	HostEntry()
+	HostEntry(
+		dummyRouter,
+	)
 
 	// verify
 	verifyAll(t)

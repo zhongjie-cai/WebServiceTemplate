@@ -1,7 +1,6 @@
 package response
 
 import (
-	"fmt"
 	"net/http"
 	"strconv"
 	"testing"
@@ -106,47 +105,25 @@ func createMock(t *testing.T) {
 
 func verifyAll(t *testing.T) {
 	strconvItoa = strconv.Itoa
-	if strconvItoaExpected != strconvItoaCalled {
-		assert.Fail(t, fmt.Sprintf("Unexpected method call to strconvItoa, expected %v, actual %v", strconvItoaExpected, strconvItoaCalled))
-	}
+	assert.Equal(t, strconvItoaExpected, strconvItoaCalled, "Unexpected method call to strconvItoa")
 	jsonutilMarshalIgnoreError = jsonutil.MarshalIgnoreError
-	if jsonutilMarshalIgnoreErrorExpected != jsonutilMarshalIgnoreErrorCalled {
-		assert.Fail(t, fmt.Sprintf("Unexpected method call to jsonutilMarshalIgnoreError, expected %v, actual %v", jsonutilMarshalIgnoreErrorExpected, jsonutilMarshalIgnoreErrorCalled))
-	}
+	assert.Equal(t, jsonutilMarshalIgnoreErrorExpected, jsonutilMarshalIgnoreErrorCalled, "Unexpected method call to jsonutilMarshalIgnoreError")
 	apperrorGetGeneralFailureError = apperror.GetGeneralFailureError
-	if apperrorGetGeneralFailureErrorExpected != apperrorGetGeneralFailureErrorCalled {
-		assert.Fail(t, fmt.Sprintf("Unexpected method call to apperrorGetGeneralFailureError, expected %v, actual %v", apperrorGetGeneralFailureErrorExpected, apperrorGetGeneralFailureErrorCalled))
-	}
+	assert.Equal(t, apperrorGetGeneralFailureErrorExpected, apperrorGetGeneralFailureErrorCalled, "Unexpected method call to apperrorGetGeneralFailureError")
 	loggerAPIResponse = logger.APIResponse
-	if loggerAPIResponseExpected != loggerAPIResponseCalled {
-		assert.Fail(t, fmt.Sprintf("Unexpected method call to loggerAPIResponse, expected %v, actual %v", loggerAPIResponseExpected, loggerAPIResponseCalled))
-	}
+	assert.Equal(t, loggerAPIResponseExpected, loggerAPIResponseCalled, "Unexpected method call to loggerAPIResponse")
 	loggerAPIExit = logger.APIExit
-	if loggerAPIExitExpected != loggerAPIExitCalled {
-		assert.Fail(t, fmt.Sprintf("Unexpected method call to loggerAPIExit, expected %v, actual %v", loggerAPIExitExpected, loggerAPIExitCalled))
-	}
+	assert.Equal(t, loggerAPIExitExpected, loggerAPIExitCalled, "Unexpected method call to loggerAPIExit")
 	getStatusCodeFunc = getStatusCode
-	if getStatusCodeFuncExpected != getStatusCodeFuncCalled {
-		assert.Fail(t, fmt.Sprintf("Unexpected method call to getStatusCodeFunc, expected %v, actual %v", getStatusCodeFuncExpected, getStatusCodeFuncCalled))
-	}
+	assert.Equal(t, getStatusCodeFuncExpected, getStatusCodeFuncCalled, "Unexpected method call to getStatusCodeFunc")
 	getAppErrorFunc = getAppError
-	if getAppErrorFuncExpected != getAppErrorFuncCalled {
-		assert.Fail(t, fmt.Sprintf("Unexpected method call to getAppErrorFunc, expected %v, actual %v", getAppErrorFuncExpected, getAppErrorFuncCalled))
-	}
+	assert.Equal(t, getAppErrorFuncExpected, getAppErrorFuncCalled, "Unexpected method call to getAppErrorFunc")
 	writeResponseFunc = writeResponse
-	if writeResponseFuncExpected != writeResponseFuncCalled {
-		assert.Fail(t, fmt.Sprintf("Unexpected method call to writeResponseFunc, expected %v, actual %v", writeResponseFuncExpected, writeResponseFuncCalled))
-	}
+	assert.Equal(t, writeResponseFuncExpected, writeResponseFuncCalled, "Unexpected method call to writeResponseFunc")
 	generateErrorResponseFunc = generateErrorResponse
-	if generateErrorResponseFuncExpected != generateErrorResponseFuncCalled {
-		assert.Fail(t, fmt.Sprintf("Unexpected method call to generateErrorResponseFunc, expected %v, actual %v", generateErrorResponseFuncExpected, generateErrorResponseFuncCalled))
-	}
+	assert.Equal(t, generateErrorResponseFuncExpected, generateErrorResponseFuncCalled, "Unexpected method call to generateErrorResponseFunc")
 	createOkResponseFunc = createOkResponse
-	if createOkResponseFuncExpected != createOkResponseFuncCalled {
-		assert.Fail(t, fmt.Sprintf("Unexpected method call to createOkResponseFunc, expected %v, actual %v", createOkResponseFuncExpected, createOkResponseFuncCalled))
-	}
+	assert.Equal(t, createOkResponseFuncExpected, createOkResponseFuncCalled, "Unexpected method call to createOkResponseFunc")
 	createErrorResponseFunc = createErrorResponse
-	if createErrorResponseFuncExpected != createErrorResponseFuncCalled {
-		assert.Fail(t, fmt.Sprintf("Unexpected method call to createErrorResponseFunc, expected %v, actual %v", createErrorResponseFuncExpected, createErrorResponseFuncCalled))
-	}
+	assert.Equal(t, createErrorResponseFuncExpected, createErrorResponseFuncCalled, "Unexpected method call to createErrorResponseFunc")
 }

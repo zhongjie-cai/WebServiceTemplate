@@ -31,6 +31,8 @@ var (
 	configAppNameCalled                int
 	configAppVersionExpected           int
 	configAppVersionCalled             int
+	configIsLocalhostExpected          int
+	configIsLocalhostCalled            int
 	sessionGetExpected                 int
 	sessionGetCalled                   int
 	doLoggingFuncExpected              int
@@ -86,6 +88,12 @@ func createMock(t *testing.T) {
 		configAppVersionCalled++
 		return ""
 	}
+	configIsLocalhostExpected = 0
+	configIsLocalhostCalled = 0
+	configIsLocalhost = func() bool {
+		configIsLocalhostCalled++
+		return false
+	}
 	sessionGetExpected = 0
 	sessionGetCalled = 0
 	sessionGet = func(sessionID uuid.UUID) *session.Session {
@@ -101,43 +109,25 @@ func createMock(t *testing.T) {
 
 func verifyAll(t *testing.T) {
 	fmtPrintln = fmt.Println
-	if fmtPrintlnExpected != fmtPrintlnCalled {
-		assert.Fail(t, fmt.Sprintf("Unexpected method call to fmtPrintln, expected %v, actual %v", fmtPrintlnExpected, fmtPrintlnCalled))
-	}
+	assert.Equal(t, fmtPrintlnExpected, fmtPrintlnCalled, "Unexpected method call to fmtPrintln")
 	uuidNew = uuid.New
-	if uuidNewExpected != uuidNewCalled {
-		assert.Fail(t, fmt.Sprintf("Unexpected method call to uuidNew, expected %v, actual %v", uuidNewExpected, uuidNewCalled))
-	}
+	assert.Equal(t, uuidNewExpected, uuidNewCalled, "Unexpected method call to uuidNew")
 	uuidParse = uuid.Parse
-	if uuidParseExpected != uuidParseCalled {
-		assert.Fail(t, fmt.Sprintf("Unexpected method call to uuidParse, expected %v, actual %v", uuidParseExpected, uuidParseCalled))
-	}
+	assert.Equal(t, uuidParseExpected, uuidParseCalled, "Unexpected method call to uuidParse")
 	fmtSprintf = fmt.Sprintf
-	if fmtSprintfExpected != fmtSprintfCalled {
-		assert.Fail(t, fmt.Sprintf("Unexpected method call to fmtSprintf, expected %v, actual %v", fmtSprintfExpected, fmtSprintfCalled))
-	}
+	assert.Equal(t, fmtSprintfExpected, fmtSprintfCalled, "Unexpected method call to fmtSprintf")
 	timeutilGetTimeNowUTC = timeutil.GetTimeNowUTC
-	if timeutilGetTimeNowUTCExpected != timeutilGetTimeNowUTCCalled {
-		assert.Fail(t, fmt.Sprintf("Unexpected method call to timeutilGetTimeNowUTC, expected %v, actual %v", timeutilGetTimeNowUTCExpected, timeutilGetTimeNowUTCCalled))
-	}
+	assert.Equal(t, timeutilGetTimeNowUTCExpected, timeutilGetTimeNowUTCCalled, "Unexpected method call to timeutilGetTimeNowUTC")
 	jsonutilMarshalIgnoreError = jsonutil.MarshalIgnoreError
-	if jsonutilMarshalIgnoreErrorExpected != jsonutilMarshalIgnoreErrorCalled {
-		assert.Fail(t, fmt.Sprintf("Unexpected method call to jsonutilMarshalIgnoreError, expected %v, actual %v", jsonutilMarshalIgnoreErrorExpected, jsonutilMarshalIgnoreErrorCalled))
-	}
+	assert.Equal(t, jsonutilMarshalIgnoreErrorExpected, jsonutilMarshalIgnoreErrorCalled, "Unexpected method call to jsonutilMarshalIgnoreError")
 	configAppName = config.AppName
-	if configAppNameExpected != configAppNameCalled {
-		assert.Fail(t, fmt.Sprintf("Unexpected method call to configAppName, expected %v, actual %v", configAppNameExpected, configAppNameCalled))
-	}
+	assert.Equal(t, configAppNameExpected, configAppNameCalled, "Unexpected method call to configAppName")
 	configAppVersion = config.AppVersion
-	if configAppVersionExpected != configAppVersionCalled {
-		assert.Fail(t, fmt.Sprintf("Unexpected method call to configAppVersion, expected %v, actual %v", configAppVersionExpected, configAppVersionCalled))
-	}
+	assert.Equal(t, configAppVersionExpected, configAppVersionCalled, "Unexpected method call to configAppVersion")
+	configIsLocalhost = config.IsLocalhost
+	assert.Equal(t, configIsLocalhostExpected, configIsLocalhostCalled, "Unexpected method call to configIsLocalhost")
 	sessionGet = session.Get
-	if sessionGetExpected != sessionGetCalled {
-		assert.Fail(t, fmt.Sprintf("Unexpected method call to sessionGet, expected %v, actual %v", sessionGetExpected, sessionGetCalled))
-	}
+	assert.Equal(t, sessionGetExpected, sessionGetCalled, "Unexpected method call to sessionGet")
 	doLoggingFunc = doLogging
-	if doLoggingFuncExpected != doLoggingFuncCalled {
-		assert.Fail(t, fmt.Sprintf("Unexpected method call to doLoggingFunc, expected %v, actual %v", doLoggingFuncExpected, doLoggingFuncCalled))
-	}
+	assert.Equal(t, doLoggingFuncExpected, doLoggingFuncCalled, "Unexpected method call to doLoggingFunc")
 }

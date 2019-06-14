@@ -13,6 +13,7 @@ const (
 	CodeCircuitBreak
 	CodeOperationLock
 	CodeAccessForbidden
+	CodeDataCorruption
 	codeMaxValue
 
 	ErrorPrintFormat   string = "(%v)%v" // (Code)Message
@@ -32,6 +33,7 @@ func (code Code) String() string {
 		"CircuitBreak",
 		"OperationLock",
 		"AccessForbidden",
+		"DataCorruption",
 	}
 	if code < 0 || code >= codeMaxValue {
 		return "Unknown"
@@ -160,6 +162,15 @@ func GetAccessForbiddenError(innerError error) AppError {
 		innerError,
 		CodeAccessForbidden,
 		"Operation failed due to access forbidden",
+	)
+}
+
+// GetDataCorruptionError creates an error related to DataCorruption
+func GetDataCorruptionError(innerError error) AppError {
+	return wrapErrorFunc(
+		innerError,
+		CodeDataCorruption,
+		"Operation failed due to internal storage data corruption",
 	)
 }
 

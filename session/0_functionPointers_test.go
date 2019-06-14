@@ -1,7 +1,6 @@
 package session
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/google/uuid"
@@ -24,7 +23,5 @@ func createMock(t *testing.T) {
 
 func verifyAll(t *testing.T) {
 	uuidNew = uuid.New
-	if uuidNewExpected != uuidNewCalled {
-		assert.Fail(t, fmt.Sprintf("Unexpected method call to uuidNew, expected %v, actual %v", uuidNewExpected, uuidNewCalled))
-	}
+	assert.Equal(t, uuidNewExpected, uuidNewCalled, "Unexpected method call to uuidNew")
 }

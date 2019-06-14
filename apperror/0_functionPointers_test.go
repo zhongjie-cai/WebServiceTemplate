@@ -56,23 +56,13 @@ func createMock(t *testing.T) {
 
 func verifyAll(t *testing.T) {
 	fmtSprintf = fmt.Sprintf
-	if fmtSprintfExpected != fmtSprintfCalled {
-		assert.Fail(t, fmt.Sprintf("Unexpected method call to fmtSprintf, expected %v, actual %v", fmtSprintfExpected, fmtSprintfCalled))
-	}
+	assert.Equal(t, fmtSprintfExpected, fmtSprintfCalled, "Unexpected method call to fmtSprintf")
 	fmtErrorf = fmt.Errorf
-	if fmtErrorfExpected != fmtErrorfCalled {
-		assert.Fail(t, fmt.Sprintf("Unexpected method call to fmtErrorf, expected %v, actual %v", fmtErrorfExpected, fmtErrorfCalled))
-	}
+	assert.Equal(t, fmtErrorfExpected, fmtErrorfCalled, "Unexpected method call to fmtErrorf")
 	stringsJoin = strings.Join
-	if stringsJoinExpected != stringsJoinCalled {
-		assert.Fail(t, fmt.Sprintf("Unexpected method call to stringsJoin, expected %v, actual %v", stringsJoinExpected, stringsJoinCalled))
-	}
+	assert.Equal(t, stringsJoinExpected, stringsJoinCalled, "Unexpected method call to stringsJoin")
 	wrapErrorFunc = WrapError
-	if wrapErrorFuncExpected != wrapErrorFuncCalled {
-		assert.Fail(t, fmt.Sprintf("Unexpected method call to wrapErrorFunc, expected %v, actual %v", wrapErrorFuncExpected, wrapErrorFuncCalled))
-	}
+	assert.Equal(t, wrapErrorFuncExpected, wrapErrorFuncCalled, "Unexpected method call to wrapErrorFunc")
 	wrapSimpleErrorFunc = WrapSimpleError
-	if wrapSimpleErrorFuncExpected != wrapSimpleErrorFuncCalled {
-		assert.Fail(t, fmt.Sprintf("Unexpected method call to wrapSimpleErrorFunc, expected %v, actual %v", wrapSimpleErrorFuncExpected, wrapSimpleErrorFuncCalled))
-	}
+	assert.Equal(t, wrapSimpleErrorFuncExpected, wrapSimpleErrorFuncCalled, "Unexpected method call to wrapSimpleErrorFunc")
 }

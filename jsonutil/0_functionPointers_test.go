@@ -2,7 +2,6 @@ package jsonutil
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 	"strings"
 	"testing"
@@ -34,11 +33,7 @@ func createMock(t *testing.T) {
 
 func verifyAll(t *testing.T) {
 	jsonNewEncoder = json.NewEncoder
-	if jsonNewEncoderExpected != jsonNewEncoderCalled {
-		assert.Fail(t, fmt.Sprintf("Unexpected method call to jsonNewEncoder, expected %v, actual %v", jsonNewEncoderExpected, jsonNewEncoderCalled))
-	}
+	assert.Equal(t, jsonNewEncoderExpected, jsonNewEncoderCalled, "Unexpected method call to jsonNewEncoder")
 	stringsTrimRight = strings.TrimRight
-	if stringsTrimRightExpected != stringsTrimRightCalled {
-		assert.Fail(t, fmt.Sprintf("Unexpected method call to stringsTrimRight, expected %v, actual %v", stringsTrimRightExpected, stringsTrimRightCalled))
-	}
+	assert.Equal(t, stringsTrimRightExpected, stringsTrimRightCalled, "Unexpected method call to stringsTrimRight")
 }

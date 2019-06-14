@@ -6,6 +6,7 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -52,7 +53,7 @@ func TestRedirectHandler(t *testing.T) {
 		httpRedirectCalled++
 		assert.Equal(t, dummyResponseWriter, responseWriter)
 		assert.Equal(t, dummyRequest, request)
-		assert.Equal(t, "/docs/index.html", url)
+		assert.Equal(t, "/docs/", url)
 		assert.Equal(t, http.StatusPermanentRedirect, code)
 	}
 
@@ -107,33 +108,43 @@ func TestContentHandler(t *testing.T) {
 
 func TestHostEntry(t *testing.T) {
 	// arrange
+	var dummyRouter = &mux.Router{}
 	var dummyHandler = &dummyHandlerStruct{}
 
 	// mock
 	createMock(t)
 
 	// expect
-	httpHandleFuncExpected = 1
-	httpHandleFunc = func(pattern string, handler func(http.ResponseWriter, *http.Request)) {
-		httpHandleFuncCalled++
-		assert.Equal(t, "/docs", pattern)
+	routeHandleFuncExpected = 1
+	routeHandleFunc = func(router *mux.Router, endpoint string, method string, path string, handler func(http.ResponseWriter, *http.Request)) *mux.Route {
+		routeHandleFuncCalled++
+		assert.Equal(t, dummyRouter, router)
+		assert.Equal(t, "SwaggerUI", endpoint)
+		assert.Equal(t, http.MethodGet, method)
+		assert.Equal(t, "/docs", path)
 		var expectedPointer = fmt.Sprintf("%v", reflect.ValueOf(redirectHandlerFunc))
 		assert.Equal(t, expectedPointer, fmt.Sprintf("%v", reflect.ValueOf(handler)))
+		return nil
 	}
 	contentHandlerFuncExpected = 1
 	contentHandlerFunc = func() http.Handler {
 		contentHandlerFuncCalled++
 		return dummyHandler
 	}
-	httpHandleExpected = 1
-	httpHandle = func(pattern string, handler http.Handler) {
-		httpHandleCalled++
-		assert.Equal(t, "/docs/", pattern)
+	routeHostStaticExpected = 1
+	routeHostStatic = func(router *mux.Router, name string, path string, handler http.Handler) *mux.Route {
+		routeHostStaticCalled++
+		assert.Equal(t, dummyRouter, router)
+		assert.Equal(t, "SwaggerUI", name)
+		assert.Equal(t, "/docs/", path)
 		assert.Equal(t, dummyHandler, handler)
+		return nil
 	}
 
 	// SUT + act
-	HostEntry()
+	HostEntry(
+		dummyRouter,
+	)
 
 	// verify
 	verifyAll(t)

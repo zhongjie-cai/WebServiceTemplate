@@ -66,27 +66,15 @@ func createMock(t *testing.T) {
 
 func verifyAll(t *testing.T) {
 	fmtErrorf = fmt.Errorf
-	if fmtErrorfExpected != fmtErrorfCalled {
-		assert.Fail(t, fmt.Sprintf("Unexpected method call to fmtErrorf, expected %v, actual %v", fmtErrorfExpected, fmtErrorfCalled))
-	}
+	assert.Equal(t, fmtErrorfExpected, fmtErrorfCalled, "Unexpected method call to fmtErrorf")
 	getRecoverErrorFunc = getRecoverError
-	if getRecoverErrorFuncExpected != getRecoverErrorFuncCalled {
-		assert.Fail(t, fmt.Sprintf("Unexpected method call to getRecoverErrorFunc, expected %v, actual %v", getRecoverErrorFuncExpected, getRecoverErrorFuncCalled))
-	}
+	assert.Equal(t, getRecoverErrorFuncExpected, getRecoverErrorFuncCalled, "Unexpected method call to getRecoverErrorFunc")
 	loggerAppRoot = logger.AppRoot
-	if loggerAppRootExpected != loggerAppRootCalled {
-		assert.Fail(t, fmt.Sprintf("Unexpected method call to loggerAppRoot, expected %v, actual %v", loggerAppRootExpected, loggerAppRootCalled))
-	}
+	assert.Equal(t, loggerAppRootExpected, loggerAppRootCalled, "Unexpected method call to loggerAppRoot")
 	responseError = response.Error
-	if responseErrorExpected != responseErrorCalled {
-		assert.Fail(t, fmt.Sprintf("Unexpected method call to responseError, expected %v, actual %v", responseErrorExpected, responseErrorCalled))
-	}
+	assert.Equal(t, responseErrorExpected, responseErrorCalled, "Unexpected method call to responseError")
 	apperrorGetGeneralFailureError = apperror.GetGeneralFailureError
-	if apperrorGetGeneralFailureErrorExpected != apperrorGetGeneralFailureErrorCalled {
-		assert.Fail(t, fmt.Sprintf("Unexpected method call to apperrorGetGeneralFailureError, expected %v, actual %v", apperrorGetGeneralFailureErrorExpected, apperrorGetGeneralFailureErrorCalled))
-	}
+	assert.Equal(t, apperrorGetGeneralFailureErrorExpected, apperrorGetGeneralFailureErrorCalled, "Unexpected method call to apperrorGetGeneralFailureError")
 	getDebugStackFunc = getDebugStack
-	if getDebugStackFuncExpected != getDebugStackFuncCalled {
-		assert.Fail(t, fmt.Sprintf("Unexpected method call to getDebugStackFunc, expected %v, actual %v", getDebugStackFuncExpected, getDebugStackFuncCalled))
-	}
+	assert.Equal(t, getDebugStackFuncExpected, getDebugStackFuncCalled, "Unexpected method call to getDebugStackFunc")
 }

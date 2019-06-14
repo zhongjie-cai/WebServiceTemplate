@@ -13,11 +13,14 @@ var (
 	configAppPort            = config.AppPort
 	configAppVersion         = config.AppVersion
 	configInitialize         = config.Initialize
+	configSendClientCert     = config.SendClientCert
 	configClientCertContent  = config.ClientCertContent
 	configClientKeyContent   = config.ClientKeyContent
+	configServeHTTPS         = config.ServeHTTPS
 	configServerCertContent  = config.ServerCertContent
 	configServerKeyContent   = config.ServerKeyContent
-	configCACertContent      = config.CACertContent
+	configValidateClientCert = config.ValidateClientCert
+	configCaCertContent      = config.CaCertContent
 	certificateInitialize    = certificate.Initialize
 	loggerAppRoot            = logger.AppRoot
 	bootstrapApplicationFunc = bootstrapApplication

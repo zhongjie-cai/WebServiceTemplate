@@ -2,85 +2,90 @@ package server
 
 import (
 	"crypto/tls"
-	"crypto/x509"
 	"net/http"
+	"time"
+
+	"github.com/gorilla/mux"
 )
 
-func createServer(serverCert *tls.Certificate, clientCertPool *x509.CertPool) *http.Server {
+func createServer(
+	serveHTTPS bool,
+	validateClientCert bool,
+	appPort string,
+	router *mux.Router,
+) *http.Server {
+	var tlsConfig = &tls.Config{
+		// PFS because we can but this will reject client with RSA certificates
+		CipherSuites: []uint16{tls.TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384},
+		// Force it server side
+		PreferServerCipherSuites: true,
+		// TLS 1.2 as minimum requirement
+		MinVersion: tls.VersionTLS12,
+	}
+	if serveHTTPS {
+		var serverCert = certificateGetServerCertificate()
+		tlsConfig.Certificates = []tls.Certificate{
+			*serverCert,
+		}
+		if validateClientCert {
+			var clientCertPool = certificateGetClientCertPool()
+			tlsConfig.ClientAuth = tls.RequireAndVerifyClientCert
+			tlsConfig.ClientCAs = clientCertPool
+		}
+	}
 	return &http.Server{
-		Addr: ":" + configAppPort(),
-		TLSConfig: &tls.Config{
-			// Provide server certificates for HTTPS communications
-			Certificates: []tls.Certificate{
-				*serverCert,
-			},
-			// Reject any TLS certificate that cannot be validated
-			ClientAuth: tls.RequireAndVerifyClientCert,
-			// Ensure that we only use our "CA" to validate certificates
-			ClientCAs: clientCertPool,
-			// PFS because we can but this will reject client with RSA certificates
-			CipherSuites: []uint16{tls.TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384},
-			// Force it server side
-			PreferServerCipherSuites: true,
-			// TLS 1.2 as minimum requirement
-			MinVersion: tls.VersionTLS12,
-		},
+		Addr:         ":" + appPort,
+		TLSConfig:    tlsConfig,
+		Handler:      router,
+		WriteTimeout: time.Second * 60,
+		ReadTimeout:  time.Second * 60,
+		IdleTimeout:  time.Second * 180,
 	}
 }
 
-func listenAndServeTLS(server *http.Server) error {
-	return server.ListenAndServeTLS("", "")
+func listenAndServe(
+	server *http.Server,
+	serveHTTPS bool,
+) error {
+	if serveHTTPS {
+		return server.ListenAndServeTLS("", "")
+	}
+	return server.ListenAndServe()
 }
 
-func runServer() error {
-	var serverCert, certError = certificateGetServerCertificate()
-	if certError != nil {
-		return apperrorWrapSimpleError(
-			certError,
-			"Failed to run server due to server cert error",
-		)
-	}
-	var clientCertPool, poolError = certificateGetClientCertPool()
-	if poolError != nil {
-		return apperrorWrapSimpleError(
-			poolError,
-			"Failed to run server due to client cert pool error",
-		)
-	}
+func runServer(
+	serveHTTPS bool,
+	validateClientCert bool,
+	appPort string,
+	router *mux.Router,
+) error {
 	var server = createServerFunc(
-		serverCert,
-		clientCertPool,
+		serveHTTPS,
+		validateClientCert,
+		appPort,
+		router,
 	)
-	var serverError = listenAndServeTLSFunc(
+	var serverError = listenAndServeFunc(
 		server,
+		serveHTTPS,
 	)
 	if serverError != nil {
 		return apperrorWrapSimpleError(
 			serverError,
 			"Failed to host service on port %v",
-			configAppPort(),
+			appPort,
 		)
-	}
-	return nil
-}
-
-func hostEntries(entryFuncs ...func()) error {
-	if entryFuncs == nil ||
-		len(entryFuncs) == 0 {
-		return apperrorWrapSimpleError(
-			nil,
-			"No host entries found",
-		)
-	}
-	for _, entryFunc := range entryFuncs {
-		entryFunc()
 	}
 	return nil
 }
 
 // Host hosts the service entries and starts HTTPS server
-func Host() error {
-	var entryError = hostEntriesFunc(
+func Host(
+	serveHTTPS bool,
+	validateClientCert bool,
+	appPort string,
+) error {
+	var router, entryError = routeRegisterEntries(
 		healthHostEntry,
 		faviconHostEntry,
 		swaggerHostEntry,
@@ -89,15 +94,20 @@ func Host() error {
 		return apperrorWrapSimpleError(
 			entryError,
 			"Failed to host entries on port %v",
-			configAppPort(),
+			appPort,
 		)
 	}
-	var serverError = runServerFunc()
+	var serverError = runServerFunc(
+		serveHTTPS,
+		validateClientCert,
+		appPort,
+		router,
+	)
 	if serverError != nil {
 		return apperrorWrapSimpleError(
 			serverError,
 			"Failed to run server on port %v",
-			configAppPort(),
+			appPort,
 		)
 	}
 	return nil

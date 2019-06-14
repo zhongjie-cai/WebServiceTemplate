@@ -19,22 +19,6 @@ then
     tee unitTestResults.txt < testResultsPipe &
     go test $(go list ./../... | grep -v '/vendor/') -short -v 2>&1 > testResultsPipe
 else
-    if [ -n "$2" ]
-    then
-        export CryptoKey=$2
-    fi
-    if [ -n "$3" ]
-    then
-        export OuttaskDBConnectionString=$3
-    fi
-    if [ -n "$4" ]
-    then
-        export ItineraryServicesURL=$4
-    fi
-    if [ -n "$5" ]
-    then
-        export T2TripStoreURL=$5
-    fi
     if [ "$1" = "integration" ];
     then
         # Delete existing files when running the integration tests

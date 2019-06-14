@@ -1,7 +1,6 @@
 package logtype
 
 import (
-	"fmt"
 	"strings"
 	"testing"
 
@@ -24,7 +23,5 @@ func createMock(t *testing.T) {
 
 func verifyAll(t *testing.T) {
 	stringsJoin = strings.Join
-	if stringsJoinExpected != stringsJoinCalled {
-		assert.Fail(t, fmt.Sprintf("Unexpected method call to stringsJoin, expected %v, actual %v", stringsJoinExpected, stringsJoinCalled))
-	}
+	assert.Equal(t, stringsJoinExpected, stringsJoinCalled, "Unexpected method call to stringsJoin")
 }

@@ -4,44 +4,65 @@ import (
 	"net/http"
 
 	"github.com/google/uuid"
+	"github.com/gorilla/mux"
 )
 
-func handleHealthLogic(
+func handleGetHealth(
 	responseWriter http.ResponseWriter,
 	request *http.Request,
-	sessionID uuid.UUID,
 ) {
-	switch request.Method {
-	case http.MethodGet:
-		responseOk(
-			sessionID,
-			configAppVersion(),
-			responseWriter,
-		)
-	default:
-		responseError(
-			sessionID,
-			apperrorGetInvalidOperation(nil),
-			responseWriter,
-		)
-	}
-}
-
-func handler(responseWriter http.ResponseWriter, request *http.Request) {
 	commonHandleInSession(
 		responseWriter,
 		request,
-		"Health",
-		handleHealthLogicFunc,
+		func(
+			responseWriter http.ResponseWriter,
+			request *http.Request,
+			sessionID uuid.UUID,
+		) {
+			responseOk(
+				sessionID,
+				configAppVersion(),
+				responseWriter,
+			)
+		},
+	)
+}
+
+func handleGetHealthReport(
+	responseWriter http.ResponseWriter,
+	request *http.Request,
+) {
+	commonHandleInSession(
+		responseWriter,
+		request,
+		func(
+			responseWriter http.ResponseWriter,
+			request *http.Request,
+			sessionID uuid.UUID,
+		) {
+			responseOk(
+				sessionID,
+				configAppVersion(),
+				responseWriter,
+			)
+		},
 	)
 }
 
 // HostEntry hosts the service entry for "/health"
-func HostEntry() {
-	httpHandleFunc(
+func HostEntry(router *mux.Router) {
+	routeHandleFunc(
+		router,
+		"Health",
+		http.MethodGet,
 		"/health",
-		handlerFunc)
-	httpHandleFunc(
-		"/health/",
-		handlerFunc)
+		handleGetHealthFunc,
+	)
+	routeHandleFunc(
+		router,
+		"HealthReport",
+		http.MethodGet,
+		"/health/report",
+		handleGetHealthReportFunc,
+	)
 }

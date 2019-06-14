@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestDoLogging_FlagNotMatch(t *testing.T) {
+func TestDoLogging_NotLocalhost_FlagNotMatch(t *testing.T) {
 	// arrange
 	var dummySessionID = uuid.New()
 	var dummyAllowedLogType = logtype.BasicLogging
@@ -33,6 +33,100 @@ func TestDoLogging_FlagNotMatch(t *testing.T) {
 		sessionGetCalled++
 		assert.Equal(t, dummySessionID, sessionID)
 		return dummyLogSession
+	}
+	configIsLocalhostExpected = 1
+	configIsLocalhost = func() bool {
+		configIsLocalhostCalled++
+		return false
+	}
+
+	// SUT + act
+	doLogging(
+		dummySessionID,
+		dummyLogType,
+		dummyCategory,
+		dummySubCategory,
+		dummyDescription,
+	)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestDoLogging_IsLocalhost(t *testing.T) {
+	// arrange
+	var dummySessionID = uuid.New()
+	var dummyAllowedLogType = logtype.BasicLogging
+	var dummyLoginID = uuid.New()
+	var dummyEndpoint = "some endpoint"
+	var dummyLogSession = &session.Session{
+		AllowedLogType: dummyAllowedLogType,
+		LoginID:        dummyLoginID,
+		Endpoint:       dummyEndpoint,
+	}
+	var dummyLogType = logtype.MethodEnter
+	var dummyCategory = "some category"
+	var dummySubCategory = "some sub category"
+	var dummyDescription = "some description"
+	var dummyAppName = "some app name"
+	var dummyAppVersion = "some app version"
+	var dummyTimestamp = time.Now().UTC()
+	var dummyLogEntry = logEntry{
+		Application: dummyAppName,
+		Version:     dummyAppVersion,
+		Timestamp:   dummyTimestamp,
+		Session:     dummySessionID,
+		Login:       dummyLoginID,
+		Endpoint:    dummyEndpoint,
+		Level:       dummyLogType,
+		Category:    dummyCategory,
+		Subcategory: dummySubCategory,
+		Description: dummyDescription,
+	}
+	var dummyLogEntryString = "some log entry string"
+
+	// mock
+	createMock(t)
+
+	// expect
+	sessionGetExpected = 1
+	sessionGet = func(sessionID uuid.UUID) *session.Session {
+		sessionGetCalled++
+		assert.Equal(t, dummySessionID, sessionID)
+		return dummyLogSession
+	}
+	configIsLocalhostExpected = 1
+	configIsLocalhost = func() bool {
+		configIsLocalhostCalled++
+		return true
+	}
+	configAppNameExpected = 1
+	configAppName = func() string {
+		configAppNameCalled++
+		return dummyAppName
+	}
+	configAppVersionExpected = 1
+	configAppVersion = func() string {
+		configAppVersionCalled++
+		return dummyAppVersion
+	}
+	timeutilGetTimeNowUTCExpected = 1
+	timeutilGetTimeNowUTC = func() time.Time {
+		timeutilGetTimeNowUTCCalled++
+		return dummyTimestamp
+	}
+	jsonutilMarshalIgnoreErrorExpected = 1
+	jsonutilMarshalIgnoreError = func(v interface{}) string {
+		jsonutilMarshalIgnoreErrorCalled++
+		assert.Equal(t, dummyLogEntry, v)
+		return dummyLogEntryString
+	}
+	fmtPrintlnExpected = 1
+	fmtPrintln = func(a ...interface{}) (n int, err error) {
+		fmtPrintlnCalled++
+		assert.Equal(t, 1, len(a))
+		assert.Equal(t, dummyLogEntryString, a[0])
+		return 0, nil
 	}
 
 	// SUT + act

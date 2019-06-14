@@ -5,34 +5,130 @@ import (
 	"crypto/x509"
 	"errors"
 	"fmt"
+	"math/rand"
 	"net/http"
 	"reflect"
 	"testing"
+	"time"
 
+	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
 	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
 )
 
-func TestCreateServer(t *testing.T) {
+func TestCreateServer_NoHTTPS(t *testing.T) {
 	// arrange
-	var dummyServerCert = &tls.Certificate{}
-	var dummyClientCertPool = &x509.CertPool{}
+	var dummyServeHTTPS = false
+	var dummyValidateClientCert = rand.Intn(100) < 50
 	var dummyAppPort = "some app port"
+	var dummyRouter = &mux.Router{}
+
+	// mock
+	createMock(t)
+
+	// SUT + act
+	var server = createServer(
+		dummyServeHTTPS,
+		dummyValidateClientCert,
+		dummyAppPort,
+		dummyRouter,
+	)
+
+	// assert
+	assert.NotNil(t, server)
+	assert.Equal(t, ":"+dummyAppPort, server.Addr)
+	assert.NotNil(t, server.TLSConfig)
+	assert.Empty(t, server.TLSConfig.Certificates)
+	assert.Equal(t, tls.NoClientCert, server.TLSConfig.ClientAuth)
+	assert.Nil(t, server.TLSConfig.ClientCAs)
+	assert.Equal(t, 1, len(server.TLSConfig.CipherSuites))
+	assert.Equal(t, tls.TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384, server.TLSConfig.CipherSuites[0])
+	assert.Equal(t, true, server.TLSConfig.PreferServerCipherSuites)
+	assert.Equal(t, uint16(tls.VersionTLS12), server.TLSConfig.MinVersion)
+	assert.Equal(t, time.Second*60, server.WriteTimeout)
+	assert.Equal(t, time.Second*60, server.ReadTimeout)
+	assert.Equal(t, time.Second*180, server.IdleTimeout)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestCreateServer_HTTPS_NoValidateClientCert(t *testing.T) {
+	// arrange
+	var dummyServeHTTPS = true
+	var dummyValidateClientCert = false
+	var dummyAppPort = "some app port"
+	var dummyRouter = &mux.Router{}
+	var dummyServerCert = &tls.Certificate{}
 
 	// mock
 	createMock(t)
 
 	// expect
-	configAppPortExpected = 1
-	configAppPort = func() string {
-		configAppPortCalled++
-		return dummyAppPort
+	certificateGetServerCertificateExpected = 1
+	certificateGetServerCertificate = func() *tls.Certificate {
+		certificateGetServerCertificateCalled++
+		return dummyServerCert
 	}
 
 	// SUT + act
 	var server = createServer(
-		dummyServerCert,
-		dummyClientCertPool,
+		dummyServeHTTPS,
+		dummyValidateClientCert,
+		dummyAppPort,
+		dummyRouter,
+	)
+
+	// assert
+	assert.NotNil(t, server)
+	assert.Equal(t, ":"+dummyAppPort, server.Addr)
+	assert.NotNil(t, server.TLSConfig)
+	assert.Equal(t, 1, len(server.TLSConfig.Certificates))
+	assert.Equal(t, *dummyServerCert, server.TLSConfig.Certificates[0])
+	assert.Equal(t, tls.NoClientCert, server.TLSConfig.ClientAuth)
+	assert.Nil(t, server.TLSConfig.ClientCAs)
+	assert.Equal(t, 1, len(server.TLSConfig.CipherSuites))
+	assert.Equal(t, tls.TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384, server.TLSConfig.CipherSuites[0])
+	assert.Equal(t, true, server.TLSConfig.PreferServerCipherSuites)
+	assert.Equal(t, uint16(tls.VersionTLS12), server.TLSConfig.MinVersion)
+	assert.Equal(t, time.Second*60, server.WriteTimeout)
+	assert.Equal(t, time.Second*60, server.ReadTimeout)
+	assert.Equal(t, time.Second*180, server.IdleTimeout)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestCreateServer_HTTPS_ValidateClientCert(t *testing.T) {
+	// arrange
+	var dummyServeHTTPS = true
+	var dummyValidateClientCert = true
+	var dummyAppPort = "some app port"
+	var dummyRouter = &mux.Router{}
+	var dummyServerCert = &tls.Certificate{}
+	var dummyCertPool = &x509.CertPool{}
+
+	// mock
+	createMock(t)
+
+	// expect
+	certificateGetServerCertificateExpected = 1
+	certificateGetServerCertificate = func() *tls.Certificate {
+		certificateGetServerCertificateCalled++
+		return dummyServerCert
+	}
+	certificateGetClientCertPoolExpected = 1
+	certificateGetClientCertPool = func() *x509.CertPool {
+		certificateGetClientCertPoolCalled++
+		return dummyCertPool
+	}
+
+	// SUT + act
+	var server = createServer(
+		dummyServeHTTPS,
+		dummyValidateClientCert,
+		dummyAppPort,
+		dummyRouter,
 	)
 
 	// assert
@@ -42,26 +138,31 @@ func TestCreateServer(t *testing.T) {
 	assert.Equal(t, 1, len(server.TLSConfig.Certificates))
 	assert.Equal(t, *dummyServerCert, server.TLSConfig.Certificates[0])
 	assert.Equal(t, tls.RequireAndVerifyClientCert, server.TLSConfig.ClientAuth)
-	assert.Equal(t, dummyClientCertPool, server.TLSConfig.ClientCAs)
+	assert.Equal(t, dummyCertPool, server.TLSConfig.ClientCAs)
 	assert.Equal(t, 1, len(server.TLSConfig.CipherSuites))
 	assert.Equal(t, tls.TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384, server.TLSConfig.CipherSuites[0])
 	assert.Equal(t, true, server.TLSConfig.PreferServerCipherSuites)
 	assert.Equal(t, uint16(tls.VersionTLS12), server.TLSConfig.MinVersion)
+	assert.Equal(t, time.Second*60, server.WriteTimeout)
+	assert.Equal(t, time.Second*60, server.ReadTimeout)
+	assert.Equal(t, time.Second*180, server.IdleTimeout)
 
 	// verify
 	verifyAll(t)
 }
 
-func TestListenAndServeTLS(t *testing.T) {
+func TestListenAndServe_HTTPS(t *testing.T) {
 	// arrange
 	var dummyServer = &http.Server{}
+	var dummyServeHTTPS = true
 
 	// mock
 	createMock(t)
 
 	// SUT + act
-	var err = listenAndServeTLS(
+	var err = listenAndServe(
 		dummyServer,
+		dummyServeHTTPS,
 	)
 
 	// assert
@@ -71,77 +172,22 @@ func TestListenAndServeTLS(t *testing.T) {
 	verifyAll(t)
 }
 
-func TestRunServer_ServerCertError(t *testing.T) {
+func TestListenAndServe_HTTP(t *testing.T) {
 	// arrange
-	var dummyServerCert = &tls.Certificate{}
-	var dummyError = errors.New("some error message")
-	var expectedErrorMessage = "Failed to run server due to server cert error"
-	var dummyAppError = apperror.GetGeneralFailureError(nil)
+	var dummyServer = &http.Server{}
+	var dummyServeHTTPS = false
 
 	// mock
 	createMock(t)
 
-	// expect
-	certificateGetServerCertificateExpected = 1
-	certificateGetServerCertificate = func() (*tls.Certificate, error) {
-		certificateGetServerCertificateCalled++
-		return dummyServerCert, dummyError
-	}
-	apperrorWrapSimpleErrorExpected = 1
-	apperrorWrapSimpleError = func(innerError error, messageFormat string, parameters ...interface{}) apperror.AppError {
-		apperrorWrapSimpleErrorCalled++
-		assert.Equal(t, dummyError, innerError)
-		assert.Equal(t, expectedErrorMessage, messageFormat)
-		assert.Equal(t, 0, len(parameters))
-		return dummyAppError
-	}
-
 	// SUT + act
-	var err = runServer()
+	var err = listenAndServe(
+		dummyServer,
+		dummyServeHTTPS,
+	)
 
 	// assert
-	assert.Equal(t, dummyAppError, err)
-
-	// verify
-	verifyAll(t)
-}
-
-func TestRunServer_CertPoolError(t *testing.T) {
-	// arrange
-	var dummyServerCert = &tls.Certificate{}
-	var dummyCertPool = &x509.CertPool{}
-	var dummyError = errors.New("some error message")
-	var expectedErrorMessage = "Failed to run server due to client cert pool error"
-	var dummyAppError = apperror.GetGeneralFailureError(nil)
-
-	// mock
-	createMock(t)
-
-	// expect
-	certificateGetServerCertificateExpected = 1
-	certificateGetServerCertificate = func() (*tls.Certificate, error) {
-		certificateGetServerCertificateCalled++
-		return dummyServerCert, nil
-	}
-	certificateGetClientCertPoolExpected = 1
-	certificateGetClientCertPool = func() (*x509.CertPool, error) {
-		certificateGetClientCertPoolCalled++
-		return dummyCertPool, dummyError
-	}
-	apperrorWrapSimpleErrorExpected = 1
-	apperrorWrapSimpleError = func(innerError error, messageFormat string, parameters ...interface{}) apperror.AppError {
-		apperrorWrapSimpleErrorCalled++
-		assert.Equal(t, dummyError, innerError)
-		assert.Equal(t, expectedErrorMessage, messageFormat)
-		assert.Equal(t, 0, len(parameters))
-		return dummyAppError
-	}
-
-	// SUT + act
-	var err = runServer()
-
-	// assert
-	assert.Equal(t, dummyAppError, err)
+	assert.NotNil(t, err)
 
 	// verify
 	verifyAll(t)
@@ -149,58 +195,52 @@ func TestRunServer_CertPoolError(t *testing.T) {
 
 func TestRunServer_ServeError(t *testing.T) {
 	// arrange
-	var dummyServerCert = &tls.Certificate{}
-	var dummyCertPool = &x509.CertPool{}
-	var dummyServer = &http.Server{}
+	var dummyServeHTTPS = rand.Intn(100) < 50
+	var dummyValidateClientCert = rand.Intn(100) < 50
 	var dummyAppPort = "some app port"
+	var dummyRouter = &mux.Router{}
+	var dummyServer = &http.Server{}
 	var dummyError = errors.New("some error message")
-	var expectedErrorMessage = "Failed to host service on port %v"
+	var dummyMessageFormat = "Failed to host service on port %v"
 	var dummyAppError = apperror.GetGeneralFailureError(nil)
 
 	// mock
 	createMock(t)
 
 	// expect
-	certificateGetServerCertificateExpected = 1
-	certificateGetServerCertificate = func() (*tls.Certificate, error) {
-		certificateGetServerCertificateCalled++
-		return dummyServerCert, nil
-	}
-	certificateGetClientCertPoolExpected = 1
-	certificateGetClientCertPool = func() (*x509.CertPool, error) {
-		certificateGetClientCertPoolCalled++
-		return dummyCertPool, nil
-	}
 	createServerFuncExpected = 1
-	createServerFunc = func(serverCert *tls.Certificate, clientCertPool *x509.CertPool) *http.Server {
+	createServerFunc = func(serveHTTPS bool, validateClientCert bool, appPort string, router *mux.Router) *http.Server {
 		createServerFuncCalled++
-		assert.Equal(t, dummyServerCert, serverCert)
-		assert.Equal(t, dummyCertPool, clientCertPool)
+		assert.Equal(t, dummyServeHTTPS, serveHTTPS)
+		assert.Equal(t, dummyValidateClientCert, validateClientCert)
+		assert.Equal(t, dummyAppPort, appPort)
+		assert.Equal(t, dummyRouter, router)
 		return dummyServer
 	}
-	listenAndServeTLSFuncExpected = 1
-	listenAndServeTLSFunc = func(server *http.Server) error {
-		listenAndServeTLSFuncCalled++
+	listenAndServeFuncExpected = 1
+	listenAndServeFunc = func(server *http.Server, serveHTTPS bool) error {
+		listenAndServeFuncCalled++
 		assert.Equal(t, dummyServer, server)
+		assert.Equal(t, dummyServeHTTPS, serveHTTPS)
 		return dummyError
-	}
-	configAppPortExpected = 1
-	configAppPort = func() string {
-		configAppPortCalled++
-		return dummyAppPort
 	}
 	apperrorWrapSimpleErrorExpected = 1
 	apperrorWrapSimpleError = func(innerError error, messageFormat string, parameters ...interface{}) apperror.AppError {
 		apperrorWrapSimpleErrorCalled++
 		assert.Equal(t, dummyError, innerError)
-		assert.Equal(t, expectedErrorMessage, messageFormat)
+		assert.Equal(t, dummyMessageFormat, messageFormat)
 		assert.Equal(t, 1, len(parameters))
 		assert.Equal(t, dummyAppPort, parameters[0])
 		return dummyAppError
 	}
 
 	// SUT + act
-	var err = runServer()
+	var err = runServer(
+		dummyServeHTTPS,
+		dummyValidateClientCert,
+		dummyAppPort,
+		dummyRouter,
+	)
 
 	// assert
 	assert.Equal(t, dummyAppError, err)
@@ -211,178 +251,95 @@ func TestRunServer_ServeError(t *testing.T) {
 
 func TestRunServer_Success(t *testing.T) {
 	// arrange
-	var dummyServerCert = &tls.Certificate{}
-	var dummyCertPool = &x509.CertPool{}
+	var dummyServeHTTPS = rand.Intn(100) < 50
+	var dummyValidateClientCert = rand.Intn(100) < 50
+	var dummyAppPort = "some app port"
+	var dummyRouter = &mux.Router{}
 	var dummyServer = &http.Server{}
 
 	// mock
 	createMock(t)
 
 	// expect
-	certificateGetServerCertificateExpected = 1
-	certificateGetServerCertificate = func() (*tls.Certificate, error) {
-		certificateGetServerCertificateCalled++
-		return dummyServerCert, nil
-	}
-	certificateGetClientCertPoolExpected = 1
-	certificateGetClientCertPool = func() (*x509.CertPool, error) {
-		certificateGetClientCertPoolCalled++
-		return dummyCertPool, nil
-	}
 	createServerFuncExpected = 1
-	createServerFunc = func(serverCert *tls.Certificate, clientCertPool *x509.CertPool) *http.Server {
+	createServerFunc = func(serveHTTPS bool, validateClientCert bool, appPort string, router *mux.Router) *http.Server {
 		createServerFuncCalled++
-		assert.Equal(t, dummyServerCert, serverCert)
-		assert.Equal(t, dummyCertPool, clientCertPool)
+		assert.Equal(t, dummyServeHTTPS, serveHTTPS)
+		assert.Equal(t, dummyValidateClientCert, validateClientCert)
+		assert.Equal(t, dummyAppPort, appPort)
+		assert.Equal(t, dummyRouter, router)
 		return dummyServer
 	}
-	listenAndServeTLSFuncExpected = 1
-	listenAndServeTLSFunc = func(server *http.Server) error {
-		listenAndServeTLSFuncCalled++
+	listenAndServeFuncExpected = 1
+	listenAndServeFunc = func(server *http.Server, serveHTTPS bool) error {
+		listenAndServeFuncCalled++
 		assert.Equal(t, dummyServer, server)
+		assert.Equal(t, dummyServeHTTPS, serveHTTPS)
 		return nil
 	}
 
 	// SUT + act
-	var err = runServer()
-
-	// assert
-	assert.Nil(t, err)
-
-	// verify
-	verifyAll(t)
-}
-
-func TestHostEntries_NilEntries(t *testing.T) {
-	// arrange
-	var expectedErrorMessage = "No host entries found"
-	var dummyAppError = apperror.GetGeneralFailureError(nil)
-
-	// mock
-	createMock(t)
-
-	// expect
-	apperrorWrapSimpleErrorExpected = 1
-	apperrorWrapSimpleError = func(innerError error, messageFormat string, parameters ...interface{}) apperror.AppError {
-		apperrorWrapSimpleErrorCalled++
-		assert.Nil(t, innerError)
-		assert.Equal(t, expectedErrorMessage, messageFormat)
-		assert.Equal(t, 0, len(parameters))
-		return dummyAppError
-	}
-
-	// SUT + act
-	var err = hostEntries()
-
-	// assert
-	assert.Equal(t, dummyAppError, err)
-
-	// verify
-	verifyAll(t)
-}
-
-func TestHostEntries_EmptyEntries(t *testing.T) {
-	// arrange
-	var expectedErrorMessage = "No host entries found"
-	var dummyAppError = apperror.GetGeneralFailureError(nil)
-
-	// stub
-	var dummyEntryFuncs = []func(){}
-
-	// mock
-	createMock(t)
-
-	// expect
-	apperrorWrapSimpleErrorExpected = 1
-	apperrorWrapSimpleError = func(innerError error, messageFormat string, parameters ...interface{}) apperror.AppError {
-		apperrorWrapSimpleErrorCalled++
-		assert.Nil(t, innerError)
-		assert.Equal(t, expectedErrorMessage, messageFormat)
-		assert.Equal(t, 0, len(parameters))
-		return dummyAppError
-	}
-
-	// SUT + act
-	var err = hostEntries(
-		dummyEntryFuncs...,
-	)
-
-	// assert
-	assert.Equal(t, dummyAppError, err)
-
-	// verify
-	verifyAll(t)
-}
-
-func TestHostEntries_ValidEntries(t *testing.T) {
-	// arrange
-	var entryFuncsCalled = 0
-
-	// stub
-	var dummyEntryFuncs = []func(){
-		func() { entryFuncsCalled++ },
-		func() { entryFuncsCalled++ },
-		func() { entryFuncsCalled++ },
-	}
-
-	// mock
-	createMock(t)
-
-	// SUT + act
-	var err = hostEntries(
-		dummyEntryFuncs...,
+	var err = runServer(
+		dummyServeHTTPS,
+		dummyValidateClientCert,
+		dummyAppPort,
+		dummyRouter,
 	)
 
 	// assert
 	assert.Nil(t, err)
-	assert.Equal(t, len(dummyEntryFuncs), entryFuncsCalled)
 
 	// verify
 	verifyAll(t)
 }
 
-func TestHost_ErrorHostEntries(t *testing.T) {
+func TestHost_ErrorRegisterRoutes(t *testing.T) {
 	// arrange
+	var dummyServeHTTPS = rand.Intn(100) < 50
+	var dummyValidateClientCert = rand.Intn(100) < 50
 	var dummyAppPort = "some app port"
+	var dummyRouter = &mux.Router{}
 	var dummyError = errors.New("some error message")
-	var expectedErrorMessage = "Failed to host entries on port %v"
+	var dummyMessageFormat = "Failed to host entries on port %v"
 	var dummyAppError = apperror.GetGeneralFailureError(nil)
 
 	// mock
 	createMock(t)
+	var dummyHostEntries = []string{
+		fmt.Sprintf("%v", reflect.ValueOf(healthHostEntry)),
+		fmt.Sprintf("%v", reflect.ValueOf(faviconHostEntry)),
+		fmt.Sprintf("%v", reflect.ValueOf(swaggerHostEntry)),
+	}
 
 	// expect
-	hostEntriesFuncExpected = 1
-	hostEntriesFunc = func(entryFuncs ...func()) error {
-		hostEntriesFuncCalled++
+	routeRegisterEntriesExpected = 1
+	routeRegisterEntries = func(entryFuncs ...func(router *mux.Router)) (*mux.Router, error) {
+		routeRegisterEntriesCalled++
 		var pointers = []string{}
 		for _, entryFunc := range entryFuncs {
 			var pointer = fmt.Sprintf("%v", reflect.ValueOf(entryFunc))
 			pointers = append(pointers, pointer)
 		}
-		assert.Equal(t, 3, len(pointers))
-		assert.Contains(t, pointers, fmt.Sprintf("%v", reflect.ValueOf(healthHostEntry)))
-		assert.Contains(t, pointers, fmt.Sprintf("%v", reflect.ValueOf(faviconHostEntry)))
-		assert.Contains(t, pointers, fmt.Sprintf("%v", reflect.ValueOf(swaggerHostEntry)))
-		return dummyError
-	}
-	configAppPortExpected = 1
-	configAppPort = func() string {
-		configAppPortCalled++
-		return dummyAppPort
+		assert.Equal(t, len(dummyHostEntries), len(pointers))
+		assert.ElementsMatch(t, dummyHostEntries, pointers)
+		return dummyRouter, dummyError
 	}
 	apperrorWrapSimpleErrorExpected = 1
 	apperrorWrapSimpleError = func(innerError error, messageFormat string, parameters ...interface{}) apperror.AppError {
 		apperrorWrapSimpleErrorCalled++
 		assert.Equal(t, dummyError, innerError)
-		assert.Equal(t, expectedErrorMessage, messageFormat)
+		assert.Equal(t, dummyMessageFormat, messageFormat)
 		assert.Equal(t, 1, len(parameters))
 		assert.Equal(t, dummyAppPort, parameters[0])
 		return dummyAppError
 	}
 
 	// SUT + act
-	var err = Host()
+	var err = Host(
+		dummyServeHTTPS,
+		dummyValidateClientCert,
+		dummyAppPort,
+	)
 
 	// assert
 	assert.Equal(t, dummyAppError, err)
@@ -393,51 +350,60 @@ func TestHost_ErrorHostEntries(t *testing.T) {
 
 func TestHost_ErrorRunServer(t *testing.T) {
 	// arrange
+	var dummyServeHTTPS = rand.Intn(100) < 50
+	var dummyValidateClientCert = rand.Intn(100) < 50
 	var dummyAppPort = "some app port"
+	var dummyRouter = &mux.Router{}
 	var dummyError = errors.New("some error message")
-	var expectedErrorMessage = "Failed to run server on port %v"
+	var dummyMessageFormat = "Failed to run server on port %v"
 	var dummyAppError = apperror.GetGeneralFailureError(nil)
 
 	// mock
 	createMock(t)
+	var dummyHostEntries = []string{
+		fmt.Sprintf("%v", reflect.ValueOf(healthHostEntry)),
+		fmt.Sprintf("%v", reflect.ValueOf(faviconHostEntry)),
+		fmt.Sprintf("%v", reflect.ValueOf(swaggerHostEntry)),
+	}
 
 	// expect
-	hostEntriesFuncExpected = 1
-	hostEntriesFunc = func(entryFuncs ...func()) error {
-		hostEntriesFuncCalled++
+	routeRegisterEntriesExpected = 1
+	routeRegisterEntries = func(entryFuncs ...func(router *mux.Router)) (*mux.Router, error) {
+		routeRegisterEntriesCalled++
 		var pointers = []string{}
 		for _, entryFunc := range entryFuncs {
 			var pointer = fmt.Sprintf("%v", reflect.ValueOf(entryFunc))
 			pointers = append(pointers, pointer)
 		}
-		assert.Equal(t, 3, len(pointers))
-		assert.Contains(t, pointers, fmt.Sprintf("%v", reflect.ValueOf(healthHostEntry)))
-		assert.Contains(t, pointers, fmt.Sprintf("%v", reflect.ValueOf(faviconHostEntry)))
-		assert.Contains(t, pointers, fmt.Sprintf("%v", reflect.ValueOf(swaggerHostEntry)))
-		return nil
+		assert.Equal(t, len(dummyHostEntries), len(pointers))
+		assert.ElementsMatch(t, dummyHostEntries, pointers)
+		return dummyRouter, nil
 	}
 	runServerFuncExpected = 1
-	runServerFunc = func() error {
+	runServerFunc = func(serveHTTPS bool, validateClientCert bool, appPort string, router *mux.Router) error {
 		runServerFuncCalled++
+		assert.Equal(t, dummyServeHTTPS, serveHTTPS)
+		assert.Equal(t, dummyValidateClientCert, validateClientCert)
+		assert.Equal(t, dummyAppPort, appPort)
+		assert.Equal(t, dummyRouter, router)
 		return dummyError
-	}
-	configAppPortExpected = 1
-	configAppPort = func() string {
-		configAppPortCalled++
-		return dummyAppPort
 	}
 	apperrorWrapSimpleErrorExpected = 1
 	apperrorWrapSimpleError = func(innerError error, messageFormat string, parameters ...interface{}) apperror.AppError {
 		apperrorWrapSimpleErrorCalled++
 		assert.Equal(t, dummyError, innerError)
-		assert.Equal(t, expectedErrorMessage, messageFormat)
+		assert.Equal(t, dummyMessageFormat, messageFormat)
 		assert.Equal(t, 1, len(parameters))
 		assert.Equal(t, dummyAppPort, parameters[0])
 		return dummyAppError
 	}
 
 	// SUT + act
-	var err = Host()
+	var err = Host(
+		dummyServeHTTPS,
+		dummyValidateClientCert,
+		dummyAppPort,
+	)
 
 	// assert
 	assert.Equal(t, dummyAppError, err)
@@ -447,32 +413,49 @@ func TestHost_ErrorRunServer(t *testing.T) {
 }
 
 func TestHost_Success(t *testing.T) {
+	// arrange
+	var dummyServeHTTPS = rand.Intn(100) < 50
+	var dummyValidateClientCert = rand.Intn(100) < 50
+	var dummyAppPort = "some app port"
+	var dummyRouter = &mux.Router{}
+
 	// mock
 	createMock(t)
+	var dummyHostEntries = []string{
+		fmt.Sprintf("%v", reflect.ValueOf(healthHostEntry)),
+		fmt.Sprintf("%v", reflect.ValueOf(faviconHostEntry)),
+		fmt.Sprintf("%v", reflect.ValueOf(swaggerHostEntry)),
+	}
 
 	// expect
-	hostEntriesFuncExpected = 1
-	hostEntriesFunc = func(entryFuncs ...func()) error {
-		hostEntriesFuncCalled++
+	routeRegisterEntriesExpected = 1
+	routeRegisterEntries = func(entryFuncs ...func(*mux.Router)) (*mux.Router, error) {
+		routeRegisterEntriesCalled++
 		var pointers = []string{}
 		for _, entryFunc := range entryFuncs {
 			var pointer = fmt.Sprintf("%v", reflect.ValueOf(entryFunc))
 			pointers = append(pointers, pointer)
 		}
-		assert.Equal(t, 3, len(pointers))
-		assert.Contains(t, pointers, fmt.Sprintf("%v", reflect.ValueOf(healthHostEntry)))
-		assert.Contains(t, pointers, fmt.Sprintf("%v", reflect.ValueOf(faviconHostEntry)))
-		assert.Contains(t, pointers, fmt.Sprintf("%v", reflect.ValueOf(swaggerHostEntry)))
-		return nil
+		assert.Equal(t, len(dummyHostEntries), len(pointers))
+		assert.ElementsMatch(t, dummyHostEntries, pointers)
+		return dummyRouter, nil
 	}
 	runServerFuncExpected = 1
-	runServerFunc = func() error {
+	runServerFunc = func(serveHTTPS bool, validateClientCert bool, appPort string, router *mux.Router) error {
 		runServerFuncCalled++
+		assert.Equal(t, dummyServeHTTPS, serveHTTPS)
+		assert.Equal(t, dummyValidateClientCert, validateClientCert)
+		assert.Equal(t, dummyAppPort, appPort)
+		assert.Equal(t, dummyRouter, router)
 		return nil
 	}
 
 	// SUT + act
-	var err = Host()
+	var err = Host(
+		dummyServeHTTPS,
+		dummyValidateClientCert,
+		dummyAppPort,
+	)
 
 	// assert
 	assert.Nil(t, err)

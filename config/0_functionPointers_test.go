@@ -1,8 +1,8 @@
 package config
 
 import (
-	"fmt"
 	"os"
+	"strings"
 	"testing"
 	"time"
 
@@ -25,14 +25,16 @@ var (
 	getEnvironmentVariableCalled                        int
 	cryptoDecryptExpected                               int
 	cryptoDecryptCalled                                 int
+	stringsEqualFoldExpected                            int
+	stringsEqualFoldCalled                              int
 	initializeBootTimeFuncExpected                      int
 	initializeBootTimeFuncCalled                        int
 	initializeCryptoKeyFuncExpected                     int
 	initializeCryptoKeyFuncCalled                       int
 	decryptFromEnvironmentVariableFuncExpected          int
 	decryptFromEnvironmentVariableFuncCalled            int
-	initializeEnvironmentVariablesFuncExpected          int
-	initializeEnvironmentVariablesFuncCalled            int
+	initializeGeneralEnvironmentVariablesFuncExpected   int
+	initializeGeneralEnvironmentVariablesFuncCalled     int
 	initializeEncryptedEnvironmentVariablesFuncExpected int
 	initializeEncryptedEnvironmentVariablesFuncCalled   int
 )
@@ -74,6 +76,12 @@ func createMock(t *testing.T) {
 		cryptoDecryptCalled++
 		return "", nil
 	}
+	stringsEqualFoldExpected = 0
+	stringsEqualFoldCalled = 0
+	stringsEqualFold = func(s, b string) bool {
+		stringsEqualFoldCalled++
+		return false
+	}
 	initializeBootTimeFuncExpected = 0
 	initializeBootTimeFuncCalled = 0
 	initializeBootTimeFunc = func() {
@@ -91,10 +99,10 @@ func createMock(t *testing.T) {
 		decryptFromEnvironmentVariableFuncCalled++
 		return "", nil
 	}
-	initializeEnvironmentVariablesFuncExpected = 0
-	initializeEnvironmentVariablesFuncCalled = 0
-	initializeEnvironmentVariablesFunc = func() error {
-		initializeEnvironmentVariablesFuncCalled++
+	initializeGeneralEnvironmentVariablesFuncExpected = 0
+	initializeGeneralEnvironmentVariablesFuncCalled = 0
+	initializeGeneralEnvironmentVariablesFunc = func() error {
+		initializeGeneralEnvironmentVariablesFuncCalled++
 		return nil
 	}
 	initializeEncryptedEnvironmentVariablesFuncExpected = 0
@@ -107,55 +115,44 @@ func createMock(t *testing.T) {
 
 func verifyAll(t *testing.T) {
 	timeutilGetTimeNowUTC = timeutil.GetTimeNowUTC
-	if timeutilGetTimeNowUTCExpected != timeutilGetTimeNowUTCCalled {
-		assert.Fail(t, fmt.Sprintf("Unexpected method call to timeutilGetTimeNowUTC, expected %v, actual %v", timeutilGetTimeNowUTCExpected, timeutilGetTimeNowUTCCalled))
-	}
+	assert.Equal(t, timeutilGetTimeNowUTCExpected, timeutilGetTimeNowUTCCalled, "Unexpected method call to timeutilGetTimeNowUTC")
 	timeutilFormatDateTime = timeutil.FormatDateTime
-	if timeutilFormatDateTimeExpected != timeutilFormatDateTimeCalled {
-		assert.Fail(t, fmt.Sprintf("Unexpected method call to timeutilFormatDateTime, expected %v, actual %v", timeutilFormatDateTimeExpected, timeutilFormatDateTimeCalled))
-	}
+	assert.Equal(t, timeutilFormatDateTimeExpected, timeutilFormatDateTimeCalled, "Unexpected method call to timeutilFormatDateTime")
 	apperrorWrapSimpleError = apperror.WrapSimpleError
-	if apperrorWrapSimpleErrorExpected != apperrorWrapSimpleErrorCalled {
-		assert.Fail(t, fmt.Sprintf("Unexpected method call to apperrorWrapSimpleError, expected %v, actual %v", apperrorWrapSimpleErrorExpected, apperrorWrapSimpleErrorCalled))
-	}
+	assert.Equal(t, apperrorWrapSimpleErrorExpected, apperrorWrapSimpleErrorCalled, "Unexpected method call to apperrorWrapSimpleError")
 	apperrorConsolidateAllErrors = apperror.ConsolidateAllErrors
-	if apperrorConsolidateAllErrorsExpected != apperrorConsolidateAllErrorsCalled {
-		assert.Fail(t, fmt.Sprintf("Unexpected method call to apperrorConsolidateAllErrors, expected %v, actual %v", apperrorConsolidateAllErrorsExpected, apperrorConsolidateAllErrorsCalled))
-	}
+	assert.Equal(t, apperrorConsolidateAllErrorsExpected, apperrorConsolidateAllErrorsCalled, "Unexpected method call to apperrorConsolidateAllErrors")
 	getEnvironmentVariable = os.Getenv
-	if getEnvironmentVariableExpected != getEnvironmentVariableCalled {
-		assert.Fail(t, fmt.Sprintf("Unexpected method call to getEnvironmentVariable, expected %v, actual %v", getEnvironmentVariableExpected, getEnvironmentVariableCalled))
-	}
+	assert.Equal(t, getEnvironmentVariableExpected, getEnvironmentVariableCalled, "Unexpected method call to getEnvironmentVariable")
 	cryptoDecrypt = crypto.Decrypt
-	if cryptoDecryptExpected != cryptoDecryptCalled {
-		assert.Fail(t, fmt.Sprintf("Unexpected method call to cryptoDecrypt, expected %v, actual %v", cryptoDecryptExpected, cryptoDecryptCalled))
-	}
+	assert.Equal(t, cryptoDecryptExpected, cryptoDecryptCalled, "Unexpected method call to cryptoDecrypt")
+	stringsEqualFold = strings.EqualFold
+	assert.Equal(t, stringsEqualFoldExpected, stringsEqualFoldCalled, "Unexpected method call to stringsEqualFold")
 	initializeBootTimeFunc = initializeBootTime
-	if initializeBootTimeFuncExpected != initializeBootTimeFuncCalled {
-		assert.Fail(t, fmt.Sprintf("Unexpected method call to initializeBootTimeFunc, expected %v, actual %v", initializeBootTimeFuncExpected, initializeBootTimeFuncCalled))
-	}
+	assert.Equal(t, initializeBootTimeFuncExpected, initializeBootTimeFuncCalled, "Unexpected method call to initializeBootTimeFunc")
 	initializeCryptoKeyFunc = initializeCryptoKey
-	if initializeCryptoKeyFuncExpected != initializeCryptoKeyFuncCalled {
-		assert.Fail(t, fmt.Sprintf("Unexpected method call to initializeCryptoKeyFunc, expected %v, actual %v", initializeCryptoKeyFuncExpected, initializeCryptoKeyFuncCalled))
-	}
+	assert.Equal(t, initializeCryptoKeyFuncExpected, initializeCryptoKeyFuncCalled, "Unexpected method call to initializeCryptoKeyFunc")
 	decryptFromEnvironmentVariableFunc = decryptFromEnvironmentVariable
-	if decryptFromEnvironmentVariableFuncExpected != decryptFromEnvironmentVariableFuncCalled {
-		assert.Fail(t, fmt.Sprintf("Unexpected method call to decryptFromEnvironmentVariableFunc, expected %v, actual %v", decryptFromEnvironmentVariableFuncExpected, decryptFromEnvironmentVariableFuncCalled))
-	}
-	initializeEnvironmentVariablesFunc = initializeEnvironmentVariables
-	if initializeEnvironmentVariablesFuncExpected != initializeEnvironmentVariablesFuncCalled {
-		assert.Fail(t, fmt.Sprintf("Unexpected method call to initializeEnvironmentVariablesFunc, expected %v, actual %v", initializeEnvironmentVariablesFuncExpected, initializeEnvironmentVariablesFuncCalled))
-	}
+	assert.Equal(t, decryptFromEnvironmentVariableFuncExpected, decryptFromEnvironmentVariableFuncCalled, "Unexpected method call to decryptFromEnvironmentVariableFunc")
+	initializeGeneralEnvironmentVariablesFunc = initializeGeneralEnvironmentVariables
+	assert.Equal(t, initializeGeneralEnvironmentVariablesFuncExpected, initializeGeneralEnvironmentVariablesFuncCalled, "Unexpected method call to initializeGeneralEnvironmentVariablesFunc")
 	initializeEncryptedEnvironmentVariablesFunc = initializeEncryptedEnvironmentVariables
-	if initializeEncryptedEnvironmentVariablesFuncExpected != initializeEncryptedEnvironmentVariablesFuncCalled {
-		assert.Fail(t, fmt.Sprintf("Unexpected method call to initializeEncryptedEnvironmentVariablesFunc, expected %v, actual %v", initializeEncryptedEnvironmentVariablesFuncExpected, initializeEncryptedEnvironmentVariablesFuncCalled))
-	}
+	assert.Equal(t, initializeEncryptedEnvironmentVariablesFuncExpected, initializeEncryptedEnvironmentVariablesFuncCalled, "Unexpected method call to initializeEncryptedEnvironmentVariablesFunc")
 
 	// Reset state variables
 	appVersion = "0.0.0.0"
-	appPort = "443"
+	appPort = "18605"
 	appName = "WebServiceTemplate"
 	appPath = "."
 	cryptoKey = ""
 	bootTime = ""
+	isLocalhost = false
+	sendClientCert = false
+	clientCertContent = ""
+	clientKeyContent = ""
+	serveHTTPS = false
+	serverCertContent = ""
+	serverKeyContent = ""
+	validateClientCert = false
+	caCertContent = ""
 }

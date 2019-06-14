@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"math/rand"
 	"testing"
 
 	"github.com/google/uuid"
@@ -13,7 +14,7 @@ import (
 func TestBootstrapApplication_ConfigError(t *testing.T) {
 	// arrange
 	var dummyError = errors.New("some error message")
-	var expectedErrorMessage = "Failed to bootstrap application for configuration"
+	var dummyMessageFormat = "Failed to bootstrap application for configuration"
 	var dummyAppError = apperror.GetGeneralFailureError(nil)
 
 	// mock
@@ -29,7 +30,7 @@ func TestBootstrapApplication_ConfigError(t *testing.T) {
 	apperrorWrapSimpleError = func(innerError error, messageFormat string, parameters ...interface{}) apperror.AppError {
 		apperrorWrapSimpleErrorCalled++
 		assert.Equal(t, dummyError, innerError)
-		assert.Equal(t, expectedErrorMessage, messageFormat)
+		assert.Equal(t, dummyMessageFormat, messageFormat)
 		assert.Equal(t, 0, len(parameters))
 		return dummyAppError
 	}
@@ -46,13 +47,16 @@ func TestBootstrapApplication_ConfigError(t *testing.T) {
 
 func TestBootstrapApplication_CertError(t *testing.T) {
 	// arrange
+	var dummySendClientCert = rand.Intn(100) < 50
 	var dummyClientCertContent = "some client cert content"
 	var dummyClientKeyContent = "some client key content"
+	var dummyServeHTTPS = rand.Intn(100) < 50
 	var dummyServerCertContent = "some server cert content"
 	var dummyServerKeyContent = "some server key content"
-	var dummyCACertContent = "some CA cert content"
+	var dummyValidateClientCert = rand.Intn(100) < 50
+	var dummyCaCertContent = "some CA cert content"
 	var dummyError = errors.New("some error message")
-	var expectedErrorMessage = "Failed to bootstrap application for certificates"
+	var dummyMessageFormat = "Failed to bootstrap application for certificates"
 	var dummyAppError = apperror.GetGeneralFailureError(nil)
 
 	// mock
@@ -64,6 +68,11 @@ func TestBootstrapApplication_CertError(t *testing.T) {
 		configInitializeCalled++
 		return nil
 	}
+	configSendClientCertExpected = 1
+	configSendClientCert = func() bool {
+		configSendClientCertCalled++
+		return dummySendClientCert
+	}
 	configClientCertContentExpected = 1
 	configClientCertContent = func() string {
 		configClientCertContentCalled++
@@ -73,6 +82,11 @@ func TestBootstrapApplication_CertError(t *testing.T) {
 	configClientKeyContent = func() string {
 		configClientKeyContentCalled++
 		return dummyClientKeyContent
+	}
+	configServeHTTPSExpected = 1
+	configServeHTTPS = func() bool {
+		configServeHTTPSCalled++
+		return dummyServeHTTPS
 	}
 	configServerCertContentExpected = 1
 	configServerCertContent = func() string {
@@ -84,26 +98,34 @@ func TestBootstrapApplication_CertError(t *testing.T) {
 		configServerKeyContentCalled++
 		return dummyServerKeyContent
 	}
-	configCACertContentExpected = 1
-	configCACertContent = func() string {
-		configCACertContentCalled++
-		return dummyCACertContent
+	configValidateClientCertExpected = 1
+	configValidateClientCert = func() bool {
+		configValidateClientCertCalled++
+		return dummyValidateClientCert
+	}
+	configCaCertContentExpected = 1
+	configCaCertContent = func() string {
+		configCaCertContentCalled++
+		return dummyCaCertContent
 	}
 	certificateInitializeExpected = 1
-	certificateInitialize = func(clientCertContent string, clientKeyContent string, serverCertContent string, serverKeyContent string, caCertContent string) error {
+	certificateInitialize = func(sendClientCert bool, clientCertContent string, clientKeyContent string, serveHTTPS bool, serverCertContent string, serverKeyContent string, validateClientCert bool, caCertContent string) error {
 		certificateInitializeCalled++
+		assert.Equal(t, dummySendClientCert, sendClientCert)
 		assert.Equal(t, dummyClientCertContent, clientCertContent)
 		assert.Equal(t, dummyClientKeyContent, clientKeyContent)
+		assert.Equal(t, dummyServeHTTPS, serveHTTPS)
 		assert.Equal(t, dummyServerCertContent, serverCertContent)
 		assert.Equal(t, dummyServerKeyContent, serverKeyContent)
-		assert.Equal(t, dummyCACertContent, caCertContent)
+		assert.Equal(t, dummyValidateClientCert, validateClientCert)
+		assert.Equal(t, dummyCaCertContent, caCertContent)
 		return dummyError
 	}
 	apperrorWrapSimpleErrorExpected = 1
 	apperrorWrapSimpleError = func(innerError error, messageFormat string, parameters ...interface{}) apperror.AppError {
 		apperrorWrapSimpleErrorCalled++
 		assert.Equal(t, dummyError, innerError)
-		assert.Equal(t, expectedErrorMessage, messageFormat)
+		assert.Equal(t, dummyMessageFormat, messageFormat)
 		assert.Equal(t, 0, len(parameters))
 		return dummyAppError
 	}
@@ -120,11 +142,14 @@ func TestBootstrapApplication_CertError(t *testing.T) {
 
 func TestBootstrapApplication_Success(t *testing.T) {
 	// arrange
+	var dummySendClientCert = rand.Intn(100) < 50
 	var dummyClientCertContent = "some client cert content"
 	var dummyClientKeyContent = "some client key content"
+	var dummyServeHTTPS = rand.Intn(100) < 50
 	var dummyServerCertContent = "some server cert content"
 	var dummyServerKeyContent = "some server key content"
-	var dummyCACertContent = "some CA cert content"
+	var dummyValidateClientCert = rand.Intn(100) < 50
+	var dummyCaCertContent = "some CA cert content"
 
 	// mock
 	createMock(t)
@@ -134,6 +159,11 @@ func TestBootstrapApplication_Success(t *testing.T) {
 	configInitialize = func() error {
 		configInitializeCalled++
 		return nil
+	}
+	configSendClientCertExpected = 1
+	configSendClientCert = func() bool {
+		configSendClientCertCalled++
+		return dummySendClientCert
 	}
 	configClientCertContentExpected = 1
 	configClientCertContent = func() string {
@@ -145,6 +175,11 @@ func TestBootstrapApplication_Success(t *testing.T) {
 		configClientKeyContentCalled++
 		return dummyClientKeyContent
 	}
+	configServeHTTPSExpected = 1
+	configServeHTTPS = func() bool {
+		configServeHTTPSCalled++
+		return dummyServeHTTPS
+	}
 	configServerCertContentExpected = 1
 	configServerCertContent = func() string {
 		configServerCertContentCalled++
@@ -155,19 +190,27 @@ func TestBootstrapApplication_Success(t *testing.T) {
 		configServerKeyContentCalled++
 		return dummyServerKeyContent
 	}
-	configCACertContentExpected = 1
-	configCACertContent = func() string {
-		configCACertContentCalled++
-		return dummyCACertContent
+	configValidateClientCertExpected = 1
+	configValidateClientCert = func() bool {
+		configValidateClientCertCalled++
+		return dummyValidateClientCert
+	}
+	configCaCertContentExpected = 1
+	configCaCertContent = func() string {
+		configCaCertContentCalled++
+		return dummyCaCertContent
 	}
 	certificateInitializeExpected = 1
-	certificateInitialize = func(clientCertContent string, clientKeyContent string, serverCertContent string, serverKeyContent string, caCertContent string) error {
+	certificateInitialize = func(sendClientCert bool, clientCertContent string, clientKeyContent string, serveHTTPS bool, serverCertContent string, serverKeyContent string, validateClientCert bool, caCertContent string) error {
 		certificateInitializeCalled++
+		assert.Equal(t, dummySendClientCert, sendClientCert)
 		assert.Equal(t, dummyClientCertContent, clientCertContent)
 		assert.Equal(t, dummyClientKeyContent, clientKeyContent)
+		assert.Equal(t, dummyServeHTTPS, serveHTTPS)
 		assert.Equal(t, dummyServerCertContent, serverCertContent)
 		assert.Equal(t, dummyServerKeyContent, serverKeyContent)
-		assert.Equal(t, dummyCACertContent, caCertContent)
+		assert.Equal(t, dummyValidateClientCert, validateClientCert)
+		assert.Equal(t, dummyCaCertContent, caCertContent)
 		return nil
 	}
 
@@ -211,7 +254,7 @@ func TestDisconnectStorages(t *testing.T) {
 
 func TestMain_FailBootstrapServer(t *testing.T) {
 	// arrange
-	var expectedErrorMessage = "some dummy error message"
+	var dummyError = errors.New("some dummy error message")
 
 	// mock
 	createMock(t)
@@ -220,7 +263,7 @@ func TestMain_FailBootstrapServer(t *testing.T) {
 	bootstrapApplicationFuncExpected = 1
 	bootstrapApplicationFunc = func() error {
 		bootstrapApplicationFuncCalled++
-		return errors.New(expectedErrorMessage)
+		return dummyError
 	}
 	loggerAppRootExpected = 1
 	loggerAppRoot = func(sessionID uuid.UUID, category string, subcategory string, messageFormat string, parameters ...interface{}) {
@@ -230,7 +273,7 @@ func TestMain_FailBootstrapServer(t *testing.T) {
 		assert.Equal(t, "bootstrapApplicationFunc", subcategory)
 		assert.Equal(t, "Failed to initialize server due to %v.", messageFormat)
 		assert.Equal(t, 1, len(parameters))
-		assert.Equal(t, expectedErrorMessage, parameters[0].(error).Error())
+		assert.Equal(t, dummyError, parameters[0])
 	}
 
 	// SUT + act
@@ -285,7 +328,7 @@ func TestMain_FailConnectStorage(t *testing.T) {
 			assert.Equal(t, "Failed to initialize server due to %v.", messageFormat)
 			assert.Equal(t, "connectStorages", subcategory)
 			assert.Equal(t, 1, len(parameters))
-			assert.Equal(t, "dummy db error", parameters[0].(error).Error())
+			assert.Equal(t, dummyError, parameters[0])
 		}
 	}
 
@@ -300,6 +343,8 @@ func TestMain_ErrorTerminateFailStorageDisconnect(t *testing.T) {
 	// arrange
 	var dummyAppVersion = "dummyAppVersion"
 	var dummyAppPort = "dummyAppPort"
+	var dummyServeHTTPS = rand.Intn(100) < 50
+	var dummyValidateClientCert = rand.Intn(100) < 50
 	var dummyError = errors.New("dummy final error")
 	var dummyDBError = errors.New("dummy db error")
 
@@ -332,6 +377,16 @@ func TestMain_ErrorTerminateFailStorageDisconnect(t *testing.T) {
 		configAppVersionCalled++
 		return dummyAppVersion
 	}
+	configServeHTTPSExpected = 1
+	configServeHTTPS = func() bool {
+		configServeHTTPSCalled++
+		return dummyServeHTTPS
+	}
+	configValidateClientCertExpected = 1
+	configValidateClientCert = func() bool {
+		configValidateClientCertCalled++
+		return dummyValidateClientCert
+	}
 	loggerAppRootExpected = 3
 	loggerAppRoot = func(sessionID uuid.UUID, category string, subcategory string, messageFormat string, parameters ...interface{}) {
 		loggerAppRootCalled++
@@ -356,8 +411,11 @@ func TestMain_ErrorTerminateFailStorageDisconnect(t *testing.T) {
 		}
 	}
 	serverHostExpected = 1
-	serverHost = func() error {
+	serverHost = func(serveHTTPS bool, validateClientCert bool, appPort string) error {
 		serverHostCalled++
+		assert.Equal(t, dummyServeHTTPS, serveHTTPS)
+		assert.Equal(t, dummyValidateClientCert, validateClientCert)
+		assert.Equal(t, dummyAppPort, appPort)
 		return dummyError
 	}
 
@@ -372,6 +430,8 @@ func TestMain_ErrorTerminateFully(t *testing.T) {
 	// arrange
 	var dummyAppVersion = "dummyAppVersion"
 	var dummyAppPort = "dummyAppPort"
+	var dummyServeHTTPS = rand.Intn(100) < 50
+	var dummyValidateClientCert = rand.Intn(100) < 50
 	var dummyError = errors.New("dummy final error")
 
 	// mock
@@ -402,6 +462,16 @@ func TestMain_ErrorTerminateFully(t *testing.T) {
 	configAppVersion = func() string {
 		configAppVersionCalled++
 		return dummyAppVersion
+	}
+	configServeHTTPSExpected = 1
+	configServeHTTPS = func() bool {
+		configServeHTTPSCalled++
+		return dummyServeHTTPS
+	}
+	configValidateClientCertExpected = 1
+	configValidateClientCert = func() bool {
+		configValidateClientCertCalled++
+		return dummyValidateClientCert
 	}
 	loggerAppRootExpected = 2
 	loggerAppRoot = func(sessionID uuid.UUID, category string, subcategory string, messageFormat string, parameters ...interface{}) {
@@ -418,12 +488,15 @@ func TestMain_ErrorTerminateFully(t *testing.T) {
 			assert.Equal(t, "Stopped server due to %v.", messageFormat)
 			assert.Equal(t, "applicationStop", subcategory)
 			assert.Equal(t, 1, len(parameters))
-			assert.Equal(t, "dummy final error", parameters[0].(error).Error())
+			assert.Equal(t, dummyError, parameters[0])
 		}
 	}
 	serverHostExpected = 1
-	serverHost = func() error {
+	serverHost = func(serveHTTPS bool, validateClientCert bool, appPort string) error {
 		serverHostCalled++
+		assert.Equal(t, dummyServeHTTPS, serveHTTPS)
+		assert.Equal(t, dummyValidateClientCert, validateClientCert)
+		assert.Equal(t, dummyAppPort, appPort)
 		return dummyError
 	}
 
@@ -438,6 +511,8 @@ func TestMain_PeaceTerminateFailStorageDisconnect(t *testing.T) {
 	// arrange
 	var dummyAppVersion = "dummyAppVersion"
 	var dummyAppPort = "dummyAppPort"
+	var dummyServeHTTPS = rand.Intn(100) < 50
+	var dummyValidateClientCert = rand.Intn(100) < 50
 	var dummyError = errors.New("dummy final error")
 
 	// mock
@@ -468,6 +543,16 @@ func TestMain_PeaceTerminateFailStorageDisconnect(t *testing.T) {
 	configAppVersion = func() string {
 		configAppVersionCalled++
 		return dummyAppVersion
+	}
+	configServeHTTPSExpected = 1
+	configServeHTTPS = func() bool {
+		configServeHTTPSCalled++
+		return dummyServeHTTPS
+	}
+	configValidateClientCertExpected = 1
+	configValidateClientCert = func() bool {
+		configValidateClientCertCalled++
+		return dummyValidateClientCert
 	}
 	loggerAppRootExpected = 3
 	loggerAppRoot = func(sessionID uuid.UUID, category string, subcategory string, messageFormat string, parameters ...interface{}) {
@@ -492,8 +577,11 @@ func TestMain_PeaceTerminateFailStorageDisconnect(t *testing.T) {
 		}
 	}
 	serverHostExpected = 1
-	serverHost = func() error {
+	serverHost = func(serveHTTPS bool, validateClientCert bool, appPort string) error {
 		serverHostCalled++
+		assert.Equal(t, dummyServeHTTPS, serveHTTPS)
+		assert.Equal(t, dummyValidateClientCert, validateClientCert)
+		assert.Equal(t, dummyAppPort, appPort)
 		return nil
 	}
 
@@ -508,6 +596,8 @@ func TestMain_PeaceTerminateFull(t *testing.T) {
 	// arrange
 	var dummyAppVersion = "dummyAppVersion"
 	var dummyAppPort = "dummyAppPort"
+	var dummyServeHTTPS = rand.Intn(100) < 50
+	var dummyValidateClientCert = rand.Intn(100) < 50
 
 	// mock
 	createMock(t)
@@ -538,6 +628,16 @@ func TestMain_PeaceTerminateFull(t *testing.T) {
 		configAppVersionCalled++
 		return dummyAppVersion
 	}
+	configServeHTTPSExpected = 1
+	configServeHTTPS = func() bool {
+		configServeHTTPSCalled++
+		return dummyServeHTTPS
+	}
+	configValidateClientCertExpected = 1
+	configValidateClientCert = func() bool {
+		configValidateClientCertCalled++
+		return dummyValidateClientCert
+	}
 	loggerAppRootExpected = 2
 	loggerAppRoot = func(sessionID uuid.UUID, category string, subcategory string, messageFormat string, parameters ...interface{}) {
 		loggerAppRootCalled++
@@ -556,8 +656,11 @@ func TestMain_PeaceTerminateFull(t *testing.T) {
 		}
 	}
 	serverHostExpected = 1
-	serverHost = func() error {
+	serverHost = func(serveHTTPS bool, validateClientCert bool, appPort string) error {
 		serverHostCalled++
+		assert.Equal(t, dummyServeHTTPS, serveHTTPS)
+		assert.Equal(t, dummyValidateClientCert, validateClientCert)
+		assert.Equal(t, dummyAppPort, appPort)
 		return nil
 	}
 

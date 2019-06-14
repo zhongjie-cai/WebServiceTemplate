@@ -1,7 +1,6 @@
 package common
 
 import (
-	"fmt"
 	"math/rand"
 	"net/http"
 	"testing"
@@ -50,6 +49,12 @@ func TestHandleInSession_DoNotRequireClientCert(t *testing.T) {
 	createMock(t)
 
 	// expect
+	routeGetEndpointNameExpected = 1
+	routeGetEndpointName = func(request *http.Request) string {
+		routeGetEndpointNameCalled++
+		assert.Equal(t, dummyRequest, request)
+		return dummyEndpoint
+	}
 	requestGetLoginIDExpected = 1
 	requestGetLoginID = func(request *http.Request) uuid.UUID {
 		requestGetLoginIDCalled++
@@ -122,13 +127,10 @@ func TestHandleInSession_DoNotRequireClientCert(t *testing.T) {
 	HandleInSession(
 		dummyResponseWriter,
 		dummyRequest,
-		dummyEndpoint,
 		dummyAction,
 	)
 
 	// verify
 	verifyAll(t)
-	if dummyActionExpected != dummyActionCalled {
-		assert.Fail(t, fmt.Sprintf("Unexpected method call to action, expected %v, actual %v", dummyActionExpected, dummyActionCalled))
-	}
+	assert.Equal(t, dummyActionExpected, dummyActionCalled, "Unexpected method call to dummyAction")
 }

@@ -9,10 +9,14 @@ import (
 
 // func pointers for injection / testing: certificate.go
 var (
-	tlsX509KeyPair          = tls.X509KeyPair
-	x509NewCertPool         = x509.NewCertPool
-	apperrorWrapSimpleError = apperror.WrapSimpleError
-	loadTLSCertificateFunc  = loadTLSCertificate
-	appendCertsFromPEMFunc  = appendCertsFromPEM
-	loadX509CertPoolFunc    = loadX509CertPool
+	tlsX509KeyPair               = tls.X509KeyPair
+	x509NewCertPool              = x509.NewCertPool
+	apperrorWrapSimpleError      = apperror.WrapSimpleError
+	apperrorConsolidateAllErrors = apperror.ConsolidateAllErrors
+	loadTLSCertificateFunc       = loadTLSCertificate
+	appendCertsFromPEMFunc       = appendCertsFromPEM
+	loadX509CertPoolFunc         = loadX509CertPool
+	initializeClientCertFunc     = initializeClientCert
+	initializeServerCertFunc     = initializeServerCert
+	initializeCaCertPoolFunc     = initializeCaCertPool
 )

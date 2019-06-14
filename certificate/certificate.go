@@ -11,7 +11,9 @@ var (
 	serverCertificate *tls.Certificate
 )
 
-func loadTLSCertificate(certBytes, keyBytes []byte) (*tls.Certificate, error) {
+func loadTLSCertificate(
+	certBytes, keyBytes []byte,
+) (*tls.Certificate, error) {
 	var tlsCert, tlsError = tlsX509KeyPair(
 		certBytes,
 		keyBytes,
@@ -26,7 +28,10 @@ func loadTLSCertificate(certBytes, keyBytes []byte) (*tls.Certificate, error) {
 	return &tlsCert, nil
 }
 
-func appendCertsFromPEM(certPool *x509.CertPool, certBytes []byte) bool {
+func appendCertsFromPEM(
+	certPool *x509.CertPool,
+	certBytes []byte,
+) bool {
 	return certPool.AppendCertsFromPEM(certBytes)
 }
 
@@ -43,61 +48,39 @@ func loadX509CertPool(certBytes []byte) (*x509.CertPool, error) {
 	return certPool, nil
 }
 
-// GetClientCertificate returns the client certificate loaded from local storage
-func GetClientCertificate() (*tls.Certificate, error) {
-	if clientCertificate != nil {
-		return clientCertificate, nil
-	}
-	return nil,
-		apperrorWrapSimpleError(
-			nil,
-			"Client certificate not initialized",
-		)
-}
-
-// GetServerCertificate returns the server certificate loaded from local storage
-func GetServerCertificate() (*tls.Certificate, error) {
-	if serverCertificate != nil {
-		return serverCertificate, nil
-	}
-	return nil,
-		apperrorWrapSimpleError(
-			nil,
-			"Server certificate not initialized",
-		)
-}
-
-// GetClientCertPool returns the client cert pool (CA root) loaded from local storage
-func GetClientCertPool() (*x509.CertPool, error) {
-	if caCertPool != nil {
-		return caCertPool, nil
-	}
-	return nil,
-		apperrorWrapSimpleError(
-			nil,
-			"CA cert pool not initialized",
-		)
-}
-
-// Initialize initializes the certificates used by the application
-func Initialize(
+func initializeClientCert(
+	sendClientCert bool,
 	clientCertContent string,
 	clientKeyContent string,
-	serverCertContent string,
-	serverKeyContent string,
-	caCertContent string,
 ) error {
+	clientCertificate = nil
+	if !sendClientCert {
+		return nil
+	}
 	var clientCert, clientCertError = loadTLSCertificateFunc(
 		[]byte(clientCertContent),
 		[]byte(clientKeyContent),
 	)
 	if clientCertError != nil {
+		clientCertificate = nil
 		return apperrorWrapSimpleError(
 			clientCertError,
 			"Failed to initialize client certificate",
 		)
 	}
 	clientCertificate = clientCert
+	return nil
+}
+
+func initializeServerCert(
+	serveHTTPS bool,
+	serverCertContent string,
+	serverKeyContent string,
+) error {
+	serverCertificate = nil
+	if !serveHTTPS {
+		return nil
+	}
 	var serverCert, serverCertError = loadTLSCertificateFunc(
 		[]byte(serverCertContent),
 		[]byte(serverKeyContent),
@@ -109,6 +92,17 @@ func Initialize(
 		)
 	}
 	serverCertificate = serverCert
+	return nil
+}
+
+func initializeCaCertPool(
+	validateClientCert bool,
+	caCertContent string,
+) error {
+	caCertPool = nil
+	if !validateClientCert {
+		return nil
+	}
 	var certPool, poolError = loadX509CertPoolFunc(
 		[]byte(caCertContent),
 	)
@@ -120,4 +114,54 @@ func Initialize(
 	}
 	caCertPool = certPool
 	return nil
+}
+
+// Initialize initializes the certificates used by the application
+func Initialize(
+	sendClientCert bool,
+	clientCertContent string,
+	clientKeyContent string,
+	serveHTTPS bool,
+	serverCertContent string,
+	serverKeyContent string,
+	validateClientCert bool,
+	caCertContent string,
+) error {
+	var (
+		clientCertError = initializeClientCertFunc(
+			sendClientCert,
+			clientCertContent,
+			clientKeyContent,
+		)
+		serverCertError = initializeServerCertFunc(
+			serveHTTPS,
+			serverCertContent,
+			serverKeyContent,
+		)
+		caCertPoolError = initializeCaCertPoolFunc(
+			validateClientCert,
+			caCertContent,
+		)
+	)
+	return apperrorConsolidateAllErrors(
+		"Failed to initialize certificates for application",
+		clientCertError,
+		serverCertError,
+		caCertPoolError,
+	)
+}
+
+// GetClientCertificate returns the client certificate loaded from local storage
+func GetClientCertificate() *tls.Certificate {
+	return clientCertificate
+}
+
+// GetServerCertificate returns the server certificate loaded from local storage
+func GetServerCertificate() *tls.Certificate {
+	return serverCertificate
+}
+
+// GetClientCertPool returns the client cert pool (CA root) loaded from local storage
+func GetClientCertPool() *x509.CertPool {
+	return caCertPool
 }
