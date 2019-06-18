@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
+	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
 	"github.com/zhongjie-cai/WebServiceTemplate/config"
 	"github.com/zhongjie-cai/WebServiceTemplate/jsonutil"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger/logtype"
@@ -35,8 +36,12 @@ var (
 	configIsLocalhostCalled            int
 	sessionGetExpected                 int
 	sessionGetCalled                   int
-	doLoggingFuncExpected              int
-	doLoggingFuncCalled                int
+	apperrorWrapSimpleErrorExpected    int
+	apperrorWrapSimpleErrorCalled      int
+	defaultLoggingFuncExpected         int
+	defaultLoggingFuncCalled           int
+	prepareLoggingFuncExpected         int
+	prepareLoggingFuncCalled           int
 )
 
 func createMock(t *testing.T) {
@@ -100,34 +105,51 @@ func createMock(t *testing.T) {
 		sessionGetCalled++
 		return nil
 	}
-	doLoggingFuncExpected = 0
-	doLoggingFuncCalled = 0
-	doLoggingFunc = func(sessionID uuid.UUID, logType logtype.LogType, category, subcategory, description string) {
-		doLoggingFuncCalled++
+	apperrorWrapSimpleErrorExpected = 0
+	apperrorWrapSimpleErrorCalled = 0
+	apperrorWrapSimpleError = func(innerError error, messageFormat string, parameters ...interface{}) apperror.AppError {
+		apperrorWrapSimpleErrorCalled++
+		return nil
+	}
+	defaultLoggingFuncExpected = 0
+	defaultLoggingFuncCalled = 0
+	defaultLoggingFunc = func(session *session.Session, logType logtype.LogType, category, subcategory, description string) {
+		defaultLoggingFuncCalled++
+	}
+	prepareLoggingFuncExpected = 0
+	prepareLoggingFuncCalled = 0
+	prepareLoggingFunc = func(sessionID uuid.UUID, logType logtype.LogType, category, subcategory, description string) {
+		prepareLoggingFuncCalled++
 	}
 }
 
 func verifyAll(t *testing.T) {
 	fmtPrintln = fmt.Println
-	assert.Equal(t, fmtPrintlnExpected, fmtPrintlnCalled, "Unexpected method call to fmtPrintln")
+	assert.Equal(t, fmtPrintlnExpected, fmtPrintlnCalled, "Unexpected number of calls to fmtPrintln")
 	uuidNew = uuid.New
-	assert.Equal(t, uuidNewExpected, uuidNewCalled, "Unexpected method call to uuidNew")
+	assert.Equal(t, uuidNewExpected, uuidNewCalled, "Unexpected number of calls to uuidNew")
 	uuidParse = uuid.Parse
-	assert.Equal(t, uuidParseExpected, uuidParseCalled, "Unexpected method call to uuidParse")
+	assert.Equal(t, uuidParseExpected, uuidParseCalled, "Unexpected number of calls to uuidParse")
 	fmtSprintf = fmt.Sprintf
-	assert.Equal(t, fmtSprintfExpected, fmtSprintfCalled, "Unexpected method call to fmtSprintf")
+	assert.Equal(t, fmtSprintfExpected, fmtSprintfCalled, "Unexpected number of calls to fmtSprintf")
 	timeutilGetTimeNowUTC = timeutil.GetTimeNowUTC
-	assert.Equal(t, timeutilGetTimeNowUTCExpected, timeutilGetTimeNowUTCCalled, "Unexpected method call to timeutilGetTimeNowUTC")
+	assert.Equal(t, timeutilGetTimeNowUTCExpected, timeutilGetTimeNowUTCCalled, "Unexpected number of calls to timeutilGetTimeNowUTC")
 	jsonutilMarshalIgnoreError = jsonutil.MarshalIgnoreError
-	assert.Equal(t, jsonutilMarshalIgnoreErrorExpected, jsonutilMarshalIgnoreErrorCalled, "Unexpected method call to jsonutilMarshalIgnoreError")
+	assert.Equal(t, jsonutilMarshalIgnoreErrorExpected, jsonutilMarshalIgnoreErrorCalled, "Unexpected number of calls to jsonutilMarshalIgnoreError")
 	configAppName = config.AppName
-	assert.Equal(t, configAppNameExpected, configAppNameCalled, "Unexpected method call to configAppName")
+	assert.Equal(t, configAppNameExpected, configAppNameCalled, "Unexpected number of calls to configAppName")
 	configAppVersion = config.AppVersion
-	assert.Equal(t, configAppVersionExpected, configAppVersionCalled, "Unexpected method call to configAppVersion")
+	assert.Equal(t, configAppVersionExpected, configAppVersionCalled, "Unexpected number of calls to configAppVersion")
 	configIsLocalhost = config.IsLocalhost
-	assert.Equal(t, configIsLocalhostExpected, configIsLocalhostCalled, "Unexpected method call to configIsLocalhost")
+	assert.Equal(t, configIsLocalhostExpected, configIsLocalhostCalled, "Unexpected number of calls to configIsLocalhost")
 	sessionGet = session.Get
-	assert.Equal(t, sessionGetExpected, sessionGetCalled, "Unexpected method call to sessionGet")
-	doLoggingFunc = doLogging
-	assert.Equal(t, doLoggingFuncExpected, doLoggingFuncCalled, "Unexpected method call to doLoggingFunc")
+	assert.Equal(t, sessionGetExpected, sessionGetCalled, "Unexpected number of calls to sessionGet")
+	apperrorWrapSimpleError = apperror.WrapSimpleError
+	assert.Equal(t, apperrorWrapSimpleErrorExpected, apperrorWrapSimpleErrorCalled, "Unexpected number of calls to apperrorWrapSimpleError")
+	defaultLoggingFunc = defaultLogging
+	assert.Equal(t, defaultLoggingFuncExpected, defaultLoggingFuncCalled, "Unexpected number of calls to defaultLoggingFunc")
+	prepareLoggingFunc = prepareLogging
+	assert.Equal(t, prepareLoggingFuncExpected, prepareLoggingFuncCalled, "Unexpected number of calls to prepareLoggingFunc")
+
+	LoggingFunc = nil
 }

@@ -23,5 +23,5 @@ func createMock(t *testing.T) {
 
 func verifyAll(t *testing.T) {
 	timeNow = time.Now
-	assert.Equal(t, timeNowExpected, timeNowCalled, "Unexpected method call to timeNow")
+	assert.Equal(t, timeNowExpected, timeNowCalled, "Unexpected number of calls to timeNow")
 }

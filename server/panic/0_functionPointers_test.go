@@ -42,7 +42,7 @@ func createMock(t *testing.T) {
 	}
 	loggerAppRootExpected = 0
 	loggerAppRootCalled = 0
-	loggerAppRoot = func(sessionID uuid.UUID, category string, subcategory string, messageFormat string, parameters ...interface{}) {
+	loggerAppRoot = func(category string, subcategory string, messageFormat string, parameters ...interface{}) {
 		loggerAppRootCalled++
 	}
 	responseErrorExpected = 0
@@ -66,15 +66,34 @@ func createMock(t *testing.T) {
 
 func verifyAll(t *testing.T) {
 	fmtErrorf = fmt.Errorf
-	assert.Equal(t, fmtErrorfExpected, fmtErrorfCalled, "Unexpected method call to fmtErrorf")
+	assert.Equal(t, fmtErrorfExpected, fmtErrorfCalled, "Unexpected number of calls to fmtErrorf")
 	getRecoverErrorFunc = getRecoverError
-	assert.Equal(t, getRecoverErrorFuncExpected, getRecoverErrorFuncCalled, "Unexpected method call to getRecoverErrorFunc")
+	assert.Equal(t, getRecoverErrorFuncExpected, getRecoverErrorFuncCalled, "Unexpected number of calls to getRecoverErrorFunc")
 	loggerAppRoot = logger.AppRoot
-	assert.Equal(t, loggerAppRootExpected, loggerAppRootCalled, "Unexpected method call to loggerAppRoot")
+	assert.Equal(t, loggerAppRootExpected, loggerAppRootCalled, "Unexpected number of calls to loggerAppRoot")
 	responseError = response.Error
-	assert.Equal(t, responseErrorExpected, responseErrorCalled, "Unexpected method call to responseError")
+	assert.Equal(t, responseErrorExpected, responseErrorCalled, "Unexpected number of calls to responseError")
 	apperrorGetGeneralFailureError = apperror.GetGeneralFailureError
-	assert.Equal(t, apperrorGetGeneralFailureErrorExpected, apperrorGetGeneralFailureErrorCalled, "Unexpected method call to apperrorGetGeneralFailureError")
+	assert.Equal(t, apperrorGetGeneralFailureErrorExpected, apperrorGetGeneralFailureErrorCalled, "Unexpected number of calls to apperrorGetGeneralFailureError")
 	getDebugStackFunc = getDebugStack
-	assert.Equal(t, getDebugStackFuncExpected, getDebugStackFuncCalled, "Unexpected method call to getDebugStackFunc")
+	assert.Equal(t, getDebugStackFuncExpected, getDebugStackFuncCalled, "Unexpected number of calls to getDebugStackFunc")
+}
+
+// mock structs
+type dummyPanicResponseWriter struct {
+	t *testing.T
+}
+
+func (drw *dummyPanicResponseWriter) Header() http.Header {
+	assert.Fail(drw.t, "Unexpected number of calls to ResponseWrite.Header")
+	return nil
+}
+
+func (drw *dummyPanicResponseWriter) Write([]byte) (int, error) {
+	assert.Fail(drw.t, "Unexpected number of calls to ResponseWrite.Write")
+	return 0, nil
+}
+
+func (drw *dummyPanicResponseWriter) WriteHeader(statusCode int) {
+	assert.Fail(drw.t, "Unexpected number of calls to ResponseWrite.WriteHeader")
 }

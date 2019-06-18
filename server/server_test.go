@@ -4,10 +4,8 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"errors"
-	"fmt"
 	"math/rand"
 	"net/http"
-	"reflect"
 	"testing"
 	"time"
 
@@ -287,7 +285,7 @@ func TestRunServer_Success(t *testing.T) {
 	)
 
 	// assert
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	// verify
 	verifyAll(t)
@@ -305,23 +303,11 @@ func TestHost_ErrorRegisterRoutes(t *testing.T) {
 
 	// mock
 	createMock(t)
-	var dummyHostEntries = []string{
-		fmt.Sprintf("%v", reflect.ValueOf(healthHostEntry)),
-		fmt.Sprintf("%v", reflect.ValueOf(faviconHostEntry)),
-		fmt.Sprintf("%v", reflect.ValueOf(swaggerHostEntry)),
-	}
 
 	// expect
-	routeRegisterEntriesExpected = 1
-	routeRegisterEntries = func(entryFuncs ...func(router *mux.Router)) (*mux.Router, error) {
-		routeRegisterEntriesCalled++
-		var pointers = []string{}
-		for _, entryFunc := range entryFuncs {
-			var pointer = fmt.Sprintf("%v", reflect.ValueOf(entryFunc))
-			pointers = append(pointers, pointer)
-		}
-		assert.Equal(t, len(dummyHostEntries), len(pointers))
-		assert.ElementsMatch(t, dummyHostEntries, pointers)
+	registerInstantiateExpected = 1
+	registerInstantiate = func() (*mux.Router, error) {
+		registerInstantiateCalled++
 		return dummyRouter, dummyError
 	}
 	apperrorWrapSimpleErrorExpected = 1
@@ -360,24 +346,23 @@ func TestHost_ErrorRunServer(t *testing.T) {
 
 	// mock
 	createMock(t)
-	var dummyHostEntries = []string{
-		fmt.Sprintf("%v", reflect.ValueOf(healthHostEntry)),
-		fmt.Sprintf("%v", reflect.ValueOf(faviconHostEntry)),
-		fmt.Sprintf("%v", reflect.ValueOf(swaggerHostEntry)),
-	}
 
 	// expect
-	routeRegisterEntriesExpected = 1
-	routeRegisterEntries = func(entryFuncs ...func(router *mux.Router)) (*mux.Router, error) {
-		routeRegisterEntriesCalled++
-		var pointers = []string{}
-		for _, entryFunc := range entryFuncs {
-			var pointer = fmt.Sprintf("%v", reflect.ValueOf(entryFunc))
-			pointers = append(pointers, pointer)
-		}
-		assert.Equal(t, len(dummyHostEntries), len(pointers))
-		assert.ElementsMatch(t, dummyHostEntries, pointers)
+	registerInstantiateExpected = 1
+	registerInstantiate = func() (*mux.Router, error) {
+		registerInstantiateCalled++
 		return dummyRouter, nil
+	}
+	loggerAppRootExpected = 1
+	loggerAppRoot = func(category string, subcategory string, messageFormat string, parameters ...interface{}) {
+		loggerAppRootCalled++
+		assert.Equal(t, "server", category)
+		assert.Equal(t, "Host", subcategory)
+		assert.Equal(t, "Targeting port [%v] HTTPS [%v] mTLS [%v]", messageFormat)
+		assert.Equal(t, 3, len(parameters))
+		assert.Equal(t, dummyAppPort, parameters[0])
+		assert.Equal(t, dummyServeHTTPS, parameters[1])
+		assert.Equal(t, dummyValidateClientCert, parameters[2])
 	}
 	runServerFuncExpected = 1
 	runServerFunc = func(serveHTTPS bool, validateClientCert bool, appPort string, router *mux.Router) error {
@@ -421,24 +406,23 @@ func TestHost_Success(t *testing.T) {
 
 	// mock
 	createMock(t)
-	var dummyHostEntries = []string{
-		fmt.Sprintf("%v", reflect.ValueOf(healthHostEntry)),
-		fmt.Sprintf("%v", reflect.ValueOf(faviconHostEntry)),
-		fmt.Sprintf("%v", reflect.ValueOf(swaggerHostEntry)),
-	}
 
 	// expect
-	routeRegisterEntriesExpected = 1
-	routeRegisterEntries = func(entryFuncs ...func(*mux.Router)) (*mux.Router, error) {
-		routeRegisterEntriesCalled++
-		var pointers = []string{}
-		for _, entryFunc := range entryFuncs {
-			var pointer = fmt.Sprintf("%v", reflect.ValueOf(entryFunc))
-			pointers = append(pointers, pointer)
-		}
-		assert.Equal(t, len(dummyHostEntries), len(pointers))
-		assert.ElementsMatch(t, dummyHostEntries, pointers)
+	registerInstantiateExpected = 1
+	registerInstantiate = func() (*mux.Router, error) {
+		registerInstantiateCalled++
 		return dummyRouter, nil
+	}
+	loggerAppRootExpected = 1
+	loggerAppRoot = func(category string, subcategory string, messageFormat string, parameters ...interface{}) {
+		loggerAppRootCalled++
+		assert.Equal(t, "server", category)
+		assert.Equal(t, "Host", subcategory)
+		assert.Equal(t, "Targeting port [%v] HTTPS [%v] mTLS [%v]", messageFormat)
+		assert.Equal(t, 3, len(parameters))
+		assert.Equal(t, dummyAppPort, parameters[0])
+		assert.Equal(t, dummyServeHTTPS, parameters[1])
+		assert.Equal(t, dummyValidateClientCert, parameters[2])
 	}
 	runServerFuncExpected = 1
 	runServerFunc = func(serveHTTPS bool, validateClientCert bool, appPort string, router *mux.Router) error {
@@ -458,7 +442,7 @@ func TestHost_Success(t *testing.T) {
 	)
 
 	// assert
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	// verify
 	verifyAll(t)

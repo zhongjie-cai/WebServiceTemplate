@@ -10,25 +10,6 @@ import (
 	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
 )
 
-// mock struct
-type dummyPanicResponseWriter struct {
-	t *testing.T
-}
-
-func (drw *dummyPanicResponseWriter) Header() http.Header {
-	assert.Fail(drw.t, "Unexpected call to ResponseWrite.Header")
-	return nil
-}
-
-func (drw *dummyPanicResponseWriter) Write([]byte) (int, error) {
-	assert.Fail(drw.t, "Unexpected call to ResponseWrite.Write")
-	return 0, nil
-}
-
-func (drw *dummyPanicResponseWriter) WriteHeader(statusCode int) {
-	assert.Fail(drw.t, "Unexpected call to ResponseWrite.WriteHeader")
-}
-
 func TestGetRecoverError_Error(t *testing.T) {
 	// arrange
 	var dummyRecoverResult = errors.New("some error")
@@ -138,9 +119,8 @@ func TestHandlePanic(t *testing.T) {
 		return dummyDebugStack
 	}
 	loggerAppRootExpected = 1
-	loggerAppRoot = func(sessionID uuid.UUID, category string, subcategory string, messageFormat string, parameters ...interface{}) {
+	loggerAppRoot = func(category string, subcategory string, messageFormat string, parameters ...interface{}) {
 		loggerAppRootCalled++
-		assert.Equal(t, dummySessionID, sessionID)
 		assert.Equal(t, "panic", category)
 		assert.Equal(t, "Handle", subcategory)
 		assert.Equal(t, "%v\n%v", messageFormat)

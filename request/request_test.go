@@ -168,7 +168,7 @@ func TestGetUUIDFromHeader_HeaderValidUUID(t *testing.T) {
 
 func TestGetLoginID_NilRequest(t *testing.T) {
 	// arrange
-	var dummyRequest *http.Request
+	var dummyHTTPRequest *http.Request
 	var expectedCorrelationID = uuid.New()
 
 	// mock
@@ -183,7 +183,7 @@ func TestGetLoginID_NilRequest(t *testing.T) {
 
 	// SUT + act
 	result := GetLoginID(
-		dummyRequest,
+		dummyHTTPRequest,
 	)
 
 	// assert
@@ -195,7 +195,7 @@ func TestGetLoginID_NilRequest(t *testing.T) {
 
 func TestGetLoginID_ValidRequest(t *testing.T) {
 	// arrange
-	var dummyRequest, _ = http.NewRequest(
+	var dummyHTTPRequest, _ = http.NewRequest(
 		http.MethodGet,
 		"http://localhost/",
 		nil,
@@ -209,14 +209,14 @@ func TestGetLoginID_ValidRequest(t *testing.T) {
 	getUUIDFromHeaderFuncExpected = 1
 	getUUIDFromHeaderFunc = func(header http.Header, name string) uuid.UUID {
 		getUUIDFromHeaderFuncCalled++
-		assert.Equal(t, dummyRequest.Header, header)
+		assert.Equal(t, dummyHTTPRequest.Header, header)
 		assert.Equal(t, "login-id", name)
 		return expectedCorrelationID
 	}
 
 	// SUT + act
 	result := GetLoginID(
-		dummyRequest,
+		dummyHTTPRequest,
 	)
 
 	// assert
@@ -228,7 +228,7 @@ func TestGetLoginID_ValidRequest(t *testing.T) {
 
 func TestGetCorrelationID_NilRequest(t *testing.T) {
 	// arrange
-	var dummyRequest *http.Request
+	var dummyHTTPRequest *http.Request
 	var expectedCorrelationID = uuid.New()
 
 	// mock
@@ -243,7 +243,7 @@ func TestGetCorrelationID_NilRequest(t *testing.T) {
 
 	// SUT + act
 	result := GetCorrelationID(
-		dummyRequest,
+		dummyHTTPRequest,
 	)
 
 	// assert
@@ -255,7 +255,7 @@ func TestGetCorrelationID_NilRequest(t *testing.T) {
 
 func TestGetCorrelationID_ValidRequest(t *testing.T) {
 	// arrange
-	var dummyRequest, _ = http.NewRequest(
+	var dummyHTTPRequest, _ = http.NewRequest(
 		http.MethodGet,
 		"http://localhost/",
 		nil,
@@ -269,14 +269,14 @@ func TestGetCorrelationID_ValidRequest(t *testing.T) {
 	getUUIDFromHeaderFuncExpected = 1
 	getUUIDFromHeaderFunc = func(header http.Header, name string) uuid.UUID {
 		getUUIDFromHeaderFuncCalled++
-		assert.Equal(t, dummyRequest.Header, header)
+		assert.Equal(t, dummyHTTPRequest.Header, header)
 		assert.Equal(t, "correlation-id", name)
 		return expectedCorrelationID
 	}
 
 	// SUT + act
 	result := GetCorrelationID(
-		dummyRequest,
+		dummyHTTPRequest,
 	)
 
 	// assert
@@ -288,7 +288,7 @@ func TestGetCorrelationID_ValidRequest(t *testing.T) {
 
 func TestGetAllowedLogType(t *testing.T) {
 	// arrange
-	var dummyRequest, _ = http.NewRequest(
+	var dummyHTTPRequest, _ = http.NewRequest(
 		http.MethodGet,
 		"http://localhost/",
 		nil,
@@ -297,8 +297,8 @@ func TestGetAllowedLogType(t *testing.T) {
 	var dummyLogType = logtype.LogType(rand.Intn(256))
 
 	// stub
-	dummyRequest.Header.Add("foo", "bar")
-	dummyRequest.Header.Add("log-type", dummyHeaderValue)
+	dummyHTTPRequest.Header.Add("foo", "bar")
+	dummyHTTPRequest.Header.Add("log-type", dummyHeaderValue)
 
 	// mock
 	createMock(t)
@@ -313,7 +313,7 @@ func TestGetAllowedLogType(t *testing.T) {
 
 	// SUT + act
 	allowedLogType := GetAllowedLogType(
-		dummyRequest,
+		dummyHTTPRequest,
 	)
 
 	// assert
@@ -325,7 +325,7 @@ func TestGetAllowedLogType(t *testing.T) {
 
 func TestGetClientCertificates_RequestNil(t *testing.T) {
 	// arrange
-	var dummyRequest *http.Request
+	var dummyHTTPRequest *http.Request
 	var dummyMessageFormat = "Invalid request or insecure communication channel"
 	var dummySyncError = apperror.GetGeneralFailureError(nil)
 
@@ -336,7 +336,7 @@ func TestGetClientCertificates_RequestNil(t *testing.T) {
 	apperrorWrapSimpleErrorExpected = 1
 	apperrorWrapSimpleError = func(innerError error, messageFormat string, parameters ...interface{}) apperror.AppError {
 		apperrorWrapSimpleErrorCalled++
-		assert.Nil(t, innerError)
+		assert.NoError(t, innerError)
 		assert.Equal(t, dummyMessageFormat, messageFormat)
 		assert.Equal(t, 0, len(parameters))
 		return dummySyncError
@@ -344,7 +344,7 @@ func TestGetClientCertificates_RequestNil(t *testing.T) {
 
 	// SUT + act
 	result, err := GetClientCertificates(
-		dummyRequest,
+		dummyHTTPRequest,
 	)
 
 	// assert
@@ -357,7 +357,7 @@ func TestGetClientCertificates_RequestNil(t *testing.T) {
 
 func TestGetClientCertificates_TLSNil(t *testing.T) {
 	// arrange
-	var dummyRequest = &http.Request{}
+	var dummyHTTPRequest = &http.Request{}
 	var dummyMessageFormat = "Invalid request or insecure communication channel"
 	var dummySyncError = apperror.GetGeneralFailureError(nil)
 
@@ -368,7 +368,7 @@ func TestGetClientCertificates_TLSNil(t *testing.T) {
 	apperrorWrapSimpleErrorExpected = 1
 	apperrorWrapSimpleError = func(innerError error, messageFormat string, parameters ...interface{}) apperror.AppError {
 		apperrorWrapSimpleErrorCalled++
-		assert.Nil(t, innerError)
+		assert.NoError(t, innerError)
 		assert.Equal(t, dummyMessageFormat, messageFormat)
 		assert.Equal(t, 0, len(parameters))
 		return dummySyncError
@@ -376,7 +376,7 @@ func TestGetClientCertificates_TLSNil(t *testing.T) {
 
 	// SUT + act
 	result, err := GetClientCertificates(
-		dummyRequest,
+		dummyHTTPRequest,
 	)
 
 	// assert
@@ -389,7 +389,7 @@ func TestGetClientCertificates_TLSNil(t *testing.T) {
 
 func TestGetClientCertificates_Success(t *testing.T) {
 	// arrange
-	var dummyRequest = &http.Request{
+	var dummyHTTPRequest = &http.Request{
 		TLS: &tls.ConnectionState{
 			PeerCertificates: []*x509.Certificate{
 				&x509.Certificate{},
@@ -402,12 +402,12 @@ func TestGetClientCertificates_Success(t *testing.T) {
 
 	// SUT + act
 	result, err := GetClientCertificates(
-		dummyRequest,
+		dummyHTTPRequest,
 	)
 
 	// assert
-	assert.Equal(t, dummyRequest.TLS.PeerCertificates, result)
-	assert.Nil(t, err)
+	assert.Equal(t, dummyHTTPRequest.TLS.PeerCertificates, result)
+	assert.NoError(t, err)
 
 	// verify
 	verifyAll(t)
@@ -415,7 +415,7 @@ func TestGetClientCertificates_Success(t *testing.T) {
 
 func TestGetRequestBody_NilBody(t *testing.T) {
 	// arrange
-	var dummyRequest, _ = http.NewRequest(
+	var dummyHTTPRequest, _ = http.NewRequest(
 		http.MethodGet,
 		"http://127.0.0.1",
 		nil,
@@ -438,7 +438,7 @@ func TestGetRequestBody_NilBody(t *testing.T) {
 
 	// SUT + act
 	result := GetRequestBody(
-		dummyRequest,
+		dummyHTTPRequest,
 		dummySessionID,
 	)
 
@@ -452,7 +452,7 @@ func TestGetRequestBody_NilBody(t *testing.T) {
 func TestGetRequestBody_ErrorBody(t *testing.T) {
 	// arrange
 	var bodyContent = "some body content"
-	var dummyRequest, _ = http.NewRequest(
+	var dummyHTTPRequest, _ = http.NewRequest(
 		http.MethodGet,
 		"http://localhost/featuretoggle",
 		strings.NewReader(bodyContent),
@@ -467,7 +467,7 @@ func TestGetRequestBody_ErrorBody(t *testing.T) {
 	ioutilReadAllExpected = 1
 	ioutilReadAll = func(r io.Reader) ([]byte, error) {
 		ioutilReadAllCalled++
-		assert.Equal(t, dummyRequest.Body, r)
+		assert.Equal(t, dummyHTTPRequest.Body, r)
 		return nil, dummyError
 	}
 	loggerAPIRequestExpected = 1
@@ -483,7 +483,7 @@ func TestGetRequestBody_ErrorBody(t *testing.T) {
 
 	// SUT + act
 	result := GetRequestBody(
-		dummyRequest,
+		dummyHTTPRequest,
 		dummySessionID,
 	)
 
@@ -497,7 +497,7 @@ func TestGetRequestBody_ErrorBody(t *testing.T) {
 func TestGetRequestBody_Success(t *testing.T) {
 	// arrange
 	var bodyContent = "some body content"
-	var dummyRequest, _ = http.NewRequest(
+	var dummyHTTPRequest, _ = http.NewRequest(
 		http.MethodGet,
 		"http://localhost/featuretoggle",
 		strings.NewReader(bodyContent),
@@ -525,7 +525,7 @@ func TestGetRequestBody_Success(t *testing.T) {
 
 	// SUT + act
 	result := GetRequestBody(
-		dummyRequest,
+		dummyHTTPRequest,
 		dummySessionID,
 	)
 

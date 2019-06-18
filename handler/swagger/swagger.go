@@ -3,41 +3,27 @@ package swagger
 import (
 	"net/http"
 
-	"github.com/gorilla/mux"
+	"github.com/google/uuid"
 )
 
-func redirectHandler(
+// Redirect handles HTTP redirection for swagger UI requests
+func Redirect(
 	responseWriter http.ResponseWriter,
-	request *http.Request,
+	httpRequest *http.Request,
+	sessionID uuid.UUID,
 ) {
 	httpRedirect(
 		responseWriter,
-		request,
+		httpRequest,
 		"/docs/",
 		http.StatusPermanentRedirect,
 	)
 }
 
-func contentHandler() http.Handler {
+// Handler handles the hosting of the swagger UI static content
+func Handler() http.Handler {
 	return httpStripPrefix(
 		"/docs/",
 		httpFileServer(
 			http.Dir(configAppPath()+"/docs")))
-}
-
-// HostEntry hosts the service entry for "/docs"
-func HostEntry(router *mux.Router) {
-	routeHandleFunc(
-		router,
-		"SwaggerUI",
-		http.MethodGet,
-		"/docs",
-		redirectHandlerFunc,
-	)
-	routeHostStatic(
-		router,
-		"SwaggerUI",
-		"/docs/",
-		contentHandlerFunc(),
-	)
 }

@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
+	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
 	"github.com/zhongjie-cai/WebServiceTemplate/config"
 	"github.com/zhongjie-cai/WebServiceTemplate/jsonutil"
 	"github.com/zhongjie-cai/WebServiceTemplate/session"
@@ -23,5 +24,7 @@ var (
 	configAppVersion           = config.AppVersion
 	configIsLocalhost          = config.IsLocalhost
 	sessionGet                 = session.Get
-	doLoggingFunc              = doLogging
+	apperrorWrapSimpleError    = apperror.WrapSimpleError
+	defaultLoggingFunc         = defaultLogging
+	prepareLoggingFunc         = prepareLogging
 )

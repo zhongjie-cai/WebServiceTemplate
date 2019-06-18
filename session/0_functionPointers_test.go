@@ -1,6 +1,7 @@
 package session
 
 import (
+	"net/http"
 	"testing"
 
 	"github.com/google/uuid"
@@ -23,5 +24,24 @@ func createMock(t *testing.T) {
 
 func verifyAll(t *testing.T) {
 	uuidNew = uuid.New
-	assert.Equal(t, uuidNewExpected, uuidNewCalled, "Unexpected method call to uuidNew")
+	assert.Equal(t, uuidNewExpected, uuidNewCalled, "Unexpected number of calls to uuidNew")
+}
+
+// mock structs
+type dummyResponseWriter struct {
+	t *testing.T
+}
+
+func (drw dummyResponseWriter) Header() http.Header {
+	assert.Fail(drw.t, "Unexpected number of calls to Header")
+	return nil
+}
+
+func (drw dummyResponseWriter) Write(bytes []byte) (int, error) {
+	assert.Fail(drw.t, "Unexpected number of calls to Write")
+	return 0, nil
+}
+
+func (drw dummyResponseWriter) WriteHeader(statusCode int) {
+	assert.Fail(drw.t, "Unexpected number of calls to WriteHeader")
 }

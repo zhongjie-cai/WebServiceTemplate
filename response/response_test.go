@@ -14,71 +14,6 @@ import (
 	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
 )
 
-// mock struct
-type dummyResponseWriter struct {
-	t               *testing.T
-	expectedHeader  *http.Header
-	expectedCode    *int
-	expectedContent *[]byte
-}
-
-func (drw *dummyResponseWriter) Header() http.Header {
-	if drw.expectedHeader == nil {
-		assert.Fail(drw.t, "Unexpected method call to Header")
-		return nil
-	}
-	return *drw.expectedHeader
-}
-
-func (drw *dummyResponseWriter) WriteHeader(statusCode int) {
-	if drw.expectedCode == nil {
-		assert.Fail(drw.t, "Unexpected method call to WriteHeader")
-	} else {
-		assert.Equal(drw.t, *drw.expectedCode, statusCode)
-	}
-}
-
-func (drw *dummyResponseWriter) Write(bytes []byte) (int, error) {
-	if drw.expectedContent == nil {
-		assert.Fail(drw.t, "Unexpected method call to Write")
-	} else {
-		assert.Equal(drw.t, *drw.expectedContent, bytes)
-	}
-	return 0, nil
-}
-
-type dummyAppError struct {
-	t                *testing.T
-	expectedCode     *apperror.Code
-	expectedMessages *[]string
-}
-
-func (dae dummyAppError) Code() apperror.Code {
-	if dae.expectedCode == nil {
-		assert.Fail(dae.t, "Unexpected method call to Code")
-		return apperror.Code(-1)
-	}
-	return *dae.expectedCode
-}
-
-func (dae dummyAppError) Error() string {
-	assert.Fail(dae.t, "Unexpected method call to Error")
-	return ""
-}
-
-func (dae dummyAppError) InnerErrors() []error {
-	assert.Fail(dae.t, "Unexpected method call to InnerErrors")
-	return nil
-}
-
-func (dae dummyAppError) Messages() []string {
-	if dae.expectedMessages == nil {
-		assert.Fail(dae.t, "Unexpected method call to Messages")
-		return nil
-	}
-	return *dae.expectedMessages
-}
-
 func TestGetAppError_NotAppError(t *testing.T) {
 	// arrange
 	var dummyError = errors.New("some error")
@@ -270,7 +205,35 @@ func TestGetStatusCode_OtherCode(t *testing.T) {
 	verifyAll(t)
 }
 
-func TestCreateOkResponse_NilContent(t *testing.T) {
+func TestCreateOkResponse_EmptyContent(t *testing.T) {
+	// arrange
+	var dummyResponseContent = ""
+
+	// mock
+	createMock(t)
+
+	// expect
+	jsonutilMarshalIgnoreErrorExpected = 1
+	jsonutilMarshalIgnoreError = func(v interface{}) string {
+		jsonutilMarshalIgnoreErrorCalled++
+		assert.Equal(t, dummyResponseContent, v)
+		return ""
+	}
+
+	// SUT + act
+	var result, code = createOkResponse(
+		dummyResponseContent,
+	)
+
+	// assert
+	assert.Zero(t, result)
+	assert.Equal(t, http.StatusNoContent, code)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestCreateOkResponse_DirectNilContent(t *testing.T) {
 	// arrange
 	var dummyResponseContent types.Object
 
@@ -290,20 +253,13 @@ func TestCreateOkResponse_NilContent(t *testing.T) {
 	verifyAll(t)
 }
 
-func TestCreateOkResponse_EmptyContent(t *testing.T) {
+func TestCreateOkResponse_IndirectNilContent(t *testing.T) {
 	// arrange
-	var dummyResponseContent = ""
+	var dummyNilObject types.Object
+	var dummyResponseContent interface{} = dummyNilObject
 
 	// mock
 	createMock(t)
-
-	// expect
-	jsonutilMarshalIgnoreErrorExpected = 1
-	jsonutilMarshalIgnoreError = func(v interface{}) string {
-		jsonutilMarshalIgnoreErrorCalled++
-		assert.Equal(t, dummyResponseContent, v)
-		return ""
-	}
 
 	// SUT + act
 	var result, code = createOkResponse(

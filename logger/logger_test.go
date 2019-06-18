@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger/logtype"
 	"github.com/zhongjie-cai/WebServiceTemplate/session"
 
@@ -12,143 +13,59 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestDoLogging_NotLocalhost_FlagNotMatch(t *testing.T) {
+func TestInitialize_NotSet(t *testing.T) {
 	// arrange
-	var dummySessionID = uuid.New()
-	var dummyAllowedLogType = logtype.BasicLogging
-	var dummyLogSession = &session.Session{
-		AllowedLogType: dummyAllowedLogType,
-	}
-	var dummyLogType = logtype.APIEnter
-	var dummyCategory = "some category"
-	var dummySubCategory = "some sub category"
-	var dummyDescription = "some description"
+	var dummyMessageFormat = "logger.LoggingFunc is not configured; fallback to default logging function."
+	var dummyAppError = apperror.GetGeneralFailureError(nil)
 
 	// mock
 	createMock(t)
 
 	// expect
-	sessionGetExpected = 1
-	sessionGet = func(sessionID uuid.UUID) *session.Session {
-		sessionGetCalled++
-		assert.Equal(t, dummySessionID, sessionID)
-		return dummyLogSession
-	}
-	configIsLocalhostExpected = 1
-	configIsLocalhost = func() bool {
-		configIsLocalhostCalled++
-		return false
+	apperrorWrapSimpleErrorExpected = 1
+	apperrorWrapSimpleError = func(innerError error, messageFormat string, parameters ...interface{}) apperror.AppError {
+		apperrorWrapSimpleErrorCalled++
+		assert.NoError(t, innerError)
+		assert.Equal(t, dummyMessageFormat, messageFormat)
+		assert.Equal(t, 0, len(parameters))
+		return dummyAppError
 	}
 
 	// SUT + act
-	doLogging(
-		dummySessionID,
-		dummyLogType,
-		dummyCategory,
-		dummySubCategory,
-		dummyDescription,
-	)
+	err := Initialize()
+
+	// assert
+	assert.Equal(t, dummyAppError, err)
 
 	// verify
 	verifyAll(t)
 }
 
-func TestDoLogging_IsLocalhost(t *testing.T) {
+func TestInitialize_Set(t *testing.T) {
+	// stub
+	LoggingFunc = defaultLogging
+
+	// mock
+	createMock(t)
+
+	// SUT + act
+	err := Initialize()
+
+	// assert
+	assert.NoError(t, err)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestDefaultLogging(t *testing.T) {
 	// arrange
 	var dummySessionID = uuid.New()
 	var dummyAllowedLogType = logtype.BasicLogging
 	var dummyLoginID = uuid.New()
 	var dummyEndpoint = "some endpoint"
 	var dummyLogSession = &session.Session{
-		AllowedLogType: dummyAllowedLogType,
-		LoginID:        dummyLoginID,
-		Endpoint:       dummyEndpoint,
-	}
-	var dummyLogType = logtype.MethodEnter
-	var dummyCategory = "some category"
-	var dummySubCategory = "some sub category"
-	var dummyDescription = "some description"
-	var dummyAppName = "some app name"
-	var dummyAppVersion = "some app version"
-	var dummyTimestamp = time.Now().UTC()
-	var dummyLogEntry = logEntry{
-		Application: dummyAppName,
-		Version:     dummyAppVersion,
-		Timestamp:   dummyTimestamp,
-		Session:     dummySessionID,
-		Login:       dummyLoginID,
-		Endpoint:    dummyEndpoint,
-		Level:       dummyLogType,
-		Category:    dummyCategory,
-		Subcategory: dummySubCategory,
-		Description: dummyDescription,
-	}
-	var dummyLogEntryString = "some log entry string"
-
-	// mock
-	createMock(t)
-
-	// expect
-	sessionGetExpected = 1
-	sessionGet = func(sessionID uuid.UUID) *session.Session {
-		sessionGetCalled++
-		assert.Equal(t, dummySessionID, sessionID)
-		return dummyLogSession
-	}
-	configIsLocalhostExpected = 1
-	configIsLocalhost = func() bool {
-		configIsLocalhostCalled++
-		return true
-	}
-	configAppNameExpected = 1
-	configAppName = func() string {
-		configAppNameCalled++
-		return dummyAppName
-	}
-	configAppVersionExpected = 1
-	configAppVersion = func() string {
-		configAppVersionCalled++
-		return dummyAppVersion
-	}
-	timeutilGetTimeNowUTCExpected = 1
-	timeutilGetTimeNowUTC = func() time.Time {
-		timeutilGetTimeNowUTCCalled++
-		return dummyTimestamp
-	}
-	jsonutilMarshalIgnoreErrorExpected = 1
-	jsonutilMarshalIgnoreError = func(v interface{}) string {
-		jsonutilMarshalIgnoreErrorCalled++
-		assert.Equal(t, dummyLogEntry, v)
-		return dummyLogEntryString
-	}
-	fmtPrintlnExpected = 1
-	fmtPrintln = func(a ...interface{}) (n int, err error) {
-		fmtPrintlnCalled++
-		assert.Equal(t, 1, len(a))
-		assert.Equal(t, dummyLogEntryString, a[0])
-		return 0, nil
-	}
-
-	// SUT + act
-	doLogging(
-		dummySessionID,
-		dummyLogType,
-		dummyCategory,
-		dummySubCategory,
-		dummyDescription,
-	)
-
-	// verify
-	verifyAll(t)
-}
-
-func TestDoLogging_FlagMatch(t *testing.T) {
-	// arrange
-	var dummySessionID = uuid.New()
-	var dummyAllowedLogType = logtype.BasicLogging
-	var dummyLoginID = uuid.New()
-	var dummyEndpoint = "some endpoint"
-	var dummyLogSession = &session.Session{
+		ID:             dummySessionID,
 		AllowedLogType: dummyAllowedLogType,
 		LoginID:        dummyLoginID,
 		Endpoint:       dummyEndpoint,
@@ -178,12 +95,6 @@ func TestDoLogging_FlagMatch(t *testing.T) {
 	createMock(t)
 
 	// expect
-	sessionGetExpected = 1
-	sessionGet = func(sessionID uuid.UUID) *session.Session {
-		sessionGetCalled++
-		assert.Equal(t, dummySessionID, sessionID)
-		return dummyLogSession
-	}
 	configAppNameExpected = 1
 	configAppName = func() string {
 		configAppNameCalled++
@@ -214,7 +125,48 @@ func TestDoLogging_FlagMatch(t *testing.T) {
 	}
 
 	// SUT + act
-	doLogging(
+	defaultLogging(
+		dummyLogSession,
+		dummyLogType,
+		dummyCategory,
+		dummySubCategory,
+		dummyDescription,
+	)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestPrepareLogging_NotLocalhost_FlagNotMatch(t *testing.T) {
+	// arrange
+	var dummySessionID = uuid.New()
+	var dummyAllowedLogType = logtype.BasicLogging
+	var dummyLogSession = &session.Session{
+		AllowedLogType: dummyAllowedLogType,
+	}
+	var dummyLogType = logtype.APIEnter
+	var dummyCategory = "some category"
+	var dummySubCategory = "some sub category"
+	var dummyDescription = "some description"
+
+	// mock
+	createMock(t)
+
+	// expect
+	sessionGetExpected = 1
+	sessionGet = func(sessionID uuid.UUID) *session.Session {
+		sessionGetCalled++
+		assert.Equal(t, dummySessionID, sessionID)
+		return dummyLogSession
+	}
+	configIsLocalhostExpected = 1
+	configIsLocalhost = func() bool {
+		configIsLocalhostCalled++
+		return false
+	}
+
+	// SUT + act
+	prepareLogging(
 		dummySessionID,
 		dummyLogType,
 		dummyCategory,
@@ -226,9 +178,230 @@ func TestDoLogging_FlagMatch(t *testing.T) {
 	verifyAll(t)
 }
 
-func TestAppRoot(t *testing.T) {
+func TestPrepareLogging_IsLocalhost_DefaultLogging(t *testing.T) {
 	// arrange
 	var dummySessionID = uuid.New()
+	var dummyAllowedLogType = logtype.BasicLogging
+	var dummyLoginID = uuid.New()
+	var dummyEndpoint = "some endpoint"
+	var dummyLogSession = &session.Session{
+		ID:             dummySessionID,
+		AllowedLogType: dummyAllowedLogType,
+		LoginID:        dummyLoginID,
+		Endpoint:       dummyEndpoint,
+	}
+	var dummyLogType = logtype.MethodEnter
+	var dummyCategory = "some category"
+	var dummySubCategory = "some sub category"
+	var dummyDescription = "some description"
+
+	// stub
+	LoggingFunc = nil
+
+	// mock
+	createMock(t)
+
+	// expect
+	sessionGetExpected = 1
+	sessionGet = func(sessionID uuid.UUID) *session.Session {
+		sessionGetCalled++
+		assert.Equal(t, dummySessionID, sessionID)
+		return dummyLogSession
+	}
+	configIsLocalhostExpected = 1
+	configIsLocalhost = func() bool {
+		configIsLocalhostCalled++
+		return true
+	}
+	defaultLoggingFuncExpected = 1
+	defaultLoggingFunc = func(session *session.Session, logType logtype.LogType, category, subcategory, description string) {
+		defaultLoggingFuncCalled++
+		assert.Equal(t, dummyLogSession, session)
+		assert.Equal(t, dummyLogType, logType)
+		assert.Equal(t, dummyCategory, category)
+		assert.Equal(t, dummySubCategory, subcategory)
+		assert.Equal(t, dummyDescription, description)
+	}
+
+	// SUT + act
+	prepareLogging(
+		dummySessionID,
+		dummyLogType,
+		dummyCategory,
+		dummySubCategory,
+		dummyDescription,
+	)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestPrepareLogging_FlagMatch_DefaultLogging(t *testing.T) {
+	// arrange
+	var dummySessionID = uuid.New()
+	var dummyAllowedLogType = logtype.BasicLogging
+	var dummyLoginID = uuid.New()
+	var dummyEndpoint = "some endpoint"
+	var dummyLogSession = &session.Session{
+		ID:             dummySessionID,
+		AllowedLogType: dummyAllowedLogType,
+		LoginID:        dummyLoginID,
+		Endpoint:       dummyEndpoint,
+	}
+	var dummyLogType = logtype.MethodLogic
+	var dummyCategory = "some category"
+	var dummySubCategory = "some sub category"
+	var dummyDescription = "some description"
+
+	// stub
+	LoggingFunc = nil
+
+	// mock
+	createMock(t)
+
+	// expect
+	sessionGetExpected = 1
+	sessionGet = func(sessionID uuid.UUID) *session.Session {
+		sessionGetCalled++
+		assert.Equal(t, dummySessionID, sessionID)
+		return dummyLogSession
+	}
+	defaultLoggingFuncExpected = 1
+	defaultLoggingFunc = func(session *session.Session, logType logtype.LogType, category, subcategory, description string) {
+		defaultLoggingFuncCalled++
+		assert.Equal(t, dummyLogSession, session)
+		assert.Equal(t, dummyLogType, logType)
+		assert.Equal(t, dummyCategory, category)
+		assert.Equal(t, dummySubCategory, subcategory)
+		assert.Equal(t, dummyDescription, description)
+	}
+
+	// SUT + act
+	prepareLogging(
+		dummySessionID,
+		dummyLogType,
+		dummyCategory,
+		dummySubCategory,
+		dummyDescription,
+	)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestPrepareLogging_IsLocalhost_CustomLogging(t *testing.T) {
+	// arrange
+	var dummySessionID = uuid.New()
+	var dummyAllowedLogType = logtype.BasicLogging
+	var dummyLoginID = uuid.New()
+	var dummyEndpoint = "some endpoint"
+	var dummyLogSession = &session.Session{
+		ID:             dummySessionID,
+		AllowedLogType: dummyAllowedLogType,
+		LoginID:        dummyLoginID,
+		Endpoint:       dummyEndpoint,
+	}
+	var dummyLogType = logtype.MethodEnter
+	var dummyCategory = "some category"
+	var dummySubCategory = "some sub category"
+	var dummyDescription = "some description"
+	var loggingFuncExpected int
+	var loggingFuncCalled int
+
+	// mock
+	createMock(t)
+
+	// expect
+	sessionGetExpected = 1
+	sessionGet = func(sessionID uuid.UUID) *session.Session {
+		sessionGetCalled++
+		assert.Equal(t, dummySessionID, sessionID)
+		return dummyLogSession
+	}
+	configIsLocalhostExpected = 1
+	configIsLocalhost = func() bool {
+		configIsLocalhostCalled++
+		return true
+	}
+	loggingFuncExpected = 1
+	LoggingFunc = func(session *session.Session, logType logtype.LogType, category, subcategory, description string) {
+		loggingFuncCalled++
+		assert.Equal(t, dummyLogSession, session)
+		assert.Equal(t, dummyLogType, logType)
+		assert.Equal(t, dummyCategory, category)
+		assert.Equal(t, dummySubCategory, subcategory)
+		assert.Equal(t, dummyDescription, description)
+	}
+
+	// SUT + act
+	prepareLogging(
+		dummySessionID,
+		dummyLogType,
+		dummyCategory,
+		dummySubCategory,
+		dummyDescription,
+	)
+
+	// verify
+	verifyAll(t)
+	assert.Equal(t, loggingFuncExpected, loggingFuncCalled, "Unexpected number of calls to LoggingFunc")
+}
+
+func TestPrepareLogging_FlagMatch_CustomLogging(t *testing.T) {
+	// arrange
+	var dummySessionID = uuid.New()
+	var dummyAllowedLogType = logtype.BasicLogging
+	var dummyLoginID = uuid.New()
+	var dummyEndpoint = "some endpoint"
+	var dummyLogSession = &session.Session{
+		ID:             dummySessionID,
+		AllowedLogType: dummyAllowedLogType,
+		LoginID:        dummyLoginID,
+		Endpoint:       dummyEndpoint,
+	}
+	var dummyLogType = logtype.MethodLogic
+	var dummyCategory = "some category"
+	var dummySubCategory = "some sub category"
+	var dummyDescription = "some description"
+	var loggingFuncExpected int
+	var loggingFuncCalled int
+
+	// mock
+	createMock(t)
+
+	// expect
+	sessionGetExpected = 1
+	sessionGet = func(sessionID uuid.UUID) *session.Session {
+		sessionGetCalled++
+		assert.Equal(t, dummySessionID, sessionID)
+		return dummyLogSession
+	}
+	loggingFuncExpected = 1
+	LoggingFunc = func(session *session.Session, logType logtype.LogType, category, subcategory, description string) {
+		loggingFuncCalled++
+		assert.Equal(t, dummyLogSession, session)
+		assert.Equal(t, dummyLogType, logType)
+		assert.Equal(t, dummyCategory, category)
+		assert.Equal(t, dummySubCategory, subcategory)
+		assert.Equal(t, dummyDescription, description)
+	}
+
+	// SUT + act
+	prepareLogging(
+		dummySessionID,
+		dummyLogType,
+		dummyCategory,
+		dummySubCategory,
+		dummyDescription,
+	)
+
+	// verify
+	verifyAll(t)
+	assert.Equal(t, loggingFuncExpected, loggingFuncCalled, "Unexpected number of calls to LoggingFunc")
+}
+
+func TestAppRoot(t *testing.T) {
+	// arrange
 	var dummyLogType = logtype.AppRoot
 	var dummyCategory = "some category"
 	var dummySubCategory = "some sub category"
@@ -243,10 +416,10 @@ func TestAppRoot(t *testing.T) {
 		fmtSprintfCalled++
 		return fmt.Sprintf(format, a...)
 	}
-	doLoggingFuncExpected = 1
-	doLoggingFunc = func(sessionID uuid.UUID, logType logtype.LogType, category, subcategory, description string) {
-		doLoggingFuncCalled++
-		assert.Equal(t, dummySessionID, sessionID)
+	prepareLoggingFuncExpected = 1
+	prepareLoggingFunc = func(sessionID uuid.UUID, logType logtype.LogType, category, subcategory, description string) {
+		prepareLoggingFuncCalled++
+		assert.Equal(t, uuid.Nil, sessionID)
 		assert.Equal(t, dummyLogType, logType)
 		assert.Equal(t, dummyCategory, category)
 		assert.Equal(t, dummySubCategory, subcategory)
@@ -255,7 +428,6 @@ func TestAppRoot(t *testing.T) {
 
 	// SUT + act
 	AppRoot(
-		dummySessionID,
 		dummyCategory,
 		dummySubCategory,
 		dummyDescription,
@@ -282,9 +454,9 @@ func TestAPIEnter(t *testing.T) {
 		fmtSprintfCalled++
 		return fmt.Sprintf(format, a...)
 	}
-	doLoggingFuncExpected = 1
-	doLoggingFunc = func(sessionID uuid.UUID, logType logtype.LogType, category, subcategory, description string) {
-		doLoggingFuncCalled++
+	prepareLoggingFuncExpected = 1
+	prepareLoggingFunc = func(sessionID uuid.UUID, logType logtype.LogType, category, subcategory, description string) {
+		prepareLoggingFuncCalled++
 		assert.Equal(t, dummySessionID, sessionID)
 		assert.Equal(t, dummyLogType, logType)
 		assert.Equal(t, dummyCategory, category)
@@ -321,9 +493,9 @@ func TestAPIRequest(t *testing.T) {
 		fmtSprintfCalled++
 		return fmt.Sprintf(format, a...)
 	}
-	doLoggingFuncExpected = 1
-	doLoggingFunc = func(sessionID uuid.UUID, logType logtype.LogType, category, subcategory, description string) {
-		doLoggingFuncCalled++
+	prepareLoggingFuncExpected = 1
+	prepareLoggingFunc = func(sessionID uuid.UUID, logType logtype.LogType, category, subcategory, description string) {
+		prepareLoggingFuncCalled++
 		assert.Equal(t, dummySessionID, sessionID)
 		assert.Equal(t, dummyLogType, logType)
 		assert.Equal(t, dummyCategory, category)
@@ -360,9 +532,9 @@ func TestMethodEnter(t *testing.T) {
 		fmtSprintfCalled++
 		return fmt.Sprintf(format, a...)
 	}
-	doLoggingFuncExpected = 1
-	doLoggingFunc = func(sessionID uuid.UUID, logType logtype.LogType, category, subcategory, description string) {
-		doLoggingFuncCalled++
+	prepareLoggingFuncExpected = 1
+	prepareLoggingFunc = func(sessionID uuid.UUID, logType logtype.LogType, category, subcategory, description string) {
+		prepareLoggingFuncCalled++
 		assert.Equal(t, dummySessionID, sessionID)
 		assert.Equal(t, dummyLogType, logType)
 		assert.Equal(t, dummyCategory, category)
@@ -399,9 +571,9 @@ func TestMethodParameter(t *testing.T) {
 		fmtSprintfCalled++
 		return fmt.Sprintf(format, a...)
 	}
-	doLoggingFuncExpected = 1
-	doLoggingFunc = func(sessionID uuid.UUID, logType logtype.LogType, category, subcategory, description string) {
-		doLoggingFuncCalled++
+	prepareLoggingFuncExpected = 1
+	prepareLoggingFunc = func(sessionID uuid.UUID, logType logtype.LogType, category, subcategory, description string) {
+		prepareLoggingFuncCalled++
 		assert.Equal(t, dummySessionID, sessionID)
 		assert.Equal(t, dummyLogType, logType)
 		assert.Equal(t, dummyCategory, category)
@@ -438,9 +610,9 @@ func TestMethodLogic(t *testing.T) {
 		fmtSprintfCalled++
 		return fmt.Sprintf(format, a...)
 	}
-	doLoggingFuncExpected = 1
-	doLoggingFunc = func(sessionID uuid.UUID, logType logtype.LogType, category, subcategory, description string) {
-		doLoggingFuncCalled++
+	prepareLoggingFuncExpected = 1
+	prepareLoggingFunc = func(sessionID uuid.UUID, logType logtype.LogType, category, subcategory, description string) {
+		prepareLoggingFuncCalled++
 		assert.Equal(t, dummySessionID, sessionID)
 		assert.Equal(t, dummyLogType, logType)
 		assert.Equal(t, dummyCategory, category)
@@ -477,9 +649,9 @@ func TestDependencyCall(t *testing.T) {
 		fmtSprintfCalled++
 		return fmt.Sprintf(format, a...)
 	}
-	doLoggingFuncExpected = 1
-	doLoggingFunc = func(sessionID uuid.UUID, logType logtype.LogType, category, subcategory, description string) {
-		doLoggingFuncCalled++
+	prepareLoggingFuncExpected = 1
+	prepareLoggingFunc = func(sessionID uuid.UUID, logType logtype.LogType, category, subcategory, description string) {
+		prepareLoggingFuncCalled++
 		assert.Equal(t, dummySessionID, sessionID)
 		assert.Equal(t, dummyLogType, logType)
 		assert.Equal(t, dummyCategory, category)
@@ -516,9 +688,9 @@ func TestDependencyRequest(t *testing.T) {
 		fmtSprintfCalled++
 		return fmt.Sprintf(format, a...)
 	}
-	doLoggingFuncExpected = 1
-	doLoggingFunc = func(sessionID uuid.UUID, logType logtype.LogType, category, subcategory, description string) {
-		doLoggingFuncCalled++
+	prepareLoggingFuncExpected = 1
+	prepareLoggingFunc = func(sessionID uuid.UUID, logType logtype.LogType, category, subcategory, description string) {
+		prepareLoggingFuncCalled++
 		assert.Equal(t, dummySessionID, sessionID)
 		assert.Equal(t, dummyLogType, logType)
 		assert.Equal(t, dummyCategory, category)
@@ -555,9 +727,9 @@ func TestDependencyResponse(t *testing.T) {
 		fmtSprintfCalled++
 		return fmt.Sprintf(format, a...)
 	}
-	doLoggingFuncExpected = 1
-	doLoggingFunc = func(sessionID uuid.UUID, logType logtype.LogType, category, subcategory, description string) {
-		doLoggingFuncCalled++
+	prepareLoggingFuncExpected = 1
+	prepareLoggingFunc = func(sessionID uuid.UUID, logType logtype.LogType, category, subcategory, description string) {
+		prepareLoggingFuncCalled++
 		assert.Equal(t, dummySessionID, sessionID)
 		assert.Equal(t, dummyLogType, logType)
 		assert.Equal(t, dummyCategory, category)
@@ -594,9 +766,9 @@ func TestDependencyFinish(t *testing.T) {
 		fmtSprintfCalled++
 		return fmt.Sprintf(format, a...)
 	}
-	doLoggingFuncExpected = 1
-	doLoggingFunc = func(sessionID uuid.UUID, logType logtype.LogType, category, subcategory, description string) {
-		doLoggingFuncCalled++
+	prepareLoggingFuncExpected = 1
+	prepareLoggingFunc = func(sessionID uuid.UUID, logType logtype.LogType, category, subcategory, description string) {
+		prepareLoggingFuncCalled++
 		assert.Equal(t, dummySessionID, sessionID)
 		assert.Equal(t, dummyLogType, logType)
 		assert.Equal(t, dummyCategory, category)
@@ -633,9 +805,9 @@ func TestMethodReturn(t *testing.T) {
 		fmtSprintfCalled++
 		return fmt.Sprintf(format, a...)
 	}
-	doLoggingFuncExpected = 1
-	doLoggingFunc = func(sessionID uuid.UUID, logType logtype.LogType, category, subcategory, description string) {
-		doLoggingFuncCalled++
+	prepareLoggingFuncExpected = 1
+	prepareLoggingFunc = func(sessionID uuid.UUID, logType logtype.LogType, category, subcategory, description string) {
+		prepareLoggingFuncCalled++
 		assert.Equal(t, dummySessionID, sessionID)
 		assert.Equal(t, dummyLogType, logType)
 		assert.Equal(t, dummyCategory, category)
@@ -672,9 +844,9 @@ func TestMethodExit(t *testing.T) {
 		fmtSprintfCalled++
 		return fmt.Sprintf(format, a...)
 	}
-	doLoggingFuncExpected = 1
-	doLoggingFunc = func(sessionID uuid.UUID, logType logtype.LogType, category, subcategory, description string) {
-		doLoggingFuncCalled++
+	prepareLoggingFuncExpected = 1
+	prepareLoggingFunc = func(sessionID uuid.UUID, logType logtype.LogType, category, subcategory, description string) {
+		prepareLoggingFuncCalled++
 		assert.Equal(t, dummySessionID, sessionID)
 		assert.Equal(t, dummyLogType, logType)
 		assert.Equal(t, dummyCategory, category)
@@ -711,9 +883,9 @@ func TestAPIResponse(t *testing.T) {
 		fmtSprintfCalled++
 		return fmt.Sprintf(format, a...)
 	}
-	doLoggingFuncExpected = 1
-	doLoggingFunc = func(sessionID uuid.UUID, logType logtype.LogType, category, subcategory, description string) {
-		doLoggingFuncCalled++
+	prepareLoggingFuncExpected = 1
+	prepareLoggingFunc = func(sessionID uuid.UUID, logType logtype.LogType, category, subcategory, description string) {
+		prepareLoggingFuncCalled++
 		assert.Equal(t, dummySessionID, sessionID)
 		assert.Equal(t, dummyLogType, logType)
 		assert.Equal(t, dummyCategory, category)
@@ -750,9 +922,9 @@ func TestAPIExit(t *testing.T) {
 		fmtSprintfCalled++
 		return fmt.Sprintf(format, a...)
 	}
-	doLoggingFuncExpected = 1
-	doLoggingFunc = func(sessionID uuid.UUID, logType logtype.LogType, category, subcategory, description string) {
-		doLoggingFuncCalled++
+	prepareLoggingFuncExpected = 1
+	prepareLoggingFunc = func(sessionID uuid.UUID, logType logtype.LogType, category, subcategory, description string) {
+		prepareLoggingFuncCalled++
 		assert.Equal(t, dummySessionID, sessionID)
 		assert.Equal(t, dummyLogType, logType)
 		assert.Equal(t, dummyCategory, category)

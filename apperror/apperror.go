@@ -10,10 +10,12 @@ const (
 	CodeGeneralFailure Code = iota
 	CodeInvalidOperation
 	CodeBadRequest
+	CodeNotFound
 	CodeCircuitBreak
 	CodeOperationLock
 	CodeAccessForbidden
 	CodeDataCorruption
+	CodeNotImplemented
 	codeMaxValue
 
 	ErrorPrintFormat   string = "(%v)%v" // (Code)Message
@@ -30,10 +32,12 @@ func (code Code) String() string {
 		"GeneralFailure",
 		"InvalidOperation",
 		"BadRequest",
+		"NotFound",
 		"CircuitBreak",
 		"OperationLock",
 		"AccessForbidden",
 		"DataCorruption",
+		"NotImplemented",
 	}
 	if code < 0 || code >= codeMaxValue {
 		return "Unknown"
@@ -138,6 +142,15 @@ func GetBadRequestError(innerError error) AppError {
 	)
 }
 
+// GetNotFoundError creates an error related to NotFound
+func GetNotFoundError(innerError error) AppError {
+	return wrapErrorFunc(
+		innerError,
+		CodeNotFound,
+		"Requested resource is not found in the storage",
+	)
+}
+
 // GetCircuitBreakError creates an error related to CircuitBreak
 func GetCircuitBreakError(innerError error) AppError {
 	return wrapErrorFunc(
@@ -171,6 +184,15 @@ func GetDataCorruptionError(innerError error) AppError {
 		innerError,
 		CodeDataCorruption,
 		"Operation failed due to internal storage data corruption",
+	)
+}
+
+// GetNotImplementedError creates an error related to NotImplemented
+func GetNotImplementedError(innerError error) AppError {
+	return wrapErrorFunc(
+		innerError,
+		CodeNotImplemented,
+		"Operation failed due to internal business logic not implemented",
 	)
 }
 

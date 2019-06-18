@@ -2,7 +2,9 @@ package route
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
+	"reflect"
 	"strings"
 	"testing"
 
@@ -11,25 +13,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
 )
-
-// mock struct
-type dummyResponseWriter struct {
-	t *testing.T
-}
-
-func (drw *dummyResponseWriter) Header() http.Header {
-	assert.Fail(drw.t, "Unexpected call to ResponseWrite.Header")
-	return nil
-}
-
-func (drw *dummyResponseWriter) Write([]byte) (int, error) {
-	assert.Fail(drw.t, "Unexpected call to ResponseWrite.Write")
-	return 0, nil
-}
-
-func (drw *dummyResponseWriter) WriteHeader(statusCode int) {
-	assert.Fail(drw.t, "Unexpected call to ResponseWrite.WriteHeader")
-}
 
 func TestGetName_Undefined(t *testing.T) {
 	// arrange
@@ -120,7 +103,7 @@ func TestGetPathTemplate_Success(t *testing.T) {
 
 	// assert
 	assert.Equal(t, "/foo/{bar}", result)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	// verify
 	verifyAll(t)
@@ -169,7 +152,7 @@ func TestGetPathRegexp_Success(t *testing.T) {
 
 	// assert
 	assert.Equal(t, "^/foo/(?P<v0>[^/]+)$", result)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	// verify
 	verifyAll(t)
@@ -526,9 +509,8 @@ func TestPrintRegisteredRouteDetails_Success(t *testing.T) {
 		return nil
 	}
 	loggerAppRootExpected = 1
-	loggerAppRoot = func(sessionID uuid.UUID, category string, subcategory string, messageFormat string, parameters ...interface{}) {
+	loggerAppRoot = func(category string, subcategory string, messageFormat string, parameters ...interface{}) {
 		loggerAppRootCalled++
-		assert.Equal(t, uuid.Nil, sessionID)
 		assert.Equal(t, "route", category)
 		assert.Equal(t, "printRegisteredRouteDetails", subcategory)
 		assert.Equal(t, dummyLoggerMessageFormat, messageFormat)
@@ -549,7 +531,7 @@ func TestPrintRegisteredRouteDetails_Success(t *testing.T) {
 	)
 
 	// assert
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	// verify
 	verifyAll(t)
@@ -584,7 +566,7 @@ func TestWalkRegisteredRoutes_Error(t *testing.T) {
 	}
 
 	// SUT + act
-	err := walkRegisteredRoutes(
+	err := WalkRegisteredRoutes(
 		dummyRouter,
 	)
 
@@ -613,170 +595,12 @@ func TestWalkRegisteredRoutes_Success(t *testing.T) {
 	}
 
 	// SUT + act
-	err := walkRegisteredRoutes(
+	err := WalkRegisteredRoutes(
 		dummyRouter,
 	)
 
 	// assert
-	assert.Nil(t, err)
-
-	// verify
-	verifyAll(t)
-}
-
-func TestRegisterEntries_NilEntries(t *testing.T) {
-	// arrange
-	var dummyMessageFormat = "No host entries found"
-	var dummyAppError = apperror.GetGeneralFailureError(nil)
-
-	// mock
-	createMock(t)
-
-	// expect
-	apperrorWrapSimpleErrorExpected = 1
-	apperrorWrapSimpleError = func(innerError error, messageFormat string, parameters ...interface{}) apperror.AppError {
-		apperrorWrapSimpleErrorCalled++
-		assert.Nil(t, innerError)
-		assert.Equal(t, dummyMessageFormat, messageFormat)
-		assert.Equal(t, 0, len(parameters))
-		return dummyAppError
-	}
-
-	// SUT + act
-	var router, err = RegisterEntries()
-
-	// assert
-	assert.Nil(t, router)
-	assert.Equal(t, dummyAppError, err)
-
-	// verify
-	verifyAll(t)
-}
-
-func TestRegisterEntries_EmptyEntries(t *testing.T) {
-	// arrange
-	var dummyMessageFormat = "No host entries found"
-	var dummyAppError = apperror.GetGeneralFailureError(nil)
-
-	// stub
-	var dummyEntryFuncs = []func(*mux.Router){}
-
-	// mock
-	createMock(t)
-
-	// expect
-	apperrorWrapSimpleErrorExpected = 1
-	apperrorWrapSimpleError = func(innerError error, messageFormat string, parameters ...interface{}) apperror.AppError {
-		apperrorWrapSimpleErrorCalled++
-		assert.Nil(t, innerError)
-		assert.Equal(t, dummyMessageFormat, messageFormat)
-		assert.Equal(t, 0, len(parameters))
-		return dummyAppError
-	}
-
-	// SUT + act
-	var router, err = RegisterEntries(
-		dummyEntryFuncs...,
-	)
-
-	// assert
-	assert.Nil(t, router)
-	assert.Equal(t, dummyAppError, err)
-
-	// verify
-	verifyAll(t)
-}
-
-func TestRegisterEntries_ErrorRegister(t *testing.T) {
-	// arrange
-	var dummyRouter = &mux.Router{}
-	var entryFuncsCalled = 0
-	var dummyError = errors.New("some error")
-	var dummyMessageFormat = "Failed to register routes"
-	var dummyAppError = apperror.GetGeneralFailureError(nil)
-
-	// stub
-	var dummyEntryFuncs = []func(router *mux.Router){
-		func(router *mux.Router) { entryFuncsCalled++ },
-		func(router *mux.Router) { entryFuncsCalled++ },
-		func(router *mux.Router) { entryFuncsCalled++ },
-	}
-
-	// mock
-	createMock(t)
-
-	// expect
-	muxNewRouterExpected = 1
-	muxNewRouter = func() *mux.Router {
-		muxNewRouterCalled++
-		return dummyRouter
-	}
-	walkRegisteredRoutesFuncExpected = 1
-	walkRegisteredRoutesFunc = func(router *mux.Router) error {
-		walkRegisteredRoutesFuncCalled++
-		assert.Equal(t, dummyRouter, router)
-		return dummyError
-	}
-	apperrorWrapSimpleErrorExpected = 1
-	apperrorWrapSimpleError = func(innerError error, messageFormat string, parameters ...interface{}) apperror.AppError {
-		apperrorWrapSimpleErrorCalled++
-		assert.Equal(t, dummyError, innerError)
-		assert.Equal(t, dummyMessageFormat, messageFormat)
-		assert.Equal(t, 0, len(parameters))
-		return dummyAppError
-	}
-
-	// SUT + act
-	var router, err = RegisterEntries(
-		dummyEntryFuncs...,
-	)
-
-	// assert
-	assert.Nil(t, router)
-	assert.Equal(t, dummyAppError, err)
-	assert.Equal(t, len(dummyEntryFuncs), entryFuncsCalled)
-
-	// verify
-	verifyAll(t)
-}
-
-func TestRegisterEntries_Success(t *testing.T) {
-	// arrange
-	var dummyRouter = &mux.Router{}
-	var entryFuncsCalled = 0
-
-	// stub
-	var dummyEntryFuncs = []func(router *mux.Router){
-		func(router *mux.Router) { entryFuncsCalled++ },
-		func(router *mux.Router) { entryFuncsCalled++ },
-		func(router *mux.Router) { entryFuncsCalled++ },
-	}
-
-	// mock
-	createMock(t)
-
-	// expect
-	muxNewRouterExpected = 1
-	muxNewRouter = func() *mux.Router {
-		muxNewRouterCalled++
-		return dummyRouter
-	}
-	walkRegisteredRoutesFuncExpected = 1
-	walkRegisteredRoutesFunc = func(router *mux.Router) error {
-		walkRegisteredRoutesFuncCalled++
-		assert.Equal(t, dummyRouter, router)
-		return nil
-	}
-
-	// SUT + act
-	var router, err = RegisterEntries(
-		dummyEntryFuncs...,
-	)
-
-	// assert
-	assert.Equal(t, dummyRouter, router)
-	assert.Nil(t, err)
-	assert.Equal(t, len(dummyEntryFuncs), entryFuncsCalled)
+	assert.NoError(t, err)
 
 	// verify
 	verifyAll(t)
@@ -786,13 +610,20 @@ func TestHostStatic(t *testing.T) {
 	// arrange
 	var dummyName = "some name"
 	var dummyPath = "/foo/"
-	var dummyHandler http.Handler
+	var dummyHandler = dummyHandler{t}
 
 	// mock
 	createMock(t)
 
+	// expect
+	muxNewRouterExpected = 1
+	muxNewRouter = func() *mux.Router {
+		muxNewRouterCalled++
+		return mux.NewRouter()
+	}
+
 	// SUT
-	var router = mux.NewRouter()
+	var router = CreateRouter()
 
 	// act
 	route := HostStatic(
@@ -820,7 +651,7 @@ func TestHandleFunc(t *testing.T) {
 	var dummyMethod = "PUT"
 	var dummyPath = "/foo/{bar}"
 	var dummyResponseWriter = &dummyResponseWriter{t}
-	var dummyRequest, _ = http.NewRequest(
+	var dummyHTTPRequest, _ = http.NewRequest(
 		http.MethodGet,
 		"http://localhost",
 		nil,
@@ -832,12 +663,24 @@ func TestHandleFunc(t *testing.T) {
 	var dummyHandlerFunc = func(http.ResponseWriter, *http.Request) {
 		dummyHandlerFuncCalled++
 	}
+	var dummyActionFuncExpected = 0
+	var dummyActionFuncCalled = 0
+	var dummyActionFunc = func(http.ResponseWriter, *http.Request, uuid.UUID) {
+		dummyActionFuncCalled++
+	}
 
 	// mock
 	createMock(t)
 
+	// expect
+	muxNewRouterExpected = 1
+	muxNewRouter = func() *mux.Router {
+		muxNewRouterCalled++
+		return mux.NewRouter()
+	}
+
 	// SUT
-	var router = mux.NewRouter()
+	var router = CreateRouter()
 
 	// act
 	route := HandleFunc(
@@ -846,84 +689,217 @@ func TestHandleFunc(t *testing.T) {
 		dummyMethod,
 		dummyPath,
 		dummyHandlerFunc,
+		dummyActionFunc,
 	)
 	name := route.GetName()
 	methods, _ := route.GetMethods()
 	pathTemplate, _ := route.GetPathTemplate()
-	route.GetHandler().ServeHTTP(dummyResponseWriter, dummyRequest)
+	route.GetHandler().ServeHTTP(dummyResponseWriter, dummyHTTPRequest)
 
 	// assert
-	assert.Equal(t, dummyEndpoint, name)
+	assert.Equal(t, dummyMethod+":"+dummyEndpoint, name)
 	assert.Equal(t, 1, len(methods))
 	assert.Equal(t, dummyMethod, methods[0])
 	assert.Equal(t, dummyPath, pathTemplate)
 	assert.Equal(t, dummyHandlerFuncExpected, dummyHandlerFuncCalled)
+	assert.Equal(t, dummyActionFuncExpected, dummyActionFuncCalled)
 
 	// verify
 	verifyAll(t)
 }
 
-func TestGetEndpointName_NilRoute(t *testing.T) {
+func TestDefaultActionFunc(t *testing.T) {
 	// arrange
-	var dummyRequest, _ = http.NewRequest(
+	var dummyResponseWriter = &dummyResponseWriter{t}
+	var dummyHTTPRequest, _ = http.NewRequest(
+		http.MethodGet,
+		"http://localhost",
+		nil,
+	)
+	var dummySessionID = uuid.New()
+	var dummyAppError = apperror.GetGeneralFailureError(nil)
+
+	// mock
+	createMock(t)
+
+	// expect
+	apperrorGetNotImplementedErrorExpected = 1
+	apperrorGetNotImplementedError = func(innerError error) apperror.AppError {
+		apperrorGetNotImplementedErrorCalled++
+		assert.NoError(t, innerError)
+		return dummyAppError
+	}
+	responseErrorExpected = 1
+	responseError = func(sessionID uuid.UUID, err error, responseWriter http.ResponseWriter) {
+		responseErrorCalled++
+		assert.Equal(t, dummySessionID, sessionID)
+		assert.Equal(t, dummyAppError, err)
+		assert.Equal(t, dummyResponseWriter, responseWriter)
+	}
+
+	// SUT + act
+	defaultActionFunc(
+		dummyResponseWriter,
+		dummyHTTPRequest,
+		dummySessionID,
+	)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestGetActionByName_NotFound(t *testing.T) {
+	// arrange
+	var dummyName = "some name"
+	var dummyAction func(responseWriter http.ResponseWriter, httphttpRequest *http.Request, sessionID uuid.UUID)
+	var dummyOtherName = "some other name"
+	var expectedActionPointer = fmt.Sprintf("%v", reflect.ValueOf(defaultActionFunc))
+
+	// stub
+	registeredRouteActionFuncs = map[string]func(http.ResponseWriter, *http.Request, uuid.UUID){
+		dummyName: dummyAction,
+	}
+
+	// mock
+	createMock(t)
+
+	// SUT + act
+	result := getActionByName(
+		dummyOtherName,
+	)
+
+	// assert
+	assert.Equal(t, expectedActionPointer, fmt.Sprintf("%v", reflect.ValueOf(result)))
+
+	// verify
+	verifyAll(t)
+}
+
+func TestGetActionByName_Found(t *testing.T) {
+	// arrange
+	var dummyName = "some name"
+	var dummyActionExpected = 0
+	var dummyActionCalled = 0
+	var dummyAction = func(responseWriter http.ResponseWriter, httphttpRequest *http.Request, sessionID uuid.UUID) {
+		dummyActionCalled++
+	}
+	var expectedActionPointer = fmt.Sprintf("%v", reflect.ValueOf(dummyAction))
+
+	// stub
+	registeredRouteActionFuncs = map[string]func(http.ResponseWriter, *http.Request, uuid.UUID){
+		dummyName: dummyAction,
+	}
+
+	// mock
+	createMock(t)
+
+	// SUT + act
+	result := getActionByName(
+		dummyName,
+	)
+
+	// assert
+	assert.Equal(t, expectedActionPointer, fmt.Sprintf("%v", reflect.ValueOf(result)))
+	assert.Equal(t, dummyActionExpected, dummyActionCalled, "Unexpected number of calls to dummyAction")
+
+	// verify
+	verifyAll(t)
+}
+
+func TestGetRouteInfo_NilRoute(t *testing.T) {
+	// arrange
+	var dummyHTTPRequest, _ = http.NewRequest(
 		http.MethodGet,
 		"http://localhost",
 		nil,
 	)
 	var dummyRoute *mux.Route
+	var dummyMessageFormat = "Failed to retrieve route info for request - no route found"
+	var dummyAppError = apperror.GetGeneralFailureError(nil)
 
 	// mock
 	createMock(t)
 
 	// expect
 	muxCurrentRouteExpected = 1
-	muxCurrentRoute = func(request *http.Request) *mux.Route {
+	muxCurrentRoute = func(httpRequest *http.Request) *mux.Route {
 		muxCurrentRouteCalled++
-		assert.Equal(t, dummyRequest, request)
+		assert.Equal(t, dummyHTTPRequest, httpRequest)
 		return dummyRoute
+	}
+	apperrorWrapSimpleErrorExpected = 1
+	apperrorWrapSimpleError = func(innerError error, messageFormat string, parameters ...interface{}) apperror.AppError {
+		apperrorWrapSimpleErrorCalled++
+		assert.NoError(t, innerError)
+		assert.Equal(t, dummyMessageFormat, messageFormat)
+		assert.Equal(t, 0, len(parameters))
+		return dummyAppError
 	}
 
 	// SUT + act
-	result := GetEndpointName(
-		dummyRequest,
+	name, action, err := GetRouteInfo(
+		dummyHTTPRequest,
 	)
 
 	// assert
-	assert.Zero(t, result)
+	assert.Zero(t, name)
+	assert.Nil(t, action)
+	assert.Equal(t, dummyAppError, err)
 
 	// verify
 	verifyAll(t)
 }
 
-func TestGetEndpointName_ValidRoute(t *testing.T) {
+func TestGetRouteInfo_ValidRoute(t *testing.T) {
 	// arrange
-	var dummyRequest, _ = http.NewRequest(
+	var dummyHTTPRequest, _ = http.NewRequest(
 		http.MethodGet,
 		"http://localhost",
 		nil,
 	)
+	var dummyRoute = &mux.Route{}
 	var dummyName = "some name"
-	var dummyRoute = mux.NewRouter().NewRoute().Name(dummyName)
+	var dummyActionExpected = 0
+	var dummyActionCalled = 0
+	var dummyAction = func(responseWriter http.ResponseWriter, httphttpRequest *http.Request, sessionID uuid.UUID) {
+		dummyActionCalled++
+	}
+	var dummyActionPointer = fmt.Sprintf("%v", reflect.ValueOf(dummyAction))
 
 	// mock
 	createMock(t)
 
 	// expect
 	muxCurrentRouteExpected = 1
-	muxCurrentRoute = func(request *http.Request) *mux.Route {
+	muxCurrentRoute = func(httpRequest *http.Request) *mux.Route {
 		muxCurrentRouteCalled++
-		assert.Equal(t, dummyRequest, request)
+		assert.Equal(t, dummyHTTPRequest, httpRequest)
 		return dummyRoute
+	}
+	getNameFuncExpected = 1
+	getNameFunc = func(route *mux.Route) string {
+		getNameFuncCalled++
+		assert.Equal(t, dummyRoute, route)
+		return dummyName
+	}
+	getActionByNameFuncExpected = 1
+	getActionByNameFunc = func(name string) func(http.ResponseWriter, *http.Request, uuid.UUID) {
+		getActionByNameFuncCalled++
+		assert.Equal(t, dummyName, name)
+		return dummyAction
 	}
 
 	// SUT + act
-	result := GetEndpointName(
-		dummyRequest,
+	name, action, err := GetRouteInfo(
+		dummyHTTPRequest,
 	)
 
 	// assert
-	assert.Equal(t, dummyName, result)
+	assert.Equal(t, dummyName, name)
+	assert.Equal(t, dummyActionPointer, fmt.Sprintf("%v", reflect.ValueOf(action)))
+	assert.NoError(t, err)
 
 	// verify
 	verifyAll(t)
+	assert.Equal(t, dummyActionExpected, dummyActionCalled, "Unexpected number of calls to dummyAction")
 }

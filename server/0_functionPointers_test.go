@@ -10,10 +10,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
 	"github.com/zhongjie-cai/WebServiceTemplate/certificate"
-	"github.com/zhongjie-cai/WebServiceTemplate/handler/favicon"
-	"github.com/zhongjie-cai/WebServiceTemplate/handler/health"
-	"github.com/zhongjie-cai/WebServiceTemplate/handler/swagger"
-	"github.com/zhongjie-cai/WebServiceTemplate/server/route"
+	"github.com/zhongjie-cai/WebServiceTemplate/logger"
+	"github.com/zhongjie-cai/WebServiceTemplate/server/register"
 )
 
 var (
@@ -23,14 +21,10 @@ var (
 	certificateGetClientCertPoolCalled      int
 	apperrorWrapSimpleErrorExpected         int
 	apperrorWrapSimpleErrorCalled           int
-	faviconHostEntryExpected                int
-	faviconHostEntryCalled                  int
-	swaggerHostEntryExpected                int
-	swaggerHostEntryCalled                  int
-	healthHostEntryExpected                 int
-	healthHostEntryCalled                   int
-	routeRegisterEntriesExpected            int
-	routeRegisterEntriesCalled              int
+	registerInstantiateExpected             int
+	registerInstantiateCalled               int
+	loggerAppRootExpected                   int
+	loggerAppRootCalled                     int
 	createServerFuncExpected                int
 	createServerFuncCalled                  int
 	listenAndServeFuncExpected              int
@@ -58,26 +52,16 @@ func createMock(t *testing.T) {
 		apperrorWrapSimpleErrorCalled++
 		return nil
 	}
-	faviconHostEntryExpected = 0
-	faviconHostEntryCalled = 0
-	faviconHostEntry = func(router *mux.Router) {
-		faviconHostEntryCalled++
-	}
-	swaggerHostEntryExpected = 0
-	swaggerHostEntryCalled = 0
-	swaggerHostEntry = func(router *mux.Router) {
-		swaggerHostEntryCalled++
-	}
-	healthHostEntryExpected = 0
-	healthHostEntryCalled = 0
-	healthHostEntry = func(router *mux.Router) {
-		healthHostEntryCalled++
-	}
-	routeRegisterEntriesExpected = 0
-	routeRegisterEntriesCalled = 0
-	routeRegisterEntries = func(entryFuncs ...func(*mux.Router)) (*mux.Router, error) {
-		routeRegisterEntriesCalled++
+	registerInstantiateExpected = 0
+	registerInstantiateCalled = 0
+	registerInstantiate = func() (*mux.Router, error) {
+		registerInstantiateCalled++
 		return nil, nil
+	}
+	loggerAppRootExpected = 0
+	loggerAppRootCalled = 0
+	loggerAppRoot = func(category string, subcategory string, messageFormat string, parameters ...interface{}) {
+		loggerAppRootCalled++
 	}
 	createServerFuncExpected = 0
 	createServerFuncCalled = 0
@@ -101,23 +85,19 @@ func createMock(t *testing.T) {
 
 func verifyAll(t *testing.T) {
 	certificateGetServerCertificate = certificate.GetServerCertificate
-	assert.Equal(t, certificateGetServerCertificateExpected, certificateGetServerCertificateCalled, "Unexpected method call to certificateGetServerCertificate")
+	assert.Equal(t, certificateGetServerCertificateExpected, certificateGetServerCertificateCalled, "Unexpected number of calls to certificateGetServerCertificate")
 	certificateGetClientCertPool = certificate.GetClientCertPool
-	assert.Equal(t, certificateGetClientCertPoolExpected, certificateGetClientCertPoolCalled, "Unexpected method call to certificateGetClientCertPool")
+	assert.Equal(t, certificateGetClientCertPoolExpected, certificateGetClientCertPoolCalled, "Unexpected number of calls to certificateGetClientCertPool")
 	apperrorWrapSimpleError = apperror.WrapSimpleError
-	assert.Equal(t, apperrorWrapSimpleErrorExpected, apperrorWrapSimpleErrorCalled, "Unexpected method call to apperrorWrapSimpleError")
-	faviconHostEntry = favicon.HostEntry
-	assert.Equal(t, faviconHostEntryExpected, faviconHostEntryCalled, "Unexpected method call to faviconHostEntry")
-	swaggerHostEntry = swagger.HostEntry
-	assert.Equal(t, swaggerHostEntryExpected, swaggerHostEntryCalled, "Unexpected method call to swaggerHostEntry")
-	healthHostEntry = health.HostEntry
-	assert.Equal(t, healthHostEntryExpected, healthHostEntryCalled, "Unexpected method call to healthHostEntry")
-	routeRegisterEntries = route.RegisterEntries
-	assert.Equal(t, routeRegisterEntriesExpected, routeRegisterEntriesCalled, "Unexpected method call to routeRegisterEntries")
+	assert.Equal(t, apperrorWrapSimpleErrorExpected, apperrorWrapSimpleErrorCalled, "Unexpected number of calls to apperrorWrapSimpleError")
+	registerInstantiate = register.Instantiate
+	assert.Equal(t, registerInstantiateExpected, registerInstantiateCalled, "Unexpected number of calls to registerInstantiate")
+	loggerAppRoot = logger.AppRoot
+	assert.Equal(t, loggerAppRootExpected, loggerAppRootCalled, "Unexpected number of calls to loggerAppRoot")
 	createServerFunc = createServer
-	assert.Equal(t, createServerFuncExpected, createServerFuncCalled, "Unexpected method call to createServerFunc")
+	assert.Equal(t, createServerFuncExpected, createServerFuncCalled, "Unexpected number of calls to createServerFunc")
 	listenAndServeFunc = listenAndServe
-	assert.Equal(t, listenAndServeFuncExpected, listenAndServeFuncCalled, "Unexpected method call to listenAndServeFunc")
+	assert.Equal(t, listenAndServeFuncExpected, listenAndServeFuncCalled, "Unexpected number of calls to listenAndServeFunc")
 	runServerFunc = runServer
-	assert.Equal(t, runServerFuncExpected, runServerFuncCalled, "Unexpected method call to runServerFunc")
+	assert.Equal(t, runServerFuncExpected, runServerFuncCalled, "Unexpected number of calls to runServerFunc")
 }

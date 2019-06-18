@@ -12,6 +12,7 @@ import (
 var (
 	sessionCache   = cache.New(15*time.Minute, 30*time.Minute)
 	defaultSession = &Session{
+		ID:             uuid.Nil,
 		Endpoint:       "",
 		LoginID:        uuid.Nil,
 		AllowedLogType: logtype.BasicLogging,
@@ -20,6 +21,7 @@ var (
 
 // Session is the storage for the current HTTP request session, containing information needed for logging, monitoring, etc.
 type Session struct {
+	ID             uuid.UUID
 	Endpoint       string
 	LoginID        uuid.UUID
 	CorrelationID  uuid.UUID
@@ -44,7 +46,7 @@ func Register(
 	loginID uuid.UUID,
 	correlationID uuid.UUID,
 	allowedLogType logtype.LogType,
-	request *http.Request,
+	httpRequest *http.Request,
 	responseWriter http.ResponseWriter,
 ) uuid.UUID {
 	if loginID == uuid.Nil {
@@ -54,11 +56,12 @@ func Register(
 	sessionCache.SetDefault(
 		sessionID.String(),
 		&Session{
+			ID:             sessionID,
 			Endpoint:       endpoint,
 			LoginID:        loginID,
 			CorrelationID:  correlationID,
 			AllowedLogType: allowedLogType,
-			Request:        request,
+			Request:        httpRequest,
 			ResponseWriter: responseWriter,
 		},
 	)

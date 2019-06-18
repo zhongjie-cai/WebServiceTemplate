@@ -4,37 +4,17 @@ import (
 	"net/http"
 
 	"github.com/google/uuid"
-	"github.com/gorilla/mux"
 )
 
-func handleGetFavicon(
+// GetFavicon handles the HTTP request for getting favicon
+func GetFavicon(
 	responseWriter http.ResponseWriter,
-	request *http.Request,
+	httpRequest *http.Request,
+	sessionID uuid.UUID,
 ) {
-	commonHandleInSession(
+	httpServeFile(
 		responseWriter,
-		request,
-		func(
-			responseWriter http.ResponseWriter,
-			request *http.Request,
-			sessionID uuid.UUID,
-		) {
-			httpServeFile(
-				responseWriter,
-				request,
-				configAppPath()+"/favicon.ico",
-			)
-		},
-	)
-}
-
-// HostEntry hosts the service entry for "/favicon.ico"
-func HostEntry(router *mux.Router) {
-	routeHandleFunc(
-		router,
-		"Favicon",
-		http.MethodGet,
-		"/favicon.ico",
-		handleGetFaviconFunc,
+		httpRequest,
+		configAppPath()+"/favicon.ico",
 	)
 }

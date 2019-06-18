@@ -13,25 +13,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// mock struct
-type dummyResponseWriter struct {
-	t *testing.T
-}
-
-func (drw dummyResponseWriter) Header() http.Header {
-	assert.Fail(drw.t, "Unexpected method call to Header")
-	return nil
-}
-
-func (drw dummyResponseWriter) Write(bytes []byte) (int, error) {
-	assert.Fail(drw.t, "Unexpected method call to Write")
-	return 0, nil
-}
-
-func (drw dummyResponseWriter) WriteHeader(statusCode int) {
-	assert.Fail(drw.t, "Unexpected method call to WriteHeader")
-}
-
 func TestInit_AllValuesSet(t *testing.T) {
 	// arrange
 	var appName = "dummyAppName"
@@ -56,6 +37,7 @@ func TestInit_AllValuesSet(t *testing.T) {
 	// assert
 	assert.True(t, found)
 	assert.Equal(t, defaultSession, result)
+	assert.Zero(t, defaultSession.ID)
 	assert.Zero(t, defaultSession.Endpoint)
 	assert.Zero(t, defaultSession.LoginID)
 	assert.Equal(t, logtype.BasicLogging, defaultSession.AllowedLogType)
@@ -70,7 +52,7 @@ func TestRegister_NilLoginID(t *testing.T) {
 	var dummyLoginID = uuid.Nil
 	var dummyCorrelationID = uuid.New()
 	var dummyAllowedLogType = logtype.LogType(rand.Intn(math.MaxInt8))
-	var dummyRequest = &http.Request{}
+	var dummyHTTPRequest = &http.Request{}
 	var dummyResponseWriter = dummyResponseWriter{}
 
 	// stub
@@ -85,7 +67,7 @@ func TestRegister_NilLoginID(t *testing.T) {
 		dummyLoginID,
 		dummyCorrelationID,
 		dummyAllowedLogType,
-		dummyRequest,
+		dummyHTTPRequest,
 		dummyResponseWriter,
 	)
 
@@ -108,7 +90,7 @@ func TestRegister_ValidLoginID(t *testing.T) {
 	var dummyLoginID = uuid.New()
 	var dummyCorrelationID = uuid.New()
 	var dummyAllowedLogType = logtype.LogType(rand.Intn(math.MaxInt8))
-	var dummyRequest = &http.Request{}
+	var dummyHTTPRequest = &http.Request{}
 	var dummyResponseWriter = dummyResponseWriter{}
 
 	// stub
@@ -130,7 +112,7 @@ func TestRegister_ValidLoginID(t *testing.T) {
 		dummyLoginID,
 		dummyCorrelationID,
 		dummyAllowedLogType,
-		dummyRequest,
+		dummyHTTPRequest,
 		dummyResponseWriter,
 	)
 
@@ -142,11 +124,12 @@ func TestRegister_ValidLoginID(t *testing.T) {
 	assert.Equal(t, dummySessionID, result)
 	assert.True(t, cacheOK)
 	assert.True(t, typeOK)
+	assert.Equal(t, dummySessionID, session.ID)
 	assert.Equal(t, dummyEndpoint, session.Endpoint)
 	assert.Equal(t, dummyLoginID, session.LoginID)
 	assert.Equal(t, dummyCorrelationID, session.CorrelationID)
 	assert.Equal(t, dummyAllowedLogType, session.AllowedLogType)
-	assert.Equal(t, dummyRequest, session.Request)
+	assert.Equal(t, dummyHTTPRequest, session.Request)
 	assert.Equal(t, dummyResponseWriter, session.ResponseWriter)
 
 	// verify

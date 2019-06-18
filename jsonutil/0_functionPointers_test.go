@@ -33,7 +33,7 @@ func createMock(t *testing.T) {
 
 func verifyAll(t *testing.T) {
 	jsonNewEncoder = json.NewEncoder
-	assert.Equal(t, jsonNewEncoderExpected, jsonNewEncoderCalled, "Unexpected method call to jsonNewEncoder")
+	assert.Equal(t, jsonNewEncoderExpected, jsonNewEncoderCalled, "Unexpected number of calls to jsonNewEncoder")
 	stringsTrimRight = strings.TrimRight
-	assert.Equal(t, stringsTrimRightExpected, stringsTrimRightCalled, "Unexpected method call to stringsTrimRight")
+	assert.Equal(t, stringsTrimRightExpected, stringsTrimRightCalled, "Unexpected number of calls to stringsTrimRight")
 }

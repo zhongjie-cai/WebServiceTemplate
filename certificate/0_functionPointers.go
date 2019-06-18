@@ -16,7 +16,6 @@ var (
 	loadTLSCertificateFunc       = loadTLSCertificate
 	appendCertsFromPEMFunc       = appendCertsFromPEM
 	loadX509CertPoolFunc         = loadX509CertPool
-	initializeClientCertFunc     = initializeClientCert
 	initializeServerCertFunc     = initializeServerCert
 	initializeCaCertPoolFunc     = initializeCaCertPool
 )

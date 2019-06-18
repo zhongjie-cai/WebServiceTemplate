@@ -24,57 +24,57 @@ func getUUIDFromHeader(
 }
 
 // GetLoginID parses and returns the login ID in request header
-func GetLoginID(request *http.Request) uuid.UUID {
-	if request == nil {
+func GetLoginID(httpRequest *http.Request) uuid.UUID {
+	if httpRequest == nil {
 		return uuidNew()
 	}
 	return getUUIDFromHeaderFunc(
-		request.Header,
+		httpRequest.Header,
 		"login-id",
 	)
 }
 
 // GetCorrelationID parses and returns the correlation ID in request header
-func GetCorrelationID(request *http.Request) uuid.UUID {
-	if request == nil {
+func GetCorrelationID(httpRequest *http.Request) uuid.UUID {
+	if httpRequest == nil {
 		return uuidNew()
 	}
 	return getUUIDFromHeaderFunc(
-		request.Header,
+		httpRequest.Header,
 		"correlation-id",
 	)
 }
 
 // GetAllowedLogType parses and returns the allowed log type in request header
-func GetAllowedLogType(request *http.Request) logtype.LogType {
-	var headerValue = request.Header.Get("log-type")
+func GetAllowedLogType(httpRequest *http.Request) logtype.LogType {
+	var headerValue = httpRequest.Header.Get("log-type")
 	return logtypeFromString(headerValue)
 }
 
 // GetClientCertificates parses and returns the client certificates in request header
-func GetClientCertificates(request *http.Request) ([]*x509.Certificate, error) {
-	if request == nil ||
-		request.TLS == nil {
+func GetClientCertificates(httpRequest *http.Request) ([]*x509.Certificate, error) {
+	if httpRequest == nil ||
+		httpRequest.TLS == nil {
 		return nil,
 			apperrorWrapSimpleError(
 				nil,
 				"Invalid request or insecure communication channel",
 			)
 	}
-	return request.TLS.PeerCertificates, nil
+	return httpRequest.TLS.PeerCertificates, nil
 }
 
-// GetRequestBody parses and returns the content of the request body in string representation
+// GetRequestBody parses and returns the content of the httpRequest body in string representation
 func GetRequestBody(
-	request *http.Request,
+	httpRequest *http.Request,
 	sessionID uuid.UUID,
 ) string {
 	var bodyBytes []byte
 	var bodyError error
-	if request.Body != nil {
-		defer request.Body.Close()
+	if httpRequest.Body != nil {
+		defer httpRequest.Body.Close()
 		bodyBytes, bodyError = ioutilReadAll(
-			request.Body,
+			httpRequest.Body,
 		)
 		if bodyError != nil {
 			loggerAPIRequest(

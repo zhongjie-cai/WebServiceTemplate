@@ -50,7 +50,6 @@ func TestLoadTLSCertificate_ErrorTLSCert(t *testing.T) {
 	assert.Nil(t, cert)
 	assert.NotNil(t, err)
 	assert.Equal(t, dummyAppError, err)
-	assert.Nil(t, clientCertificate)
 
 	// verify
 	verifyAll(t)
@@ -82,7 +81,7 @@ func TestLoadTLSCertificate_Success(t *testing.T) {
 
 	// assert
 	assert.Equal(t, &dummyTLSCert, cert)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	// verify
 	verifyAll(t)
@@ -111,7 +110,7 @@ func TestLoadX509CertPool_ParseError(t *testing.T) {
 	apperrorWrapSimpleErrorExpected = 1
 	apperrorWrapSimpleError = func(innerError error, messageFormat string, parameters ...interface{}) apperror.AppError {
 		apperrorWrapSimpleErrorCalled++
-		assert.Nil(t, innerError)
+		assert.NoError(t, innerError)
 		assert.Equal(t, dummyMessageFormat, messageFormat)
 		assert.Equal(t, 0, len(parameters))
 		return dummyAppError
@@ -159,119 +158,7 @@ func TestLoadX509CertPool_Success(t *testing.T) {
 
 	// assert
 	assert.Equal(t, dummyCertPool, result)
-	assert.Nil(t, err)
-
-	// verify
-	verifyAll(t)
-}
-
-func TestInitializeClientCert_NoSendClientCert(t *testing.T) {
-	// arrange
-	var dummySendClientCert = false
-	var dummyClientCertContent = "some client cert content"
-	var dummyClientKeyContent = "some client key content"
-
-	// stub
-	clientCertificate = &tls.Certificate{}
-
-	// mock
-	createMock(t)
-
-	// SUT + act
-	err := initializeClientCert(
-		dummySendClientCert,
-		dummyClientCertContent,
-		dummyClientKeyContent,
-	)
-
-	// assert
-	assert.Nil(t, clientCertificate)
-	assert.Nil(t, err)
-
-	// verify
-	verifyAll(t)
-}
-
-func TestInitializeClientCert_ClientCertError(t *testing.T) {
-	// arrange
-	var dummySendClientCert = true
-	var dummyClientCertContent = "some client cert content"
-	var dummyClientKeyContent = "some client key content"
-	var dummyClientCert = &tls.Certificate{}
-	var dummyClientCertError = errors.New("some client cert error")
-	var dummyMessageFormat = "Failed to initialize client certificate"
-	var dummyAppError = apperror.GetGeneralFailureError(nil)
-
-	// stub
-	clientCertificate = &tls.Certificate{}
-
-	// mock
-	createMock(t)
-
-	// expect
-	loadTLSCertificateFuncExpected = 1
-	loadTLSCertificateFunc = func(certBytes, keyBytes []byte) (*tls.Certificate, error) {
-		loadTLSCertificateFuncCalled++
-		assert.Equal(t, []byte(dummyClientCertContent), certBytes)
-		assert.Equal(t, []byte(dummyClientKeyContent), keyBytes)
-		return dummyClientCert, dummyClientCertError
-	}
-	apperrorWrapSimpleErrorExpected = 1
-	apperrorWrapSimpleError = func(innerError error, messageFormat string, parameters ...interface{}) apperror.AppError {
-		apperrorWrapSimpleErrorCalled++
-		assert.Equal(t, dummyClientCertError, innerError)
-		assert.Equal(t, dummyMessageFormat, messageFormat)
-		assert.Equal(t, 0, len(parameters))
-		return dummyAppError
-	}
-
-	// SUT + act
-	err := initializeClientCert(
-		dummySendClientCert,
-		dummyClientCertContent,
-		dummyClientKeyContent,
-	)
-
-	// assert
-	assert.Nil(t, clientCertificate)
-	assert.Equal(t, dummyAppError, err)
-
-	// verify
-	verifyAll(t)
-}
-
-func TestInitializeClientCert_Success(t *testing.T) {
-	// arrange
-	var dummySendClientCert = true
-	var dummyClientCertContent = "some client cert content"
-	var dummyClientKeyContent = "some client key content"
-	var dummyClientCert = &tls.Certificate{}
-
-	// stub
-	clientCertificate = nil
-
-	// mock
-	createMock(t)
-
-	// expect
-	loadTLSCertificateFuncExpected = 1
-	loadTLSCertificateFunc = func(certBytes, keyBytes []byte) (*tls.Certificate, error) {
-		loadTLSCertificateFuncCalled++
-		assert.Equal(t, []byte(dummyClientCertContent), certBytes)
-		assert.Equal(t, []byte(dummyClientKeyContent), keyBytes)
-		return dummyClientCert, nil
-	}
-
-	// SUT + act
-	err := initializeClientCert(
-		dummySendClientCert,
-		dummyClientCertContent,
-		dummyClientKeyContent,
-	)
-
-	// assert
-	assert.Equal(t, dummyClientCert, clientCertificate)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	// verify
 	verifyAll(t)
@@ -298,7 +185,7 @@ func TestInitializeServerCert_NoServeHTTPS(t *testing.T) {
 
 	// assert
 	assert.Nil(t, serverCertificate)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	// verify
 	verifyAll(t)
@@ -383,7 +270,7 @@ func TestInitializeServerCert_Success(t *testing.T) {
 
 	// assert
 	assert.Equal(t, dummyServerCert, serverCertificate)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	// verify
 	verifyAll(t)
@@ -408,7 +295,7 @@ func TestInitializeCaCertPool_NoValidateClientCert(t *testing.T) {
 
 	// assert
 	assert.Nil(t, caCertPool)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	// verify
 	verifyAll(t)
@@ -487,7 +374,7 @@ func TestInitializeCaCertPool_Success(t *testing.T) {
 
 	// assert
 	assert.Equal(t, dummyCaCertPool, caCertPool)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	// verify
 	verifyAll(t)
@@ -495,10 +382,6 @@ func TestInitializeCaCertPool_Success(t *testing.T) {
 
 func TestInitialize_ErrorConsolidated(t *testing.T) {
 	// arrange
-	var dummySendClientCert = rand.Intn(100) < 50
-	var dummyClientCertContent = "some client cert content"
-	var dummyClientKeyContent = "some client key content"
-	var dummyClientCertError = errors.New("some client cert error")
 	var dummyServeHTTPS = rand.Intn(100) < 50
 	var dummyServerCertContent = "some server cert content"
 	var dummyServerKeyContent = "some server key content"
@@ -513,14 +396,6 @@ func TestInitialize_ErrorConsolidated(t *testing.T) {
 	createMock(t)
 
 	// expect
-	initializeClientCertFuncExpected = 1
-	initializeClientCertFunc = func(sendClientCert bool, clientCertContent string, clientKeyContent string) error {
-		initializeClientCertFuncCalled++
-		assert.Equal(t, dummySendClientCert, sendClientCert)
-		assert.Equal(t, dummyClientCertContent, clientCertContent)
-		assert.Equal(t, dummyClientKeyContent, clientKeyContent)
-		return dummyClientCertError
-	}
 	initializeServerCertFuncExpected = 1
 	initializeServerCertFunc = func(serveHTTPS bool, serverCertContent string, serverKeyContent string) error {
 		initializeServerCertFuncCalled++
@@ -540,18 +415,14 @@ func TestInitialize_ErrorConsolidated(t *testing.T) {
 	apperrorConsolidateAllErrors = func(baseErrorMessage string, allErrors ...error) apperror.AppError {
 		apperrorConsolidateAllErrorsCalled++
 		assert.Equal(t, dummyBaseErrorMessage, baseErrorMessage)
-		assert.Equal(t, 3, len(allErrors))
-		assert.Equal(t, dummyClientCertError, allErrors[0])
-		assert.Equal(t, dummyServerCertError, allErrors[1])
-		assert.Equal(t, dummyCaCertPoolError, allErrors[2])
+		assert.Equal(t, 2, len(allErrors))
+		assert.Equal(t, dummyServerCertError, allErrors[0])
+		assert.Equal(t, dummyCaCertPoolError, allErrors[1])
 		return dummyAppError
 	}
 
 	// SUT + act
 	var err = Initialize(
-		dummySendClientCert,
-		dummyClientCertContent,
-		dummyClientKeyContent,
 		dummyServeHTTPS,
 		dummyServerCertContent,
 		dummyServerKeyContent,
@@ -561,23 +432,6 @@ func TestInitialize_ErrorConsolidated(t *testing.T) {
 
 	// assert
 	assert.Equal(t, dummyAppError, err)
-
-	// verify
-	verifyAll(t)
-}
-
-func TestGetClientCertificate(t *testing.T) {
-	// arrange
-	var dummyCert = &tls.Certificate{}
-
-	// stub
-	clientCertificate = dummyCert
-
-	// SUT + act
-	cert := GetClientCertificate()
-
-	// assert
-	assert.Equal(t, dummyCert, cert)
 
 	// verify
 	verifyAll(t)

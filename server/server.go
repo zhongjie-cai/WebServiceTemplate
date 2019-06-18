@@ -85,18 +85,22 @@ func Host(
 	validateClientCert bool,
 	appPort string,
 ) error {
-	var router, entryError = routeRegisterEntries(
-		healthHostEntry,
-		faviconHostEntry,
-		swaggerHostEntry,
-	)
-	if entryError != nil {
+	var router, routerError = registerInstantiate()
+	if routerError != nil {
 		return apperrorWrapSimpleError(
-			entryError,
+			routerError,
 			"Failed to host entries on port %v",
 			appPort,
 		)
 	}
+	loggerAppRoot(
+		"server",
+		"Host",
+		"Targeting port [%v] HTTPS [%v] mTLS [%v]",
+		appPort,
+		serveHTTPS,
+		validateClientCert,
+	)
 	var serverError = runServerFunc(
 		serveHTTPS,
 		validateClientCert,

@@ -1,42 +1,31 @@
 package config
 
 import (
-	"os"
-	"strings"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
-	"github.com/zhongjie-cai/WebServiceTemplate/crypto"
 	"github.com/zhongjie-cai/WebServiceTemplate/timeutil"
 )
 
 var (
-	timeutilGetTimeNowUTCExpected                       int
-	timeutilGetTimeNowUTCCalled                         int
-	timeutilFormatDateTimeExpected                      int
-	timeutilFormatDateTimeCalled                        int
-	apperrorWrapSimpleErrorExpected                     int
-	apperrorWrapSimpleErrorCalled                       int
-	apperrorConsolidateAllErrorsExpected                int
-	apperrorConsolidateAllErrorsCalled                  int
-	getEnvironmentVariableExpected                      int
-	getEnvironmentVariableCalled                        int
-	cryptoDecryptExpected                               int
-	cryptoDecryptCalled                                 int
-	stringsEqualFoldExpected                            int
-	stringsEqualFoldCalled                              int
-	initializeBootTimeFuncExpected                      int
-	initializeBootTimeFuncCalled                        int
-	initializeCryptoKeyFuncExpected                     int
-	initializeCryptoKeyFuncCalled                       int
-	decryptFromEnvironmentVariableFuncExpected          int
-	decryptFromEnvironmentVariableFuncCalled            int
-	initializeGeneralEnvironmentVariablesFuncExpected   int
-	initializeGeneralEnvironmentVariablesFuncCalled     int
-	initializeEncryptedEnvironmentVariablesFuncExpected int
-	initializeEncryptedEnvironmentVariablesFuncCalled   int
+	timeutilGetTimeNowUTCExpected            int
+	timeutilGetTimeNowUTCCalled              int
+	timeutilFormatDateTimeExpected           int
+	timeutilFormatDateTimeCalled             int
+	apperrorWrapSimpleErrorExpected          int
+	apperrorWrapSimpleErrorCalled            int
+	apperrorConsolidateAllErrorsExpected     int
+	apperrorConsolidateAllErrorsCalled       int
+	isServerCertificateAvailableFuncExpected int
+	isServerCertificateAvailableFuncCalled   int
+	isCaCertificateAvailableFuncExpected     int
+	isCaCertificateAvailableFuncCalled       int
+	validateStringFunctionFuncExpected       int
+	validateStringFunctionFuncCalled         int
+	validateBooleanFunctionFuncExpected      int
+	validateBooleanFunctionFuncCalled        int
 )
 
 func createMock(t *testing.T) {
@@ -64,95 +53,58 @@ func createMock(t *testing.T) {
 		apperrorConsolidateAllErrorsCalled++
 		return nil
 	}
-	getEnvironmentVariableExpected = 0
-	getEnvironmentVariableCalled = 0
-	getEnvironmentVariable = func(key string) string {
-		getEnvironmentVariableCalled++
-		return ""
-	}
-	cryptoDecryptExpected = 0
-	cryptoDecryptCalled = 0
-	cryptoDecrypt = func(cipherText string, key string) (string, error) {
-		cryptoDecryptCalled++
-		return "", nil
-	}
-	stringsEqualFoldExpected = 0
-	stringsEqualFoldCalled = 0
-	stringsEqualFold = func(s, b string) bool {
-		stringsEqualFoldCalled++
+	isServerCertificateAvailableFuncExpected = 0
+	isServerCertificateAvailableFuncCalled = 0
+	isServerCertificateAvailableFunc = func() bool {
+		isServerCertificateAvailableFuncCalled++
 		return false
 	}
-	initializeBootTimeFuncExpected = 0
-	initializeBootTimeFuncCalled = 0
-	initializeBootTimeFunc = func() {
-		initializeBootTimeFuncCalled++
+	isCaCertificateAvailableFuncExpected = 0
+	isCaCertificateAvailableFuncCalled = 0
+	isCaCertificateAvailableFunc = func() bool {
+		isCaCertificateAvailableFuncCalled++
+		return false
 	}
-	initializeCryptoKeyFuncExpected = 0
-	initializeCryptoKeyFuncCalled = 0
-	initializeCryptoKeyFunc = func() error {
-		initializeCryptoKeyFuncCalled++
-		return nil
+	validateStringFunctionFuncExpected = 0
+	validateStringFunctionFuncCalled = 0
+	validateStringFunctionFunc = func(stringFunc func() string, name string, defaultFunc func() string, forceToDefault bool) (func() string, error) {
+		validateStringFunctionFuncCalled++
+		return nil, nil
 	}
-	decryptFromEnvironmentVariableFuncExpected = 0
-	decryptFromEnvironmentVariableFuncCalled = 0
-	decryptFromEnvironmentVariableFunc = func(name string) (string, error) {
-		decryptFromEnvironmentVariableFuncCalled++
-		return "", nil
-	}
-	initializeGeneralEnvironmentVariablesFuncExpected = 0
-	initializeGeneralEnvironmentVariablesFuncCalled = 0
-	initializeGeneralEnvironmentVariablesFunc = func() error {
-		initializeGeneralEnvironmentVariablesFuncCalled++
-		return nil
-	}
-	initializeEncryptedEnvironmentVariablesFuncExpected = 0
-	initializeEncryptedEnvironmentVariablesFuncCalled = 0
-	initializeEncryptedEnvironmentVariablesFunc = func() error {
-		initializeEncryptedEnvironmentVariablesFuncCalled++
-		return nil
+	validateBooleanFunctionFuncExpected = 0
+	validateBooleanFunctionFuncCalled = 0
+	validateBooleanFunctionFunc = func(booleanFunc func() bool, name string, defaultFunc func() bool, forceToDefault bool) (func() bool, error) {
+		validateBooleanFunctionFuncCalled++
+		return nil, nil
 	}
 }
 
 func verifyAll(t *testing.T) {
 	timeutilGetTimeNowUTC = timeutil.GetTimeNowUTC
-	assert.Equal(t, timeutilGetTimeNowUTCExpected, timeutilGetTimeNowUTCCalled, "Unexpected method call to timeutilGetTimeNowUTC")
+	assert.Equal(t, timeutilGetTimeNowUTCExpected, timeutilGetTimeNowUTCCalled, "Unexpected number of calls to timeutilGetTimeNowUTC")
 	timeutilFormatDateTime = timeutil.FormatDateTime
-	assert.Equal(t, timeutilFormatDateTimeExpected, timeutilFormatDateTimeCalled, "Unexpected method call to timeutilFormatDateTime")
+	assert.Equal(t, timeutilFormatDateTimeExpected, timeutilFormatDateTimeCalled, "Unexpected number of calls to timeutilFormatDateTime")
 	apperrorWrapSimpleError = apperror.WrapSimpleError
-	assert.Equal(t, apperrorWrapSimpleErrorExpected, apperrorWrapSimpleErrorCalled, "Unexpected method call to apperrorWrapSimpleError")
+	assert.Equal(t, apperrorWrapSimpleErrorExpected, apperrorWrapSimpleErrorCalled, "Unexpected number of calls to apperrorWrapSimpleError")
 	apperrorConsolidateAllErrors = apperror.ConsolidateAllErrors
-	assert.Equal(t, apperrorConsolidateAllErrorsExpected, apperrorConsolidateAllErrorsCalled, "Unexpected method call to apperrorConsolidateAllErrors")
-	getEnvironmentVariable = os.Getenv
-	assert.Equal(t, getEnvironmentVariableExpected, getEnvironmentVariableCalled, "Unexpected method call to getEnvironmentVariable")
-	cryptoDecrypt = crypto.Decrypt
-	assert.Equal(t, cryptoDecryptExpected, cryptoDecryptCalled, "Unexpected method call to cryptoDecrypt")
-	stringsEqualFold = strings.EqualFold
-	assert.Equal(t, stringsEqualFoldExpected, stringsEqualFoldCalled, "Unexpected method call to stringsEqualFold")
-	initializeBootTimeFunc = initializeBootTime
-	assert.Equal(t, initializeBootTimeFuncExpected, initializeBootTimeFuncCalled, "Unexpected method call to initializeBootTimeFunc")
-	initializeCryptoKeyFunc = initializeCryptoKey
-	assert.Equal(t, initializeCryptoKeyFuncExpected, initializeCryptoKeyFuncCalled, "Unexpected method call to initializeCryptoKeyFunc")
-	decryptFromEnvironmentVariableFunc = decryptFromEnvironmentVariable
-	assert.Equal(t, decryptFromEnvironmentVariableFuncExpected, decryptFromEnvironmentVariableFuncCalled, "Unexpected method call to decryptFromEnvironmentVariableFunc")
-	initializeGeneralEnvironmentVariablesFunc = initializeGeneralEnvironmentVariables
-	assert.Equal(t, initializeGeneralEnvironmentVariablesFuncExpected, initializeGeneralEnvironmentVariablesFuncCalled, "Unexpected method call to initializeGeneralEnvironmentVariablesFunc")
-	initializeEncryptedEnvironmentVariablesFunc = initializeEncryptedEnvironmentVariables
-	assert.Equal(t, initializeEncryptedEnvironmentVariablesFuncExpected, initializeEncryptedEnvironmentVariablesFuncCalled, "Unexpected method call to initializeEncryptedEnvironmentVariablesFunc")
+	assert.Equal(t, apperrorConsolidateAllErrorsExpected, apperrorConsolidateAllErrorsCalled, "Unexpected number of calls to apperrorConsolidateAllErrors")
+	isServerCertificateAvailableFunc = isServerCertificateAvailable
+	assert.Equal(t, isServerCertificateAvailableFuncExpected, isServerCertificateAvailableFuncCalled, "Unexpected number of calls to isServerCertificateAvailableFunc")
+	isCaCertificateAvailableFunc = isCaCertificateAvailable
+	assert.Equal(t, isCaCertificateAvailableFuncExpected, isCaCertificateAvailableFuncCalled, "Unexpected number of calls to isCaCertificateAvailableFunc")
+	validateStringFunctionFunc = validateStringFunction
+	assert.Equal(t, validateStringFunctionFuncExpected, validateStringFunctionFuncCalled, "Unexpected number of calls to validateStringFunctionFunc")
+	validateBooleanFunctionFunc = validateBooleanFunction
+	assert.Equal(t, validateBooleanFunctionFuncExpected, validateBooleanFunctionFuncCalled, "Unexpected number of calls to validateBooleanFunctionFunc")
 
-	// Reset state variables
-	appVersion = "0.0.0.0"
-	appPort = "18605"
-	appName = "WebServiceTemplate"
-	appPath = "."
-	cryptoKey = ""
-	bootTime = ""
-	isLocalhost = false
-	sendClientCert = false
-	clientCertContent = ""
-	clientKeyContent = ""
-	serveHTTPS = false
-	serverCertContent = ""
-	serverKeyContent = ""
-	validateClientCert = false
-	caCertContent = ""
+	AppVersion = nil
+	AppPort = nil
+	AppName = nil
+	AppPath = nil
+	IsLocalhost = nil
+	ServeHTTPS = nil
+	ServerCertContent = nil
+	ServerKeyContent = nil
+	ValidateClientCert = nil
+	CaCertContent = nil
 }

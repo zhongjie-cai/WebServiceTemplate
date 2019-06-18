@@ -81,6 +81,23 @@ func TestCodeEnumString_BadRequest(t *testing.T) {
 	verifyAll(t)
 }
 
+func TestCodeEnumString_NotFound(t *testing.T) {
+	// mock
+	createMock(t)
+
+	// SUT
+	var testCode = CodeNotFound
+
+	// act
+	var convertedString = testCode.String()
+
+	// assert
+	assert.Equal(t, "NotFound", convertedString)
+
+	// verify
+	verifyAll(t)
+}
+
 func TestCodeEnumString_CircuitBreak(t *testing.T) {
 	// mock
 	createMock(t)
@@ -144,6 +161,23 @@ func TestCodeEnumString_GetDataCorruption(t *testing.T) {
 
 	// assert
 	assert.Equal(t, "DataCorruption", convertedString)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestCodeEnumString_GetNotImplemented(t *testing.T) {
+	// mock
+	createMock(t)
+
+	// SUT
+	var testCode = CodeNotImplemented
+
+	// act
+	var convertedString = testCode.String()
+
+	// assert
+	assert.Equal(t, "NotImplemented", convertedString)
 
 	// verify
 	verifyAll(t)
@@ -575,6 +609,35 @@ func TestGetBadRequestError(t *testing.T) {
 	verifyAll(t)
 }
 
+func TestGetNotFoundError(t *testing.T) {
+	// arrange
+	var expectedInnerError = errors.New("dummy inner error")
+	var expectedResult = appError{}
+
+	// mock
+	createMock(t)
+
+	// expect
+	wrapErrorFuncExpected = 1
+	wrapErrorFunc = func(innerError error, errorCode Code, messageFormat string, parameters ...interface{}) AppError {
+		wrapErrorFuncCalled++
+		assert.Equal(t, expectedInnerError, innerError)
+		assert.Equal(t, CodeNotFound, errorCode)
+		assert.Equal(t, "Requested resource is not found in the storage", messageFormat)
+		assert.Equal(t, 0, len(parameters))
+		return expectedResult
+	}
+
+	// SUT + act
+	var appError = GetNotFoundError(expectedInnerError)
+
+	// assert
+	assert.Equal(t, expectedResult, appError)
+
+	// verify
+	verifyAll(t)
+}
+
 func TestGetCircuitBreakError(t *testing.T) {
 	// arrange
 	var expectedInnerError = errors.New("dummy inner error")
@@ -691,6 +754,35 @@ func TestGetDataCorruptionError(t *testing.T) {
 	verifyAll(t)
 }
 
+func TestGetNotImplementedError(t *testing.T) {
+	// arrange
+	var expectedInnerError = errors.New("dummy inner error")
+	var expectedResult = appError{}
+
+	// mock
+	createMock(t)
+
+	// expect
+	wrapErrorFuncExpected = 1
+	wrapErrorFunc = func(innerError error, errorCode Code, messageFormat string, parameters ...interface{}) AppError {
+		wrapErrorFuncCalled++
+		assert.Equal(t, expectedInnerError, innerError)
+		assert.Equal(t, CodeNotImplemented, errorCode)
+		assert.Equal(t, "Operation failed due to internal business logic not implemented", messageFormat)
+		assert.Equal(t, 0, len(parameters))
+		return expectedResult
+	}
+
+	// SUT + act
+	var appError = GetNotImplementedError(expectedInnerError)
+
+	// assert
+	assert.Equal(t, expectedResult, appError)
+
+	// verify
+	verifyAll(t)
+}
+
 func TestConsolidateAllErrors_NilList(t *testing.T) {
 	// arrange
 	var baseErrorMessage = "some base error message"
@@ -702,7 +794,7 @@ func TestConsolidateAllErrors_NilList(t *testing.T) {
 	err := ConsolidateAllErrors(baseErrorMessage, nil)
 
 	// assert
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	// verify
 	verifyAll(t)
@@ -720,7 +812,7 @@ func TestConsolidateAllErrors_EmptyList(t *testing.T) {
 	err := ConsolidateAllErrors(baseErrorMessage, allErrors...)
 
 	// assert
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	// verify
 	verifyAll(t)
@@ -741,7 +833,7 @@ func TestConsolidateAllErrors_ListOfNil(t *testing.T) {
 	err := ConsolidateAllErrors(baseErrorMessage, allErrors...)
 
 	// assert
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	// verify
 	verifyAll(t)

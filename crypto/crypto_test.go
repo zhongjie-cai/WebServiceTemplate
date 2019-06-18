@@ -184,7 +184,7 @@ func TestDecrypt_TooShortCipherText(t *testing.T) {
 	apperrorWrapSimpleErrorExpected = 1
 	apperrorWrapSimpleError = func(innerError error, messageFormat string, parameters ...interface{}) apperror.AppError {
 		apperrorWrapSimpleErrorCalled++
-		assert.Nil(t, innerError)
+		assert.NoError(t, innerError)
 		assert.Equal(t, dummyMessageFormat, messageFormat)
 		assert.Equal(t, 0, len(parameters))
 		return dummyAppError

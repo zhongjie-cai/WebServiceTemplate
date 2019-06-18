@@ -105,25 +105,90 @@ func createMock(t *testing.T) {
 
 func verifyAll(t *testing.T) {
 	strconvItoa = strconv.Itoa
-	assert.Equal(t, strconvItoaExpected, strconvItoaCalled, "Unexpected method call to strconvItoa")
+	assert.Equal(t, strconvItoaExpected, strconvItoaCalled, "Unexpected number of calls to strconvItoa")
 	jsonutilMarshalIgnoreError = jsonutil.MarshalIgnoreError
-	assert.Equal(t, jsonutilMarshalIgnoreErrorExpected, jsonutilMarshalIgnoreErrorCalled, "Unexpected method call to jsonutilMarshalIgnoreError")
+	assert.Equal(t, jsonutilMarshalIgnoreErrorExpected, jsonutilMarshalIgnoreErrorCalled, "Unexpected number of calls to jsonutilMarshalIgnoreError")
 	apperrorGetGeneralFailureError = apperror.GetGeneralFailureError
-	assert.Equal(t, apperrorGetGeneralFailureErrorExpected, apperrorGetGeneralFailureErrorCalled, "Unexpected method call to apperrorGetGeneralFailureError")
+	assert.Equal(t, apperrorGetGeneralFailureErrorExpected, apperrorGetGeneralFailureErrorCalled, "Unexpected number of calls to apperrorGetGeneralFailureError")
 	loggerAPIResponse = logger.APIResponse
-	assert.Equal(t, loggerAPIResponseExpected, loggerAPIResponseCalled, "Unexpected method call to loggerAPIResponse")
+	assert.Equal(t, loggerAPIResponseExpected, loggerAPIResponseCalled, "Unexpected number of calls to loggerAPIResponse")
 	loggerAPIExit = logger.APIExit
-	assert.Equal(t, loggerAPIExitExpected, loggerAPIExitCalled, "Unexpected method call to loggerAPIExit")
+	assert.Equal(t, loggerAPIExitExpected, loggerAPIExitCalled, "Unexpected number of calls to loggerAPIExit")
 	getStatusCodeFunc = getStatusCode
-	assert.Equal(t, getStatusCodeFuncExpected, getStatusCodeFuncCalled, "Unexpected method call to getStatusCodeFunc")
+	assert.Equal(t, getStatusCodeFuncExpected, getStatusCodeFuncCalled, "Unexpected number of calls to getStatusCodeFunc")
 	getAppErrorFunc = getAppError
-	assert.Equal(t, getAppErrorFuncExpected, getAppErrorFuncCalled, "Unexpected method call to getAppErrorFunc")
+	assert.Equal(t, getAppErrorFuncExpected, getAppErrorFuncCalled, "Unexpected number of calls to getAppErrorFunc")
 	writeResponseFunc = writeResponse
-	assert.Equal(t, writeResponseFuncExpected, writeResponseFuncCalled, "Unexpected method call to writeResponseFunc")
+	assert.Equal(t, writeResponseFuncExpected, writeResponseFuncCalled, "Unexpected number of calls to writeResponseFunc")
 	generateErrorResponseFunc = generateErrorResponse
-	assert.Equal(t, generateErrorResponseFuncExpected, generateErrorResponseFuncCalled, "Unexpected method call to generateErrorResponseFunc")
+	assert.Equal(t, generateErrorResponseFuncExpected, generateErrorResponseFuncCalled, "Unexpected number of calls to generateErrorResponseFunc")
 	createOkResponseFunc = createOkResponse
-	assert.Equal(t, createOkResponseFuncExpected, createOkResponseFuncCalled, "Unexpected method call to createOkResponseFunc")
+	assert.Equal(t, createOkResponseFuncExpected, createOkResponseFuncCalled, "Unexpected number of calls to createOkResponseFunc")
 	createErrorResponseFunc = createErrorResponse
-	assert.Equal(t, createErrorResponseFuncExpected, createErrorResponseFuncCalled, "Unexpected method call to createErrorResponseFunc")
+	assert.Equal(t, createErrorResponseFuncExpected, createErrorResponseFuncCalled, "Unexpected number of calls to createErrorResponseFunc")
+}
+
+// mock structs
+type dummyResponseWriter struct {
+	t               *testing.T
+	expectedHeader  *http.Header
+	expectedCode    *int
+	expectedContent *[]byte
+}
+
+func (drw *dummyResponseWriter) Header() http.Header {
+	if drw.expectedHeader == nil {
+		assert.Fail(drw.t, "Unexpected number of calls to Header")
+		return nil
+	}
+	return *drw.expectedHeader
+}
+
+func (drw *dummyResponseWriter) WriteHeader(statusCode int) {
+	if drw.expectedCode == nil {
+		assert.Fail(drw.t, "Unexpected number of calls to WriteHeader")
+	} else {
+		assert.Equal(drw.t, *drw.expectedCode, statusCode)
+	}
+}
+
+func (drw *dummyResponseWriter) Write(bytes []byte) (int, error) {
+	if drw.expectedContent == nil {
+		assert.Fail(drw.t, "Unexpected number of calls to Write")
+	} else {
+		assert.Equal(drw.t, *drw.expectedContent, bytes)
+	}
+	return 0, nil
+}
+
+type dummyAppError struct {
+	t                *testing.T
+	expectedCode     *apperror.Code
+	expectedMessages *[]string
+}
+
+func (dae dummyAppError) Code() apperror.Code {
+	if dae.expectedCode == nil {
+		assert.Fail(dae.t, "Unexpected number of calls to Code")
+		return apperror.Code(-1)
+	}
+	return *dae.expectedCode
+}
+
+func (dae dummyAppError) Error() string {
+	assert.Fail(dae.t, "Unexpected number of calls to Error")
+	return ""
+}
+
+func (dae dummyAppError) InnerErrors() []error {
+	assert.Fail(dae.t, "Unexpected number of calls to InnerErrors")
+	return nil
+}
+
+func (dae dummyAppError) Messages() []string {
+	if dae.expectedMessages == nil {
+		assert.Fail(dae.t, "Unexpected number of calls to Messages")
+		return nil
+	}
+	return *dae.expectedMessages
 }

@@ -24,8 +24,6 @@ var (
 	appendCertsFromPEMFuncCalled         int
 	loadX509CertPoolFuncExpected         int
 	loadX509CertPoolFuncCalled           int
-	initializeClientCertFuncExpected     int
-	initializeClientCertFuncCalled       int
 	initializeServerCertFuncExpected     int
 	initializeServerCertFuncCalled       int
 	initializeCaCertPoolFuncExpected     int
@@ -75,12 +73,6 @@ func createMock(t *testing.T) {
 		loadX509CertPoolFuncCalled++
 		return nil, nil
 	}
-	initializeClientCertFuncExpected = 0
-	initializeClientCertFuncCalled = 0
-	initializeClientCertFunc = func(sendClientCert bool, clientCertContent string, clientKeyContent string) error {
-		initializeClientCertFuncCalled++
-		return nil
-	}
 	initializeServerCertFuncExpected = 0
 	initializeServerCertFuncCalled = 0
 	initializeServerCertFunc = func(serveHTTPS bool, serverCertContent string, serverKeyContent string) error {
@@ -97,27 +89,24 @@ func createMock(t *testing.T) {
 
 func verifyAll(t *testing.T) {
 	tlsX509KeyPair = tls.X509KeyPair
-	assert.Equal(t, tlsX509KeyPairExpected, tlsX509KeyPairCalled, "Unexpected method call to tlsX509KeyPair")
+	assert.Equal(t, tlsX509KeyPairExpected, tlsX509KeyPairCalled, "Unexpected number of calls to tlsX509KeyPair")
 	x509NewCertPool = x509.NewCertPool
-	assert.Equal(t, x509NewCertPoolExpected, x509NewCertPoolCalled, "Unexpected method call to x509NewCertPool")
+	assert.Equal(t, x509NewCertPoolExpected, x509NewCertPoolCalled, "Unexpected number of calls to x509NewCertPool")
 	apperrorWrapSimpleError = apperror.WrapSimpleError
-	assert.Equal(t, apperrorWrapSimpleErrorExpected, apperrorWrapSimpleErrorCalled, "Unexpected method call to apperrorWrapSimpleError")
+	assert.Equal(t, apperrorWrapSimpleErrorExpected, apperrorWrapSimpleErrorCalled, "Unexpected number of calls to apperrorWrapSimpleError")
 	apperrorConsolidateAllErrors = apperror.ConsolidateAllErrors
-	assert.Equal(t, apperrorConsolidateAllErrorsExpected, apperrorConsolidateAllErrorsCalled, "Unexpected method call to apperrorConsolidateAllErrors")
+	assert.Equal(t, apperrorConsolidateAllErrorsExpected, apperrorConsolidateAllErrorsCalled, "Unexpected number of calls to apperrorConsolidateAllErrors")
 	loadTLSCertificateFunc = loadTLSCertificate
-	assert.Equal(t, loadTLSCertificateFuncExpected, loadTLSCertificateFuncCalled, "Unexpected method call to loadTLSCertificateFunc")
+	assert.Equal(t, loadTLSCertificateFuncExpected, loadTLSCertificateFuncCalled, "Unexpected number of calls to loadTLSCertificateFunc")
 	appendCertsFromPEMFunc = appendCertsFromPEM
-	assert.Equal(t, appendCertsFromPEMFuncExpected, appendCertsFromPEMFuncCalled, "Unexpected method call to appendCertsFromPEMFunc")
+	assert.Equal(t, appendCertsFromPEMFuncExpected, appendCertsFromPEMFuncCalled, "Unexpected number of calls to appendCertsFromPEMFunc")
 	loadX509CertPoolFunc = loadX509CertPool
-	assert.Equal(t, loadX509CertPoolFuncExpected, loadX509CertPoolFuncCalled, "Unexpected method call to loadX509CertPoolFunc")
-	initializeClientCertFunc = initializeClientCert
-	assert.Equal(t, initializeClientCertFuncExpected, initializeClientCertFuncCalled, "Unexpected method call to initializeClientCertFunc")
+	assert.Equal(t, loadX509CertPoolFuncExpected, loadX509CertPoolFuncCalled, "Unexpected number of calls to loadX509CertPoolFunc")
 	initializeServerCertFunc = initializeServerCert
-	assert.Equal(t, initializeServerCertFuncExpected, initializeServerCertFuncCalled, "Unexpected method call to initializeServerCertFunc")
+	assert.Equal(t, initializeServerCertFuncExpected, initializeServerCertFuncCalled, "Unexpected number of calls to initializeServerCertFunc")
 	initializeCaCertPoolFunc = initializeCaCertPool
-	assert.Equal(t, initializeCaCertPoolFuncExpected, initializeCaCertPoolFuncCalled, "Unexpected method call to initializeCaCertPoolFunc")
+	assert.Equal(t, initializeCaCertPoolFuncExpected, initializeCaCertPoolFuncCalled, "Unexpected number of calls to initializeCaCertPoolFunc")
 
-	clientCertificate = nil
 	serverCertificate = nil
 	caCertPool = nil
 }

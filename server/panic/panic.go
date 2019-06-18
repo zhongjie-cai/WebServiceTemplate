@@ -33,7 +33,6 @@ func Handle(endpointName string, sessionID uuid.UUID, recoverResult interface{},
 			responseWriter,
 		)
 		loggerAppRoot(
-			sessionID,
 			"panic",
 			"Handle",
 			"%v\n%v",

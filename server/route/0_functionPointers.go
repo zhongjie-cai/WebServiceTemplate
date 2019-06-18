@@ -7,23 +7,26 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger"
+	"github.com/zhongjie-cai/WebServiceTemplate/response"
 )
 
 // func pointers for injection / testing: server.go
 var (
 	apperrorWrapSimpleError         = apperror.WrapSimpleError
 	apperrorConsolidateAllErrors    = apperror.ConsolidateAllErrors
+	apperrorGetNotImplementedError  = apperror.GetNotImplementedError
 	stringsJoin                     = strings.Join
 	fmtSprintf                      = fmt.Sprintf
 	loggerAppRoot                   = logger.AppRoot
 	muxNewRouter                    = mux.NewRouter
 	muxCurrentRoute                 = mux.CurrentRoute
+	responseError                   = response.Error
 	getNameFunc                     = getName
 	getPathTemplateFunc             = getPathTemplate
 	getPathRegexpFunc               = getPathRegexp
 	getQueriesTemplatesFunc         = getQueriesTemplates
 	getQueriesRegexpFunc            = getQueriesRegexp
 	getMethodsFunc                  = getMethods
+	getActionByNameFunc             = getActionByName
 	printRegisteredRouteDetailsFunc = printRegisteredRouteDetails
-	walkRegisteredRoutesFunc        = walkRegisteredRoutes
 )

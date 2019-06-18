@@ -50,11 +50,11 @@ func createMock(t *testing.T) {
 
 func verifyAll(t *testing.T) {
 	aesNewCipher = aes.NewCipher
-	assert.Equal(t, aesNewCipherExpected, aesNewCipherCalled, "Unexpected method call to aesNewCipher")
+	assert.Equal(t, aesNewCipherExpected, aesNewCipherCalled, "Unexpected number of calls to aesNewCipher")
 	cipherNewGCM = cipher.NewGCM
-	assert.Equal(t, cipherNewGCMExpected, cipherNewGCMCalled, "Unexpected method call to cipherNewGCM")
+	assert.Equal(t, cipherNewGCMExpected, cipherNewGCMCalled, "Unexpected number of calls to cipherNewGCM")
 	ioReadFull = io.ReadFull
-	assert.Equal(t, ioReadFullExpected, ioReadFullCalled, "Unexpected method call to ioReadFull")
+	assert.Equal(t, ioReadFullExpected, ioReadFullCalled, "Unexpected number of calls to ioReadFull")
 	apperrorWrapSimpleError = apperror.WrapSimpleError
-	assert.Equal(t, apperrorWrapSimpleErrorExpected, apperrorWrapSimpleErrorCalled, "Unexpected method call to apperrorWrapSimpleError")
+	assert.Equal(t, apperrorWrapSimpleErrorExpected, apperrorWrapSimpleErrorCalled, "Unexpected number of calls to apperrorWrapSimpleError")
 }

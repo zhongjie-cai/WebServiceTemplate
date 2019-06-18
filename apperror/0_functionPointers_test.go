@@ -56,13 +56,13 @@ func createMock(t *testing.T) {
 
 func verifyAll(t *testing.T) {
 	fmtSprintf = fmt.Sprintf
-	assert.Equal(t, fmtSprintfExpected, fmtSprintfCalled, "Unexpected method call to fmtSprintf")
+	assert.Equal(t, fmtSprintfExpected, fmtSprintfCalled, "Unexpected number of calls to fmtSprintf")
 	fmtErrorf = fmt.Errorf
-	assert.Equal(t, fmtErrorfExpected, fmtErrorfCalled, "Unexpected method call to fmtErrorf")
+	assert.Equal(t, fmtErrorfExpected, fmtErrorfCalled, "Unexpected number of calls to fmtErrorf")
 	stringsJoin = strings.Join
-	assert.Equal(t, stringsJoinExpected, stringsJoinCalled, "Unexpected method call to stringsJoin")
+	assert.Equal(t, stringsJoinExpected, stringsJoinCalled, "Unexpected number of calls to stringsJoin")
 	wrapErrorFunc = WrapError
-	assert.Equal(t, wrapErrorFuncExpected, wrapErrorFuncCalled, "Unexpected method call to wrapErrorFunc")
+	assert.Equal(t, wrapErrorFuncExpected, wrapErrorFuncCalled, "Unexpected number of calls to wrapErrorFunc")
 	wrapSimpleErrorFunc = WrapSimpleError
-	assert.Equal(t, wrapSimpleErrorFuncExpected, wrapSimpleErrorFuncCalled, "Unexpected method call to wrapSimpleErrorFunc")
+	assert.Equal(t, wrapSimpleErrorFuncExpected, wrapSimpleErrorFuncCalled, "Unexpected number of calls to wrapSimpleErrorFunc")
 }

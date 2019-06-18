@@ -23,5 +23,5 @@ func createMock(t *testing.T) {
 
 func verifyAll(t *testing.T) {
 	stringsJoin = strings.Join
-	assert.Equal(t, stringsJoinExpected, stringsJoinCalled, "Unexpected method call to stringsJoin")
+	assert.Equal(t, stringsJoinExpected, stringsJoinCalled, "Unexpected number of calls to stringsJoin")
 }

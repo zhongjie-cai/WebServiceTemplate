@@ -76,17 +76,17 @@ func createMock(t *testing.T) {
 
 func verifyAll(t *testing.T) {
 	uuidParse = uuid.Parse
-	assert.Equal(t, uuidParseExpected, uuidParseCalled, "Unexpected method call to uuidParse")
+	assert.Equal(t, uuidParseExpected, uuidParseCalled, "Unexpected number of calls to uuidParse")
 	uuidNew = uuid.New
-	assert.Equal(t, uuidNewExpected, uuidNewCalled, "Unexpected method call to uuidNew")
+	assert.Equal(t, uuidNewExpected, uuidNewCalled, "Unexpected number of calls to uuidNew")
 	logtypeFromString = logtype.FromString
-	assert.Equal(t, logtypeFromStringExpected, logtypeFromStringCalled, "Unexpected method call to logtypeFromString")
+	assert.Equal(t, logtypeFromStringExpected, logtypeFromStringCalled, "Unexpected number of calls to logtypeFromString")
 	apperrorWrapSimpleError = apperror.WrapSimpleError
-	assert.Equal(t, apperrorWrapSimpleErrorExpected, apperrorWrapSimpleErrorCalled, "Unexpected method call to apperrorWrapSimpleError")
+	assert.Equal(t, apperrorWrapSimpleErrorExpected, apperrorWrapSimpleErrorCalled, "Unexpected number of calls to apperrorWrapSimpleError")
 	ioutilReadAll = ioutil.ReadAll
-	assert.Equal(t, ioutilReadAllExpected, ioutilReadAllCalled, "Unexpected method call to ioutilReadAll")
+	assert.Equal(t, ioutilReadAllExpected, ioutilReadAllCalled, "Unexpected number of calls to ioutilReadAll")
 	loggerAPIRequest = logger.APIRequest
-	assert.Equal(t, loggerAPIRequestExpected, loggerAPIRequestCalled, "Unexpected method call to loggerAPIRequest")
+	assert.Equal(t, loggerAPIRequestExpected, loggerAPIRequestCalled, "Unexpected number of calls to loggerAPIRequest")
 	getUUIDFromHeaderFunc = getUUIDFromHeader
-	assert.Equal(t, getUUIDFromHeaderFuncExpected, getUUIDFromHeaderFuncCalled, "Unexpected method call to getUUIDFromHeaderFunc")
+	assert.Equal(t, getUUIDFromHeaderFuncExpected, getUUIDFromHeaderFuncCalled, "Unexpected number of calls to getUUIDFromHeaderFunc")
 }

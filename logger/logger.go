@@ -5,7 +5,11 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger/logtype"
+	"github.com/zhongjie-cai/WebServiceTemplate/session"
 )
+
+// LoggingFunc can be replaced by a customized logging function for your own purposes
+var LoggingFunc func(session *session.Session, logType logtype.LogType, category, subcategory, description string)
 
 type logEntry struct {
 	Application string          `json:"application"`
@@ -20,20 +24,31 @@ type logEntry struct {
 	Description string          `json:"description"`
 }
 
-func doLogging(sessionID uuid.UUID, logType logtype.LogType, category, subcategory, description string) {
-	var session = sessionGet(
-		sessionID,
-	)
-	if !session.AllowedLogType.HasFlag(logType) &&
-		!configIsLocalhost() {
-		return
+// Initialize initiates and checks all application logging related function injections
+func Initialize() error {
+	if LoggingFunc == nil {
+		LoggingFunc = defaultLogging
+		return apperrorWrapSimpleError(
+			nil,
+			"logger.LoggingFunc is not configured; fallback to default logging function.",
+		)
 	}
+	return nil
+}
+
+func defaultLogging(
+	session *session.Session,
+	logType logtype.LogType,
+	category,
+	subcategory,
+	description string,
+) {
 	var logEntryString = jsonutilMarshalIgnoreError(
 		logEntry{
 			Application: configAppName(),
 			Version:     configAppVersion(),
 			Timestamp:   timeutilGetTimeNowUTC(),
-			Session:     sessionID,
+			Session:     session.ID,
 			Login:       session.LoginID,
 			Endpoint:    session.Endpoint,
 			Level:       logType,
@@ -47,10 +62,43 @@ func doLogging(sessionID uuid.UUID, logType logtype.LogType, category, subcatego
 	)
 }
 
-// AppRoot logs the given message as AppRoot category
-func AppRoot(sessionID uuid.UUID, category string, subcategory string, messageFormat string, parameters ...interface{}) {
-	doLoggingFunc(
+func prepareLogging(
+	sessionID uuid.UUID,
+	logType logtype.LogType,
+	category,
+	subcategory,
+	description string,
+) {
+	var session = sessionGet(
 		sessionID,
+	)
+	if !session.AllowedLogType.HasFlag(logType) &&
+		!configIsLocalhost() {
+		return
+	}
+	if LoggingFunc == nil {
+		defaultLoggingFunc(
+			session,
+			logType,
+			category,
+			subcategory,
+			description,
+		)
+	} else {
+		LoggingFunc(
+			session,
+			logType,
+			category,
+			subcategory,
+			description,
+		)
+	}
+}
+
+// AppRoot logs the given message as AppRoot category
+func AppRoot(category string, subcategory string, messageFormat string, parameters ...interface{}) {
+	prepareLoggingFunc(
+		uuid.Nil,
 		logtype.AppRoot,
 		category,
 		subcategory,
@@ -63,7 +111,7 @@ func AppRoot(sessionID uuid.UUID, category string, subcategory string, messageFo
 
 // APIEnter logs the given message as APIEnter category
 func APIEnter(sessionID uuid.UUID, category string, subcategory string, messageFormat string, parameters ...interface{}) {
-	doLoggingFunc(
+	prepareLoggingFunc(
 		sessionID,
 		logtype.APIEnter,
 		category,
@@ -77,7 +125,7 @@ func APIEnter(sessionID uuid.UUID, category string, subcategory string, messageF
 
 // APIRequest logs the given message as APIRequest category
 func APIRequest(sessionID uuid.UUID, category string, subcategory string, messageFormat string, parameters ...interface{}) {
-	doLoggingFunc(
+	prepareLoggingFunc(
 		sessionID,
 		logtype.APIRequest,
 		category,
@@ -91,7 +139,7 @@ func APIRequest(sessionID uuid.UUID, category string, subcategory string, messag
 
 // MethodEnter logs the given message as MethodEnter category
 func MethodEnter(sessionID uuid.UUID, category string, subcategory string, messageFormat string, parameters ...interface{}) {
-	doLoggingFunc(
+	prepareLoggingFunc(
 		sessionID,
 		logtype.MethodEnter,
 		category,
@@ -105,7 +153,7 @@ func MethodEnter(sessionID uuid.UUID, category string, subcategory string, messa
 
 // MethodParameter logs the given message as MethodParameter category
 func MethodParameter(sessionID uuid.UUID, category string, subcategory string, messageFormat string, parameters ...interface{}) {
-	doLoggingFunc(
+	prepareLoggingFunc(
 		sessionID,
 		logtype.MethodParameter,
 		category,
@@ -119,7 +167,7 @@ func MethodParameter(sessionID uuid.UUID, category string, subcategory string, m
 
 // MethodLogic logs the given message as MethodLogic category
 func MethodLogic(sessionID uuid.UUID, category string, subcategory string, messageFormat string, parameters ...interface{}) {
-	doLoggingFunc(
+	prepareLoggingFunc(
 		sessionID,
 		logtype.MethodLogic,
 		category,
@@ -133,7 +181,7 @@ func MethodLogic(sessionID uuid.UUID, category string, subcategory string, messa
 
 // DependencyCall logs the given message as DependencyCall category
 func DependencyCall(sessionID uuid.UUID, category string, subcategory string, messageFormat string, parameters ...interface{}) {
-	doLoggingFunc(
+	prepareLoggingFunc(
 		sessionID,
 		logtype.DependencyCall,
 		category,
@@ -147,7 +195,7 @@ func DependencyCall(sessionID uuid.UUID, category string, subcategory string, me
 
 // DependencyRequest logs the given message as DependencyRequest category
 func DependencyRequest(sessionID uuid.UUID, category string, subcategory string, messageFormat string, parameters ...interface{}) {
-	doLoggingFunc(
+	prepareLoggingFunc(
 		sessionID,
 		logtype.DependencyRequest,
 		category,
@@ -161,7 +209,7 @@ func DependencyRequest(sessionID uuid.UUID, category string, subcategory string,
 
 // DependencyResponse logs the given message as DependencyResponse category
 func DependencyResponse(sessionID uuid.UUID, category string, subcategory string, messageFormat string, parameters ...interface{}) {
-	doLoggingFunc(
+	prepareLoggingFunc(
 		sessionID,
 		logtype.DependencyResponse,
 		category,
@@ -175,7 +223,7 @@ func DependencyResponse(sessionID uuid.UUID, category string, subcategory string
 
 // DependencyFinish logs the given message as DependencyFinish category
 func DependencyFinish(sessionID uuid.UUID, category string, subcategory string, messageFormat string, parameters ...interface{}) {
-	doLoggingFunc(
+	prepareLoggingFunc(
 		sessionID,
 		logtype.DependencyFinish,
 		category,
@@ -189,7 +237,7 @@ func DependencyFinish(sessionID uuid.UUID, category string, subcategory string, 
 
 // MethodReturn logs the given message as MethodReturn category
 func MethodReturn(sessionID uuid.UUID, category string, subcategory string, messageFormat string, parameters ...interface{}) {
-	doLoggingFunc(
+	prepareLoggingFunc(
 		sessionID,
 		logtype.MethodReturn,
 		category,
@@ -203,7 +251,7 @@ func MethodReturn(sessionID uuid.UUID, category string, subcategory string, mess
 
 // MethodExit logs the given message as MethodExit category
 func MethodExit(sessionID uuid.UUID, category string, subcategory string, messageFormat string, parameters ...interface{}) {
-	doLoggingFunc(
+	prepareLoggingFunc(
 		sessionID,
 		logtype.MethodExit,
 		category,
@@ -217,7 +265,7 @@ func MethodExit(sessionID uuid.UUID, category string, subcategory string, messag
 
 // APIResponse logs the given message as APIResponse category
 func APIResponse(sessionID uuid.UUID, category string, subcategory string, messageFormat string, parameters ...interface{}) {
-	doLoggingFunc(
+	prepareLoggingFunc(
 		sessionID,
 		logtype.APIResponse,
 		category,
@@ -231,7 +279,7 @@ func APIResponse(sessionID uuid.UUID, category string, subcategory string, messa
 
 // APIExit logs the given message as APIExit category
 func APIExit(sessionID uuid.UUID, category string, subcategory string, messageFormat string, parameters ...interface{}) {
-	doLoggingFunc(
+	prepareLoggingFunc(
 		sessionID,
 		logtype.APIExit,
 		category,

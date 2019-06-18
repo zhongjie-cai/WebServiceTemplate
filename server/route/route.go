@@ -7,6 +7,8 @@ import (
 	"github.com/gorilla/mux"
 )
 
+var registeredRouteActionFuncs map[string]func(http.ResponseWriter, *http.Request, uuid.UUID)
+
 func getName(route *mux.Route) string {
 	return route.GetName()
 }
@@ -59,7 +61,6 @@ func printRegisteredRouteDetails(
 		return consolidatedError
 	}
 	loggerAppRoot(
-		uuid.Nil,
 		"route",
 		"printRegisteredRouteDetails",
 		"Route registered for name [%v]\nPath template:%v\nPath regexp:%v\nQueries templates:%v\nQueries regexps:%v\nMethods:%v",
@@ -73,7 +74,8 @@ func printRegisteredRouteDetails(
 	return nil
 }
 
-func walkRegisteredRoutes(router *mux.Router) error {
+// WalkRegisteredRoutes examines the registered router for errors
+func WalkRegisteredRoutes(router *mux.Router) error {
 	var walkError = router.Walk(
 		printRegisteredRouteDetailsFunc,
 	)
@@ -86,36 +88,35 @@ func walkRegisteredRoutes(router *mux.Router) error {
 	return nil
 }
 
-// RegisterEntries registeres the listed entry functions and returns the mux router for server hosting
-func RegisterEntries(entryFuncs ...func(*mux.Router)) (*mux.Router, error) {
-	if entryFuncs == nil ||
-		len(entryFuncs) == 0 {
-		return nil,
-			apperrorWrapSimpleError(
-				nil,
-				"No host entries found",
-			)
-	}
-	var router = muxNewRouter()
-	for _, entryFunc := range entryFuncs {
-		entryFunc(router)
-	}
-	var routerError = walkRegisteredRoutesFunc(
-		router,
-	)
-	if routerError != nil {
-		return nil,
-			apperrorWrapSimpleError(
-				routerError,
-				"Failed to register routes",
-			)
-	}
-	return router, nil
+// CreateRouter initializes a router for route registrations
+func CreateRouter() *mux.Router {
+	registeredRouteActionFuncs = map[string]func(http.ResponseWriter, *http.Request, uuid.UUID){}
+	return muxNewRouter()
 }
 
-const handleMethod = "GET"
+// HandleFunc wraps the mux route handler
+func HandleFunc(
+	router *mux.Router,
+	endpoint string,
+	method string,
+	path string,
+	handleFunc func(http.ResponseWriter, *http.Request),
+	actionFunc func(http.ResponseWriter, *http.Request, uuid.UUID),
+) *mux.Route {
+	var name = method + ":" + endpoint
+	var route = router.HandleFunc(
+		path,
+		handleFunc,
+	).Methods(
+		method,
+	).Name(
+		name,
+	)
+	registeredRouteActionFuncs[name] = actionFunc
+	return route
+}
 
-// HostStatic registers a given path URI with the given handler interface (for static content hosting)
+// HostStatic wraps the mux static content handler
 func HostStatic(
 	router *mux.Router,
 	name string,
@@ -131,29 +132,34 @@ func HostStatic(
 	)
 }
 
-// HandleFunc registers a given method/path URI with the given handler function
-func HandleFunc(
-	router *mux.Router,
-	endpoint string,
-	method string,
-	path string,
-	handlerFunc func(http.ResponseWriter, *http.Request),
-) *mux.Route {
-	return router.HandleFunc(
-		path,
-		handlerFunc,
-	).Methods(
-		method,
-	).Name(
-		endpoint,
+func defaultActionFunc(responseWriter http.ResponseWriter, httphttpRequest *http.Request, sessionID uuid.UUID) {
+	responseError(
+		sessionID,
+		apperrorGetNotImplementedError(nil),
+		responseWriter,
 	)
 }
 
-// GetEndpointName retrieves the name of the registered route by the current request
-func GetEndpointName(request *http.Request) string {
-	var route = muxCurrentRoute(request)
-	if route == nil {
-		return ""
+func getActionByName(name string) func(http.ResponseWriter, *http.Request, uuid.UUID) {
+	var actionFunc, found = registeredRouteActionFuncs[name]
+	if !found {
+		return defaultActionFunc
 	}
-	return route.GetName()
+	return actionFunc
+}
+
+// GetRouteInfo retrieves the registered name and action for the given route
+func GetRouteInfo(httpRequest *http.Request) (string, func(http.ResponseWriter, *http.Request, uuid.UUID), error) {
+	var route = muxCurrentRoute(httpRequest)
+	if route == nil {
+		return "",
+			nil,
+			apperrorWrapSimpleError(
+				nil,
+				"Failed to retrieve route info for request - no route found",
+			)
+	}
+	var name = getNameFunc(route)
+	var action = getActionByNameFunc(name)
+	return name, action, nil
 }
