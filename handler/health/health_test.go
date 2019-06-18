@@ -6,6 +6,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
+	"github.com/zhongjie-cai/WebServiceTemplate/config"
 )
 
 func TestHandleGetHealth(t *testing.T) {
@@ -24,7 +25,7 @@ func TestHandleGetHealth(t *testing.T) {
 
 	// expect
 	configAppVersionExpected = 1
-	configAppVersion = func() string {
+	config.AppVersion = func() string {
 		configAppVersionCalled++
 		return dummyAppVersion
 	}

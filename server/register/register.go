@@ -2,14 +2,9 @@ package register
 
 import (
 	"github.com/gorilla/mux"
+	"github.com/zhongjie-cai/WebServiceTemplate/customization"
 	"github.com/zhongjie-cai/WebServiceTemplate/server/model"
 )
-
-// Routes is the function to be exposed to the consumers to customize routes registration
-var Routes func() []model.Route
-
-// Statics is the function to be exposed to the consumers to customize static contents registration
-var Statics func() []model.Static
 
 func doParameterReplacement(
 	originalPath string,
@@ -65,21 +60,21 @@ func evaluatePathWithParameters(
 func registerRoutes(
 	router *mux.Router,
 ) {
-	if Routes == nil {
+	if customization.Routes == nil {
 		loggerAppRoot(
 			"register",
 			"registerRoutes",
-			"Routes function not set: no routes registered!",
+			"customization.Routes function not set: no routes registered!",
 		)
 		return
 	}
-	var configuredRoutes = Routes()
+	var configuredRoutes = customization.Routes()
 	if configuredRoutes == nil ||
 		len(configuredRoutes) == 0 {
 		loggerAppRoot(
 			"register",
 			"registerRoutes",
-			"Routes function empty: no routes returned!",
+			"customization.Routes function empty: no routes returned!",
 		)
 		return
 	}
@@ -103,21 +98,21 @@ func registerRoutes(
 func registerStatics(
 	router *mux.Router,
 ) {
-	if Statics == nil {
+	if customization.Statics == nil {
 		loggerAppRoot(
 			"register",
 			"registerStatics",
-			"Statics function not set: no static content registered!",
+			"customization.Statics function not set: no static content registered!",
 		)
 		return
 	}
-	var statics = Statics()
+	var statics = customization.Statics()
 	if statics == nil ||
 		len(statics) == 0 {
 		loggerAppRoot(
 			"register",
 			"registerStatics",
-			"Statics function empty: no static content returned!",
+			"customization.Statics function empty: no static content returned!",
 		)
 		return
 	}

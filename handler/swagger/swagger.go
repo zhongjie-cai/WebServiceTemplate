@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/google/uuid"
+	"github.com/zhongjie-cai/WebServiceTemplate/config"
 )
 
 // Redirect handles HTTP redirection for swagger UI requests
@@ -25,5 +26,9 @@ func Handler() http.Handler {
 	return httpStripPrefix(
 		"/docs/",
 		httpFileServer(
-			http.Dir(configAppPath()+"/docs")))
+			http.Dir(
+				config.AppPath()+"/docs",
+			),
+		),
+	)
 }

@@ -6,6 +6,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
+	"github.com/zhongjie-cai/WebServiceTemplate/config"
 )
 
 func TestGetFavicon(t *testing.T) {
@@ -24,7 +25,7 @@ func TestGetFavicon(t *testing.T) {
 
 	// expect
 	configAppPathExpected = 1
-	configAppPath = func() string {
+	config.AppPath = func() string {
 		configAppPathCalled++
 		return dummyAppPath
 	}

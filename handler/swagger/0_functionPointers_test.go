@@ -22,7 +22,7 @@ var (
 func createMock(t *testing.T) {
 	configAppPathExpected = 0
 	configAppPathCalled = 0
-	configAppPath = func() string {
+	config.AppPath = func() string {
 		configAppPathCalled++
 		return ""
 	}
@@ -46,7 +46,7 @@ func createMock(t *testing.T) {
 }
 
 func verifyAll(t *testing.T) {
-	configAppPath = config.AppPath
+	config.AppPath = func() string { return "" }
 	assert.Equal(t, configAppPathExpected, configAppPathCalled, "Unexpected number of calls to configAppPath")
 	httpRedirect = http.Redirect
 	assert.Equal(t, httpRedirectExpected, httpRedirectCalled, "Unexpected number of calls to httpRedirect")

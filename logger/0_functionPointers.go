@@ -5,7 +5,6 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
-	"github.com/zhongjie-cai/WebServiceTemplate/config"
 	"github.com/zhongjie-cai/WebServiceTemplate/jsonutil"
 	"github.com/zhongjie-cai/WebServiceTemplate/session"
 	"github.com/zhongjie-cai/WebServiceTemplate/timeutil"
@@ -20,9 +19,6 @@ var (
 	fmtSprintf                 = fmt.Sprintf
 	timeutilGetTimeNowUTC      = timeutil.GetTimeNowUTC
 	jsonutilMarshalIgnoreError = jsonutil.MarshalIgnoreError
-	configAppName              = config.AppName
-	configAppVersion           = config.AppVersion
-	configIsLocalhost          = config.IsLocalhost
 	sessionGet                 = session.Get
 	apperrorWrapSimpleError    = apperror.WrapSimpleError
 	defaultLoggingFunc         = defaultLogging

@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
 	"github.com/zhongjie-cai/WebServiceTemplate/config"
+	"github.com/zhongjie-cai/WebServiceTemplate/customization"
 	"github.com/zhongjie-cai/WebServiceTemplate/jsonutil"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger/logtype"
 	"github.com/zhongjie-cai/WebServiceTemplate/session"
@@ -83,19 +84,19 @@ func createMock(t *testing.T) {
 	}
 	configAppNameExpected = 0
 	configAppNameCalled = 0
-	configAppName = func() string {
+	config.AppName = func() string {
 		configAppNameCalled++
 		return ""
 	}
 	configAppVersionExpected = 0
 	configAppVersionCalled = 0
-	configAppVersion = func() string {
+	config.AppVersion = func() string {
 		configAppVersionCalled++
 		return ""
 	}
 	configIsLocalhostExpected = 0
 	configIsLocalhostCalled = 0
-	configIsLocalhost = func() bool {
+	config.IsLocalhost = func() bool {
 		configIsLocalhostCalled++
 		return false
 	}
@@ -136,11 +137,11 @@ func verifyAll(t *testing.T) {
 	assert.Equal(t, timeutilGetTimeNowUTCExpected, timeutilGetTimeNowUTCCalled, "Unexpected number of calls to timeutilGetTimeNowUTC")
 	jsonutilMarshalIgnoreError = jsonutil.MarshalIgnoreError
 	assert.Equal(t, jsonutilMarshalIgnoreErrorExpected, jsonutilMarshalIgnoreErrorCalled, "Unexpected number of calls to jsonutilMarshalIgnoreError")
-	configAppName = config.AppName
+	config.AppName = func() string { return "" }
 	assert.Equal(t, configAppNameExpected, configAppNameCalled, "Unexpected number of calls to configAppName")
-	configAppVersion = config.AppVersion
+	config.AppVersion = func() string { return "" }
 	assert.Equal(t, configAppVersionExpected, configAppVersionCalled, "Unexpected number of calls to configAppVersion")
-	configIsLocalhost = config.IsLocalhost
+	config.IsLocalhost = func() bool { return false }
 	assert.Equal(t, configIsLocalhostExpected, configIsLocalhostCalled, "Unexpected number of calls to configIsLocalhost")
 	sessionGet = session.Get
 	assert.Equal(t, sessionGetExpected, sessionGetCalled, "Unexpected number of calls to sessionGet")
@@ -151,5 +152,5 @@ func verifyAll(t *testing.T) {
 	prepareLoggingFunc = prepareLogging
 	assert.Equal(t, prepareLoggingFuncExpected, prepareLoggingFuncCalled, "Unexpected number of calls to prepareLoggingFunc")
 
-	LoggingFunc = nil
+	customization.LoggingFunc = nil
 }

@@ -6,6 +6,8 @@ import (
 	"time"
 
 	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
+	"github.com/zhongjie-cai/WebServiceTemplate/config"
+	"github.com/zhongjie-cai/WebServiceTemplate/customization"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger/logtype"
 	"github.com/zhongjie-cai/WebServiceTemplate/session"
 
@@ -15,8 +17,11 @@ import (
 
 func TestInitialize_NotSet(t *testing.T) {
 	// arrange
-	var dummyMessageFormat = "logger.LoggingFunc is not configured; fallback to default logging function."
+	var dummyMessageFormat = "customization.LoggingFunc is not configured; fallback to default logging function."
 	var dummyAppError = apperror.GetGeneralFailureError(nil)
+
+	// stub
+	customization.LoggingFunc = nil
 
 	// mock
 	createMock(t)
@@ -43,7 +48,7 @@ func TestInitialize_NotSet(t *testing.T) {
 
 func TestInitialize_Set(t *testing.T) {
 	// stub
-	LoggingFunc = defaultLogging
+	customization.LoggingFunc = func(session *session.Session, logType logtype.LogType, category, subcategory, description string) {}
 
 	// mock
 	createMock(t)
@@ -96,12 +101,12 @@ func TestDefaultLogging(t *testing.T) {
 
 	// expect
 	configAppNameExpected = 1
-	configAppName = func() string {
+	config.AppName = func() string {
 		configAppNameCalled++
 		return dummyAppName
 	}
 	configAppVersionExpected = 1
-	configAppVersion = func() string {
+	config.AppVersion = func() string {
 		configAppVersionCalled++
 		return dummyAppVersion
 	}
@@ -160,7 +165,7 @@ func TestPrepareLogging_NotLocalhost_FlagNotMatch(t *testing.T) {
 		return dummyLogSession
 	}
 	configIsLocalhostExpected = 1
-	configIsLocalhost = func() bool {
+	config.IsLocalhost = func() bool {
 		configIsLocalhostCalled++
 		return false
 	}
@@ -196,7 +201,7 @@ func TestPrepareLogging_IsLocalhost_DefaultLogging(t *testing.T) {
 	var dummyDescription = "some description"
 
 	// stub
-	LoggingFunc = nil
+	customization.LoggingFunc = nil
 
 	// mock
 	createMock(t)
@@ -209,7 +214,7 @@ func TestPrepareLogging_IsLocalhost_DefaultLogging(t *testing.T) {
 		return dummyLogSession
 	}
 	configIsLocalhostExpected = 1
-	configIsLocalhost = func() bool {
+	config.IsLocalhost = func() bool {
 		configIsLocalhostCalled++
 		return true
 	}
@@ -254,7 +259,7 @@ func TestPrepareLogging_FlagMatch_DefaultLogging(t *testing.T) {
 	var dummyDescription = "some description"
 
 	// stub
-	LoggingFunc = nil
+	customization.LoggingFunc = nil
 
 	// mock
 	createMock(t)
@@ -319,12 +324,12 @@ func TestPrepareLogging_IsLocalhost_CustomLogging(t *testing.T) {
 		return dummyLogSession
 	}
 	configIsLocalhostExpected = 1
-	configIsLocalhost = func() bool {
+	config.IsLocalhost = func() bool {
 		configIsLocalhostCalled++
 		return true
 	}
 	loggingFuncExpected = 1
-	LoggingFunc = func(session *session.Session, logType logtype.LogType, category, subcategory, description string) {
+	customization.LoggingFunc = func(session *session.Session, logType logtype.LogType, category, subcategory, description string) {
 		loggingFuncCalled++
 		assert.Equal(t, dummyLogSession, session)
 		assert.Equal(t, dummyLogType, logType)
@@ -377,7 +382,7 @@ func TestPrepareLogging_FlagMatch_CustomLogging(t *testing.T) {
 		return dummyLogSession
 	}
 	loggingFuncExpected = 1
-	LoggingFunc = func(session *session.Session, logType logtype.LogType, category, subcategory, description string) {
+	customization.LoggingFunc = func(session *session.Session, logType logtype.LogType, category, subcategory, description string) {
 		loggingFuncCalled++
 		assert.Equal(t, dummyLogSession, session)
 		assert.Equal(t, dummyLogType, logType)

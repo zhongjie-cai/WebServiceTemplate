@@ -9,6 +9,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
+	"github.com/zhongjie-cai/WebServiceTemplate/customization"
 )
 
 func TestDefaultAppVersion(t *testing.T) {
@@ -181,6 +182,105 @@ func TestDefaultCaCertContent(t *testing.T) {
 	verifyAll(t)
 }
 
+func TestFunctionPointerEquals_AllDifferent(t *testing.T) {
+	// arrange
+	var dummyLeft = func(foo int) string { return "bar" }
+	var dummyRight = func(test string) int { return 123 }
+
+	// mock
+	createMock(t)
+
+	// expect
+	reflectValueOfExpected = 2
+	reflectValueOf = func(i interface{}) reflect.Value {
+		reflectValueOfCalled++
+		return reflect.ValueOf(i)
+	}
+	fmtSprintfExpected = 2
+	fmtSprintf = func(format string, a ...interface{}) string {
+		fmtSprintfCalled++
+		return fmt.Sprintf(format, a...)
+	}
+
+	// SUT + act
+	result := functionPointerEquals(
+		dummyLeft,
+		dummyRight,
+	)
+
+	// assert
+	assert.False(t, result)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestFunctionPointerEquals_PointerDifferent(t *testing.T) {
+	// arrange
+	var dummyLeft = func(foo int) string { return "bar" }
+	var dummyRight = func(foo int) string { return "bar" }
+
+	// mock
+	createMock(t)
+
+	// expect
+	reflectValueOfExpected = 2
+	reflectValueOf = func(i interface{}) reflect.Value {
+		reflectValueOfCalled++
+		return reflect.ValueOf(i)
+	}
+	fmtSprintfExpected = 2
+	fmtSprintf = func(format string, a ...interface{}) string {
+		fmtSprintfCalled++
+		return fmt.Sprintf(format, a...)
+	}
+
+	// SUT + act
+	result := functionPointerEquals(
+		dummyLeft,
+		dummyRight,
+	)
+
+	// assert
+	assert.False(t, result)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestFunctionPointerEquals_NothingDifferent(t *testing.T) {
+	// arrange
+	var dummyLeft = func(foo int) string { return "bar" }
+	var dummyRight = dummyLeft
+
+	// mock
+	createMock(t)
+
+	// expect
+	reflectValueOfExpected = 2
+	reflectValueOf = func(i interface{}) reflect.Value {
+		reflectValueOfCalled++
+		return reflect.ValueOf(i)
+	}
+	fmtSprintfExpected = 2
+	fmtSprintf = func(format string, a ...interface{}) string {
+		fmtSprintfCalled++
+		return fmt.Sprintf(format, a...)
+	}
+
+	// SUT + act
+	result := functionPointerEquals(
+		dummyLeft,
+		dummyRight,
+	)
+
+	// assert
+	assert.True(t, result)
+
+	// verify
+	verifyAll(t)
+}
+
 func TestValidateStringFunction_ForcedToDefault(t *testing.T) {
 	// arrange
 	var dummyStringFuncExpected int
@@ -191,7 +291,7 @@ func TestValidateStringFunction_ForcedToDefault(t *testing.T) {
 	var dummyDefaultFuncCalled int
 	var dummyDefaultFuncReturn = "some default func return"
 	var dummyForceToDefault = true
-	var dummyMessageFormat = "config.%v function is forced to default [%v] due to forceToDefault flag set"
+	var dummyMessageFormat = "customization.%v function is forced to default [%v] due to forceToDefault flag set"
 	var dummyAppError = apperror.GetGeneralFailureError(nil)
 
 	// mock
@@ -247,7 +347,7 @@ func TestValidateStringFunction_NilStringFunc(t *testing.T) {
 	var dummyDefaultFuncCalled int
 	var dummyDefaultFuncReturn = "some default func return"
 	var dummyForceToDefault = false
-	var dummyMessageFormat = "config.%v function is not configured or is empty; fallback to default [%v]"
+	var dummyMessageFormat = "customization.%v function is not configured or is empty; fallback to default [%v]"
 	var dummyAppError = apperror.GetGeneralFailureError(nil)
 
 	// mock
@@ -288,6 +388,69 @@ func TestValidateStringFunction_NilStringFunc(t *testing.T) {
 	assert.Equal(t, dummyDefaultFuncExpected, dummyDefaultFuncCalled, "Unexpected number of calls to dummyDefaultFunc")
 }
 
+func TestValidateStringFunction_DefaultStringFunc(t *testing.T) {
+	// arrange
+	var dummyStringFuncExpected int
+	var dummyStringFuncCalled int
+	var dummyStringFuncReturn string
+	var dummyName = "some name"
+	var dummyDefaultFuncExpected int
+	var dummyDefaultFuncCalled int
+	var dummyDefaultFuncReturn = "some default func return"
+	var dummyForceToDefault = false
+	var dummyMessageFormat = "customization.%v function is not configured or is empty; fallback to default [%v]"
+	var dummyAppError = apperror.GetGeneralFailureError(nil)
+
+	// mock
+	createMock(t)
+
+	// expect
+	dummyStringFuncExpected = 0
+	var dummyStringFunc = func() string {
+		dummyStringFuncCalled++
+		return dummyStringFuncReturn
+	}
+	dummyDefaultFuncExpected = 1
+	var dummyDefaultFunc = func() string {
+		dummyDefaultFuncCalled++
+		return dummyDefaultFuncReturn
+	}
+	functionPointerEqualsFuncExpected = 1
+	functionPointerEqualsFunc = func(left, right interface{}) bool {
+		functionPointerEqualsFuncCalled++
+		assert.Equal(t, fmt.Sprintf("%v", reflect.ValueOf(dummyStringFunc)), fmt.Sprintf("%v", reflect.ValueOf(left)))
+		assert.Equal(t, fmt.Sprintf("%v", reflect.ValueOf(dummyDefaultFunc)), fmt.Sprintf("%v", reflect.ValueOf(right)))
+		return true
+	}
+	apperrorWrapSimpleErrorExpected = 1
+	apperrorWrapSimpleError = func(innerError error, messageFormat string, parameters ...interface{}) apperror.AppError {
+		apperrorWrapSimpleErrorCalled++
+		assert.NoError(t, innerError)
+		assert.Equal(t, dummyMessageFormat, messageFormat)
+		assert.Equal(t, 2, len(parameters))
+		assert.Equal(t, dummyName, parameters[0])
+		assert.Equal(t, dummyDefaultFuncReturn, parameters[1])
+		return dummyAppError
+	}
+
+	// SUT + act
+	result, err := validateStringFunction(
+		dummyStringFunc,
+		dummyName,
+		dummyDefaultFunc,
+		dummyForceToDefault,
+	)
+
+	// assert
+	assert.Equal(t, fmt.Sprintf("%v", reflect.ValueOf(dummyDefaultFunc)), fmt.Sprintf("%v", reflect.ValueOf(result)))
+	assert.Equal(t, dummyAppError, err)
+
+	// verify
+	verifyAll(t)
+	assert.Equal(t, dummyStringFuncExpected, dummyStringFuncCalled, "Unexpected number of calls to dummyStringFunc")
+	assert.Equal(t, dummyDefaultFuncExpected, dummyDefaultFuncCalled, "Unexpected number of calls to dummyDefaultFunc")
+}
+
 func TestValidateStringFunction_EmptyStringFunc(t *testing.T) {
 	// arrange
 	var dummyStringFuncExpected int
@@ -298,7 +461,7 @@ func TestValidateStringFunction_EmptyStringFunc(t *testing.T) {
 	var dummyDefaultFuncCalled int
 	var dummyDefaultFuncReturn = "some default func return"
 	var dummyForceToDefault = false
-	var dummyMessageFormat = "config.%v function is not configured or is empty; fallback to default [%v]"
+	var dummyMessageFormat = "customization.%v function is not configured or is empty; fallback to default [%v]"
 	var dummyAppError = apperror.GetGeneralFailureError(nil)
 
 	// mock
@@ -314,6 +477,13 @@ func TestValidateStringFunction_EmptyStringFunc(t *testing.T) {
 	var dummyDefaultFunc = func() string {
 		dummyDefaultFuncCalled++
 		return dummyDefaultFuncReturn
+	}
+	functionPointerEqualsFuncExpected = 1
+	functionPointerEqualsFunc = func(left, right interface{}) bool {
+		functionPointerEqualsFuncCalled++
+		assert.Equal(t, fmt.Sprintf("%v", reflect.ValueOf(dummyStringFunc)), fmt.Sprintf("%v", reflect.ValueOf(left)))
+		assert.Equal(t, fmt.Sprintf("%v", reflect.ValueOf(dummyDefaultFunc)), fmt.Sprintf("%v", reflect.ValueOf(right)))
+		return false
 	}
 	apperrorWrapSimpleErrorExpected = 1
 	apperrorWrapSimpleError = func(innerError error, messageFormat string, parameters ...interface{}) apperror.AppError {
@@ -369,6 +539,13 @@ func TestValidateStringFunction_ValidStringFunc(t *testing.T) {
 		dummyDefaultFuncCalled++
 		return dummyDefaultFuncReturn
 	}
+	functionPointerEqualsFuncExpected = 1
+	functionPointerEqualsFunc = func(left, right interface{}) bool {
+		functionPointerEqualsFuncCalled++
+		assert.Equal(t, fmt.Sprintf("%v", reflect.ValueOf(dummyStringFunc)), fmt.Sprintf("%v", reflect.ValueOf(left)))
+		assert.Equal(t, fmt.Sprintf("%v", reflect.ValueOf(dummyDefaultFunc)), fmt.Sprintf("%v", reflect.ValueOf(right)))
+		return false
+	}
 
 	// SUT + act
 	result, err := validateStringFunction(
@@ -398,7 +575,7 @@ func TestValidateBooleanFunction_ForcedToDefault(t *testing.T) {
 	var dummyDefaultFuncCalled int
 	var dummyDefaultFuncReturn = rand.Intn(100) < 50
 	var dummyForceToDefault = true
-	var dummyMessageFormat = "config.%v function is forced to default [%v] due to forceToDefault flag set"
+	var dummyMessageFormat = "customization.%v function is forced to default [%v] due to forceToDefault flag set"
 	var dummyAppError = apperror.GetGeneralFailureError(nil)
 
 	// mock
@@ -454,7 +631,7 @@ func TestValidateBooleanFunction_NilBooleanFunc(t *testing.T) {
 	var dummyDefaultFuncCalled int
 	var dummyDefaultFuncReturn = rand.Intn(100) < 50
 	var dummyForceToDefault = false
-	var dummyMessageFormat = "config.%v function is not configured; fallback to default [%v]."
+	var dummyMessageFormat = "customization.%v function is not configured; fallback to default [%v]."
 	var dummyAppError = apperror.GetGeneralFailureError(nil)
 
 	// mock
@@ -465,6 +642,69 @@ func TestValidateBooleanFunction_NilBooleanFunc(t *testing.T) {
 	var dummyDefaultFunc = func() bool {
 		dummyDefaultFuncCalled++
 		return dummyDefaultFuncReturn
+	}
+	apperrorWrapSimpleErrorExpected = 1
+	apperrorWrapSimpleError = func(innerError error, messageFormat string, parameters ...interface{}) apperror.AppError {
+		apperrorWrapSimpleErrorCalled++
+		assert.NoError(t, innerError)
+		assert.Equal(t, dummyMessageFormat, messageFormat)
+		assert.Equal(t, 2, len(parameters))
+		assert.Equal(t, dummyName, parameters[0])
+		assert.Equal(t, dummyDefaultFuncReturn, parameters[1])
+		return dummyAppError
+	}
+
+	// SUT + act
+	result, err := validateBooleanFunction(
+		dummyBooleanFunc,
+		dummyName,
+		dummyDefaultFunc,
+		dummyForceToDefault,
+	)
+
+	// assert
+	assert.Equal(t, fmt.Sprintf("%v", reflect.ValueOf(dummyDefaultFunc)), fmt.Sprintf("%v", reflect.ValueOf(result)))
+	assert.Equal(t, dummyAppError, err)
+
+	// verify
+	verifyAll(t)
+	assert.Equal(t, dummyBooleanFuncExpected, dummyBooleanFuncCalled, "Unexpected number of calls to dummyBooleanFunc")
+	assert.Equal(t, dummyDefaultFuncExpected, dummyDefaultFuncCalled, "Unexpected number of calls to dummyDefaultFunc")
+}
+
+func TestValidateBooleanFunction_DefaultBooleanFunc(t *testing.T) {
+	// arrange
+	var dummyBooleanFuncExpected int
+	var dummyBooleanFuncCalled int
+	var dummyBooleanFuncReturn = rand.Intn(100) < 50
+	var dummyName = "some name"
+	var dummyDefaultFuncExpected int
+	var dummyDefaultFuncCalled int
+	var dummyDefaultFuncReturn = rand.Intn(100) < 50
+	var dummyForceToDefault = false
+	var dummyMessageFormat = "customization.%v function is not configured; fallback to default [%v]."
+	var dummyAppError = apperror.GetGeneralFailureError(nil)
+
+	// mock
+	createMock(t)
+
+	// expect
+	dummyBooleanFuncExpected = 0
+	var dummyBooleanFunc = func() bool {
+		dummyBooleanFuncCalled++
+		return dummyBooleanFuncReturn
+	}
+	dummyDefaultFuncExpected = 1
+	var dummyDefaultFunc = func() bool {
+		dummyDefaultFuncCalled++
+		return dummyDefaultFuncReturn
+	}
+	functionPointerEqualsFuncExpected = 1
+	functionPointerEqualsFunc = func(left, right interface{}) bool {
+		functionPointerEqualsFuncCalled++
+		assert.Equal(t, fmt.Sprintf("%v", reflect.ValueOf(dummyBooleanFunc)), fmt.Sprintf("%v", reflect.ValueOf(left)))
+		assert.Equal(t, fmt.Sprintf("%v", reflect.ValueOf(dummyDefaultFunc)), fmt.Sprintf("%v", reflect.ValueOf(right)))
+		return true
 	}
 	apperrorWrapSimpleErrorExpected = 1
 	apperrorWrapSimpleError = func(innerError error, messageFormat string, parameters ...interface{}) apperror.AppError {
@@ -519,6 +759,13 @@ func TestValidateBooleanFunction_ValidBooleanFunc(t *testing.T) {
 	var dummyDefaultFunc = func() bool {
 		dummyDefaultFuncCalled++
 		return dummyDefaultFuncReturn
+	}
+	functionPointerEqualsFuncExpected = 1
+	functionPointerEqualsFunc = func(left, right interface{}) bool {
+		functionPointerEqualsFuncCalled++
+		assert.Equal(t, fmt.Sprintf("%v", reflect.ValueOf(dummyBooleanFunc)), fmt.Sprintf("%v", reflect.ValueOf(left)))
+		assert.Equal(t, fmt.Sprintf("%v", reflect.ValueOf(dummyDefaultFunc)), fmt.Sprintf("%v", reflect.ValueOf(right)))
+		return false
 	}
 
 	// SUT + act
@@ -691,13 +938,13 @@ func TestIsCaCertificateAvailable_NotEmpty(t *testing.T) {
 func TestInitialize(t *testing.T) {
 	// arrange
 	var expectedValidateStringFunctionFuncParameter1 = []string{
-		fmt.Sprintf("%v", reflect.ValueOf(AppVersion)),
-		fmt.Sprintf("%v", reflect.ValueOf(AppPort)),
-		fmt.Sprintf("%v", reflect.ValueOf(AppName)),
-		fmt.Sprintf("%v", reflect.ValueOf(AppPath)),
-		fmt.Sprintf("%v", reflect.ValueOf(ServerCertContent)),
-		fmt.Sprintf("%v", reflect.ValueOf(ServerKeyContent)),
-		fmt.Sprintf("%v", reflect.ValueOf(CaCertContent)),
+		fmt.Sprintf("%v", reflect.ValueOf(customization.AppVersion)),
+		fmt.Sprintf("%v", reflect.ValueOf(customization.AppPort)),
+		fmt.Sprintf("%v", reflect.ValueOf(customization.AppName)),
+		fmt.Sprintf("%v", reflect.ValueOf(customization.AppPath)),
+		fmt.Sprintf("%v", reflect.ValueOf(customization.ServerCertContent)),
+		fmt.Sprintf("%v", reflect.ValueOf(customization.ServerKeyContent)),
+		fmt.Sprintf("%v", reflect.ValueOf(customization.CaCertContent)),
 	}
 	var expectedValidateStringFunctionFuncParameter2 = []string{
 		"AppVersion",
@@ -736,9 +983,9 @@ func TestInitialize(t *testing.T) {
 		errors.New("some CaCertContent error"),
 	}
 	var expectedValidateBooleanFunctionFuncParameter1 = []string{
-		fmt.Sprintf("%v", reflect.ValueOf(IsLocalhost)),
-		fmt.Sprintf("%v", reflect.ValueOf(ServeHTTPS)),
-		fmt.Sprintf("%v", reflect.ValueOf(ValidateClientCert)),
+		fmt.Sprintf("%v", reflect.ValueOf(customization.IsLocalhost)),
+		fmt.Sprintf("%v", reflect.ValueOf(customization.ServeHTTPS)),
+		fmt.Sprintf("%v", reflect.ValueOf(customization.ValidateClientCert)),
 	}
 	var expectedValidateBooleanFunctionFuncParameter2 = []string{
 		"IsLocalhost",

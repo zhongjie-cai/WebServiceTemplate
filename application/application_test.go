@@ -6,6 +6,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/zhongjie-cai/WebServiceTemplate/config"
+	"github.com/zhongjie-cai/WebServiceTemplate/customization"
 )
 
 func TestDoPreBootstraping_NoPreBoostrapFunc(t *testing.T) {
@@ -14,7 +16,7 @@ func TestDoPreBootstraping_NoPreBoostrapFunc(t *testing.T) {
 	var preBootstrapFuncCalled int
 
 	// stub
-	PreBootstrapFunc = nil
+	customization.PreBootstrapFunc = nil
 
 	// mock
 	createMock(t)
@@ -25,7 +27,7 @@ func TestDoPreBootstraping_NoPreBoostrapFunc(t *testing.T) {
 		loggerAppRootCalled++
 		assert.Equal(t, "application", category)
 		assert.Equal(t, "doPreBootstraping", subcategory)
-		assert.Equal(t, "PreBootstrapFunc is not configured; skipped execution", messageFormat)
+		assert.Equal(t, "customization.PreBootstrapFunc is not configured; skipped execution", messageFormat)
 		assert.Equal(t, 0, len(parameters))
 	}
 
@@ -51,7 +53,7 @@ func TestDoPreBootstraping_PreBoostrapFuncError(t *testing.T) {
 
 	// expect
 	preBootstrapFuncExpected = 1
-	PreBootstrapFunc = func() error {
+	customization.PreBootstrapFunc = func() error {
 		preBootstrapFuncCalled++
 		return dummyError
 	}
@@ -60,7 +62,7 @@ func TestDoPreBootstraping_PreBoostrapFuncError(t *testing.T) {
 		loggerAppRootCalled++
 		assert.Equal(t, "application", category)
 		assert.Equal(t, "doPreBootstraping", subcategory)
-		assert.Equal(t, "Failed to execute pre-bootstrap function. Error: %v", messageFormat)
+		assert.Equal(t, "Failed to execute customization.PreBootstrapFunc. Error: %v", messageFormat)
 		assert.Equal(t, 1, len(parameters))
 		assert.Equal(t, dummyError, parameters[0])
 	}
@@ -86,7 +88,7 @@ func TestDoPreBootstraping_PreBoostrapFuncSuccess(t *testing.T) {
 
 	// expect
 	preBootstrapFuncExpected = 1
-	PreBootstrapFunc = func() error {
+	customization.PreBootstrapFunc = func() error {
 		preBootstrapFuncCalled++
 		return nil
 	}
@@ -95,7 +97,7 @@ func TestDoPreBootstraping_PreBoostrapFuncSuccess(t *testing.T) {
 		loggerAppRootCalled++
 		assert.Equal(t, "application", category)
 		assert.Equal(t, "doPreBootstraping", subcategory)
-		assert.Equal(t, "PreBootstrapFunc executed successfully", messageFormat)
+		assert.Equal(t, "customization.PreBootstrapFunc executed successfully", messageFormat)
 		assert.Equal(t, 0, len(parameters))
 	}
 
@@ -136,27 +138,27 @@ func TestBootstrapApplication_WithError(t *testing.T) {
 		return dummyConfigError
 	}
 	configServeHTTPSExpected = 1
-	configServeHTTPS = func() bool {
+	config.ServeHTTPS = func() bool {
 		configServeHTTPSCalled++
 		return dummyServeHTTPS
 	}
 	configServerCertContentExpected = 1
-	configServerCertContent = func() string {
+	config.ServerCertContent = func() string {
 		configServerCertContentCalled++
 		return dummyServerCertContent
 	}
 	configServerKeyContentExpected = 1
-	configServerKeyContent = func() string {
+	config.ServerKeyContent = func() string {
 		configServerKeyContentCalled++
 		return dummyServerKeyContent
 	}
 	configValidateClientCertExpected = 1
-	configValidateClientCert = func() bool {
+	config.ValidateClientCert = func() bool {
 		configValidateClientCertCalled++
 		return dummyValidateClientCert
 	}
 	configCaCertContentExpected = 1
-	configCaCertContent = func() string {
+	config.CaCertContent = func() string {
 		configCaCertContentCalled++
 		return dummyCaCertContent
 	}
@@ -176,11 +178,11 @@ func TestBootstrapApplication_WithError(t *testing.T) {
 		assert.Equal(t, "application", category)
 		assert.Equal(t, "bootstrapApplication", subcategory)
 		if loggerAppRootCalled == 1 {
-			assert.Equal(t, "Logger not initialized cleanly. Potential error: %v", messageFormat)
+			assert.Equal(t, "Application logger not initialized cleanly. Potential error: %v", messageFormat)
 			assert.Equal(t, 1, len(parameters))
 			assert.Equal(t, dummyLoggerError, parameters[0])
 		} else if loggerAppRootCalled == 2 {
-			assert.Equal(t, "Configuration not initialized cleanly. Potential error: %v", messageFormat)
+			assert.Equal(t, "Application configuration not initialized cleanly. Potential error: %v", messageFormat)
 			assert.Equal(t, 1, len(parameters))
 			assert.Equal(t, dummyConfigError, parameters[0])
 		} else if loggerAppRootCalled == 3 {
@@ -223,27 +225,27 @@ func TestBootstrapApplication_NoError(t *testing.T) {
 		return nil
 	}
 	configServeHTTPSExpected = 1
-	configServeHTTPS = func() bool {
+	config.ServeHTTPS = func() bool {
 		configServeHTTPSCalled++
 		return dummyServeHTTPS
 	}
 	configServerCertContentExpected = 1
-	configServerCertContent = func() string {
+	config.ServerCertContent = func() string {
 		configServerCertContentCalled++
 		return dummyServerCertContent
 	}
 	configServerKeyContentExpected = 1
-	configServerKeyContent = func() string {
+	config.ServerKeyContent = func() string {
 		configServerKeyContentCalled++
 		return dummyServerKeyContent
 	}
 	configValidateClientCertExpected = 1
-	configValidateClientCert = func() bool {
+	config.ValidateClientCert = func() bool {
 		configValidateClientCertCalled++
 		return dummyValidateClientCert
 	}
 	configCaCertContentExpected = 1
-	configCaCertContent = func() string {
+	config.CaCertContent = func() string {
 		configCaCertContentCalled++
 		return dummyCaCertContent
 	}
@@ -281,7 +283,7 @@ func TestDoPostBootstraping_NoPostBoostrapFunc(t *testing.T) {
 	var postBootstrapFuncCalled int
 
 	// stub
-	PostBootstrapFunc = nil
+	customization.PostBootstrapFunc = nil
 
 	// mock
 	createMock(t)
@@ -292,7 +294,7 @@ func TestDoPostBootstraping_NoPostBoostrapFunc(t *testing.T) {
 		loggerAppRootCalled++
 		assert.Equal(t, "application", category)
 		assert.Equal(t, "doPostBootstraping", subcategory)
-		assert.Equal(t, "PostBootstrapFunc is not configured; skipped execution", messageFormat)
+		assert.Equal(t, "customization.PostBootstrapFunc is not configured; skipped execution", messageFormat)
 		assert.Equal(t, 0, len(parameters))
 	}
 
@@ -318,7 +320,7 @@ func TestDoPostBootstraping_PostBoostrapFuncError(t *testing.T) {
 
 	// expect
 	postBootstrapFuncExpected = 1
-	PostBootstrapFunc = func() error {
+	customization.PostBootstrapFunc = func() error {
 		postBootstrapFuncCalled++
 		return dummyError
 	}
@@ -327,7 +329,7 @@ func TestDoPostBootstraping_PostBoostrapFuncError(t *testing.T) {
 		loggerAppRootCalled++
 		assert.Equal(t, "application", category)
 		assert.Equal(t, "doPostBootstraping", subcategory)
-		assert.Equal(t, "Failed to execute post-bootstrap function. Error: %v", messageFormat)
+		assert.Equal(t, "Failed to execute customization.PostBootstrapFunc. Error: %v", messageFormat)
 		assert.Equal(t, 1, len(parameters))
 		assert.Equal(t, dummyError, parameters[0])
 	}
@@ -353,7 +355,7 @@ func TestDoPostBootstraping_PostBoostrapFuncSuccess(t *testing.T) {
 
 	// expect
 	postBootstrapFuncExpected = 1
-	PostBootstrapFunc = func() error {
+	customization.PostBootstrapFunc = func() error {
 		postBootstrapFuncCalled++
 		return nil
 	}
@@ -362,7 +364,7 @@ func TestDoPostBootstraping_PostBoostrapFuncSuccess(t *testing.T) {
 		loggerAppRootCalled++
 		assert.Equal(t, "application", category)
 		assert.Equal(t, "doPostBootstraping", subcategory)
-		assert.Equal(t, "PostBootstrapFunc executed successfully", messageFormat)
+		assert.Equal(t, "customization.PostBootstrapFunc executed successfully", messageFormat)
 		assert.Equal(t, 0, len(parameters))
 	}
 
@@ -390,22 +392,22 @@ func TestDoApplicationStarting_HostError(t *testing.T) {
 
 	// expect
 	configAppPortExpected = 1
-	configAppPort = func() string {
+	config.AppPort = func() string {
 		configAppPortCalled++
 		return dummyAppPort
 	}
 	configAppVersionExpected = 1
-	configAppVersion = func() string {
+	config.AppVersion = func() string {
 		configAppVersionCalled++
 		return dummyAppVersion
 	}
 	configServeHTTPSExpected = 1
-	configServeHTTPS = func() bool {
+	config.ServeHTTPS = func() bool {
 		configServeHTTPSCalled++
 		return dummyServeHTTPS
 	}
 	configValidateClientCertExpected = 1
-	configValidateClientCert = func() bool {
+	config.ValidateClientCert = func() bool {
 		configValidateClientCertCalled++
 		return dummyValidateClientCert
 	}
@@ -452,22 +454,22 @@ func TestDoApplicationStarting_HostSuccess(t *testing.T) {
 
 	// expect
 	configAppPortExpected = 1
-	configAppPort = func() string {
+	config.AppPort = func() string {
 		configAppPortCalled++
 		return dummyAppPort
 	}
 	configAppVersionExpected = 1
-	configAppVersion = func() string {
+	config.AppVersion = func() string {
 		configAppVersionCalled++
 		return dummyAppVersion
 	}
 	configServeHTTPSExpected = 1
-	configServeHTTPS = func() bool {
+	config.ServeHTTPS = func() bool {
 		configServeHTTPSCalled++
 		return dummyServeHTTPS
 	}
 	configValidateClientCertExpected = 1
-	configValidateClientCert = func() bool {
+	config.ValidateClientCert = func() bool {
 		configValidateClientCertCalled++
 		return dummyValidateClientCert
 	}
@@ -507,10 +509,20 @@ func TestDoApplicationClosing_NilAppClosingFunc(t *testing.T) {
 	var appClosingFuncCalled int
 
 	// stub
-	AppClosingFunc = nil
+	customization.AppClosingFunc = nil
 
 	// mock
 	createMock(t)
+
+	// expect
+	loggerAppRootExpected = 1
+	loggerAppRoot = func(category string, subcategory string, messageFormat string, parameters ...interface{}) {
+		loggerAppRootCalled++
+		assert.Equal(t, "application", category)
+		assert.Equal(t, "doApplicationClosing", subcategory)
+		assert.Equal(t, "customization.AppClosingFunc is not configured; skipped execution", messageFormat)
+		assert.Equal(t, 0, len(parameters))
+	}
 
 	// SUT + act
 	doApplicationClosing()
@@ -531,7 +543,7 @@ func TestDoApplicationClosing_AppClosingError(t *testing.T) {
 
 	// expect
 	appClosingFuncExpected = 1
-	AppClosingFunc = func() error {
+	customization.AppClosingFunc = func() error {
 		appClosingFuncCalled++
 		return dummyClosingError
 	}
@@ -540,7 +552,7 @@ func TestDoApplicationClosing_AppClosingError(t *testing.T) {
 		loggerAppRootCalled++
 		assert.Equal(t, "application", category)
 		assert.Equal(t, "doApplicationClosing", subcategory)
-		assert.Equal(t, "Failed to execute application closing function. Error: %v", messageFormat)
+		assert.Equal(t, "Failed to execute customization.AppClosingFunc. Error: %v", messageFormat)
 		assert.Equal(t, 1, len(parameters))
 		assert.Equal(t, dummyClosingError, parameters[0])
 	}
@@ -563,7 +575,7 @@ func TestDoApplicationClosing_AppClosingSuccess(t *testing.T) {
 
 	// expect
 	appClosingFuncExpected = 1
-	AppClosingFunc = func() error {
+	customization.AppClosingFunc = func() error {
 		appClosingFuncCalled++
 		return nil
 	}
@@ -572,7 +584,7 @@ func TestDoApplicationClosing_AppClosingSuccess(t *testing.T) {
 		loggerAppRootCalled++
 		assert.Equal(t, "application", category)
 		assert.Equal(t, "doApplicationClosing", subcategory)
-		assert.Equal(t, "Application closed successfully", messageFormat)
+		assert.Equal(t, "customization.AppClosingFunc executed successfully", messageFormat)
 		assert.Equal(t, 0, len(parameters))
 	}
 

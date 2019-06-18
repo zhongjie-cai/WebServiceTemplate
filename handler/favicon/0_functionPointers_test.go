@@ -23,7 +23,7 @@ func createMock(t *testing.T) {
 	}
 	configAppPathExpected = 0
 	configAppPathCalled = 0
-	configAppPath = func() string {
+	config.AppPath = func() string {
 		configAppPathCalled++
 		return ""
 	}
@@ -32,7 +32,7 @@ func createMock(t *testing.T) {
 func verifyAll(t *testing.T) {
 	httpServeFile = http.ServeFile
 	assert.Equal(t, httpServeFileExpected, httpServeFileCalled, "Unexpected number of calls to httpServeFile")
-	configAppPath = config.AppPath
+	config.AppPath = func() string { return "" }
 	assert.Equal(t, configAppPathExpected, configAppPathCalled, "Unexpected number of calls to configAppPath")
 }
 

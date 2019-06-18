@@ -4,12 +4,11 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/zhongjie-cai/WebServiceTemplate/config"
+	"github.com/zhongjie-cai/WebServiceTemplate/customization"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger/logtype"
 	"github.com/zhongjie-cai/WebServiceTemplate/session"
 )
-
-// LoggingFunc can be replaced by a customized logging function for your own purposes
-var LoggingFunc func(session *session.Session, logType logtype.LogType, category, subcategory, description string)
 
 type logEntry struct {
 	Application string          `json:"application"`
@@ -26,11 +25,10 @@ type logEntry struct {
 
 // Initialize initiates and checks all application logging related function injections
 func Initialize() error {
-	if LoggingFunc == nil {
-		LoggingFunc = defaultLogging
+	if customization.LoggingFunc == nil {
 		return apperrorWrapSimpleError(
 			nil,
-			"logger.LoggingFunc is not configured; fallback to default logging function.",
+			"customization.LoggingFunc is not configured; fallback to default logging function.",
 		)
 	}
 	return nil
@@ -45,8 +43,8 @@ func defaultLogging(
 ) {
 	var logEntryString = jsonutilMarshalIgnoreError(
 		logEntry{
-			Application: configAppName(),
-			Version:     configAppVersion(),
+			Application: config.AppName(),
+			Version:     config.AppVersion(),
 			Timestamp:   timeutilGetTimeNowUTC(),
 			Session:     session.ID,
 			Login:       session.LoginID,
@@ -73,10 +71,10 @@ func prepareLogging(
 		sessionID,
 	)
 	if !session.AllowedLogType.HasFlag(logType) &&
-		!configIsLocalhost() {
+		!config.IsLocalhost() {
 		return
 	}
-	if LoggingFunc == nil {
+	if customization.LoggingFunc == nil {
 		defaultLoggingFunc(
 			session,
 			logType,
@@ -85,7 +83,7 @@ func prepareLogging(
 			description,
 		)
 	} else {
-		LoggingFunc(
+		customization.LoggingFunc(
 			session,
 			logType,
 			category,

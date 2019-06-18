@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/google/uuid"
+	"github.com/zhongjie-cai/WebServiceTemplate/config"
 )
 
 // GetHealth handles the HTTP request for getting health report
@@ -14,7 +15,7 @@ func GetHealth(
 ) {
 	responseOk(
 		sessionID,
-		configAppVersion(),
+		config.AppVersion(),
 		responseWriter,
 	)
 }

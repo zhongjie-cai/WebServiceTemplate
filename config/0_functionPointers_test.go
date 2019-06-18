@@ -1,6 +1,8 @@
 package config
 
 import (
+	"fmt"
+	"reflect"
 	"testing"
 	"time"
 
@@ -18,6 +20,12 @@ var (
 	apperrorWrapSimpleErrorCalled            int
 	apperrorConsolidateAllErrorsExpected     int
 	apperrorConsolidateAllErrorsCalled       int
+	reflectValueOfExpected                   int
+	reflectValueOfCalled                     int
+	fmtSprintfExpected                       int
+	fmtSprintfCalled                         int
+	functionPointerEqualsFuncExpected        int
+	functionPointerEqualsFuncCalled          int
 	isServerCertificateAvailableFuncExpected int
 	isServerCertificateAvailableFuncCalled   int
 	isCaCertificateAvailableFuncExpected     int
@@ -52,6 +60,24 @@ func createMock(t *testing.T) {
 	apperrorConsolidateAllErrors = func(baseErrorMessage string, allErrors ...error) apperror.AppError {
 		apperrorConsolidateAllErrorsCalled++
 		return nil
+	}
+	reflectValueOfExpected = 0
+	reflectValueOfCalled = 0
+	reflectValueOf = func(i interface{}) reflect.Value {
+		reflectValueOfCalled++
+		return reflect.Value{}
+	}
+	fmtSprintfExpected = 0
+	fmtSprintfCalled = 0
+	fmtSprintf = func(format string, a ...interface{}) string {
+		fmtSprintfCalled++
+		return ""
+	}
+	functionPointerEqualsFuncExpected = 0
+	functionPointerEqualsFuncCalled = 0
+	functionPointerEqualsFunc = func(left, right interface{}) bool {
+		functionPointerEqualsFuncCalled++
+		return false
 	}
 	isServerCertificateAvailableFuncExpected = 0
 	isServerCertificateAvailableFuncCalled = 0
@@ -88,6 +114,12 @@ func verifyAll(t *testing.T) {
 	assert.Equal(t, apperrorWrapSimpleErrorExpected, apperrorWrapSimpleErrorCalled, "Unexpected number of calls to apperrorWrapSimpleError")
 	apperrorConsolidateAllErrors = apperror.ConsolidateAllErrors
 	assert.Equal(t, apperrorConsolidateAllErrorsExpected, apperrorConsolidateAllErrorsCalled, "Unexpected number of calls to apperrorConsolidateAllErrors")
+	reflectValueOf = reflect.ValueOf
+	assert.Equal(t, reflectValueOfExpected, reflectValueOfCalled, "Unexpected number of calls to reflectValueOf")
+	fmtSprintf = fmt.Sprintf
+	assert.Equal(t, fmtSprintfExpected, fmtSprintfCalled, "Unexpected number of calls to fmtSprintf")
+	functionPointerEqualsFunc = functionPointerEquals
+	assert.Equal(t, functionPointerEqualsFuncExpected, functionPointerEqualsFuncCalled, "Unexpected number of calls to functionPointerEqualsFunc")
 	isServerCertificateAvailableFunc = isServerCertificateAvailable
 	assert.Equal(t, isServerCertificateAvailableFuncExpected, isServerCertificateAvailableFuncCalled, "Unexpected number of calls to isServerCertificateAvailableFunc")
 	isCaCertificateAvailableFunc = isCaCertificateAvailable
@@ -97,14 +129,14 @@ func verifyAll(t *testing.T) {
 	validateBooleanFunctionFunc = validateBooleanFunction
 	assert.Equal(t, validateBooleanFunctionFuncExpected, validateBooleanFunctionFuncCalled, "Unexpected number of calls to validateBooleanFunctionFunc")
 
-	AppVersion = nil
-	AppPort = nil
-	AppName = nil
-	AppPath = nil
-	IsLocalhost = nil
-	ServeHTTPS = nil
-	ServerCertContent = nil
-	ServerKeyContent = nil
-	ValidateClientCert = nil
-	CaCertContent = nil
+	AppVersion = defaultAppVersion
+	AppPort = defaultAppPort
+	AppName = defaultAppName
+	AppPath = defaultAppPath
+	IsLocalhost = defaultIsLocalhost
+	ServeHTTPS = defaultServeHTTPS
+	ServerCertContent = defaultServerCertContent
+	ServerKeyContent = defaultServerKeyContent
+	ValidateClientCert = defaultValidateClientCert
+	CaCertContent = defaultCaCertContent
 }

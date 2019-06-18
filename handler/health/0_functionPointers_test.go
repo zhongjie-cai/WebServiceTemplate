@@ -20,7 +20,7 @@ var (
 func createMock(t *testing.T) {
 	configAppVersionExpected = 0
 	configAppVersionCalled = 0
-	configAppVersion = func() string {
+	config.AppVersion = func() string {
 		configAppVersionCalled++
 		return ""
 	}
@@ -32,7 +32,7 @@ func createMock(t *testing.T) {
 }
 
 func verifyAll(t *testing.T) {
-	configAppVersion = config.AppVersion
+	config.AppVersion = func() string { return "" }
 	assert.Equal(t, configAppVersionExpected, configAppVersionCalled, "Unexpected number of calls to configAppVersion")
 	responseOk = response.Ok
 	assert.Equal(t, responseOkExpected, responseOkCalled, "Unexpected number of calls to responseOk")

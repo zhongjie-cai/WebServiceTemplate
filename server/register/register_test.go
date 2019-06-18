@@ -13,6 +13,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
+	"github.com/zhongjie-cai/WebServiceTemplate/customization"
 	"github.com/zhongjie-cai/WebServiceTemplate/server/model"
 )
 
@@ -221,7 +222,7 @@ func TestRegisterRoutes_NilRoutesFunc(t *testing.T) {
 	var dummyRouter = &mux.Router{}
 
 	// stub
-	Routes = nil
+	customization.Routes = nil
 
 	// mock
 	createMock(t)
@@ -232,7 +233,7 @@ func TestRegisterRoutes_NilRoutesFunc(t *testing.T) {
 		loggerAppRootCalled++
 		assert.Equal(t, "register", category)
 		assert.Equal(t, "registerRoutes", subcategory)
-		assert.Equal(t, "Routes function not set: no routes registered!", messageFormat)
+		assert.Equal(t, "customization.Routes function not set: no routes registered!", messageFormat)
 		assert.Equal(t, 0, len(parameters))
 	}
 
@@ -257,7 +258,7 @@ func TestRegisterRoutes_EmptyRoutes(t *testing.T) {
 
 	// expect
 	routesExpected = 1
-	Routes = func() []model.Route {
+	customization.Routes = func() []model.Route {
 		routesCalled++
 		return dummyRoutes
 	}
@@ -266,7 +267,7 @@ func TestRegisterRoutes_EmptyRoutes(t *testing.T) {
 		loggerAppRootCalled++
 		assert.Equal(t, "register", category)
 		assert.Equal(t, "registerRoutes", subcategory)
-		assert.Equal(t, "Routes function empty: no routes returned!", messageFormat)
+		assert.Equal(t, "customization.Routes function empty: no routes returned!", messageFormat)
 		assert.Equal(t, 0, len(parameters))
 	}
 
@@ -325,7 +326,7 @@ func TestRegisterRoutes_ValidRoutes(t *testing.T) {
 
 	// expect
 	routesExpected = 1
-	Routes = func() []model.Route {
+	customization.Routes = func() []model.Route {
 		routesCalled++
 		return dummyRoutes
 	}
@@ -333,12 +334,10 @@ func TestRegisterRoutes_ValidRoutes(t *testing.T) {
 	evaluatePathWithParametersFunc = func(path string, parameters map[string]model.Parameter, replacementsMap map[model.ParameterType]string) string {
 		evaluatePathWithParametersFuncCalled++
 		assert.Equal(t, model.ParameterTypeMap, replacementsMap)
-		if evaluatePathWithParametersFuncCalled == 1 {
-			assert.Equal(t, dummyPath1, path)
+		if dummyPath1 == path {
 			assert.Equal(t, dummyParameters1, parameters)
 			return dummyEvaluatedPath1
-		} else if evaluatePathWithParametersFuncCalled == 2 {
-			assert.Equal(t, dummyPath2, path)
+		} else if dummyPath2 == path {
 			assert.Equal(t, dummyParameters2, parameters)
 			return dummyEvaluatedPath2
 		}
@@ -378,7 +377,7 @@ func TestRegisterStatics_NilStaticsFunc(t *testing.T) {
 	var dummyRouter = &mux.Router{}
 
 	// stub
-	Statics = nil
+	customization.Statics = nil
 
 	// mock
 	createMock(t)
@@ -389,7 +388,7 @@ func TestRegisterStatics_NilStaticsFunc(t *testing.T) {
 		loggerAppRootCalled++
 		assert.Equal(t, "register", category)
 		assert.Equal(t, "registerStatics", subcategory)
-		assert.Equal(t, "Statics function not set: no static content registered!", messageFormat)
+		assert.Equal(t, "customization.Statics function not set: no static content registered!", messageFormat)
 		assert.Equal(t, 0, len(parameters))
 	}
 
@@ -414,7 +413,7 @@ func TestRegisterStatics_EmptyStatics(t *testing.T) {
 
 	// expect
 	routesExpected = 1
-	Statics = func() []model.Static {
+	customization.Statics = func() []model.Static {
 		routesCalled++
 		return dummyStatics
 	}
@@ -423,7 +422,7 @@ func TestRegisterStatics_EmptyStatics(t *testing.T) {
 		loggerAppRootCalled++
 		assert.Equal(t, "register", category)
 		assert.Equal(t, "registerStatics", subcategory)
-		assert.Equal(t, "Statics function empty: no static content returned!", messageFormat)
+		assert.Equal(t, "customization.Statics function empty: no static content returned!", messageFormat)
 		assert.Equal(t, 0, len(parameters))
 	}
 
@@ -466,7 +465,7 @@ func TestRegisterStatics_ValidStatics(t *testing.T) {
 
 	// expect
 	staticsExpected = 1
-	Statics = func() []model.Static {
+	customization.Statics = func() []model.Static {
 		staticsCalled++
 		return dummyStatics
 	}

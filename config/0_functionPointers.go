@@ -1,6 +1,9 @@
 package config
 
 import (
+	"fmt"
+	"reflect"
+
 	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
 	"github.com/zhongjie-cai/WebServiceTemplate/timeutil"
 )
@@ -11,6 +14,9 @@ var (
 	timeutilFormatDateTime           = timeutil.FormatDateTime
 	apperrorWrapSimpleError          = apperror.WrapSimpleError
 	apperrorConsolidateAllErrors     = apperror.ConsolidateAllErrors
+	reflectValueOf                   = reflect.ValueOf
+	fmtSprintf                       = fmt.Sprintf
+	functionPointerEqualsFunc        = functionPointerEquals
 	isServerCertificateAvailableFunc = isServerCertificateAvailable
 	isCaCertificateAvailableFunc     = isCaCertificateAvailable
 	validateStringFunctionFunc       = validateStringFunction

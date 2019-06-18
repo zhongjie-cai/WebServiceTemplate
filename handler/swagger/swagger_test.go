@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
+	"github.com/zhongjie-cai/WebServiceTemplate/config"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -54,7 +55,7 @@ func TestContentHandler(t *testing.T) {
 
 	// expect
 	configAppPathExpected = 1
-	configAppPath = func() string {
+	config.AppPath = func() string {
 		configAppPathCalled++
 		return dummyAppPath
 	}

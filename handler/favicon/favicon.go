@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/google/uuid"
+	"github.com/zhongjie-cai/WebServiceTemplate/config"
 )
 
 // GetFavicon handles the HTTP request for getting favicon
@@ -15,6 +16,6 @@ func GetFavicon(
 	httpServeFile(
 		responseWriter,
 		httpRequest,
-		configAppPath()+"/favicon.ico",
+		config.AppPath()+"/favicon.ico",
 	)
 }

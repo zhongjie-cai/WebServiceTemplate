@@ -3,7 +3,7 @@
   "info": {
     "title": "${APP_NAME}",
     "version": "${APP_VERSION}",
-    "description": "The idle tank hosting service"
+    "description": "The web service template application.<br>\n<table>\n  <caption><b>Service Level Agreements (SLAs)</b></caption>\n  <tr>\n    <td><b>Category</b></td>\n    <td><b>Value</b></td>\n    <td><b>Comment</b></td>\n  </tr>\n  <tr>\n    <td>Mean Time To Recover</td>\n    <td>&le; 5 minutes</td>\n    <td>MTTR</td>\n  </tr>\n  <tr>\n    <td>Mean Time Between Failures</td>\n    <td>&ge; 720 Hours</td>\n    <td>MTBF</td>\n  </tr>\n  <tr>\n    <td>Service Level Uptime</td>\n    <td>&ge; 99.99%</td>\n    <td></td>\n  </tr>\n  <tr>\n    <td>Consumer Perceived Uptime</td>\n    <td>&ge; 99.9%</td>\n    <td>Value relies on dependency services' availability</td>\n  </tr>\n</table>\n"
   },
   "tags": [
     {
@@ -12,27 +12,32 @@
     },
     {
       "name": "Playground",
-      "description": "These are endpoints that help doing demos"
+      "description": "These are endpoints that help with presenting demos"
     },
     {
       "name": "Utility",
-      "description": "These are endpoints that help validate or configure the service"
+      "description": "These are endpoints that help with validating or configuring the service"
     }
   ],
   "servers": [
     {
-      "url": "https://localhost:${APP_PORT}/",
-      "description": "URL when testing inside docker instance"
-    },
-    {
-      "url": "https://www.${APP_NAME}-${APP_MAJOR_VER}.com:${APP_PORT}/",
-      "description": "URL when testing inside docker instance"
+      "url": "{protocol}://localhost:${APP_PORT}/",
+      "description": "URL when testing from developer machine (Localhost)",
+      "variables": {
+        "protocol": {
+          "enum": [
+            "http",
+            "https"
+          ],
+          "default": "http"
+        }
+      }
     }
   ],
   "paths": {
     "/health": {
       "summary": "Generic health check endpoint",
-      "description": "Used by kubernetes to check whether the service is reachable. Returns the version info of the service.",
+      "description": "Returns the version info of the service; can be used for any health check callbacks.",
       "get": {
         "tags": [
           "Utility"
@@ -58,82 +63,6 @@
         "type": "string",
         "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+$",
         "example": "${APP_VERSION}"
-      },
-      "UUID": {
-        "type": "string",
-        "format": "uuid",
-        "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
-        "example": "00000000-0000-0000-0000-000000000000"
-      },
-      "RequestError": {
-        "type": "object",
-        "required": [
-          "type",
-          "code",
-          "messages"
-        ],
-        "properties": {
-          "code": {
-            "type": "integer",
-            "description": "The corresponding error number.\n* 2 - InvalidOperation\n* 3 - BadRequest\n* 4 - CircuitBreak\n* 5 - OperationLock\n",
-            "enum": [
-              2,
-              3,
-              4,
-              5
-            ]
-          },
-          "type": {
-            "type": "string",
-            "description": "An error type indicating what went wrong.\n* InvalidOperation - Operation (method) not allowed\n* BadRequest - Request URI or body is invalid\n* CircuitBreak - Operation refused due to circuit break\n* OperationLock - Operation refused due to mutex lock\n",
-            "enum": [
-              "InvalidOperation",
-              "BadRequest",
-              "CircuitBreak",
-              "OperationLock"
-            ]
-          },
-          "messages": {
-            "type": "array",
-            "description": "Human readable messages indicating what went wrong.",
-            "items": {
-              "type": "string",
-              "description": "Single error message of the error stack."
-            }
-          }
-        }
-      },
-      "ResponseError": {
-        "type": "object",
-        "required": [
-          "type",
-          "code",
-          "messages"
-        ],
-        "properties": {
-          "code": {
-            "type": "integer",
-            "description": "The corresponding error number.\n* 1 - GeneralFailure\n",
-            "enum": [
-              1
-            ]
-          },
-          "type": {
-            "type": "string",
-            "description": "An error type indicating what went wrong.\n* GeneralFailure - An error occurred during execution\n",
-            "enum": [
-              "GeneralFailure"
-            ]
-          },
-          "messages": {
-            "type": "array",
-            "description": "Human readable messages indicating what went wrong.",
-            "items": {
-              "type": "string",
-              "description": "Single error message of the error stack."
-            }
-          }
-        }
       }
     }
   }

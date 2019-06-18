@@ -1,22 +1,18 @@
 package application
 
-// PreBootstrapFunc can be replaced by a customized function of your own to preprocess before bootstrapping
-var PreBootstrapFunc func() error
-
-// PostBootstrapFunc can be replaced by a customized function of your own to postprocess after bootstrapping
-var PostBootstrapFunc func() error
-
-// AppClosingFunc can be replaced by a customized function of your own to finalize the closing of the application
-var AppClosingFunc func() error
+import (
+	"github.com/zhongjie-cai/WebServiceTemplate/config"
+	"github.com/zhongjie-cai/WebServiceTemplate/customization"
+)
 
 func doPreBootstraping() bool {
-	if PreBootstrapFunc != nil {
-		var preBootstrapError = PreBootstrapFunc()
+	if customization.PreBootstrapFunc != nil {
+		var preBootstrapError = customization.PreBootstrapFunc()
 		if preBootstrapError != nil {
 			loggerAppRoot(
 				"application",
 				"doPreBootstraping",
-				"Failed to execute pre-bootstrap function. Error: %v",
+				"Failed to execute customization.PreBootstrapFunc. Error: %v",
 				preBootstrapError,
 			)
 			return false
@@ -24,13 +20,13 @@ func doPreBootstraping() bool {
 		loggerAppRoot(
 			"application",
 			"doPreBootstraping",
-			"PreBootstrapFunc executed successfully",
+			"customization.PreBootstrapFunc executed successfully",
 		)
 	} else {
 		loggerAppRoot(
 			"application",
 			"doPreBootstraping",
-			"PreBootstrapFunc is not configured; skipped execution",
+			"customization.PreBootstrapFunc is not configured; skipped execution",
 		)
 	}
 	return true
@@ -42,7 +38,7 @@ func bootstrapApplication() bool {
 		loggerAppRoot(
 			"application",
 			"bootstrapApplication",
-			"Logger not initialized cleanly. Potential error: %v",
+			"Application logger not initialized cleanly. Potential error: %v",
 			loggerError,
 		)
 	}
@@ -51,16 +47,16 @@ func bootstrapApplication() bool {
 		loggerAppRoot(
 			"application",
 			"bootstrapApplication",
-			"Configuration not initialized cleanly. Potential error: %v",
+			"Application configuration not initialized cleanly. Potential error: %v",
 			configError,
 		)
 	}
 	var certError = certificateInitialize(
-		configServeHTTPS(),
-		configServerCertContent(),
-		configServerKeyContent(),
-		configValidateClientCert(),
-		configCaCertContent(),
+		config.ServeHTTPS(),
+		config.ServerCertContent(),
+		config.ServerKeyContent(),
+		config.ValidateClientCert(),
+		config.CaCertContent(),
 	)
 	if certError != nil {
 		loggerAppRoot(
@@ -80,13 +76,13 @@ func bootstrapApplication() bool {
 }
 
 func doPostBootstraping() bool {
-	if PostBootstrapFunc != nil {
-		var postBootstrapError = PostBootstrapFunc()
+	if customization.PostBootstrapFunc != nil {
+		var postBootstrapError = customization.PostBootstrapFunc()
 		if postBootstrapError != nil {
 			loggerAppRoot(
 				"application",
 				"doPostBootstraping",
-				"Failed to execute post-bootstrap function. Error: %v",
+				"Failed to execute customization.PostBootstrapFunc. Error: %v",
 				postBootstrapError,
 			)
 			return false
@@ -94,13 +90,13 @@ func doPostBootstraping() bool {
 		loggerAppRoot(
 			"application",
 			"doPostBootstraping",
-			"PostBootstrapFunc executed successfully",
+			"customization.PostBootstrapFunc executed successfully",
 		)
 	} else {
 		loggerAppRoot(
 			"application",
 			"doPostBootstraping",
-			"PostBootstrapFunc is not configured; skipped execution",
+			"customization.PostBootstrapFunc is not configured; skipped execution",
 		)
 	}
 	return true
@@ -111,12 +107,12 @@ func doApplicationStarting() {
 		"application",
 		"doApplicationStarting",
 		"Trying to start server (v-%v)",
-		configAppVersion(),
+		config.AppVersion(),
 	)
 	var serverHostError = serverHost(
-		configServeHTTPS(),
-		configValidateClientCert(),
-		configAppPort(),
+		config.ServeHTTPS(),
+		config.ValidateClientCert(),
+		config.AppPort(),
 	)
 	if serverHostError != nil {
 		loggerAppRoot(
@@ -135,22 +131,27 @@ func doApplicationStarting() {
 }
 
 func doApplicationClosing() {
-	if AppClosingFunc == nil {
+	if customization.AppClosingFunc == nil {
+		loggerAppRoot(
+			"application",
+			"doApplicationClosing",
+			"customization.AppClosingFunc is not configured; skipped execution",
+		)
 		return
 	}
-	var appClosingError = AppClosingFunc()
+	var appClosingError = customization.AppClosingFunc()
 	if appClosingError != nil {
 		loggerAppRoot(
 			"application",
 			"doApplicationClosing",
-			"Failed to execute application closing function. Error: %v",
+			"Failed to execute customization.AppClosingFunc. Error: %v",
 			appClosingError,
 		)
 	} else {
 		loggerAppRoot(
 			"application",
 			"doApplicationClosing",
-			"Application closed successfully",
+			"customization.AppClosingFunc executed successfully",
 		)
 	}
 }

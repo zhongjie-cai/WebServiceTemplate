@@ -18,11 +18,10 @@ BINARY=./../bin/${AppName}
 # Builds the project
 # -a: forces rebuild
 # -o: defines the name of the output binary file
-PackageSource="github.com/zhongjie-cai/WebServiceTemplate/config"
-AppVersionFlag="-X ${PackageSource}.appVersion=${AppVersion}"
-AppPortFlag="-X ${PackageSource}.appPort=${AppPort}"
-AppNameFlag="-X ${PackageSource}.appName=${AppName}"
-AppPathFlag="-X ${PackageSource}.appPath=${AppPath}"
+AppVersionFlag="-X main.appVersion=${AppVersion}"
+AppPortFlag="-X main.appPort=${AppPort}"
+AppNameFlag="-X main.appName=${AppName}"
+AppPathFlag="-X main.appPath=${AppPath}"
 LDFlags="${AppVersionFlag} ${AppPortFlag} ${AppNameFlag} ${AppPathFlag}"
 go build -ldflags "${LDFlags}" -a -o ${BINARY} ./..
 
