@@ -36,9 +36,9 @@
   ],
   "paths": {
     "/health": {
-      "summary": "Generic health check endpoint",
-      "description": "Returns the version info of the service; can be used for any health check callbacks.",
       "get": {
+        "summary": "Generic health check endpoint",
+        "description": "Returns the version info of the service; can be used for any health check callbacks.<br>\n<table>\n  <caption><b>Service Level Agreements (SLAs)</b></caption>\n  <tr>\n    <td><b>Category</b></td>\n    <td><b>Value</b></td>\n    <td><b>Comment</b></td>\n  </tr>\n  <tr>\n    <td>Average Response Time</td>\n    <td>&le; 0.5 ms</td>\n    <td>ART</td>\n  </tr>\n  <tr>\n    <td>Time Service Factor</td>\n    <td>&le; 0.4 ms over 95% requests</td>\n    <td>TSF</td>\n  </tr>\n  <tr>\n    <td>First-Call Resolution</td>\n    <td>&ge; 99.99%</td>\n    <td>FCR</td>\n  </tr>\n  <tr>\n    <td>Maximum Request Timeout</td>\n    <td>3 seconds</td>\n    <td>MRT</td>\n  </tr>\n</table>\n",
         "tags": [
           "Utility"
         ],
