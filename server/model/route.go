@@ -9,6 +9,6 @@ type Route struct {
 	Endpoint   string
 	Method     string
 	Path       string
-	Parameters map[string]Parameter
+	Parameters map[string]ParameterType
 	ActionFunc func(uuid.UUID, string)
 }

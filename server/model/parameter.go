@@ -13,12 +13,6 @@ const (
 	regexpForUUID        string        = "[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}"
 )
 
-// Parameter holds the information of parameters in route path definitions
-type Parameter struct {
-	Name string
-	Type ParameterType
-}
-
 // ParameterTypeMap exposes the replacement mapping for parameters
 var ParameterTypeMap = map[ParameterType]string{
 	ParameterTypeString:  regexpForString,

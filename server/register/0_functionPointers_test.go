@@ -107,7 +107,7 @@ func createMock(t *testing.T) {
 	}
 	evaluatePathWithParametersFuncExpected = 0
 	evaluatePathWithParametersFuncCalled = 0
-	evaluatePathWithParametersFunc = func(path string, parameters map[string]model.Parameter, replacementsMap map[model.ParameterType]string) string {
+	evaluatePathWithParametersFunc = func(path string, parameters map[string]model.ParameterType, replacementsMap map[model.ParameterType]string) string {
 		evaluatePathWithParametersFuncCalled++
 		return ""
 	}

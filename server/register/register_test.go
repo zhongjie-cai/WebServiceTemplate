@@ -158,19 +158,10 @@ func TestEvaluatePathWithParameters(t *testing.T) {
 	var dummyParameterType2 = model.ParameterType("some paramter type 2")
 	var dummyParameterName3 = "some parameter name 3"
 	var dummyParameterType3 = model.ParameterType("some paramter type 3")
-	var dummyParameters = map[string]model.Parameter{
-		"parameter1": model.Parameter{
-			Name: dummyParameterName1,
-			Type: dummyParameterType1,
-		},
-		"parameter2": model.Parameter{
-			Name: dummyParameterName2,
-			Type: dummyParameterType2,
-		},
-		"parameter3": model.Parameter{
-			Name: dummyParameterName3,
-			Type: dummyParameterType3,
-		},
+	var dummyParameters = map[string]model.ParameterType{
+		dummyParameterName1: dummyParameterType1,
+		dummyParameterName2: dummyParameterType2,
+		dummyParameterName3: dummyParameterType3,
 	}
 	var dummyParameterReplacementsMap = map[model.ParameterType]string{
 		model.ParameterType("foo"): "bar",
@@ -284,16 +275,16 @@ func TestRegisterRoutes_ValidRoutes(t *testing.T) {
 	var dummyEndpoint1 = "some endpoint 1"
 	var dummyMethod1 = "some method 1"
 	var dummyPath1 = "some path 1"
-	var dummyParameters1 = map[string]model.Parameter{
-		"foo1": model.Parameter{Name: "bar1"},
+	var dummyParameters1 = map[string]model.ParameterType{
+		"foo1": model.ParameterType("bar1"),
 	}
 	var dummyActionFunc1 = func(uuid.UUID, string) {}
 	var dummyActionFunc1Pointer = fmt.Sprintf("%v", reflect.ValueOf(dummyActionFunc1))
 	var dummyEndpoint2 = "some endpoint 2"
 	var dummyMethod2 = "some method 2"
 	var dummyPath2 = "some path 2"
-	var dummyParameters2 = map[string]model.Parameter{
-		"foo2": model.Parameter{Name: "bar2"},
+	var dummyParameters2 = map[string]model.ParameterType{
+		"foo2": model.ParameterType("bar2"),
 	}
 	var dummyActionFunc2 = func(uuid.UUID, string) {}
 	var dummyActionFunc2Pointer = fmt.Sprintf("%v", reflect.ValueOf(dummyActionFunc2))
@@ -326,7 +317,7 @@ func TestRegisterRoutes_ValidRoutes(t *testing.T) {
 		return dummyRoutes
 	}
 	evaluatePathWithParametersFuncExpected = 2
-	evaluatePathWithParametersFunc = func(path string, parameters map[string]model.Parameter, replacementsMap map[model.ParameterType]string) string {
+	evaluatePathWithParametersFunc = func(path string, parameters map[string]model.ParameterType, replacementsMap map[model.ParameterType]string) string {
 		evaluatePathWithParametersFuncCalled++
 		assert.Equal(t, model.ParameterTypeMap, replacementsMap)
 		if dummyPath1 == path {

@@ -42,15 +42,15 @@ func doParameterReplacement(
 
 func evaluatePathWithParameters(
 	path string,
-	parameters map[string]model.Parameter,
+	parameters map[string]model.ParameterType,
 	parameterReplacementsMap map[model.ParameterType]string,
 ) string {
 	var updatedPath = path
-	for _, parameter := range parameters {
+	for parameterName, parameterType := range parameters {
 		updatedPath = doParameterReplacementFunc(
 			updatedPath,
-			parameter.Name,
-			parameter.Type,
+			parameterName,
+			parameterType,
 			parameterReplacementsMap,
 		)
 	}
