@@ -23,7 +23,7 @@ func TestHandleInSession_RouteError(t *testing.T) {
 	var dummySessionID = uuid.New()
 	var dummyActionExpected = 0
 	var dummyActionCalled = 0
-	var dummyAction = func(sessionID uuid.UUID, requestBody string) {
+	var dummyAction = func(sessionID uuid.UUID, requestBody string, parameters map[string]string) {
 		dummyActionCalled++
 	}
 	var dummyLoginID = uuid.New()
@@ -36,7 +36,7 @@ func TestHandleInSession_RouteError(t *testing.T) {
 
 	// expect
 	routeGetRouteInfoExpected = 1
-	routeGetRouteInfo = func(httpRequest *http.Request) (string, func(uuid.UUID, string), error) {
+	routeGetRouteInfo = func(httpRequest *http.Request) (string, func(uuid.UUID, string, map[string]string), error) {
 		routeGetRouteInfoCalled++
 		assert.Equal(t, dummyHTTPRequest, httpRequest)
 		return dummyEndpoint, dummyAction, dummyRouteError
@@ -129,20 +129,21 @@ func TestHandleInSession_Success(t *testing.T) {
 	var dummyResponseWriter = &dummyResponseWriter{t}
 	var dummyEndpoint = "some endpoint"
 	var dummySessionID = uuid.New()
-	var dummyAction func(sessionID uuid.UUID, requestBody string)
+	var dummyAction func(sessionID uuid.UUID, requestBody string, parameters map[string]string)
 	var dummyActionExpected int
 	var dummyActionCalled int
 	var dummyLoginID = uuid.New()
 	var dummyCorrelationID = uuid.New()
 	var dummyAllowedLogType = logtype.LogType(rand.Intn(256))
 	var dummyRequestBody = "some request body"
+	var dummyParameters = map[string]string{"foo": "bar"}
 
 	// mock
 	createMock(t)
 
 	// expect
 	routeGetRouteInfoExpected = 1
-	routeGetRouteInfo = func(httpRequest *http.Request) (string, func(uuid.UUID, string), error) {
+	routeGetRouteInfo = func(httpRequest *http.Request) (string, func(uuid.UUID, string, map[string]string), error) {
 		routeGetRouteInfoCalled++
 		assert.Equal(t, dummyHTTPRequest, httpRequest)
 		return dummyEndpoint, dummyAction, nil
@@ -192,11 +193,18 @@ func TestHandleInSession_Success(t *testing.T) {
 		assert.Equal(t, dummyHTTPRequest, httpRequest)
 		return dummyRequestBody
 	}
+	muxVarsExpected = 1
+	muxVars = func(r *http.Request) map[string]string {
+		muxVarsCalled++
+		assert.Equal(t, dummyHTTPRequest, r)
+		return dummyParameters
+	}
 	dummyActionExpected = 1
-	dummyAction = func(sessionID uuid.UUID, requestBody string) {
+	dummyAction = func(sessionID uuid.UUID, requestBody string, parameters map[string]string) {
 		dummyActionCalled++
 		assert.Equal(t, dummySessionID, sessionID)
 		assert.Equal(t, dummyRequestBody, requestBody)
+		assert.Equal(t, dummyParameters, parameters)
 	}
 	loggerAPIExitExpected = 1
 	loggerAPIExit = func(sessionID uuid.UUID, category string, subcategory string, messageFormat string, parameters ...interface{}) {

@@ -66,7 +66,7 @@ func createMock(t *testing.T) {
 	}
 	routeHandleFuncExpected = 0
 	routeHandleFuncCalled = 0
-	routeHandleFunc = func(router *mux.Router, endpoint string, method string, path string, handlerFunc func(http.ResponseWriter, *http.Request), actionFunc func(uuid.UUID, string)) *mux.Route {
+	routeHandleFunc = func(router *mux.Router, endpoint string, method string, path string, handlerFunc func(http.ResponseWriter, *http.Request), actionFunc func(uuid.UUID, string, map[string]string)) *mux.Route {
 		routeHandleFuncCalled++
 		return nil
 	}

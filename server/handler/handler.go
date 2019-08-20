@@ -65,9 +65,13 @@ func Session(
 			sessionID,
 			httpRequest,
 		)
+		var parameters = muxVars(
+			httpRequest,
+		)
 		action(
 			sessionID,
 			requestBody,
+			parameters,
 		)
 		loggerAPIExit(
 			sessionID,

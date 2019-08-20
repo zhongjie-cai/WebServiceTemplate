@@ -143,7 +143,7 @@ func createMock(t *testing.T) {
 	}
 	getActionByNameFuncExpected = 0
 	getActionByNameFuncCalled = 0
-	getActionByNameFunc = func(name string) func(uuid.UUID, string) {
+	getActionByNameFunc = func(name string) func(uuid.UUID, string, map[string]string) {
 		getActionByNameFuncCalled++
 		return nil
 	}

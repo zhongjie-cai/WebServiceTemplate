@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
+	"github.com/gorilla/mux"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger"
@@ -17,6 +18,8 @@ import (
 )
 
 var (
+	muxVarsExpected                  int
+	muxVarsCalled                    int
 	routeGetRouteInfoExpected        int
 	routeGetRouteInfoCalled          int
 	sessionRegisterExpected          int
@@ -42,9 +45,15 @@ var (
 )
 
 func createMock(t *testing.T) {
+	muxVarsExpected = 0
+	muxVarsCalled = 0
+	muxVars = func(r *http.Request) map[string]string {
+		muxVarsCalled++
+		return nil
+	}
 	routeGetRouteInfoExpected = 0
 	routeGetRouteInfoCalled = 0
-	routeGetRouteInfo = func(httpRequest *http.Request) (string, func(uuid.UUID, string), error) {
+	routeGetRouteInfo = func(httpRequest *http.Request) (string, func(uuid.UUID, string, map[string]string), error) {
 		routeGetRouteInfoCalled++
 		return "", nil, nil
 	}
@@ -106,6 +115,8 @@ func createMock(t *testing.T) {
 }
 
 func verifyAll(t *testing.T) {
+	muxVars = mux.Vars
+	assert.Equal(t, muxVarsExpected, muxVarsCalled, "Unexpected number of calls to muxVars")
 	routeGetRouteInfo = route.GetRouteInfo
 	assert.Equal(t, routeGetRouteInfoExpected, routeGetRouteInfoCalled, "Unexpected number of calls to routeGetRouteInfo")
 	sessionRegister = session.Register

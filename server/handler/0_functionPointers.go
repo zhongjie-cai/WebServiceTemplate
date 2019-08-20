@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"github.com/gorilla/mux"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger"
 	"github.com/zhongjie-cai/WebServiceTemplate/request"
 	"github.com/zhongjie-cai/WebServiceTemplate/response"
@@ -11,6 +12,7 @@ import (
 
 // func pointers for injection / testing: common.go
 var (
+	muxVars                  = mux.Vars
 	routeGetRouteInfo        = route.GetRouteInfo
 	sessionRegister          = session.Register
 	sessionUnregister        = session.Unregister

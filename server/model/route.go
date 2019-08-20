@@ -10,5 +10,5 @@ type Route struct {
 	Method     string
 	Path       string
 	Parameters map[string]ParameterType
-	ActionFunc func(uuid.UUID, string)
+	ActionFunc func(uuid.UUID, string, map[string]string)
 }

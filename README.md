@@ -92,6 +92,7 @@ import (
 func GetHealth(
 	sessionID uuid.UUID,
 	requestBody string,
+	parameters map[string]string,
 ) {
 	response.Ok(
 		sessionID,
@@ -117,6 +118,7 @@ import (
 func Redirect(
 	sessionID uuid.UUID,
 	requestBody string,
+	parameters map[string]string,
 ) {
 	var httpRequest = session.GetRequest(
 		sessionID,

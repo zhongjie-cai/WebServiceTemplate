@@ -665,7 +665,7 @@ func TestHandleFunc(t *testing.T) {
 	}
 	var dummyActionFuncExpected = 0
 	var dummyActionFuncCalled = 0
-	var dummyActionFunc = func(uuid.UUID, string) {
+	var dummyActionFunc = func(uuid.UUID, string, map[string]string) {
 		dummyActionFuncCalled++
 	}
 
@@ -712,6 +712,7 @@ func TestDefaultActionFunc(t *testing.T) {
 	// arrange
 	var dummySessionID = uuid.New()
 	var dummyRequestBody = "some request body"
+	var dummyParameters = map[string]string{"foo": "bar"}
 	var dummyAppError = apperror.GetGeneralFailureError(nil)
 
 	// mock
@@ -735,6 +736,7 @@ func TestDefaultActionFunc(t *testing.T) {
 	defaultActionFunc(
 		dummySessionID,
 		dummyRequestBody,
+		dummyParameters,
 	)
 
 	// verify
@@ -744,12 +746,12 @@ func TestDefaultActionFunc(t *testing.T) {
 func TestGetActionByName_NotFound(t *testing.T) {
 	// arrange
 	var dummyName = "some name"
-	var dummyAction func(sessionID uuid.UUID, requestBody string)
+	var dummyAction func(sessionID uuid.UUID, requestBody string, parameters map[string]string)
 	var dummyOtherName = "some other name"
 	var expectedActionPointer = fmt.Sprintf("%v", reflect.ValueOf(defaultActionFunc))
 
 	// stub
-	registeredRouteActionFuncs = map[string]func(uuid.UUID, string){
+	registeredRouteActionFuncs = map[string]func(uuid.UUID, string, map[string]string){
 		dummyName: dummyAction,
 	}
 
@@ -773,13 +775,13 @@ func TestGetActionByName_Found(t *testing.T) {
 	var dummyName = "some name"
 	var dummyActionExpected = 0
 	var dummyActionCalled = 0
-	var dummyAction = func(sessionID uuid.UUID, requestBody string) {
+	var dummyAction = func(sessionID uuid.UUID, requestBody string, parameters map[string]string) {
 		dummyActionCalled++
 	}
 	var expectedActionPointer = fmt.Sprintf("%v", reflect.ValueOf(dummyAction))
 
 	// stub
-	registeredRouteActionFuncs = map[string]func(uuid.UUID, string){
+	registeredRouteActionFuncs = map[string]func(uuid.UUID, string, map[string]string){
 		dummyName: dummyAction,
 	}
 
@@ -854,7 +856,7 @@ func TestGetRouteInfo_ValidRoute(t *testing.T) {
 	var dummyName = "some name"
 	var dummyActionExpected = 0
 	var dummyActionCalled = 0
-	var dummyAction = func(sessionID uuid.UUID, requestBody string) {
+	var dummyAction = func(sessionID uuid.UUID, requestBody string, parameters map[string]string) {
 		dummyActionCalled++
 	}
 	var dummyActionPointer = fmt.Sprintf("%v", reflect.ValueOf(dummyAction))
@@ -876,7 +878,7 @@ func TestGetRouteInfo_ValidRoute(t *testing.T) {
 		return dummyName
 	}
 	getActionByNameFuncExpected = 1
-	getActionByNameFunc = func(name string) func(uuid.UUID, string) {
+	getActionByNameFunc = func(name string) func(uuid.UUID, string, map[string]string) {
 		getActionByNameFuncCalled++
 		assert.Equal(t, dummyName, name)
 		return dummyAction
