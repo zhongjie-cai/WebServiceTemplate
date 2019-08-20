@@ -25,7 +25,7 @@ func TestGetName_Undefined(t *testing.T) {
 	var dummyRoute = dummyRouter.NewRoute()
 
 	// act
-	result := getName(
+	var result = getName(
 		dummyRoute,
 	)
 
@@ -49,7 +49,7 @@ func TestGetName_Defined(t *testing.T) {
 	)
 
 	// act
-	result := getName(
+	var result = getName(
 		dummyRoute,
 	)
 
@@ -71,7 +71,7 @@ func TestGetPathTemplate_Error(t *testing.T) {
 	var dummyRoute = dummyRouter.NewRoute()
 
 	// act
-	result, err := getPathTemplate(
+	var result, err = getPathTemplate(
 		dummyRoute,
 	)
 
@@ -97,7 +97,7 @@ func TestGetPathTemplate_Success(t *testing.T) {
 	)
 
 	// act
-	result, err := getPathTemplate(
+	var result, err = getPathTemplate(
 		dummyRoute,
 	)
 
@@ -120,7 +120,7 @@ func TestGetPathRegexp_Error(t *testing.T) {
 	var dummyRoute = dummyRouter.NewRoute()
 
 	// act
-	result, err := getPathRegexp(
+	var result, err = getPathRegexp(
 		dummyRoute,
 	)
 
@@ -146,7 +146,7 @@ func TestGetPathRegexp_Success(t *testing.T) {
 	)
 
 	// act
-	result, err := getPathRegexp(
+	var result, err = getPathRegexp(
 		dummyRoute,
 	)
 
@@ -176,7 +176,7 @@ func TestGetQueriesTemplate_Undefined(t *testing.T) {
 	var dummyRoute = dummyRouter.NewRoute()
 
 	// act
-	result := getQueriesTemplates(
+	var result = getQueriesTemplates(
 		dummyRoute,
 	)
 
@@ -210,7 +210,7 @@ func TestGetQueriesTemplate_Defined(t *testing.T) {
 	)
 
 	// act
-	result := getQueriesTemplates(
+	var result = getQueriesTemplates(
 		dummyRoute,
 	)
 
@@ -239,7 +239,7 @@ func TestGetQueriesRegexp_Undefined(t *testing.T) {
 	var dummyRoute = dummyRouter.NewRoute()
 
 	// act
-	result := getQueriesRegexp(
+	var result = getQueriesRegexp(
 		dummyRoute,
 	)
 
@@ -273,7 +273,7 @@ func TestGetQueriesRegexp_Defined(t *testing.T) {
 	)
 
 	// act
-	result := getQueriesRegexp(
+	var result = getQueriesRegexp(
 		dummyRoute,
 	)
 
@@ -302,7 +302,7 @@ func TestGetMethods_Undefined(t *testing.T) {
 	var dummyRoute = dummyRouter.NewRoute()
 
 	// act
-	result := getMethods(
+	var result = getMethods(
 		dummyRoute,
 	)
 
@@ -334,7 +334,7 @@ func TestGetMethods_Defined(t *testing.T) {
 	)
 
 	// act
-	result := getMethods(
+	var result = getMethods(
 		dummyRoute,
 	)
 
@@ -421,7 +421,7 @@ func TestPrintRegisteredRouteDetails_ErrorConsolidated(t *testing.T) {
 	}
 
 	// SUT + act
-	err := printRegisteredRouteDetails(
+	var err = printRegisteredRouteDetails(
 		dummyRoute,
 		dummyRouter,
 		dummyAncestors,
@@ -524,7 +524,7 @@ func TestPrintRegisteredRouteDetails_Success(t *testing.T) {
 	}
 
 	// SUT + act
-	err := printRegisteredRouteDetails(
+	var err = printRegisteredRouteDetails(
 		dummyRoute,
 		dummyRouter,
 		dummyAncestors,
@@ -566,7 +566,7 @@ func TestWalkRegisteredRoutes_Error(t *testing.T) {
 	}
 
 	// SUT + act
-	err := WalkRegisteredRoutes(
+	var err = WalkRegisteredRoutes(
 		dummyRouter,
 	)
 
@@ -595,7 +595,7 @@ func TestWalkRegisteredRoutes_Success(t *testing.T) {
 	}
 
 	// SUT + act
-	err := WalkRegisteredRoutes(
+	var err = WalkRegisteredRoutes(
 		dummyRouter,
 	)
 
@@ -626,15 +626,15 @@ func TestHostStatic(t *testing.T) {
 	var router = CreateRouter()
 
 	// act
-	route := HostStatic(
+	var route = HostStatic(
 		router,
 		dummyName,
 		dummyPath,
 		dummyHandler,
 	)
-	name := route.GetName()
-	pathTemplate, _ := route.GetPathTemplate()
-	handler := route.GetHandler()
+	var name = route.GetName()
+	var pathTemplate, _ = route.GetPathTemplate()
+	var handler = route.GetHandler()
 
 	// assert
 	assert.Equal(t, dummyName, name)
@@ -665,7 +665,7 @@ func TestHandleFunc(t *testing.T) {
 	}
 	var dummyActionFuncExpected = 0
 	var dummyActionFuncCalled = 0
-	var dummyActionFunc = func(http.ResponseWriter, *http.Request, uuid.UUID) {
+	var dummyActionFunc = func(uuid.UUID, string) {
 		dummyActionFuncCalled++
 	}
 
@@ -683,7 +683,7 @@ func TestHandleFunc(t *testing.T) {
 	var router = CreateRouter()
 
 	// act
-	route := HandleFunc(
+	var route = HandleFunc(
 		router,
 		dummyEndpoint,
 		dummyMethod,
@@ -691,9 +691,9 @@ func TestHandleFunc(t *testing.T) {
 		dummyHandlerFunc,
 		dummyActionFunc,
 	)
-	name := route.GetName()
-	methods, _ := route.GetMethods()
-	pathTemplate, _ := route.GetPathTemplate()
+	var name = route.GetName()
+	var methods, _ = route.GetMethods()
+	var pathTemplate, _ = route.GetPathTemplate()
 	route.GetHandler().ServeHTTP(dummyResponseWriter, dummyHTTPRequest)
 
 	// assert
@@ -710,13 +710,8 @@ func TestHandleFunc(t *testing.T) {
 
 func TestDefaultActionFunc(t *testing.T) {
 	// arrange
-	var dummyResponseWriter = &dummyResponseWriter{t}
-	var dummyHTTPRequest, _ = http.NewRequest(
-		http.MethodGet,
-		"http://localhost",
-		nil,
-	)
 	var dummySessionID = uuid.New()
+	var dummyRequestBody = "some request body"
 	var dummyAppError = apperror.GetGeneralFailureError(nil)
 
 	// mock
@@ -730,18 +725,16 @@ func TestDefaultActionFunc(t *testing.T) {
 		return dummyAppError
 	}
 	responseErrorExpected = 1
-	responseError = func(sessionID uuid.UUID, err error, responseWriter http.ResponseWriter) {
+	responseError = func(sessionID uuid.UUID, err error) {
 		responseErrorCalled++
 		assert.Equal(t, dummySessionID, sessionID)
 		assert.Equal(t, dummyAppError, err)
-		assert.Equal(t, dummyResponseWriter, responseWriter)
 	}
 
 	// SUT + act
 	defaultActionFunc(
-		dummyResponseWriter,
-		dummyHTTPRequest,
 		dummySessionID,
+		dummyRequestBody,
 	)
 
 	// verify
@@ -751,12 +744,12 @@ func TestDefaultActionFunc(t *testing.T) {
 func TestGetActionByName_NotFound(t *testing.T) {
 	// arrange
 	var dummyName = "some name"
-	var dummyAction func(responseWriter http.ResponseWriter, httphttpRequest *http.Request, sessionID uuid.UUID)
+	var dummyAction func(sessionID uuid.UUID, requestBody string)
 	var dummyOtherName = "some other name"
 	var expectedActionPointer = fmt.Sprintf("%v", reflect.ValueOf(defaultActionFunc))
 
 	// stub
-	registeredRouteActionFuncs = map[string]func(http.ResponseWriter, *http.Request, uuid.UUID){
+	registeredRouteActionFuncs = map[string]func(uuid.UUID, string){
 		dummyName: dummyAction,
 	}
 
@@ -764,7 +757,7 @@ func TestGetActionByName_NotFound(t *testing.T) {
 	createMock(t)
 
 	// SUT + act
-	result := getActionByName(
+	var result = getActionByName(
 		dummyOtherName,
 	)
 
@@ -780,13 +773,13 @@ func TestGetActionByName_Found(t *testing.T) {
 	var dummyName = "some name"
 	var dummyActionExpected = 0
 	var dummyActionCalled = 0
-	var dummyAction = func(responseWriter http.ResponseWriter, httphttpRequest *http.Request, sessionID uuid.UUID) {
+	var dummyAction = func(sessionID uuid.UUID, requestBody string) {
 		dummyActionCalled++
 	}
 	var expectedActionPointer = fmt.Sprintf("%v", reflect.ValueOf(dummyAction))
 
 	// stub
-	registeredRouteActionFuncs = map[string]func(http.ResponseWriter, *http.Request, uuid.UUID){
+	registeredRouteActionFuncs = map[string]func(uuid.UUID, string){
 		dummyName: dummyAction,
 	}
 
@@ -794,7 +787,7 @@ func TestGetActionByName_Found(t *testing.T) {
 	createMock(t)
 
 	// SUT + act
-	result := getActionByName(
+	var result = getActionByName(
 		dummyName,
 	)
 
@@ -837,7 +830,7 @@ func TestGetRouteInfo_NilRoute(t *testing.T) {
 	}
 
 	// SUT + act
-	name, action, err := GetRouteInfo(
+	var name, action, err = GetRouteInfo(
 		dummyHTTPRequest,
 	)
 
@@ -861,7 +854,7 @@ func TestGetRouteInfo_ValidRoute(t *testing.T) {
 	var dummyName = "some name"
 	var dummyActionExpected = 0
 	var dummyActionCalled = 0
-	var dummyAction = func(responseWriter http.ResponseWriter, httphttpRequest *http.Request, sessionID uuid.UUID) {
+	var dummyAction = func(sessionID uuid.UUID, requestBody string) {
 		dummyActionCalled++
 	}
 	var dummyActionPointer = fmt.Sprintf("%v", reflect.ValueOf(dummyAction))
@@ -883,14 +876,14 @@ func TestGetRouteInfo_ValidRoute(t *testing.T) {
 		return dummyName
 	}
 	getActionByNameFuncExpected = 1
-	getActionByNameFunc = func(name string) func(http.ResponseWriter, *http.Request, uuid.UUID) {
+	getActionByNameFunc = func(name string) func(uuid.UUID, string) {
 		getActionByNameFuncCalled++
 		assert.Equal(t, dummyName, name)
 		return dummyAction
 	}
 
 	// SUT + act
-	name, action, err := GetRouteInfo(
+	var name, action, err = GetRouteInfo(
 		dummyHTTPRequest,
 	)
 

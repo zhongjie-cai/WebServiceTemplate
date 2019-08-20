@@ -28,7 +28,7 @@ const (
 
 // String translates the enum
 func (code Code) String() string {
-	names := [...]string{
+	var names = [...]string{
 		"GeneralFailure",
 		"InvalidOperation",
 		"BadRequest",

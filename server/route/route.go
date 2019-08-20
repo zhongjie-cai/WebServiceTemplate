@@ -7,7 +7,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-var registeredRouteActionFuncs map[string]func(http.ResponseWriter, *http.Request, uuid.UUID)
+var registeredRouteActionFuncs map[string]func(uuid.UUID, string)
 
 func getName(route *mux.Route) string {
 	return route.GetName()
@@ -90,7 +90,7 @@ func WalkRegisteredRoutes(router *mux.Router) error {
 
 // CreateRouter initializes a router for route registrations
 func CreateRouter() *mux.Router {
-	registeredRouteActionFuncs = map[string]func(http.ResponseWriter, *http.Request, uuid.UUID){}
+	registeredRouteActionFuncs = map[string]func(uuid.UUID, string){}
 	return muxNewRouter()
 }
 
@@ -101,7 +101,7 @@ func HandleFunc(
 	method string,
 	path string,
 	handleFunc func(http.ResponseWriter, *http.Request),
-	actionFunc func(http.ResponseWriter, *http.Request, uuid.UUID),
+	actionFunc func(uuid.UUID, string),
 ) *mux.Route {
 	var name = method + ":" + endpoint
 	var route = router.HandleFunc(
@@ -132,15 +132,14 @@ func HostStatic(
 	)
 }
 
-func defaultActionFunc(responseWriter http.ResponseWriter, httphttpRequest *http.Request, sessionID uuid.UUID) {
+func defaultActionFunc(sessionID uuid.UUID, requestBody string) {
 	responseError(
 		sessionID,
 		apperrorGetNotImplementedError(nil),
-		responseWriter,
 	)
 }
 
-func getActionByName(name string) func(http.ResponseWriter, *http.Request, uuid.UUID) {
+func getActionByName(name string) func(uuid.UUID, string) {
 	var actionFunc, found = registeredRouteActionFuncs[name]
 	if !found {
 		return defaultActionFunc
@@ -149,7 +148,7 @@ func getActionByName(name string) func(http.ResponseWriter, *http.Request, uuid.
 }
 
 // GetRouteInfo retrieves the registered name and action for the given route
-func GetRouteInfo(httpRequest *http.Request) (string, func(http.ResponseWriter, *http.Request, uuid.UUID), error) {
+func GetRouteInfo(httpRequest *http.Request) (string, func(uuid.UUID, string), error) {
 	var route = muxCurrentRoute(httpRequest)
 	if route == nil {
 		return "",

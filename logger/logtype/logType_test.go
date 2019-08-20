@@ -199,7 +199,7 @@ func TestFromString_NoMatchFound(t *testing.T) {
 	createMock(t)
 
 	// SUT + act
-	result := FromString(dummyValue)
+	var result = FromString(dummyValue)
 
 	// assert
 	assert.Equal(t, AppRoot, result)
@@ -216,7 +216,7 @@ func TestFromString_AppRoot(t *testing.T) {
 	createMock(t)
 
 	// SUT + act
-	result := FromString(dummyValue)
+	var result = FromString(dummyValue)
 
 	// assert
 	assert.Equal(t, AppRoot, result)
@@ -231,7 +231,7 @@ func TestFromString_APIEnter(t *testing.T) {
 		createMock(t)
 
 		// SUT + act
-		result := FromString(key)
+		var result = FromString(key)
 
 		// assert
 		assert.Equal(t, value, result)

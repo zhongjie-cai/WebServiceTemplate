@@ -30,7 +30,6 @@ func Handle(endpointName string, sessionID uuid.UUID, recoverResult interface{},
 		responseError(
 			sessionID,
 			appError,
-			responseWriter,
 		)
 		loggerAppRoot(
 			"panic",

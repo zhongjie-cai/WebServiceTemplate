@@ -10,6 +10,7 @@ import (
 	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
 	"github.com/zhongjie-cai/WebServiceTemplate/jsonutil"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger"
+	"github.com/zhongjie-cai/WebServiceTemplate/session"
 )
 
 var (
@@ -23,6 +24,8 @@ var (
 	loggerAPIResponseCalled                int
 	loggerAPIExitExpected                  int
 	loggerAPIExitCalled                    int
+	sessionGetResponseWriterExpected       int
+	sessionGetResponseWriterCalled         int
 	getStatusCodeFuncExpected              int
 	getStatusCodeFuncCalled                int
 	getAppErrorFuncExpected                int
@@ -65,6 +68,12 @@ func createMock(t *testing.T) {
 	loggerAPIExitCalled = 0
 	loggerAPIExit = func(sessionID uuid.UUID, category string, subcategory string, messageFormat string, parameters ...interface{}) {
 		loggerAPIExitCalled++
+	}
+	sessionGetResponseWriterExpected = 0
+	sessionGetResponseWriterCalled = 0
+	sessionGetResponseWriter = func(sessionID uuid.UUID) http.ResponseWriter {
+		sessionGetResponseWriterCalled++
+		return nil
 	}
 	getStatusCodeFuncExpected = 0
 	getStatusCodeFuncCalled = 0
@@ -114,6 +123,8 @@ func verifyAll(t *testing.T) {
 	assert.Equal(t, loggerAPIResponseExpected, loggerAPIResponseCalled, "Unexpected number of calls to loggerAPIResponse")
 	loggerAPIExit = logger.APIExit
 	assert.Equal(t, loggerAPIExitExpected, loggerAPIExitCalled, "Unexpected number of calls to loggerAPIExit")
+	sessionGetResponseWriter = session.GetResponseWriter
+	assert.Equal(t, sessionGetResponseWriterExpected, sessionGetResponseWriterCalled, "Unexpected number of calls to sessionGetResponseWriter")
 	getStatusCodeFunc = getStatusCode
 	assert.Equal(t, getStatusCodeFuncExpected, getStatusCodeFuncCalled, "Unexpected number of calls to getStatusCodeFunc")
 	getAppErrorFunc = getAppError

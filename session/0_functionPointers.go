@@ -7,4 +7,5 @@ import (
 // func pointers for injection / testing: logger.go
 var (
 	uuidNew = uuid.New
+	getFunc = Get
 )

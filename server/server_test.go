@@ -1,11 +1,13 @@
 package server
 
 import (
+	"context"
 	"crypto/tls"
 	"crypto/x509"
 	"errors"
 	"math/rand"
 	"net/http"
+	"os"
 	"testing"
 	"time"
 
@@ -191,15 +193,39 @@ func TestListenAndServe_HTTP(t *testing.T) {
 	verifyAll(t)
 }
 
-func TestRunServer_ServeError(t *testing.T) {
+func TestShutDown(t *testing.T) {
+	// arrange
+	var dummyContext = context.TODO()
+	var dummyServer = &http.Server{}
+
+	// mock
+	createMock(t)
+
+	// SUT + act
+	var err = shutDown(
+		dummyContext,
+		dummyServer,
+	)
+
+	// assert
+	assert.NoError(t, err)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestRunServer_HappyPath(t *testing.T) {
 	// arrange
 	var dummyServeHTTPS = rand.Intn(100) < 50
 	var dummyValidateClientCert = rand.Intn(100) < 50
 	var dummyAppPort = "some app port"
 	var dummyRouter = &mux.Router{}
 	var dummyServer = &http.Server{}
-	var dummyError = errors.New("some error message")
-	var dummyMessageFormat = "Failed to host service on port %v"
+	var dummyHostError = errors.New("some host error message")
+	var dummyBackgroundContext = context.Background()
+	var dummyRuntimeContext = context.TODO()
+	var dummyShutDownError = errors.New("some shut down error message")
+	var dummyMessageFormat = "One or more errors have occurred during server hosting"
 	var dummyAppError = apperror.GetGeneralFailureError(nil)
 
 	// mock
@@ -215,20 +241,50 @@ func TestRunServer_ServeError(t *testing.T) {
 		assert.Equal(t, dummyRouter, router)
 		return dummyServer
 	}
+	signalNotifyExpected = 1
+	signalNotify = func(c chan<- os.Signal, sig ...os.Signal) {
+		signalNotifyCalled++
+		assert.Equal(t, 1, len(sig))
+		assert.Equal(t, os.Interrupt, sig[0])
+	}
 	listenAndServeFuncExpected = 1
 	listenAndServeFunc = func(server *http.Server, serveHTTPS bool) error {
 		listenAndServeFuncCalled++
 		assert.Equal(t, dummyServer, server)
 		assert.Equal(t, dummyServeHTTPS, serveHTTPS)
-		return dummyError
+		return dummyHostError
 	}
-	apperrorWrapSimpleErrorExpected = 1
-	apperrorWrapSimpleError = func(innerError error, messageFormat string, parameters ...interface{}) apperror.AppError {
-		apperrorWrapSimpleErrorCalled++
-		assert.Equal(t, dummyError, innerError)
-		assert.Equal(t, dummyMessageFormat, messageFormat)
-		assert.Equal(t, 1, len(parameters))
-		assert.Equal(t, dummyAppPort, parameters[0])
+	contextBackgroundExpected = 1
+	contextBackground = func() context.Context {
+		contextBackgroundCalled++
+		return dummyBackgroundContext
+	}
+	var cancelCallbackExpected = 1
+	var cancelCallbackCalled = 0
+	var cancelCallback = func() {
+		cancelCallbackCalled++
+	}
+	contextWithTimeoutExpected = 1
+	contextWithTimeout = func(parent context.Context, timeout time.Duration) (context.Context, context.CancelFunc) {
+		contextWithTimeoutCalled++
+		assert.Equal(t, dummyBackgroundContext, parent)
+		assert.Equal(t, 15*time.Second, timeout)
+		return dummyRuntimeContext, cancelCallback
+	}
+	shutDownFuncExpected = 1
+	shutDownFunc = func(runtimeContext context.Context, server *http.Server) error {
+		shutDownFuncCalled++
+		assert.Equal(t, dummyRuntimeContext, runtimeContext)
+		assert.Equal(t, dummyServer, server)
+		return dummyShutDownError
+	}
+	apperrorConsolidateAllErrorsExpected = 1
+	apperrorConsolidateAllErrors = func(baseErrorMessage string, allErrors ...error) apperror.AppError {
+		apperrorConsolidateAllErrorsCalled++
+		assert.Equal(t, dummyMessageFormat, baseErrorMessage)
+		assert.Equal(t, 2, len(allErrors))
+		assert.Equal(t, dummyHostError, allErrors[0])
+		assert.Equal(t, dummyShutDownError, allErrors[1])
 		return dummyAppError
 	}
 
@@ -245,50 +301,7 @@ func TestRunServer_ServeError(t *testing.T) {
 
 	// verify
 	verifyAll(t)
-}
-
-func TestRunServer_Success(t *testing.T) {
-	// arrange
-	var dummyServeHTTPS = rand.Intn(100) < 50
-	var dummyValidateClientCert = rand.Intn(100) < 50
-	var dummyAppPort = "some app port"
-	var dummyRouter = &mux.Router{}
-	var dummyServer = &http.Server{}
-
-	// mock
-	createMock(t)
-
-	// expect
-	createServerFuncExpected = 1
-	createServerFunc = func(serveHTTPS bool, validateClientCert bool, appPort string, router *mux.Router) *http.Server {
-		createServerFuncCalled++
-		assert.Equal(t, dummyServeHTTPS, serveHTTPS)
-		assert.Equal(t, dummyValidateClientCert, validateClientCert)
-		assert.Equal(t, dummyAppPort, appPort)
-		assert.Equal(t, dummyRouter, router)
-		return dummyServer
-	}
-	listenAndServeFuncExpected = 1
-	listenAndServeFunc = func(server *http.Server, serveHTTPS bool) error {
-		listenAndServeFuncCalled++
-		assert.Equal(t, dummyServer, server)
-		assert.Equal(t, dummyServeHTTPS, serveHTTPS)
-		return nil
-	}
-
-	// SUT + act
-	var err = runServer(
-		dummyServeHTTPS,
-		dummyValidateClientCert,
-		dummyAppPort,
-		dummyRouter,
-	)
-
-	// assert
-	assert.NoError(t, err)
-
-	// verify
-	verifyAll(t)
+	assert.Equal(t, cancelCallbackExpected, cancelCallbackCalled, "Unexpected number of calls to cancelCallback")
 }
 
 func TestHost_ErrorRegisterRoutes(t *testing.T) {

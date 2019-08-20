@@ -20,7 +20,7 @@ func TestDefaultAppVersion(t *testing.T) {
 	createMock(t)
 
 	// SUT + act
-	result := defaultAppVersion()
+	var result = defaultAppVersion()
 
 	// assert
 	assert.Equal(t, expectedResult, result)
@@ -37,7 +37,7 @@ func TestDefaultAppPort(t *testing.T) {
 	createMock(t)
 
 	// SUT + act
-	result := defaultAppPort()
+	var result = defaultAppPort()
 
 	// assert
 	assert.Equal(t, expectedResult, result)
@@ -54,7 +54,7 @@ func TestDefaultAppName(t *testing.T) {
 	createMock(t)
 
 	// SUT + act
-	result := defaultAppName()
+	var result = defaultAppName()
 
 	// assert
 	assert.Equal(t, expectedResult, result)
@@ -71,7 +71,7 @@ func TestDefaultAppPath(t *testing.T) {
 	createMock(t)
 
 	// SUT + act
-	result := defaultAppPath()
+	var result = defaultAppPath()
 
 	// assert
 	assert.Equal(t, expectedResult, result)
@@ -88,7 +88,7 @@ func TestDefaultIsLocalhost(t *testing.T) {
 	createMock(t)
 
 	// SUT + act
-	result := defaultIsLocalhost()
+	var result = defaultIsLocalhost()
 
 	// assert
 	assert.Equal(t, expectedResult, result)
@@ -105,7 +105,7 @@ func TestDefaultServeHTTPS(t *testing.T) {
 	createMock(t)
 
 	// SUT + act
-	result := defaultServeHTTPS()
+	var result = defaultServeHTTPS()
 
 	// assert
 	assert.Equal(t, expectedResult, result)
@@ -122,7 +122,7 @@ func TestDefaultServerCertContent(t *testing.T) {
 	createMock(t)
 
 	// SUT + act
-	result := defaultServerCertContent()
+	var result = defaultServerCertContent()
 
 	// assert
 	assert.Equal(t, expectedResult, result)
@@ -139,7 +139,7 @@ func TestDefaultServerKeyContent(t *testing.T) {
 	createMock(t)
 
 	// SUT + act
-	result := defaultServerKeyContent()
+	var result = defaultServerKeyContent()
 
 	// assert
 	assert.Equal(t, expectedResult, result)
@@ -156,7 +156,7 @@ func TestDefaultValidateClientCert(t *testing.T) {
 	createMock(t)
 
 	// SUT + act
-	result := defaultValidateClientCert()
+	var result = defaultValidateClientCert()
 
 	// assert
 	assert.Equal(t, expectedResult, result)
@@ -173,7 +173,7 @@ func TestDefaultCaCertContent(t *testing.T) {
 	createMock(t)
 
 	// SUT + act
-	result := defaultCaCertContent()
+	var result = defaultCaCertContent()
 
 	// assert
 	assert.Equal(t, expectedResult, result)
@@ -203,7 +203,7 @@ func TestFunctionPointerEquals_AllDifferent(t *testing.T) {
 	}
 
 	// SUT + act
-	result := functionPointerEquals(
+	var result = functionPointerEquals(
 		dummyLeft,
 		dummyRight,
 	)
@@ -236,7 +236,7 @@ func TestFunctionPointerEquals_PointerDifferent(t *testing.T) {
 	}
 
 	// SUT + act
-	result := functionPointerEquals(
+	var result = functionPointerEquals(
 		dummyLeft,
 		dummyRight,
 	)
@@ -269,7 +269,7 @@ func TestFunctionPointerEquals_NothingDifferent(t *testing.T) {
 	}
 
 	// SUT + act
-	result := functionPointerEquals(
+	var result = functionPointerEquals(
 		dummyLeft,
 		dummyRight,
 	)
@@ -320,7 +320,7 @@ func TestValidateStringFunction_ForcedToDefault(t *testing.T) {
 	}
 
 	// SUT + act
-	result, err := validateStringFunction(
+	var result, err = validateStringFunction(
 		dummyStringFunc,
 		dummyName,
 		dummyDefaultFunc,
@@ -371,7 +371,7 @@ func TestValidateStringFunction_NilStringFunc(t *testing.T) {
 	}
 
 	// SUT + act
-	result, err := validateStringFunction(
+	var result, err = validateStringFunction(
 		dummyStringFunc,
 		dummyName,
 		dummyDefaultFunc,
@@ -434,7 +434,7 @@ func TestValidateStringFunction_DefaultStringFunc(t *testing.T) {
 	}
 
 	// SUT + act
-	result, err := validateStringFunction(
+	var result, err = validateStringFunction(
 		dummyStringFunc,
 		dummyName,
 		dummyDefaultFunc,
@@ -497,7 +497,7 @@ func TestValidateStringFunction_EmptyStringFunc(t *testing.T) {
 	}
 
 	// SUT + act
-	result, err := validateStringFunction(
+	var result, err = validateStringFunction(
 		dummyStringFunc,
 		dummyName,
 		dummyDefaultFunc,
@@ -548,7 +548,7 @@ func TestValidateStringFunction_ValidStringFunc(t *testing.T) {
 	}
 
 	// SUT + act
-	result, err := validateStringFunction(
+	var result, err = validateStringFunction(
 		dummyStringFunc,
 		dummyName,
 		dummyDefaultFunc,
@@ -604,7 +604,7 @@ func TestValidateBooleanFunction_ForcedToDefault(t *testing.T) {
 	}
 
 	// SUT + act
-	result, err := validateBooleanFunction(
+	var result, err = validateBooleanFunction(
 		dummyBooleanFunc,
 		dummyName,
 		dummyDefaultFunc,
@@ -655,7 +655,7 @@ func TestValidateBooleanFunction_NilBooleanFunc(t *testing.T) {
 	}
 
 	// SUT + act
-	result, err := validateBooleanFunction(
+	var result, err = validateBooleanFunction(
 		dummyBooleanFunc,
 		dummyName,
 		dummyDefaultFunc,
@@ -718,7 +718,7 @@ func TestValidateBooleanFunction_DefaultBooleanFunc(t *testing.T) {
 	}
 
 	// SUT + act
-	result, err := validateBooleanFunction(
+	var result, err = validateBooleanFunction(
 		dummyBooleanFunc,
 		dummyName,
 		dummyDefaultFunc,
@@ -769,7 +769,7 @@ func TestValidateBooleanFunction_ValidBooleanFunc(t *testing.T) {
 	}
 
 	// SUT + act
-	result, err := validateBooleanFunction(
+	var result, err = validateBooleanFunction(
 		dummyBooleanFunc,
 		dummyName,
 		dummyDefaultFunc,
@@ -804,7 +804,7 @@ func TestIsServerCertificateAvailable_CertEmpty(t *testing.T) {
 	}
 
 	// SUT + act
-	result := isServerCertificateAvailable()
+	var result = isServerCertificateAvailable()
 
 	// assert
 	assert.False(t, result)
@@ -838,7 +838,7 @@ func TestIsServerCertificateAvailable_KeyEmpty(t *testing.T) {
 	}
 
 	// SUT + act
-	result := isServerCertificateAvailable()
+	var result = isServerCertificateAvailable()
 
 	// assert
 	assert.False(t, result)
@@ -872,7 +872,7 @@ func TestIsServerCertificateAvailable_NotEmpty(t *testing.T) {
 	}
 
 	// SUT + act
-	result := isServerCertificateAvailable()
+	var result = isServerCertificateAvailable()
 
 	// assert
 	assert.True(t, result)
@@ -899,7 +899,7 @@ func TestIsCaCertificateAvailable_Empty(t *testing.T) {
 	}
 
 	// SUT + act
-	result := isCaCertificateAvailable()
+	var result = isCaCertificateAvailable()
 
 	// assert
 	assert.False(t, result)
@@ -925,7 +925,7 @@ func TestIsCaCertificateAvailable_NotEmpty(t *testing.T) {
 	}
 
 	// SUT + act
-	result := isCaCertificateAvailable()
+	var result = isCaCertificateAvailable()
 
 	// assert
 	assert.True(t, result)
@@ -1070,7 +1070,7 @@ func TestInitialize(t *testing.T) {
 	}
 
 	// SUT + act
-	err := Initialize()
+	var err = Initialize()
 
 	// assert
 	assert.Equal(t, dummyAppError, err)

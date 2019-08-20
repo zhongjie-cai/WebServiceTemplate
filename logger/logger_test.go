@@ -37,7 +37,7 @@ func TestInitialize_NotSet(t *testing.T) {
 	}
 
 	// SUT + act
-	err := Initialize()
+	var err = Initialize()
 
 	// assert
 	assert.Equal(t, dummyAppError, err)
@@ -54,7 +54,7 @@ func TestInitialize_Set(t *testing.T) {
 	createMock(t)
 
 	// SUT + act
-	err := Initialize()
+	var err = Initialize()
 
 	// assert
 	assert.NoError(t, err)

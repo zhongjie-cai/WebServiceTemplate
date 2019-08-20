@@ -7,23 +7,23 @@ import (
 // Session wraps the HTTP handler with session related operations
 func Session(
 	responseWriter http.ResponseWriter,
-	httpRequst *http.Request,
+	httpRequest *http.Request,
 ) {
 	var endpoint, action, routeError = routeGetRouteInfo(
-		httpRequst,
+		httpRequest,
 	)
 	var sessionID = sessionRegister(
 		endpoint,
 		requestGetLoginID(
-			httpRequst,
+			httpRequest,
 		),
 		requestGetCorrelationID(
-			httpRequst,
+			httpRequest,
 		),
 		requestGetAllowedLogType(
-			httpRequst,
+			httpRequest,
 		),
-		httpRequst,
+		httpRequest,
 		responseWriter,
 	)
 	defer func() {
@@ -42,36 +42,38 @@ func Session(
 			sessionID,
 			"handler",
 			endpoint,
-			httpRequst.Method,
+			httpRequest.Method,
 		)
 		responseError(
 			sessionID,
 			routeError,
-			responseWriter,
 		)
 		loggerAPIExit(
 			sessionID,
 			"handler",
 			endpoint,
-			httpRequst.Method,
+			httpRequest.Method,
 		)
 	} else {
 		loggerAPIEnter(
 			sessionID,
 			"handler",
 			endpoint,
-			httpRequst.Method,
+			httpRequest.Method,
+		)
+		var requestBody = requestGetRequestBody(
+			sessionID,
+			httpRequest,
 		)
 		action(
-			responseWriter,
-			httpRequst,
 			sessionID,
+			requestBody,
 		)
 		loggerAPIExit(
 			sessionID,
 			"handler",
 			endpoint,
-			httpRequst.Method,
+			httpRequest.Method,
 		)
 	}
 }

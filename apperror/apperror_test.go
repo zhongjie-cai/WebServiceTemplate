@@ -791,7 +791,7 @@ func TestConsolidateAllErrors_NilList(t *testing.T) {
 	createMock(t)
 
 	// SUT + act
-	err := ConsolidateAllErrors(baseErrorMessage, nil)
+	var err = ConsolidateAllErrors(baseErrorMessage, nil)
 
 	// assert
 	assert.NoError(t, err)
@@ -809,7 +809,7 @@ func TestConsolidateAllErrors_EmptyList(t *testing.T) {
 	createMock(t)
 
 	// SUT + act
-	err := ConsolidateAllErrors(baseErrorMessage, allErrors...)
+	var err = ConsolidateAllErrors(baseErrorMessage, allErrors...)
 
 	// assert
 	assert.NoError(t, err)
@@ -830,7 +830,7 @@ func TestConsolidateAllErrors_ListOfNil(t *testing.T) {
 	createMock(t)
 
 	// SUT + act
-	err := ConsolidateAllErrors(baseErrorMessage, allErrors...)
+	var err = ConsolidateAllErrors(baseErrorMessage, allErrors...)
 
 	// assert
 	assert.NoError(t, err)
@@ -870,7 +870,7 @@ func TestConsolidateAllErrors_ListOfEmptyErrors(t *testing.T) {
 	}
 
 	// SUT + act
-	err := ConsolidateAllErrors(baseErrorMessage, allErrors...)
+	var err = ConsolidateAllErrors(baseErrorMessage, allErrors...)
 
 	// assert
 	assert.Equal(t, dummyAppError, err)
@@ -912,7 +912,7 @@ func TestConsolidateAllErrors_ListOfValidErrors(t *testing.T) {
 	}
 
 	// SUT + act
-	err := ConsolidateAllErrors(baseErrorMessage, allErrors...)
+	var err = ConsolidateAllErrors(baseErrorMessage, allErrors...)
 
 	// assert
 	assert.Equal(t, dummyAppError, err)
@@ -1017,7 +1017,7 @@ func TestGetInnermostErrors_NonAppError(t *testing.T) {
 	createMock(t)
 
 	// SUT + act
-	errs := GetInnermostErrors(
+	var errs = GetInnermostErrors(
 		dummyError,
 	)
 
@@ -1041,7 +1041,7 @@ func TestGetInnermostErrors_AppError_NoInner(t *testing.T) {
 	createMock(t)
 
 	// SUT + act
-	errs := GetInnermostErrors(
+	var errs = GetInnermostErrors(
 		dummyError,
 	)
 
@@ -1065,7 +1065,7 @@ func TestGetInnermostErrors_AppError_WithInner(t *testing.T) {
 	createMock(t)
 
 	// SUT + act
-	errs := GetInnermostErrors(
+	var errs = GetInnermostErrors(
 		dummyError,
 	)
 
@@ -1099,7 +1099,7 @@ func TestGetInnermostErrors_AppError_MultiLayer_NoInner(t *testing.T) {
 	createMock(t)
 
 	// SUT + act
-	errs := GetInnermostErrors(
+	var errs = GetInnermostErrors(
 		dummyError,
 	)
 
@@ -1133,7 +1133,7 @@ func TestGetInnermostErrors_AppError_MultiLayer_WithInner(t *testing.T) {
 	createMock(t)
 
 	// SUT + act
-	errs := GetInnermostErrors(
+	var errs = GetInnermostErrors(
 		dummyError,
 	)
 

@@ -2,7 +2,6 @@ package panic
 
 import (
 	"errors"
-	"net/http"
 	"testing"
 
 	"github.com/google/uuid"
@@ -107,11 +106,10 @@ func TestHandlePanic(t *testing.T) {
 		return dummyAppError
 	}
 	responseErrorExpected = 1
-	responseError = func(sessionID uuid.UUID, err error, responseWriter http.ResponseWriter) {
+	responseError = func(sessionID uuid.UUID, err error) {
 		responseErrorCalled++
 		assert.Equal(t, dummySessionID, sessionID)
 		assert.Equal(t, dummyAppError, err)
-		assert.Equal(t, dummyResponseWriter, responseWriter)
 	}
 	getDebugStackFuncExpected = 1
 	getDebugStackFunc = func() string {

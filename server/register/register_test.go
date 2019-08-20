@@ -40,7 +40,7 @@ func TestDoParameterReplacement_NilReplacementsMap(t *testing.T) {
 	}
 
 	// SUT + act
-	result := doParameterReplacement(
+	var result = doParameterReplacement(
 		dummyOriginalPath,
 		dummyParameterName,
 		dummyParameterType,
@@ -79,7 +79,7 @@ func TestDoParameterReplacement_NoReplacementFound(t *testing.T) {
 	}
 
 	// SUT + act
-	result := doParameterReplacement(
+	var result = doParameterReplacement(
 		dummyOriginalPath,
 		dummyParameterName,
 		dummyParameterType,
@@ -135,7 +135,7 @@ func TestDoParameterReplacement_ValidReplacementFound(t *testing.T) {
 	}
 
 	// SUT + act
-	result := doParameterReplacement(
+	var result = doParameterReplacement(
 		dummyOriginalPath,
 		dummyParameterName,
 		dummyParameterType,
@@ -175,9 +175,7 @@ func TestEvaluatePathWithParameters(t *testing.T) {
 	var dummyParameterReplacementsMap = map[model.ParameterType]string{
 		model.ParameterType("foo"): "bar",
 	}
-	var dummyUpdatedPath1 = "some updated path 1"
-	var dummyUpdatedPath2 = "some updated path 2"
-	var dummyUpdatedPath3 = "some updated path 3"
+	var dummyUpdatedPath = "some updated path"
 
 	// mock
 	createMock(t)
@@ -188,30 +186,27 @@ func TestEvaluatePathWithParameters(t *testing.T) {
 		doParameterReplacementFuncCalled++
 		assert.Equal(t, dummyParameterReplacementsMap, parameterReplacementsMap)
 		if dummyParameterName1 == parameterName {
-			assert.Equal(t, dummyOriginalPath, originalPath)
 			assert.Equal(t, dummyParameterType1, parameterType)
-			return dummyUpdatedPath1
+			return dummyUpdatedPath
 		} else if dummyParameterName2 == parameterName {
-			assert.Equal(t, dummyUpdatedPath1, originalPath)
 			assert.Equal(t, dummyParameterType2, parameterType)
-			return dummyUpdatedPath2
+			return dummyUpdatedPath
 		} else if dummyParameterName3 == parameterName {
-			assert.Equal(t, dummyUpdatedPath2, originalPath)
 			assert.Equal(t, dummyParameterType3, parameterType)
-			return dummyUpdatedPath3
+			return dummyUpdatedPath
 		}
 		return ""
 	}
 
 	// SUT + act
-	result := evaluatePathWithParameters(
+	var result = evaluatePathWithParameters(
 		dummyOriginalPath,
 		dummyParameters,
 		dummyParameterReplacementsMap,
 	)
 
 	// assert
-	assert.Equal(t, dummyUpdatedPath3, result)
+	assert.Equal(t, dummyUpdatedPath, result)
 
 	// verify
 	verifyAll(t)
@@ -292,7 +287,7 @@ func TestRegisterRoutes_ValidRoutes(t *testing.T) {
 	var dummyParameters1 = map[string]model.Parameter{
 		"foo1": model.Parameter{Name: "bar1"},
 	}
-	var dummyActionFunc1 = func(http.ResponseWriter, *http.Request, uuid.UUID) {}
+	var dummyActionFunc1 = func(uuid.UUID, string) {}
 	var dummyActionFunc1Pointer = fmt.Sprintf("%v", reflect.ValueOf(dummyActionFunc1))
 	var dummyEndpoint2 = "some endpoint 2"
 	var dummyMethod2 = "some method 2"
@@ -300,7 +295,7 @@ func TestRegisterRoutes_ValidRoutes(t *testing.T) {
 	var dummyParameters2 = map[string]model.Parameter{
 		"foo2": model.Parameter{Name: "bar2"},
 	}
-	var dummyActionFunc2 = func(http.ResponseWriter, *http.Request, uuid.UUID) {}
+	var dummyActionFunc2 = func(uuid.UUID, string) {}
 	var dummyActionFunc2Pointer = fmt.Sprintf("%v", reflect.ValueOf(dummyActionFunc2))
 	var dummyRoutes = []model.Route{
 		model.Route{
@@ -344,7 +339,7 @@ func TestRegisterRoutes_ValidRoutes(t *testing.T) {
 		return ""
 	}
 	routeHandleFuncExpected = 2
-	routeHandleFunc = func(router *mux.Router, endpoint string, method string, path string, handlerFunc func(http.ResponseWriter, *http.Request), actionFunc func(http.ResponseWriter, *http.Request, uuid.UUID)) *mux.Route {
+	routeHandleFunc = func(router *mux.Router, endpoint string, method string, path string, handlerFunc func(http.ResponseWriter, *http.Request), actionFunc func(uuid.UUID, string)) *mux.Route {
 		routeHandleFuncCalled++
 		assert.Equal(t, dummyRouter, router)
 		assert.Equal(t, fmt.Sprintf("%v", reflect.ValueOf(handlerSession)), fmt.Sprintf("%v", reflect.ValueOf(handlerFunc)))
@@ -537,7 +532,7 @@ func TestInstantiate_RouterError(t *testing.T) {
 	}
 
 	// SUT + act
-	result, err := Instantiate()
+	var result, err = Instantiate()
 
 	// assert
 	assert.Nil(t, result)
@@ -578,7 +573,7 @@ func TestInstantiate_Success(t *testing.T) {
 	}
 
 	// SUT + act
-	result, err := Instantiate()
+	var result, err = Instantiate()
 
 	// assert
 	assert.Equal(t, dummyRouter, result)

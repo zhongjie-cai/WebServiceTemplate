@@ -18,6 +18,7 @@ var (
 	requestGetLoginID        = request.GetLoginID
 	requestGetCorrelationID  = request.GetCorrelationID
 	requestGetAllowedLogType = request.GetAllowedLogType
+	requestGetRequestBody    = request.GetRequestBody
 	responseError            = response.Error
 	loggerAPIEnter           = logger.APIEnter
 	loggerAPIExit            = logger.APIExit

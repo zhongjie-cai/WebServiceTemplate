@@ -102,7 +102,7 @@ func createMock(t *testing.T) {
 	}
 	responseErrorExpected = 0
 	responseErrorCalled = 0
-	responseError = func(sessionID uuid.UUID, err error, responseWriter http.ResponseWriter) {
+	responseError = func(sessionID uuid.UUID, err error) {
 		responseErrorCalled++
 	}
 	getNameFuncExpected = 0
@@ -143,7 +143,7 @@ func createMock(t *testing.T) {
 	}
 	getActionByNameFuncExpected = 0
 	getActionByNameFuncCalled = 0
-	getActionByNameFunc = func(name string) func(http.ResponseWriter, *http.Request, uuid.UUID) {
+	getActionByNameFunc = func(name string) func(uuid.UUID, string) {
 		getActionByNameFuncCalled++
 		return nil
 	}

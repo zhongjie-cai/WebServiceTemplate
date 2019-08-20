@@ -32,7 +32,7 @@ func TestDoPreBootstraping_NoPreBoostrapFunc(t *testing.T) {
 	}
 
 	// SUT + act
-	result := doPreBootstraping()
+	var result = doPreBootstraping()
 
 	// assert
 	assert.True(t, result)
@@ -68,7 +68,7 @@ func TestDoPreBootstraping_PreBoostrapFuncError(t *testing.T) {
 	}
 
 	// SUT + act
-	result := doPreBootstraping()
+	var result = doPreBootstraping()
 
 	// assert
 	assert.False(t, result)
@@ -102,7 +102,7 @@ func TestDoPreBootstraping_PreBoostrapFuncSuccess(t *testing.T) {
 	}
 
 	// SUT + act
-	result := doPreBootstraping()
+	var result = doPreBootstraping()
 
 	// assert
 	assert.True(t, result)
@@ -193,7 +193,7 @@ func TestBootstrapApplication_WithError(t *testing.T) {
 	}
 
 	// SUT + act
-	result := bootstrapApplication()
+	var result = bootstrapApplication()
 
 	// assert
 	assert.False(t, result)
@@ -268,7 +268,7 @@ func TestBootstrapApplication_NoError(t *testing.T) {
 	}
 
 	// SUT + act
-	result := bootstrapApplication()
+	var result = bootstrapApplication()
 
 	// assert
 	assert.True(t, result)
@@ -299,7 +299,7 @@ func TestDoPostBootstraping_NoPostBoostrapFunc(t *testing.T) {
 	}
 
 	// SUT + act
-	result := doPostBootstraping()
+	var result = doPostBootstraping()
 
 	// assert
 	assert.True(t, result)
@@ -335,7 +335,7 @@ func TestDoPostBootstraping_PostBoostrapFuncError(t *testing.T) {
 	}
 
 	// SUT + act
-	result := doPostBootstraping()
+	var result = doPostBootstraping()
 
 	// assert
 	assert.False(t, result)
@@ -369,7 +369,7 @@ func TestDoPostBootstraping_PostBoostrapFuncSuccess(t *testing.T) {
 	}
 
 	// SUT + act
-	result := doPostBootstraping()
+	var result = doPostBootstraping()
 
 	// assert
 	assert.True(t, result)

@@ -41,7 +41,7 @@ func TestLoadTLSCertificate_ErrorTLSCert(t *testing.T) {
 	}
 
 	// SUT + act
-	cert, err := loadTLSCertificate(
+	var cert, err = loadTLSCertificate(
 		dummyCertBytes,
 		dummyKeyBytes,
 	)
@@ -74,7 +74,7 @@ func TestLoadTLSCertificate_Success(t *testing.T) {
 	}
 
 	// SUT + act
-	cert, err := loadTLSCertificate(
+	var cert, err = loadTLSCertificate(
 		dummyCertBytes,
 		dummyKeyBytes,
 	)
@@ -177,7 +177,7 @@ func TestInitializeServerCert_NoServeHTTPS(t *testing.T) {
 	createMock(t)
 
 	// SUT + act
-	err := initializeServerCert(
+	var err = initializeServerCert(
 		dummyServeHTTPS,
 		dummyServerCertContent,
 		dummyServerKeyContent,
@@ -225,7 +225,7 @@ func TestInitializeServerCert_ServerCertError(t *testing.T) {
 	}
 
 	// SUT + act
-	err := initializeServerCert(
+	var err = initializeServerCert(
 		dummyServeHTTPS,
 		dummyServerCertContent,
 		dummyServerKeyContent,
@@ -262,7 +262,7 @@ func TestInitializeServerCert_Success(t *testing.T) {
 	}
 
 	// SUT + act
-	err := initializeServerCert(
+	var err = initializeServerCert(
 		dummyServeHTTPS,
 		dummyServerCertContent,
 		dummyServerKeyContent,
@@ -288,7 +288,7 @@ func TestInitializeCaCertPool_NoValidateClientCert(t *testing.T) {
 	createMock(t)
 
 	// SUT + act
-	err := initializeCaCertPool(
+	var err = initializeCaCertPool(
 		dummyValidateClientCert,
 		dummyCaCertContent,
 	)
@@ -333,7 +333,7 @@ func TestInitializeCaCertPool_CaCertPoolError(t *testing.T) {
 	}
 
 	// SUT + act
-	err := initializeCaCertPool(
+	var err = initializeCaCertPool(
 		dummyValidateClientCert,
 		dummyCaCertContent,
 	)
@@ -367,7 +367,7 @@ func TestInitializeCaCertPool_Success(t *testing.T) {
 	}
 
 	// SUT + act
-	err := initializeCaCertPool(
+	var err = initializeCaCertPool(
 		dummyValidateClientCert,
 		dummyCaCertContent,
 	)
@@ -445,7 +445,7 @@ func TestGetServerCertificate(t *testing.T) {
 	serverCertificate = dummyCert
 
 	// SUT + act
-	cert := GetServerCertificate()
+	var cert = GetServerCertificate()
 
 	// assert
 	assert.Equal(t, dummyCert, cert)

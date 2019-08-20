@@ -5,6 +5,7 @@ Original source: https://github.com/zhongjie-cai/WebServiceTemplate
 
 Library dependencies (must be present in vendor folder or in Go path):
 * [UUID](https://github.com/google/uuid): `go get github.com/google/uuid`
+* [MUX](https://github.com/gorilla/mux): `go get github.com/gorilla/mux`
 
 A sample application is shown below:
 
@@ -35,6 +36,12 @@ func main() {
 				Method:     http.MethodGet,
 				Path:       "/health",
 				ActionFunc: health.GetHealth,
+			},
+			model.Route{
+				Endpoint:   "SwaggerRedirect",
+				Method:     http.MethodGet,
+				Path:       "/docs",
+				ActionFunc: swagger.Redirect,
 			},
 		}
 	}
@@ -83,16 +90,75 @@ import (
 
 // GetHealth handles the HTTP request for getting health report
 func GetHealth(
-	responseWriter http.ResponseWriter,
-	httpRequest *http.Request,
-	sessionID string,
+	sessionID uuid.UUID,
+	requestBody string,
 ) {
 	response.Ok(
 		sessionID,
 		"some version number",
-		responseWriter,
 	)
 }
+```
+
+# handler/swagger/swagger.go
+
+```golang
+package swagger
+
+import (
+	"net/http"
+
+	"github.com/google/uuid"
+	"github.com/zhongjie-cai/WebServiceTemplate/config"
+	"github.com/zhongjie-cai/WebServiceTemplate/session"
+)
+
+// Redirect handles HTTP redirection for swagger UI requests
+func Redirect(
+	sessionID uuid.UUID,
+	requestBody string,
+) {
+	var httpRequest = session.GetRequest(
+		sessionID,
+	)
+	var responseWriter = session.GetResponseWriter(
+		sessionID,
+	)
+	http.Redirect(
+		responseWriter,
+		httpRequest,
+		"/docs/",
+		http.StatusPermanentRedirect,
+	)
+}
+
+// Handler handles the hosting of the swagger UI static content
+func Handler() http.Handler {
+	return http.StripPrefix(
+		"/docs/",
+		http.FileServer(
+			http.Dir(
+				config.AppPath()+"/docs",
+			),
+		),
+	)
+}
+```
+
+# Request & Response
+
+The registered handler receives the request body as a string, thus it is normally not necessary to load request from session.
+However, if specific data is needed from request, one could always retrieve request from session through following function call using sessionID:
+
+```golang
+var httpRequest = session.GetRequest(sessionID)
+```
+
+The response functions accept the session ID and internally load the response writer accordingly, thus it is normally not necessary to load response writer from session.
+However, if specific operation is needed for response, one could always retrieve response writer through following function call using sessionID:
+
+```golang
+var responseWriter = session.GetResponseWriter(sessionID)
 ```
 
 # Swagger UI

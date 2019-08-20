@@ -66,7 +66,7 @@ func createMock(t *testing.T) {
 	}
 	routeHandleFuncExpected = 0
 	routeHandleFuncCalled = 0
-	routeHandleFunc = func(router *mux.Router, endpoint string, method string, path string, handlerFunc func(http.ResponseWriter, *http.Request), actionFunc func(http.ResponseWriter, *http.Request, uuid.UUID)) *mux.Route {
+	routeHandleFunc = func(router *mux.Router, endpoint string, method string, path string, handlerFunc func(http.ResponseWriter, *http.Request), actionFunc func(uuid.UUID, string)) *mux.Route {
 		routeHandleFuncCalled++
 		return nil
 	}
@@ -96,7 +96,7 @@ func createMock(t *testing.T) {
 	}
 	handlerSessionExpected = 0
 	handlerSessionCalled = 0
-	handlerSession = func(responseWriter http.ResponseWriter, httpRequst *http.Request) {
+	handlerSession = func(responseWriter http.ResponseWriter, httpRequest *http.Request) {
 		handlerSessionCalled++
 	}
 	doParameterReplacementFuncExpected = 0

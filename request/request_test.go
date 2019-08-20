@@ -41,7 +41,7 @@ func TestGetUUIDFromHeader_EmptyHeader(t *testing.T) {
 	}
 
 	// SUT + act
-	parsedUUID := getUUIDFromHeader(
+	var parsedUUID = getUUIDFromHeader(
 		dummyHeader,
 		dummyName,
 	)
@@ -80,7 +80,7 @@ func TestGetUUIDFromHeader_HeaderNoUUID(t *testing.T) {
 	}
 
 	// SUT + act
-	parsedUUID := getUUIDFromHeader(
+	var parsedUUID = getUUIDFromHeader(
 		dummyHeader,
 		dummyName,
 	)
@@ -121,7 +121,7 @@ func TestGetUUIDFromHeader_HeaderInvalidUUID(t *testing.T) {
 	}
 
 	// SUT + act
-	parsedUUID := getUUIDFromHeader(
+	var parsedUUID = getUUIDFromHeader(
 		dummyHeader,
 		dummyName,
 	)
@@ -137,7 +137,7 @@ func TestGetUUIDFromHeader_HeaderValidUUID(t *testing.T) {
 	// arrange
 	var dummyHeader = make(http.Header)
 	var dummyName = "some name"
-	expectedUUID, _ := uuid.NewUUID()
+	var expectedUUID, _ = uuid.NewUUID()
 
 	// stub
 	dummyHeader.Add("foo", "bar")
@@ -154,7 +154,7 @@ func TestGetUUIDFromHeader_HeaderValidUUID(t *testing.T) {
 	}
 
 	// SUT + act
-	parsedUUID := getUUIDFromHeader(
+	var parsedUUID = getUUIDFromHeader(
 		dummyHeader,
 		dummyName,
 	)
@@ -182,7 +182,7 @@ func TestGetLoginID_NilRequest(t *testing.T) {
 	}
 
 	// SUT + act
-	result := GetLoginID(
+	var result = GetLoginID(
 		dummyHTTPRequest,
 	)
 
@@ -215,7 +215,7 @@ func TestGetLoginID_ValidRequest(t *testing.T) {
 	}
 
 	// SUT + act
-	result := GetLoginID(
+	var result = GetLoginID(
 		dummyHTTPRequest,
 	)
 
@@ -242,7 +242,7 @@ func TestGetCorrelationID_NilRequest(t *testing.T) {
 	}
 
 	// SUT + act
-	result := GetCorrelationID(
+	var result = GetCorrelationID(
 		dummyHTTPRequest,
 	)
 
@@ -275,7 +275,7 @@ func TestGetCorrelationID_ValidRequest(t *testing.T) {
 	}
 
 	// SUT + act
-	result := GetCorrelationID(
+	var result = GetCorrelationID(
 		dummyHTTPRequest,
 	)
 
@@ -312,7 +312,7 @@ func TestGetAllowedLogType(t *testing.T) {
 	}
 
 	// SUT + act
-	allowedLogType := GetAllowedLogType(
+	var allowedLogType = GetAllowedLogType(
 		dummyHTTPRequest,
 	)
 
@@ -343,7 +343,7 @@ func TestGetClientCertificates_RequestNil(t *testing.T) {
 	}
 
 	// SUT + act
-	result, err := GetClientCertificates(
+	var result, err = GetClientCertificates(
 		dummyHTTPRequest,
 	)
 
@@ -375,7 +375,7 @@ func TestGetClientCertificates_TLSNil(t *testing.T) {
 	}
 
 	// SUT + act
-	result, err := GetClientCertificates(
+	var result, err = GetClientCertificates(
 		dummyHTTPRequest,
 	)
 
@@ -401,7 +401,7 @@ func TestGetClientCertificates_Success(t *testing.T) {
 	createMock(t)
 
 	// SUT + act
-	result, err := GetClientCertificates(
+	var result, err = GetClientCertificates(
 		dummyHTTPRequest,
 	)
 
@@ -437,9 +437,9 @@ func TestGetRequestBody_NilBody(t *testing.T) {
 	}
 
 	// SUT + act
-	result := GetRequestBody(
-		dummyHTTPRequest,
+	var result = GetRequestBody(
 		dummySessionID,
+		dummyHTTPRequest,
 	)
 
 	// assert
@@ -482,9 +482,9 @@ func TestGetRequestBody_ErrorBody(t *testing.T) {
 	}
 
 	// SUT + act
-	result := GetRequestBody(
-		dummyHTTPRequest,
+	var result = GetRequestBody(
 		dummySessionID,
+		dummyHTTPRequest,
 	)
 
 	// assert
@@ -524,9 +524,9 @@ func TestGetRequestBody_Success(t *testing.T) {
 	}
 
 	// SUT + act
-	result := GetRequestBody(
-		dummyHTTPRequest,
+	var result = GetRequestBody(
 		dummySessionID,
+		dummyHTTPRequest,
 	)
 
 	// assert

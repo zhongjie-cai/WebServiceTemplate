@@ -433,6 +433,12 @@ func TestOk(t *testing.T) {
 		strconvItoaCalled++
 		return strconv.Itoa(i)
 	}
+	sessionGetResponseWriterExpected = 1
+	sessionGetResponseWriter = func(sessionID uuid.UUID) http.ResponseWriter {
+		sessionGetResponseWriterCalled++
+		assert.Equal(t, dummySessionID, sessionID)
+		return dummyResponseWriter
+	}
 	createOkResponseFuncExpected = 1
 	createOkResponseFunc = func(responseContent interface{}) (string, int) {
 		createOkResponseFuncCalled++
@@ -469,7 +475,6 @@ func TestOk(t *testing.T) {
 	Ok(
 		dummySessionID,
 		dummyResponseContent,
-		dummyResponseWriter,
 	)
 
 	// verify
@@ -499,6 +504,12 @@ func TestError(t *testing.T) {
 	strconvItoa = func(i int) string {
 		strconvItoaCalled++
 		return strconv.Itoa(i)
+	}
+	sessionGetResponseWriterExpected = 1
+	sessionGetResponseWriter = func(sessionID uuid.UUID) http.ResponseWriter {
+		sessionGetResponseWriterCalled++
+		assert.Equal(t, dummySessionID, sessionID)
+		return dummyResponseWriter
 	}
 	getAppErrorFuncExpected = 1
 	getAppErrorFunc = func(err error) apperror.AppError {
@@ -542,7 +553,6 @@ func TestError(t *testing.T) {
 	Error(
 		dummySessionID,
 		dummyError,
-		dummyResponseWriter,
 	)
 
 	// verify

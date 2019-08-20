@@ -22,7 +22,7 @@ func TestGetTimeNow(t *testing.T) {
 	}
 
 	// SUT + act
-	result := GetTimeNow()
+	var result = GetTimeNow()
 
 	// assert
 	assert.Equal(t, expectedResult, result)
@@ -47,7 +47,7 @@ func TestGetTimeNowUTC(t *testing.T) {
 	}
 
 	// SUT + act
-	result := GetTimeNowUTC()
+	var result = GetTimeNowUTC()
 
 	// assert
 	assert.Equal(t, expectedResult, result)
@@ -65,7 +65,7 @@ func TestFormatDate(t *testing.T) {
 	createMock(t)
 
 	// SUT + act
-	result := FormatDate(dummyTime)
+	var result = FormatDate(dummyTime)
 
 	// assert
 	assert.Equal(t, expectedResult, result)
@@ -83,7 +83,7 @@ func TestFormatTime(t *testing.T) {
 	createMock(t)
 
 	// SUT + act
-	result := FormatTime(dummyTime)
+	var result = FormatTime(dummyTime)
 
 	// assert
 	assert.Equal(t, expectedResult, result)
@@ -101,7 +101,7 @@ func TestFormatDateTime(t *testing.T) {
 	createMock(t)
 
 	// SUT + act
-	result := FormatDateTime(dummyTime)
+	var result = FormatDateTime(dummyTime)
 
 	// assert
 	assert.Equal(t, expectedResult, result)

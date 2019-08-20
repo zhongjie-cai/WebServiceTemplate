@@ -1,8 +1,10 @@
 package server
 
 import (
+	"context"
 	"crypto/tls"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -53,6 +55,15 @@ func listenAndServe(
 	return server.ListenAndServe()
 }
 
+func shutDown(
+	runtimeContext context.Context,
+	server *http.Server,
+) error {
+	return server.Shutdown(
+		runtimeContext,
+	)
+}
+
 func runServer(
 	serveHTTPS bool,
 	validateClientCert bool,
@@ -65,18 +76,39 @@ func runServer(
 		appPort,
 		router,
 	)
-	var serverError = listenAndServeFunc(
-		server,
-		serveHTTPS,
+
+	var signalInterrupt = make(chan os.Signal, 1)
+	signalNotify(
+		signalInterrupt,
+		os.Interrupt,
 	)
-	if serverError != nil {
-		return apperrorWrapSimpleError(
-			serverError,
-			"Failed to host service on port %v",
-			appPort,
+
+	var hostError error
+	go func() {
+		hostError = listenAndServeFunc(
+			server,
+			serveHTTPS,
 		)
-	}
-	return nil
+		signalInterrupt <- os.Interrupt
+	}()
+
+	<-signalInterrupt
+	var runtimeContext, cancelCallback = contextWithTimeout(
+		contextBackground(),
+		15*time.Second,
+	)
+	defer cancelCallback()
+
+	var shutdownError = shutDownFunc(
+		runtimeContext,
+		server,
+	)
+
+	return apperrorConsolidateAllErrors(
+		"One or more errors have occurred during server hosting",
+		hostError,
+		shutdownError,
+	)
 }
 
 // Host hosts the service entries and starts HTTPS server
@@ -101,15 +133,15 @@ func Host(
 		serveHTTPS,
 		validateClientCert,
 	)
-	var serverError = runServerFunc(
+	var hostError = runServerFunc(
 		serveHTTPS,
 		validateClientCert,
 		appPort,
 		router,
 	)
-	if serverError != nil {
+	if hostError != nil {
 		return apperrorWrapSimpleError(
-			serverError,
+			hostError,
 			"Failed to run server on port %v",
 			appPort,
 		)

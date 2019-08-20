@@ -31,6 +31,8 @@ var (
 	requestGetCorrelationIDCalled    int
 	requestGetAllowedLogTypeExpected int
 	requestGetAllowedLogTypeCalled   int
+	requestGetRequestBodyExpected    int
+	requestGetRequestBodyCalled      int
 	responseErrorExpected            int
 	responseErrorCalled              int
 	loggerAPIEnterExpected           int
@@ -42,7 +44,7 @@ var (
 func createMock(t *testing.T) {
 	routeGetRouteInfoExpected = 0
 	routeGetRouteInfoCalled = 0
-	routeGetRouteInfo = func(httpRequest *http.Request) (string, func(http.ResponseWriter, *http.Request, uuid.UUID), error) {
+	routeGetRouteInfo = func(httpRequest *http.Request) (string, func(uuid.UUID, string), error) {
 		routeGetRouteInfoCalled++
 		return "", nil, nil
 	}
@@ -80,9 +82,15 @@ func createMock(t *testing.T) {
 		requestGetAllowedLogTypeCalled++
 		return 0
 	}
+	requestGetRequestBodyExpected = 0
+	requestGetRequestBodyCalled = 0
+	requestGetRequestBody = func(sessionID uuid.UUID, httpRequest *http.Request) string {
+		requestGetRequestBodyCalled++
+		return ""
+	}
 	responseErrorExpected = 0
 	responseErrorCalled = 0
-	responseError = func(sessionID uuid.UUID, err error, responseWriter http.ResponseWriter) {
+	responseError = func(sessionID uuid.UUID, err error) {
 		responseErrorCalled++
 	}
 	loggerAPIEnterExpected = 0
@@ -112,6 +120,8 @@ func verifyAll(t *testing.T) {
 	assert.Equal(t, requestGetCorrelationIDExpected, requestGetCorrelationIDCalled, "Unexpected number of calls to requestGetCorrelationID")
 	requestGetAllowedLogType = request.GetAllowedLogType
 	assert.Equal(t, requestGetAllowedLogTypeExpected, requestGetAllowedLogTypeCalled, "Unexpected number of calls to requestGetAllowedLogType")
+	requestGetRequestBody = request.GetRequestBody
+	assert.Equal(t, requestGetRequestBodyExpected, requestGetRequestBodyCalled, "Unexpected number of calls to requestGetRequestBody")
 	responseError = response.Error
 	assert.Equal(t, responseErrorExpected, responseErrorCalled, "Unexpected number of calls to responseError")
 	loggerAPIEnter = logger.APIEnter

@@ -47,7 +47,7 @@ func createMock(t *testing.T) {
 	}
 	responseErrorExpected = 0
 	responseErrorCalled = 0
-	responseError = func(sessionID uuid.UUID, err error, responseWriter http.ResponseWriter) {
+	responseError = func(sessionID uuid.UUID, err error) {
 		responseErrorCalled++
 	}
 	apperrorGetGeneralFailureErrorExpected = 0

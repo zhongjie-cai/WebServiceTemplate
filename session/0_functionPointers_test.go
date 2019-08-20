@@ -11,6 +11,8 @@ import (
 var (
 	uuidNewExpected int
 	uuidNewCalled   int
+	getFuncExpected int
+	getFuncCalled   int
 )
 
 func createMock(t *testing.T) {
@@ -20,11 +22,19 @@ func createMock(t *testing.T) {
 		uuidNewCalled++
 		return uuid.Nil
 	}
+	getFuncExpected = 0
+	getFuncCalled = 0
+	getFunc = func(sessionID uuid.UUID) *Session {
+		getFuncCalled++
+		return nil
+	}
 }
 
 func verifyAll(t *testing.T) {
 	uuidNew = uuid.New
 	assert.Equal(t, uuidNewExpected, uuidNewCalled, "Unexpected number of calls to uuidNew")
+	getFunc = Get
+	assert.Equal(t, getFuncExpected, getFuncCalled, "Unexpected number of calls to getFunc")
 }
 
 // mock structs

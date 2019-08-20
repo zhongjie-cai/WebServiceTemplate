@@ -9,13 +9,30 @@ import (
 	"github.com/zhongjie-cai/WebServiceTemplate/logger/logtype"
 )
 
+type nilResponseWriter struct{}
+
+func (r *nilResponseWriter) Header() http.Header {
+	return http.Header{}
+}
+
+func (r *nilResponseWriter) Write(body []byte) (int, error) {
+	return 0, nil
+}
+
+func (r *nilResponseWriter) WriteHeader(status int) {
+}
+
 var (
-	sessionCache   = cache.New(15*time.Minute, 30*time.Minute)
-	defaultSession = &Session{
+	sessionCache          = cache.New(15*time.Minute, 30*time.Minute)
+	defaultRequest, _     = http.NewRequest("", "", nil)
+	defaultResponseWriter = &nilResponseWriter{}
+	defaultSession        = &Session{
 		ID:             uuid.Nil,
 		Endpoint:       "",
 		LoginID:        uuid.Nil,
 		AllowedLogType: logtype.BasicLogging,
+		Request:        defaultRequest,
+		ResponseWriter: defaultResponseWriter,
 	}
 )
 
@@ -77,13 +94,31 @@ func Unregister(sessionID uuid.UUID) {
 
 // Get retrieves a registered session for given session ID
 func Get(sessionID uuid.UUID) *Session {
-	cacheItem, sessionLoaded := sessionCache.Get(sessionID.String())
+	var cacheItem, sessionLoaded = sessionCache.Get(sessionID.String())
 	if !sessionLoaded {
 		return defaultSession
 	}
-	session, ok := cacheItem.(*Session)
+	var session, ok = cacheItem.(*Session)
 	if !ok {
 		return defaultSession
 	}
 	return session
+}
+
+// GetRequest returns the HTTP request object from session object for given session ID
+func GetRequest(sessionID uuid.UUID) *http.Request {
+	var sessionObject = getFunc(sessionID)
+	if sessionObject == nil {
+		return defaultRequest
+	}
+	return sessionObject.Request
+}
+
+// GetResponseWriter returns the HTTP response writer object from session object for given session ID
+func GetResponseWriter(sessionID uuid.UUID) http.ResponseWriter {
+	var sessionObject = getFunc(sessionID)
+	if sessionObject == nil {
+		return defaultResponseWriter
+	}
+	return sessionObject.ResponseWriter
 }

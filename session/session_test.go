@@ -13,6 +13,31 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestNilResponseWriter(t *testing.T) {
+	// arrange
+	var dummyBody = []byte("some body")
+	var dummyStatus = rand.Int()
+
+	// mock
+	createMock(t)
+
+	// SUT
+	var nilResponseWriter = &nilResponseWriter{}
+
+	// act
+	var header = nilResponseWriter.Header()
+	var result, err = nilResponseWriter.Write(dummyBody)
+	nilResponseWriter.WriteHeader(dummyStatus)
+
+	// assert
+	assert.Empty(t, header)
+	assert.Zero(t, result)
+	assert.NoError(t, err)
+
+	// verify
+	verifyAll(t)
+}
+
 func TestInit_AllValuesSet(t *testing.T) {
 	// arrange
 	var appName = "dummyAppName"
@@ -32,7 +57,7 @@ func TestInit_AllValuesSet(t *testing.T) {
 		version,
 		buildTime,
 	)
-	result, found := sessionCache.Get(uuid.Nil.String())
+	var result, found = sessionCache.Get(uuid.Nil.String())
 
 	// assert
 	assert.True(t, found)
@@ -62,7 +87,7 @@ func TestRegister_NilLoginID(t *testing.T) {
 	createMock(t)
 
 	// SUT
-	result := Register(
+	var result = Register(
 		dummyEndpoint,
 		dummyLoginID,
 		dummyCorrelationID,
@@ -72,7 +97,7 @@ func TestRegister_NilLoginID(t *testing.T) {
 	)
 
 	// act
-	_, cacheOK := sessionCache.Get(result.String())
+	var _, cacheOK = sessionCache.Get(result.String())
 
 	// assert
 	assert.Equal(t, uuid.Nil, result)
@@ -107,7 +132,7 @@ func TestRegister_ValidLoginID(t *testing.T) {
 	}
 
 	// SUT
-	result := Register(
+	var result = Register(
 		dummyEndpoint,
 		dummyLoginID,
 		dummyCorrelationID,
@@ -117,8 +142,8 @@ func TestRegister_ValidLoginID(t *testing.T) {
 	)
 
 	// act
-	cacheItem, cacheOK := sessionCache.Get(dummySessionID.String())
-	session, typeOK := cacheItem.(*Session)
+	var cacheItem, cacheOK = sessionCache.Get(dummySessionID.String())
+	var session, typeOK = cacheItem.(*Session)
 
 	// assert
 	assert.Equal(t, dummySessionID, result)
@@ -151,7 +176,7 @@ func TestUnregister(t *testing.T) {
 	Unregister(dummySessionID)
 
 	// act
-	_, cacheOK := sessionCache.Get(dummySessionID.String())
+	var _, cacheOK = sessionCache.Get(dummySessionID.String())
 
 	// assert
 	assert.False(t, cacheOK)
@@ -169,7 +194,7 @@ func TestGet_CacheNotLoaded(t *testing.T) {
 	createMock(t)
 
 	// SUT + act
-	session := Get(dummySessionID)
+	var session = Get(dummySessionID)
 
 	// assert
 	assert.Equal(t, defaultSession, session)
@@ -190,7 +215,7 @@ func TestGet_CacheItemInvalid(t *testing.T) {
 	sessionCache.SetDefault(dummySessionID.String(), 123)
 
 	// SUT + act
-	session := Get(dummySessionID)
+	var session = Get(dummySessionID)
 
 	// assert
 	assert.Equal(t, defaultSession, session)
@@ -217,7 +242,7 @@ func TestGet_CacheItemValid(t *testing.T) {
 	createMock(t)
 
 	// SUT + act
-	session := Get(dummySessionID)
+	var session = Get(dummySessionID)
 
 	// assert
 	assert.Equal(t, expectedSession, session)
@@ -225,4 +250,122 @@ func TestGet_CacheItemValid(t *testing.T) {
 	// verify
 	verifyAll(t)
 	sessionCache.Delete(dummySessionID.String())
+}
+
+func TestGetRequest_NilSessionObject(t *testing.T) {
+	// arrange
+	var dummySessionID = uuid.New()
+	var dummySessionObject *Session
+
+	// mock
+	createMock(t)
+
+	// expect
+	getFuncExpected = 1
+	getFunc = func(sessionID uuid.UUID) *Session {
+		getFuncCalled++
+		assert.Equal(t, dummySessionID, sessionID)
+		return dummySessionObject
+	}
+
+	// SUT + act
+	var result = GetRequest(
+		dummySessionID,
+	)
+
+	// assert
+	assert.Equal(t, defaultRequest, result)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestGetRequest_ValidSessionObject(t *testing.T) {
+	// arrange
+	var dummySessionID = uuid.New()
+	var dummyHTTPRequest, _ = http.NewRequest("FOO", "bar", nil)
+	var dummySessionObject = &Session{
+		Request: dummyHTTPRequest,
+	}
+
+	// mock
+	createMock(t)
+
+	// expect
+	getFuncExpected = 1
+	getFunc = func(sessionID uuid.UUID) *Session {
+		getFuncCalled++
+		assert.Equal(t, dummySessionID, sessionID)
+		return dummySessionObject
+	}
+
+	// SUT + act
+	var result = GetRequest(
+		dummySessionID,
+	)
+
+	// assert
+	assert.Equal(t, dummyHTTPRequest, result)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestGetResponseWriter_NilSessionObject(t *testing.T) {
+	// arrange
+	var dummySessionID = uuid.New()
+	var dummySessionObject *Session
+
+	// mock
+	createMock(t)
+
+	// expect
+	getFuncExpected = 1
+	getFunc = func(sessionID uuid.UUID) *Session {
+		getFuncCalled++
+		assert.Equal(t, dummySessionID, sessionID)
+		return dummySessionObject
+	}
+
+	// SUT + act
+	var result = GetResponseWriter(
+		dummySessionID,
+	)
+
+	// assert
+	assert.Equal(t, defaultResponseWriter, result)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestGetResponseWriter_ValidSessionObject(t *testing.T) {
+	// arrange
+	var dummySessionID = uuid.New()
+	var dummyResponseWriter = dummyResponseWriter{}
+	var dummySessionObject = &Session{
+		ResponseWriter: &dummyResponseWriter,
+	}
+
+	// mock
+	createMock(t)
+
+	// expect
+	getFuncExpected = 1
+	getFunc = func(sessionID uuid.UUID) *Session {
+		getFuncCalled++
+		assert.Equal(t, dummySessionID, sessionID)
+		return dummySessionObject
+	}
+
+	// SUT + act
+	var result = GetResponseWriter(
+		dummySessionID,
+	)
+
+	// assert
+	assert.Equal(t, &dummyResponseWriter, result)
+
+	// verify
+	verifyAll(t)
 }

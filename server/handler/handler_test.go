@@ -23,7 +23,7 @@ func TestHandleInSession_RouteError(t *testing.T) {
 	var dummySessionID = uuid.New()
 	var dummyActionExpected = 0
 	var dummyActionCalled = 0
-	var dummyAction = func(w http.ResponseWriter, r *http.Request, sessionID uuid.UUID) {
+	var dummyAction = func(sessionID uuid.UUID, requestBody string) {
 		dummyActionCalled++
 	}
 	var dummyLoginID = uuid.New()
@@ -36,7 +36,7 @@ func TestHandleInSession_RouteError(t *testing.T) {
 
 	// expect
 	routeGetRouteInfoExpected = 1
-	routeGetRouteInfo = func(httpRequest *http.Request) (string, func(http.ResponseWriter, *http.Request, uuid.UUID), error) {
+	routeGetRouteInfo = func(httpRequest *http.Request) (string, func(uuid.UUID, string), error) {
 		routeGetRouteInfoCalled++
 		assert.Equal(t, dummyHTTPRequest, httpRequest)
 		return dummyEndpoint, dummyAction, dummyRouteError
@@ -80,11 +80,10 @@ func TestHandleInSession_RouteError(t *testing.T) {
 		assert.Equal(t, 0, len(parameters))
 	}
 	responseErrorExpected = 1
-	responseError = func(sessionID uuid.UUID, err error, responseWriter http.ResponseWriter) {
+	responseError = func(sessionID uuid.UUID, err error) {
 		responseErrorCalled++
 		assert.Equal(t, dummySessionID, sessionID)
 		assert.Equal(t, dummyRouteError, err)
-		assert.Equal(t, dummyResponseWriter, responseWriter)
 	}
 	loggerAPIExitExpected = 1
 	loggerAPIExit = func(sessionID uuid.UUID, category string, subcategory string, messageFormat string, parameters ...interface{}) {
@@ -130,19 +129,20 @@ func TestHandleInSession_Success(t *testing.T) {
 	var dummyResponseWriter = &dummyResponseWriter{t}
 	var dummyEndpoint = "some endpoint"
 	var dummySessionID = uuid.New()
-	var dummyAction func(w http.ResponseWriter, r *http.Request, sessionID uuid.UUID)
+	var dummyAction func(sessionID uuid.UUID, requestBody string)
 	var dummyActionExpected int
 	var dummyActionCalled int
 	var dummyLoginID = uuid.New()
 	var dummyCorrelationID = uuid.New()
 	var dummyAllowedLogType = logtype.LogType(rand.Intn(256))
+	var dummyRequestBody = "some request body"
 
 	// mock
 	createMock(t)
 
 	// expect
 	routeGetRouteInfoExpected = 1
-	routeGetRouteInfo = func(httpRequest *http.Request) (string, func(http.ResponseWriter, *http.Request, uuid.UUID), error) {
+	routeGetRouteInfo = func(httpRequest *http.Request) (string, func(uuid.UUID, string), error) {
 		routeGetRouteInfoCalled++
 		assert.Equal(t, dummyHTTPRequest, httpRequest)
 		return dummyEndpoint, dummyAction, nil
@@ -185,12 +185,18 @@ func TestHandleInSession_Success(t *testing.T) {
 		assert.Equal(t, dummyHTTPRequest.Method, messageFormat)
 		assert.Equal(t, 0, len(parameters))
 	}
-	dummyActionExpected = 1
-	dummyAction = func(w http.ResponseWriter, r *http.Request, sessionID uuid.UUID) {
-		dummyActionCalled++
-		assert.Equal(t, dummyResponseWriter, w)
-		assert.Equal(t, dummyHTTPRequest, r)
+	requestGetRequestBodyExpected = 1
+	requestGetRequestBody = func(sessionID uuid.UUID, httpRequest *http.Request) string {
+		requestGetRequestBodyCalled++
 		assert.Equal(t, dummySessionID, sessionID)
+		assert.Equal(t, dummyHTTPRequest, httpRequest)
+		return dummyRequestBody
+	}
+	dummyActionExpected = 1
+	dummyAction = func(sessionID uuid.UUID, requestBody string) {
+		dummyActionCalled++
+		assert.Equal(t, dummySessionID, sessionID)
+		assert.Equal(t, dummyRequestBody, requestBody)
 	}
 	loggerAPIExitExpected = 1
 	loggerAPIExit = func(sessionID uuid.UUID, category string, subcategory string, messageFormat string, parameters ...interface{}) {

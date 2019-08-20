@@ -96,8 +96,10 @@ func writeResponse(
 func Ok(
 	sessionID uuid.UUID,
 	responseContent interface{},
-	responseWriter http.ResponseWriter,
 ) {
+	var responseWriter = sessionGetResponseWriter(
+		sessionID,
+	)
 	var responseMessage, statusCode = createOkResponseFunc(
 		responseContent,
 	)
@@ -124,8 +126,10 @@ func Ok(
 func Error(
 	sessionID uuid.UUID,
 	err error,
-	responseWriter http.ResponseWriter,
 ) {
+	var responseWriter = sessionGetResponseWriter(
+		sessionID,
+	)
 	var appError = getAppErrorFunc(
 		err,
 	)

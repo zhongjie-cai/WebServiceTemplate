@@ -1,8 +1,6 @@
 package model
 
 import (
-	"net/http"
-
 	"github.com/google/uuid"
 )
 
@@ -12,5 +10,5 @@ type Route struct {
 	Method     string
 	Path       string
 	Parameters map[string]Parameter
-	ActionFunc func(http.ResponseWriter, *http.Request, uuid.UUID)
+	ActionFunc func(uuid.UUID, string)
 }

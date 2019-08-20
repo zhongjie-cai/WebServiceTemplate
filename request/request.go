@@ -66,8 +66,8 @@ func GetClientCertificates(httpRequest *http.Request) ([]*x509.Certificate, erro
 
 // GetRequestBody parses and returns the content of the httpRequest body in string representation
 func GetRequestBody(
-	httpRequest *http.Request,
 	sessionID uuid.UUID,
+	httpRequest *http.Request,
 ) string {
 	var bodyBytes []byte
 	var bodyError error
