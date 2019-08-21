@@ -24,12 +24,14 @@ var (
 	loggerAPIResponseCalled                int
 	loggerAPIExitExpected                  int
 	loggerAPIExitCalled                    int
+	sessionGetRequestExpected              int
+	sessionGetRequestCalled                int
 	sessionGetResponseWriterExpected       int
 	sessionGetResponseWriterCalled         int
+	sessionClearResponseWriterExpected     int
+	sessionClearResponseWriterCalled       int
 	getStatusCodeFuncExpected              int
 	getStatusCodeFuncCalled                int
-	getAppErrorFuncExpected                int
-	getAppErrorFuncCalled                  int
 	writeResponseFuncExpected              int
 	writeResponseFuncCalled                int
 	generateErrorResponseFuncExpected      int
@@ -69,23 +71,28 @@ func createMock(t *testing.T) {
 	loggerAPIExit = func(sessionID uuid.UUID, category string, subcategory string, messageFormat string, parameters ...interface{}) {
 		loggerAPIExitCalled++
 	}
+	sessionGetRequestExpected = 0
+	sessionGetRequestCalled = 0
+	sessionGetRequest = func(sessionID uuid.UUID) *http.Request {
+		sessionGetRequestCalled++
+		return nil
+	}
 	sessionGetResponseWriterExpected = 0
 	sessionGetResponseWriterCalled = 0
 	sessionGetResponseWriter = func(sessionID uuid.UUID) http.ResponseWriter {
 		sessionGetResponseWriterCalled++
 		return nil
 	}
+	sessionClearResponseWriterExpected = 0
+	sessionClearResponseWriterCalled = 0
+	sessionClearResponseWriter = func(sessionID uuid.UUID) {
+		sessionClearResponseWriterCalled++
+	}
 	getStatusCodeFuncExpected = 0
 	getStatusCodeFuncCalled = 0
 	getStatusCodeFunc = func(appError apperror.AppError) int {
 		getStatusCodeFuncCalled++
 		return 0
-	}
-	getAppErrorFuncExpected = 0
-	getAppErrorFuncCalled = 0
-	getAppErrorFunc = func(err error) apperror.AppError {
-		getAppErrorFuncCalled++
-		return nil
 	}
 	writeResponseFuncExpected = 0
 	writeResponseFuncCalled = 0
@@ -123,12 +130,14 @@ func verifyAll(t *testing.T) {
 	assert.Equal(t, loggerAPIResponseExpected, loggerAPIResponseCalled, "Unexpected number of calls to loggerAPIResponse")
 	loggerAPIExit = logger.APIExit
 	assert.Equal(t, loggerAPIExitExpected, loggerAPIExitCalled, "Unexpected number of calls to loggerAPIExit")
+	sessionGetRequest = session.GetRequest
+	assert.Equal(t, sessionGetRequestExpected, sessionGetRequestCalled, "Unexpected number of calls to sessionGetRequest")
 	sessionGetResponseWriter = session.GetResponseWriter
 	assert.Equal(t, sessionGetResponseWriterExpected, sessionGetResponseWriterCalled, "Unexpected number of calls to sessionGetResponseWriter")
+	sessionClearResponseWriter = session.ClearResponseWriter
+	assert.Equal(t, sessionClearResponseWriterExpected, sessionClearResponseWriterCalled, "Unexpected number of calls to sessionClearResponseWriter")
 	getStatusCodeFunc = getStatusCode
 	assert.Equal(t, getStatusCodeFuncExpected, getStatusCodeFuncCalled, "Unexpected number of calls to getStatusCodeFunc")
-	getAppErrorFunc = getAppError
-	assert.Equal(t, getAppErrorFuncExpected, getAppErrorFuncCalled, "Unexpected number of calls to getAppErrorFunc")
 	writeResponseFunc = writeResponse
 	assert.Equal(t, writeResponseFuncExpected, writeResponseFuncCalled, "Unexpected number of calls to writeResponseFunc")
 	generateErrorResponseFunc = generateErrorResponse

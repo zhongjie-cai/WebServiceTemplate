@@ -27,8 +27,9 @@ func Handle(endpointName string, sessionID uuid.UUID, recoverResult interface{},
 		var appError = getRecoverErrorFunc(
 			recoverResult,
 		)
-		responseError(
+		responseWrite(
 			sessionID,
+			nil,
 			appError,
 		)
 		loggerAppRoot(

@@ -105,11 +105,12 @@ func TestHandlePanic(t *testing.T) {
 		assert.Equal(t, dummyRecoverResult, recoverResult)
 		return dummyAppError
 	}
-	responseErrorExpected = 1
-	responseError = func(sessionID uuid.UUID, err error) {
-		responseErrorCalled++
+	responseWriteExpected = 1
+	responseWrite = func(sessionID uuid.UUID, responseObject interface{}, responseError apperror.AppError) {
+		responseWriteCalled++
 		assert.Equal(t, dummySessionID, sessionID)
-		assert.Equal(t, dummyAppError, err)
+		assert.Nil(t, responseObject)
+		assert.Equal(t, dummyAppError, responseError)
 	}
 	getDebugStackFuncExpected = 1
 	getDebugStackFunc = func() string {

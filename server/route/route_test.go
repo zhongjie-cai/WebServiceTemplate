@@ -12,6 +12,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
 	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
+	"github.com/zhongjie-cai/WebServiceTemplate/server/model"
 )
 
 func TestGetName_Undefined(t *testing.T) {
@@ -665,8 +666,9 @@ func TestHandleFunc(t *testing.T) {
 	}
 	var dummyActionFuncExpected = 0
 	var dummyActionFuncCalled = 0
-	var dummyActionFunc = func(uuid.UUID, string, map[string]string) {
+	var dummyActionFunc = func(uuid.UUID, string, map[string]string) (interface{}, apperror.AppError) {
 		dummyActionFuncCalled++
+		return nil, nil
 	}
 
 	// mock
@@ -725,19 +727,17 @@ func TestDefaultActionFunc(t *testing.T) {
 		assert.NoError(t, innerError)
 		return dummyAppError
 	}
-	responseErrorExpected = 1
-	responseError = func(sessionID uuid.UUID, err error) {
-		responseErrorCalled++
-		assert.Equal(t, dummySessionID, sessionID)
-		assert.Equal(t, dummyAppError, err)
-	}
 
 	// SUT + act
-	defaultActionFunc(
+	var result, err = defaultActionFunc(
 		dummySessionID,
 		dummyRequestBody,
 		dummyParameters,
 	)
+
+	// assert
+	assert.Nil(t, result)
+	assert.Equal(t, dummyAppError, err)
 
 	// verify
 	verifyAll(t)
@@ -746,12 +746,12 @@ func TestDefaultActionFunc(t *testing.T) {
 func TestGetActionByName_NotFound(t *testing.T) {
 	// arrange
 	var dummyName = "some name"
-	var dummyAction func(sessionID uuid.UUID, requestBody string, parameters map[string]string)
+	var dummyAction func(uuid.UUID, string, map[string]string) (interface{}, apperror.AppError)
 	var dummyOtherName = "some other name"
 	var expectedActionPointer = fmt.Sprintf("%v", reflect.ValueOf(defaultActionFunc))
 
 	// stub
-	registeredRouteActionFuncs = map[string]func(uuid.UUID, string, map[string]string){
+	registeredRouteActionFuncs = map[string]model.ActionFunc{
 		dummyName: dummyAction,
 	}
 
@@ -775,13 +775,14 @@ func TestGetActionByName_Found(t *testing.T) {
 	var dummyName = "some name"
 	var dummyActionExpected = 0
 	var dummyActionCalled = 0
-	var dummyAction = func(sessionID uuid.UUID, requestBody string, parameters map[string]string) {
+	var dummyAction = func(uuid.UUID, string, map[string]string) (interface{}, apperror.AppError) {
 		dummyActionCalled++
+		return nil, nil
 	}
 	var expectedActionPointer = fmt.Sprintf("%v", reflect.ValueOf(dummyAction))
 
 	// stub
-	registeredRouteActionFuncs = map[string]func(uuid.UUID, string, map[string]string){
+	registeredRouteActionFuncs = map[string]model.ActionFunc{
 		dummyName: dummyAction,
 	}
 
@@ -856,8 +857,9 @@ func TestGetRouteInfo_ValidRoute(t *testing.T) {
 	var dummyName = "some name"
 	var dummyActionExpected = 0
 	var dummyActionCalled = 0
-	var dummyAction = func(sessionID uuid.UUID, requestBody string, parameters map[string]string) {
+	var dummyAction = func(uuid.UUID, string, map[string]string) (interface{}, apperror.AppError) {
 		dummyActionCalled++
+		return nil, nil
 	}
 	var dummyActionPointer = fmt.Sprintf("%v", reflect.ValueOf(dummyAction))
 
@@ -878,7 +880,7 @@ func TestGetRouteInfo_ValidRoute(t *testing.T) {
 		return dummyName
 	}
 	getActionByNameFuncExpected = 1
-	getActionByNameFunc = func(name string) func(uuid.UUID, string, map[string]string) {
+	getActionByNameFunc = func(name string) model.ActionFunc {
 		getActionByNameFuncCalled++
 		assert.Equal(t, dummyName, name)
 		return dummyAction

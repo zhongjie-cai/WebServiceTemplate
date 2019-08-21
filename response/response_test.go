@@ -1,7 +1,6 @@
 package response
 
 import (
-	"errors"
 	"go/types"
 	"math"
 	"math/rand"
@@ -13,53 +12,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
 )
-
-func TestGetAppError_NotAppError(t *testing.T) {
-	// arrange
-	var dummyError = errors.New("some error")
-	var dummyAppError = apperror.GetGeneralFailureError(dummyError)
-
-	// mock
-	createMock(t)
-
-	// expect
-	apperrorGetGeneralFailureErrorExpected = 1
-	apperrorGetGeneralFailureError = func(innerError error) apperror.AppError {
-		apperrorGetGeneralFailureErrorCalled++
-		assert.Equal(t, dummyError, innerError)
-		return dummyAppError
-	}
-
-	// SUT + act
-	var result = getAppError(
-		dummyError,
-	)
-
-	// assert
-	assert.Equal(t, dummyAppError, result)
-
-	// verify
-	verifyAll(t)
-}
-
-func TestGetAppError_AppError(t *testing.T) {
-	// arrange
-	var dummyError = apperror.GetGeneralFailureError(errors.New("some error"))
-
-	// mock
-	createMock(t)
-
-	// SUT + act
-	var result = getAppError(
-		dummyError,
-	)
-
-	// assert
-	assert.Equal(t, dummyError, result)
-
-	// verify
-	verifyAll(t)
-}
 
 func TestGetStatusCode_GeneralFailure(t *testing.T) {
 	// arrange
@@ -151,7 +103,7 @@ func TestGetStatusCode_CircuitBreak(t *testing.T) {
 	)
 
 	// assert
-	assert.Equal(t, http.StatusBadRequest, result)
+	assert.Equal(t, http.StatusForbidden, result)
 
 	// verify
 	verifyAll(t)
@@ -175,7 +127,79 @@ func TestGetStatusCode_OperationLock(t *testing.T) {
 	)
 
 	// assert
-	assert.Equal(t, http.StatusBadRequest, result)
+	assert.Equal(t, http.StatusLocked, result)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestGetStatusCode_AccessForbidden(t *testing.T) {
+	// arrange
+	var dummyCode = apperror.CodeAccessForbidden
+	var dummyAppError = dummyAppError{
+		t,
+		&dummyCode,
+		nil,
+	}
+
+	// mock
+	createMock(t)
+
+	// SUT + act
+	var result = getStatusCode(
+		dummyAppError,
+	)
+
+	// assert
+	assert.Equal(t, http.StatusForbidden, result)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestGetStatusCode_DataCorruption(t *testing.T) {
+	// arrange
+	var dummyCode = apperror.CodeDataCorruption
+	var dummyAppError = dummyAppError{
+		t,
+		&dummyCode,
+		nil,
+	}
+
+	// mock
+	createMock(t)
+
+	// SUT + act
+	var result = getStatusCode(
+		dummyAppError,
+	)
+
+	// assert
+	assert.Equal(t, http.StatusConflict, result)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestGetStatusCode_NotImplemented(t *testing.T) {
+	// arrange
+	var dummyCode = apperror.CodeNotImplemented
+	var dummyAppError = dummyAppError{
+		t,
+		&dummyCode,
+		nil,
+	}
+
+	// mock
+	createMock(t)
+
+	// SUT + act
+	var result = getStatusCode(
+		dummyAppError,
+	)
+
+	// assert
+	assert.Equal(t, http.StatusNotImplemented, result)
 
 	// verify
 	verifyAll(t)
@@ -207,7 +231,7 @@ func TestGetStatusCode_OtherCode(t *testing.T) {
 
 func TestCreateOkResponse_EmptyContent(t *testing.T) {
 	// arrange
-	var dummyResponseContent = ""
+	var dummyResponseObject = ""
 
 	// mock
 	createMock(t)
@@ -216,13 +240,13 @@ func TestCreateOkResponse_EmptyContent(t *testing.T) {
 	jsonutilMarshalIgnoreErrorExpected = 1
 	jsonutilMarshalIgnoreError = func(v interface{}) string {
 		jsonutilMarshalIgnoreErrorCalled++
-		assert.Equal(t, dummyResponseContent, v)
+		assert.Equal(t, dummyResponseObject, v)
 		return ""
 	}
 
 	// SUT + act
 	var result, code = createOkResponse(
-		dummyResponseContent,
+		dummyResponseObject,
 	)
 
 	// assert
@@ -235,14 +259,14 @@ func TestCreateOkResponse_EmptyContent(t *testing.T) {
 
 func TestCreateOkResponse_DirectNilContent(t *testing.T) {
 	// arrange
-	var dummyResponseContent types.Object
+	var dummyResponseObject types.Object
 
 	// mock
 	createMock(t)
 
 	// SUT + act
 	var result, code = createOkResponse(
-		dummyResponseContent,
+		dummyResponseObject,
 	)
 
 	// assert
@@ -256,14 +280,14 @@ func TestCreateOkResponse_DirectNilContent(t *testing.T) {
 func TestCreateOkResponse_IndirectNilContent(t *testing.T) {
 	// arrange
 	var dummyNilObject types.Object
-	var dummyResponseContent interface{} = dummyNilObject
+	var dummyResponseObject interface{} = dummyNilObject
 
 	// mock
 	createMock(t)
 
 	// SUT + act
 	var result, code = createOkResponse(
-		dummyResponseContent,
+		dummyResponseObject,
 	)
 
 	// assert
@@ -276,7 +300,7 @@ func TestCreateOkResponse_IndirectNilContent(t *testing.T) {
 
 func TestCreateOkResponse_ValidContent(t *testing.T) {
 	// arrange
-	var dummyResponseContent = "some response content"
+	var dummyResponseObject = "some response content"
 	var dummyResponseMessage = "some response message"
 
 	// mock
@@ -286,13 +310,13 @@ func TestCreateOkResponse_ValidContent(t *testing.T) {
 	jsonutilMarshalIgnoreErrorExpected = 1
 	jsonutilMarshalIgnoreError = func(v interface{}) string {
 		jsonutilMarshalIgnoreErrorCalled++
-		assert.Equal(t, dummyResponseContent, v)
+		assert.Equal(t, dummyResponseObject, v)
 		return dummyResponseMessage
 	}
 
 	// SUT + act
 	var result, code = createOkResponse(
-		dummyResponseContent,
+		dummyResponseObject,
 	)
 
 	// assert
@@ -410,10 +434,11 @@ func TestWriteResponse(t *testing.T) {
 	verifyAll(t)
 }
 
-func TestOk(t *testing.T) {
+func TestWrite_Ok(t *testing.T) {
 	// arrange
 	var dummySessionID = uuid.New()
-	var dummyResponseContent = "some response content"
+	var dummyResponseObject = "some response content"
+	var dummyResponseError apperror.AppError
 	var dummyResponseWriter = &dummyResponseWriter{
 		t,
 		nil,
@@ -442,7 +467,7 @@ func TestOk(t *testing.T) {
 	createOkResponseFuncExpected = 1
 	createOkResponseFunc = func(responseContent interface{}) (string, int) {
 		createOkResponseFuncCalled++
-		assert.Equal(t, dummyResponseContent, responseContent)
+		assert.Equal(t, dummyResponseObject, responseContent)
 		return dummyResponseMessage, dummyStatusCode
 	}
 	loggerAPIResponseExpected = 1
@@ -466,26 +491,28 @@ func TestOk(t *testing.T) {
 		loggerAPIExitCalled++
 		assert.Equal(t, dummySessionID, sessionID)
 		assert.Equal(t, "response", category)
-		assert.Equal(t, "Ok", subcategory)
-		assert.Equal(t, "", messageFormat)
-		assert.Equal(t, 0, len(parameters))
+		assert.Equal(t, "Write", subcategory)
+		assert.Equal(t, "%v", messageFormat)
+		assert.Equal(t, 1, len(parameters))
+		assert.Equal(t, dummyStatusCode, parameters[0])
 	}
 
 	// SUT + act
-	Ok(
+	Write(
 		dummySessionID,
-		dummyResponseContent,
+		dummyResponseObject,
+		dummyResponseError,
 	)
 
 	// verify
 	verifyAll(t)
 }
 
-func TestError(t *testing.T) {
+func TestWrite_Error(t *testing.T) {
 	// arrange
 	var dummySessionID = uuid.New()
-	var dummyError = errors.New("some error")
-	var dummyAppError = apperror.GetGeneralFailureError(dummyError)
+	var dummyResponseObject = "some response content"
+	var dummyResponseError = apperror.GetGeneralFailureError(nil)
 	var dummyResponseWriter = &dummyResponseWriter{
 		t,
 		nil,
@@ -511,16 +538,10 @@ func TestError(t *testing.T) {
 		assert.Equal(t, dummySessionID, sessionID)
 		return dummyResponseWriter
 	}
-	getAppErrorFuncExpected = 1
-	getAppErrorFunc = func(err error) apperror.AppError {
-		getAppErrorFuncCalled++
-		assert.Equal(t, dummyError, err)
-		return dummyAppError
-	}
 	createErrorResponseFuncExpected = 1
 	createErrorResponseFunc = func(appError apperror.AppError) (string, int) {
 		createErrorResponseFuncCalled++
-		assert.Equal(t, dummyAppError, appError)
+		assert.Equal(t, dummyResponseError, appError)
 		return dummyResponseMessage, dummyStatusCode
 	}
 	loggerAPIResponseExpected = 1
@@ -544,17 +565,72 @@ func TestError(t *testing.T) {
 		loggerAPIExitCalled++
 		assert.Equal(t, dummySessionID, sessionID)
 		assert.Equal(t, "response", category)
-		assert.Equal(t, "Error", subcategory)
-		assert.Equal(t, "", messageFormat)
-		assert.Equal(t, 0, len(parameters))
+		assert.Equal(t, "Write", subcategory)
+		assert.Equal(t, "%v", messageFormat)
+		assert.Equal(t, 1, len(parameters))
+		assert.Equal(t, dummyStatusCode, parameters[0])
 	}
 
 	// SUT + act
-	Error(
+	Write(
 		dummySessionID,
-		dummyError,
+		dummyResponseObject,
+		dummyResponseError,
 	)
 
 	// verify
 	verifyAll(t)
+}
+
+func TestOverride(t *testing.T) {
+	// arrange
+	var dummySessionID = uuid.New()
+	var dummyHTTPRequest, _ = http.NewRequest(http.MethodGet, "http://localhost", nil)
+	var dummyResponseWriter = &dummyResponseWriter{
+		t,
+		nil,
+		nil,
+		nil,
+	}
+	var dummyCallbackExpected int
+	var dummyCallbackCalled int
+	var dummyCallback func(*http.Request, http.ResponseWriter)
+
+	// mock
+	createMock(t)
+
+	// expect
+	sessionGetRequestExpected = 1
+	sessionGetRequest = func(sessionID uuid.UUID) *http.Request {
+		sessionGetRequestCalled++
+		assert.Equal(t, dummySessionID, sessionID)
+		return dummyHTTPRequest
+	}
+	sessionGetResponseWriterExpected = 1
+	sessionGetResponseWriter = func(sessionID uuid.UUID) http.ResponseWriter {
+		sessionGetResponseWriterCalled++
+		assert.Equal(t, dummySessionID, sessionID)
+		return dummyResponseWriter
+	}
+	dummyCallbackExpected = 1
+	dummyCallback = func(httpRequest *http.Request, responseWriter http.ResponseWriter) {
+		dummyCallbackCalled++
+		assert.Equal(t, dummyHTTPRequest, httpRequest)
+		assert.Equal(t, dummyResponseWriter, responseWriter)
+	}
+	sessionClearResponseWriterExpected = 1
+	sessionClearResponseWriter = func(sessionID uuid.UUID) {
+		sessionClearResponseWriterCalled++
+		assert.Equal(t, dummySessionID, sessionID)
+	}
+
+	// SUT + act
+	Override(
+		dummySessionID,
+		dummyCallback,
+	)
+
+	// verify
+	verifyAll(t)
+	assert.Equal(t, dummyCallbackExpected, dummyCallbackCalled, "Unexpected number of calls to dummyCallback")
 }

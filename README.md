@@ -6,6 +6,7 @@ Original source: https://github.com/zhongjie-cai/WebServiceTemplate
 Library dependencies (must be present in vendor folder or in Go path):
 * [UUID](https://github.com/google/uuid): `go get github.com/google/uuid`
 * [MUX](https://github.com/gorilla/mux): `go get github.com/gorilla/mux`
+* [Cache](https://github.com/patrickmn/go-cache): `go get github.com/patrickmn/go-cache`
 
 A sample application is shown below:
 
@@ -29,31 +30,6 @@ import (
 
 // This is a sample of how to setup application for running the server
 func main() {
-	customization.Routes = func() []model.Route {
-		return []model.Route{
-			model.Route{
-				Endpoint:   "Health",
-				Method:     http.MethodGet,
-				Path:       "/health",
-				ActionFunc: health.GetHealth,
-			},
-			model.Route{
-				Endpoint:   "SwaggerRedirect",
-				Method:     http.MethodGet,
-				Path:       "/docs",
-				ActionFunc: swagger.Redirect,
-			},
-		}
-	}
-	customization.Statics = func() []model.Static {
-		return []model.Static{
-			model.Static{
-				Name:       "SwaggerUI",
-				PathPrefix: "/docs/",
-				Handler:    swagger.Handler(),
-			},
-		}
-	}
 	customization.AppName = func() string {
 		return appName
 	}
@@ -72,6 +48,31 @@ func main() {
 	customization.LoggingFunc = func(session *session.Session, logType logtype.LogType, category, subcategory, description string) {
 		fmt.Printf("<%v|%v> %v\n", category, subcategory, description)
 	}
+	customization.Statics = func() []model.Static {
+		return []model.Static{
+			model.Static{
+				Name:       "SwaggerUI",
+				PathPrefix: "/docs/",
+				Handler:    swagger.Handler(),
+			},
+		}
+	}
+	customization.Routes = func() []model.Route {
+		return []model.Route{
+			model.Route{
+				Endpoint:   "Health",
+				Method:     http.MethodGet,
+				Path:       "/health",
+				ActionFunc: health.GetHealth,
+			},
+			model.Route{
+				Endpoint:   "SwaggerRedirect",
+				Method:     http.MethodGet,
+				Path:       "/docs",
+				ActionFunc: swagger.Redirect,
+			},
+		}
+	}
 	application.Start()
 }
 ```
@@ -83,9 +84,8 @@ package health
 
 import (
 	"net/http"
-
 	"github.com/google/uuid"
-	"github.com/zhongjie-cai/WebServiceTemplate/response"
+	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
 )
 
 // GetHealth handles the HTTP request for getting health report
@@ -93,11 +93,8 @@ func GetHealth(
 	sessionID uuid.UUID,
 	requestBody string,
 	parameters map[string]string,
-) {
-	response.Ok(
-		sessionID,
-		"some version number",
-	)
+) (interface{}, apperror.AppError) {
+	return "some version number", nil
 }
 ```
 
@@ -108,10 +105,9 @@ package swagger
 
 import (
 	"net/http"
-
 	"github.com/google/uuid"
-	"github.com/zhongjie-cai/WebServiceTemplate/config"
-	"github.com/zhongjie-cai/WebServiceTemplate/session"
+	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
+	"github.com/zhongjie-cai/WebServiceTemplate/response"
 )
 
 // Redirect handles HTTP redirection for swagger UI requests
@@ -119,18 +115,20 @@ func Redirect(
 	sessionID uuid.UUID,
 	requestBody string,
 	parameters map[string]string,
-) {
-	var httpRequest = session.GetRequest(
+) (interface{}, apperror.AppError) {
+	response.Override(
 		sessionID,
-	)
-	var responseWriter = session.GetResponseWriter(
-		sessionID,
-	)
-	http.Redirect(
-		responseWriter,
-		httpRequest,
-		"/docs/",
-		http.StatusPermanentRedirect,
+		func(
+			httpRequest *http.Request,
+			responseWriter http.ResponseWriter,
+		) {
+			http.Redirect(
+				responseWriter,
+				httpRequest,
+				"/docs/",
+				http.StatusPermanentRedirect,
+			)
+		},
 	)
 }
 
@@ -140,7 +138,7 @@ func Handler() http.Handler {
 		"/docs/",
 		http.FileServer(
 			http.Dir(
-				config.AppPath()+"/docs",
+				"./docs",
 			),
 		),
 	)

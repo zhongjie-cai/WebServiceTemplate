@@ -13,6 +13,7 @@ import (
 	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger"
 	"github.com/zhongjie-cai/WebServiceTemplate/response"
+	"github.com/zhongjie-cai/WebServiceTemplate/server/model"
 )
 
 var (
@@ -32,8 +33,8 @@ var (
 	muxNewRouterCalled                      int
 	muxCurrentRouteExpected                 int
 	muxCurrentRouteCalled                   int
-	responseErrorExpected                   int
-	responseErrorCalled                     int
+	responseWriteExpected                   int
+	responseWriteCalled                     int
 	getNameFuncExpected                     int
 	getNameFuncCalled                       int
 	getPathTemplateFuncExpected             int
@@ -100,10 +101,10 @@ func createMock(t *testing.T) {
 		muxCurrentRouteCalled++
 		return nil
 	}
-	responseErrorExpected = 0
-	responseErrorCalled = 0
-	responseError = func(sessionID uuid.UUID, err error) {
-		responseErrorCalled++
+	responseWriteExpected = 0
+	responseWriteCalled = 0
+	responseWrite = func(sessionID uuid.UUID, responseObject interface{}, responseError apperror.AppError) {
+		responseWriteCalled++
 	}
 	getNameFuncExpected = 0
 	getNameFuncCalled = 0
@@ -143,7 +144,7 @@ func createMock(t *testing.T) {
 	}
 	getActionByNameFuncExpected = 0
 	getActionByNameFuncCalled = 0
-	getActionByNameFunc = func(name string) func(uuid.UUID, string, map[string]string) {
+	getActionByNameFunc = func(name string) model.ActionFunc {
 		getActionByNameFuncCalled++
 		return nil
 	}
@@ -172,8 +173,8 @@ func verifyAll(t *testing.T) {
 	assert.Equal(t, muxNewRouterExpected, muxNewRouterCalled, "Unexpected number of calls to muxNewRouter")
 	muxCurrentRoute = mux.CurrentRoute
 	assert.Equal(t, muxCurrentRouteExpected, muxCurrentRouteCalled, "Unexpected number of calls to muxCurrentRoute")
-	responseError = response.Error
-	assert.Equal(t, responseErrorExpected, responseErrorCalled, "Unexpected number of calls to responseError")
+	responseWrite = response.Write
+	assert.Equal(t, responseWriteExpected, responseWriteCalled, "Unexpected number of calls to responseWrite")
 	getPathTemplateFunc = getPathTemplate
 	assert.Equal(t, getPathTemplateFuncExpected, getPathTemplateFuncCalled, "Unexpected number of calls to getPathTemplateFunc")
 	getNameFunc = getName

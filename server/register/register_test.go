@@ -278,7 +278,7 @@ func TestRegisterRoutes_ValidRoutes(t *testing.T) {
 	var dummyParameters1 = map[string]model.ParameterType{
 		"foo1": model.ParameterType("bar1"),
 	}
-	var dummyActionFunc1 = func(uuid.UUID, string, map[string]string) {}
+	var dummyActionFunc1 = func(uuid.UUID, string, map[string]string) (interface{}, apperror.AppError) { return nil, nil }
 	var dummyActionFunc1Pointer = fmt.Sprintf("%v", reflect.ValueOf(dummyActionFunc1))
 	var dummyEndpoint2 = "some endpoint 2"
 	var dummyMethod2 = "some method 2"
@@ -286,7 +286,7 @@ func TestRegisterRoutes_ValidRoutes(t *testing.T) {
 	var dummyParameters2 = map[string]model.ParameterType{
 		"foo2": model.ParameterType("bar2"),
 	}
-	var dummyActionFunc2 = func(uuid.UUID, string, map[string]string) {}
+	var dummyActionFunc2 = func(uuid.UUID, string, map[string]string) (interface{}, apperror.AppError) { return nil, nil }
 	var dummyActionFunc2Pointer = fmt.Sprintf("%v", reflect.ValueOf(dummyActionFunc2))
 	var dummyRoutes = []model.Route{
 		model.Route{
@@ -330,7 +330,7 @@ func TestRegisterRoutes_ValidRoutes(t *testing.T) {
 		return ""
 	}
 	routeHandleFuncExpected = 2
-	routeHandleFunc = func(router *mux.Router, endpoint string, method string, path string, handlerFunc func(http.ResponseWriter, *http.Request), actionFunc func(uuid.UUID, string, map[string]string)) *mux.Route {
+	routeHandleFunc = func(router *mux.Router, endpoint string, method string, path string, handlerFunc func(http.ResponseWriter, *http.Request), actionFunc model.ActionFunc) *mux.Route {
 		routeHandleFuncCalled++
 		assert.Equal(t, dummyRouter, router)
 		assert.Equal(t, fmt.Sprintf("%v", reflect.ValueOf(handlerSession)), fmt.Sprintf("%v", reflect.ValueOf(handlerFunc)))

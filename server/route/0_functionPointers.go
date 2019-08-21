@@ -20,7 +20,7 @@ var (
 	loggerAppRoot                   = logger.AppRoot
 	muxNewRouter                    = mux.NewRouter
 	muxCurrentRoute                 = mux.CurrentRoute
-	responseError                   = response.Error
+	responseWrite                   = response.Write
 	getNameFunc                     = getName
 	getPathTemplateFunc             = getPathTemplate
 	getPathRegexpFunc               = getPathRegexp

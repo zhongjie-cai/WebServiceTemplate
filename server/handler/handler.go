@@ -44,9 +44,12 @@ func Session(
 			endpoint,
 			httpRequest.Method,
 		)
-		responseError(
+		responseWrite(
 			sessionID,
-			routeError,
+			nil,
+			apperrorGetInvalidOperation(
+				routeError,
+			),
 		)
 		loggerAPIExit(
 			sessionID,
@@ -68,10 +71,15 @@ func Session(
 		var parameters = muxVars(
 			httpRequest,
 		)
-		action(
+		var responseObject, responseError = action(
 			sessionID,
 			requestBody,
 			parameters,
+		)
+		responseWrite(
+			sessionID,
+			responseObject,
+			responseError,
 		)
 		loggerAPIExit(
 			sessionID,

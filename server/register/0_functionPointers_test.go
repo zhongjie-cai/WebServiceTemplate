@@ -6,8 +6,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/google/uuid"
-
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
 	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
@@ -66,7 +64,7 @@ func createMock(t *testing.T) {
 	}
 	routeHandleFuncExpected = 0
 	routeHandleFuncCalled = 0
-	routeHandleFunc = func(router *mux.Router, endpoint string, method string, path string, handlerFunc func(http.ResponseWriter, *http.Request), actionFunc func(uuid.UUID, string, map[string]string)) *mux.Route {
+	routeHandleFunc = func(router *mux.Router, endpoint string, method string, path string, handlerFunc func(http.ResponseWriter, *http.Request), actionFunc model.ActionFunc) *mux.Route {
 		routeHandleFuncCalled++
 		return nil
 	}

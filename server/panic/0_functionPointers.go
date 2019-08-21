@@ -13,7 +13,7 @@ var (
 	fmtErrorf                      = fmt.Errorf
 	getRecoverErrorFunc            = getRecoverError
 	loggerAppRoot                  = logger.AppRoot
-	responseError                  = response.Error
+	responseWrite                  = response.Write
 	apperrorGetGeneralFailureError = apperror.GetGeneralFailureError
 	getDebugStackFunc              = getDebugStack
 )

@@ -16,9 +16,10 @@ var (
 	apperrorGetGeneralFailureError = apperror.GetGeneralFailureError
 	loggerAPIResponse              = logger.APIResponse
 	loggerAPIExit                  = logger.APIExit
+	sessionGetRequest              = session.GetRequest
 	sessionGetResponseWriter       = session.GetResponseWriter
+	sessionClearResponseWriter     = session.ClearResponseWriter
 	getStatusCodeFunc              = getStatusCode
-	getAppErrorFunc                = getAppError
 	writeResponseFunc              = writeResponse
 	generateErrorResponseFunc      = generateErrorResponse
 	createOkResponseFunc           = createOkResponse

@@ -20,14 +20,6 @@ type errorResponseModel struct {
 	Messages []string `json:"messages"`
 }
 
-func getAppError(err error) apperror.AppError {
-	var appError, isAppError = err.(apperror.AppError)
-	if !isAppError {
-		appError = apperrorGetGeneralFailureError(err)
-	}
-	return appError
-}
-
 func getStatusCode(appError apperror.AppError) int {
 	var statusCode int
 	switch appError.Code() {
@@ -38,9 +30,15 @@ func getStatusCode(appError apperror.AppError) int {
 	case apperror.CodeBadRequest:
 		statusCode = http.StatusBadRequest
 	case apperror.CodeCircuitBreak:
-		statusCode = http.StatusBadRequest
+		statusCode = http.StatusForbidden
 	case apperror.CodeOperationLock:
-		statusCode = http.StatusBadRequest
+		statusCode = http.StatusLocked
+	case apperror.CodeAccessForbidden:
+		statusCode = http.StatusForbidden
+	case apperror.CodeDataCorruption:
+		statusCode = http.StatusConflict
+	case apperror.CodeNotImplemented:
+		statusCode = http.StatusNotImplemented
 	default:
 		statusCode = http.StatusInternalServerError
 	}
@@ -92,17 +90,26 @@ func writeResponse(
 	responseWriter.Write([]byte(responseMessage))
 }
 
-// Ok responds to the consumer with HTTP-2xx status code and status message
-func Ok(
+// Write responds to the consumer with corresponding HTTP status code and response body
+func Write(
 	sessionID uuid.UUID,
-	responseContent interface{},
+	responseObject interface{},
+	responseError apperror.AppError,
 ) {
 	var responseWriter = sessionGetResponseWriter(
 		sessionID,
 	)
-	var responseMessage, statusCode = createOkResponseFunc(
-		responseContent,
-	)
+	var responseMessage string
+	var statusCode int
+	if responseError != nil {
+		responseMessage, statusCode = createErrorResponseFunc(
+			responseError,
+		)
+	} else {
+		responseMessage, statusCode = createOkResponseFunc(
+			responseObject,
+		)
+	}
 	loggerAPIResponse(
 		sessionID,
 		"response",
@@ -117,40 +124,28 @@ func Ok(
 	loggerAPIExit(
 		sessionID,
 		"response",
-		"Ok",
-		"",
+		"Write",
+		"%v",
+		statusCode,
 	)
 }
 
-// Error responds to the consumer with HTTP-4xx or HTTP-5xx status code and status message
-func Error(
+// Override overrides the default response.Write functionality by the given callback function; consumers must manually deal with response writer accordingly
+func Override(
 	sessionID uuid.UUID,
-	err error,
+	callback func(*http.Request, http.ResponseWriter),
 ) {
+	var httpRequest = sessionGetRequest(
+		sessionID,
+	)
 	var responseWriter = sessionGetResponseWriter(
 		sessionID,
 	)
-	var appError = getAppErrorFunc(
-		err,
-	)
-	var responseMessage, statusCode = createErrorResponseFunc(
-		appError,
-	)
-	loggerAPIResponse(
-		sessionID,
-		"response",
-		strconvItoa(statusCode),
-		responseMessage,
-	)
-	writeResponseFunc(
+	callback(
+		httpRequest,
 		responseWriter,
-		statusCode,
-		responseMessage,
 	)
-	loggerAPIExit(
+	sessionClearResponseWriter(
 		sessionID,
-		"response",
-		"Error",
-		"",
 	)
 }

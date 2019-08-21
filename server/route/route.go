@@ -3,11 +3,14 @@ package route
 import (
 	"net/http"
 
+	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
+	"github.com/zhongjie-cai/WebServiceTemplate/server/model"
+
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 )
 
-var registeredRouteActionFuncs map[string]func(uuid.UUID, string, map[string]string)
+var registeredRouteActionFuncs map[string]model.ActionFunc
 
 func getName(route *mux.Route) string {
 	return route.GetName()
@@ -90,7 +93,7 @@ func WalkRegisteredRoutes(router *mux.Router) error {
 
 // CreateRouter initializes a router for route registrations
 func CreateRouter() *mux.Router {
-	registeredRouteActionFuncs = map[string]func(uuid.UUID, string, map[string]string){}
+	registeredRouteActionFuncs = map[string]model.ActionFunc{}
 	return muxNewRouter()
 }
 
@@ -101,7 +104,7 @@ func HandleFunc(
 	method string,
 	path string,
 	handleFunc func(http.ResponseWriter, *http.Request),
-	actionFunc func(uuid.UUID, string, map[string]string),
+	actionFunc model.ActionFunc,
 ) *mux.Route {
 	var name = method + ":" + endpoint
 	var route = router.HandleFunc(
@@ -132,14 +135,11 @@ func HostStatic(
 	)
 }
 
-func defaultActionFunc(sessionID uuid.UUID, requestBody string, parameters map[string]string) {
-	responseError(
-		sessionID,
-		apperrorGetNotImplementedError(nil),
-	)
+func defaultActionFunc(sessionID uuid.UUID, requestBody string, parameters map[string]string) (interface{}, apperror.AppError) {
+	return nil, apperrorGetNotImplementedError(nil)
 }
 
-func getActionByName(name string) func(uuid.UUID, string, map[string]string) {
+func getActionByName(name string) model.ActionFunc {
 	var actionFunc, found = registeredRouteActionFuncs[name]
 	if !found {
 		return defaultActionFunc
@@ -148,7 +148,7 @@ func getActionByName(name string) func(uuid.UUID, string, map[string]string) {
 }
 
 // GetRouteInfo retrieves the registered name and action for the given route
-func GetRouteInfo(httpRequest *http.Request) (string, func(uuid.UUID, string, map[string]string), error) {
+func GetRouteInfo(httpRequest *http.Request) (string, model.ActionFunc, error) {
 	var route = muxCurrentRoute(httpRequest)
 	if route == nil {
 		return "",

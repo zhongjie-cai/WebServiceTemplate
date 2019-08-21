@@ -8,40 +8,44 @@ import (
 	"github.com/gorilla/mux"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger/logtype"
 	"github.com/zhongjie-cai/WebServiceTemplate/request"
 	"github.com/zhongjie-cai/WebServiceTemplate/response"
+	"github.com/zhongjie-cai/WebServiceTemplate/server/model"
 	"github.com/zhongjie-cai/WebServiceTemplate/server/panic"
 	"github.com/zhongjie-cai/WebServiceTemplate/server/route"
 	"github.com/zhongjie-cai/WebServiceTemplate/session"
 )
 
 var (
-	muxVarsExpected                  int
-	muxVarsCalled                    int
-	routeGetRouteInfoExpected        int
-	routeGetRouteInfoCalled          int
-	sessionRegisterExpected          int
-	sessionRegisterCalled            int
-	sessionUnregisterExpected        int
-	sessionUnregisterCalled          int
-	panicHandleExpected              int
-	panicHandleCalled                int
-	requestGetLoginIDExpected        int
-	requestGetLoginIDCalled          int
-	requestGetCorrelationIDExpected  int
-	requestGetCorrelationIDCalled    int
-	requestGetAllowedLogTypeExpected int
-	requestGetAllowedLogTypeCalled   int
-	requestGetRequestBodyExpected    int
-	requestGetRequestBodyCalled      int
-	responseErrorExpected            int
-	responseErrorCalled              int
-	loggerAPIEnterExpected           int
-	loggerAPIEnterCalled             int
-	loggerAPIExitExpected            int
-	loggerAPIExitCalled              int
+	muxVarsExpected                     int
+	muxVarsCalled                       int
+	routeGetRouteInfoExpected           int
+	routeGetRouteInfoCalled             int
+	sessionRegisterExpected             int
+	sessionRegisterCalled               int
+	sessionUnregisterExpected           int
+	sessionUnregisterCalled             int
+	panicHandleExpected                 int
+	panicHandleCalled                   int
+	requestGetLoginIDExpected           int
+	requestGetLoginIDCalled             int
+	requestGetCorrelationIDExpected     int
+	requestGetCorrelationIDCalled       int
+	requestGetAllowedLogTypeExpected    int
+	requestGetAllowedLogTypeCalled      int
+	requestGetRequestBodyExpected       int
+	requestGetRequestBodyCalled         int
+	responseWriteExpected               int
+	responseWriteCalled                 int
+	loggerAPIEnterExpected              int
+	loggerAPIEnterCalled                int
+	loggerAPIExitExpected               int
+	loggerAPIExitCalled                 int
+	apperrorGetInvalidOperationExpected int
+	apperrorGetInvalidOperationCalled   int
 )
 
 func createMock(t *testing.T) {
@@ -53,7 +57,7 @@ func createMock(t *testing.T) {
 	}
 	routeGetRouteInfoExpected = 0
 	routeGetRouteInfoCalled = 0
-	routeGetRouteInfo = func(httpRequest *http.Request) (string, func(uuid.UUID, string, map[string]string), error) {
+	routeGetRouteInfo = func(httpRequest *http.Request) (string, model.ActionFunc, error) {
 		routeGetRouteInfoCalled++
 		return "", nil, nil
 	}
@@ -97,10 +101,10 @@ func createMock(t *testing.T) {
 		requestGetRequestBodyCalled++
 		return ""
 	}
-	responseErrorExpected = 0
-	responseErrorCalled = 0
-	responseError = func(sessionID uuid.UUID, err error) {
-		responseErrorCalled++
+	responseWriteExpected = 0
+	responseWriteCalled = 0
+	responseWrite = func(sessionID uuid.UUID, responseObject interface{}, responseError apperror.AppError) {
+		responseWriteCalled++
 	}
 	loggerAPIEnterExpected = 0
 	loggerAPIEnterCalled = 0
@@ -111,6 +115,12 @@ func createMock(t *testing.T) {
 	loggerAPIExitCalled = 0
 	loggerAPIExit = func(sessionID uuid.UUID, category string, subcategory string, messageFormat string, parameters ...interface{}) {
 		loggerAPIExitCalled++
+	}
+	apperrorGetInvalidOperationExpected = 0
+	apperrorGetInvalidOperationCalled = 0
+	apperrorGetInvalidOperation = func(innerError error) apperror.AppError {
+		apperrorGetInvalidOperationCalled++
+		return nil
 	}
 }
 
@@ -133,12 +143,14 @@ func verifyAll(t *testing.T) {
 	assert.Equal(t, requestGetAllowedLogTypeExpected, requestGetAllowedLogTypeCalled, "Unexpected number of calls to requestGetAllowedLogType")
 	requestGetRequestBody = request.GetRequestBody
 	assert.Equal(t, requestGetRequestBodyExpected, requestGetRequestBodyCalled, "Unexpected number of calls to requestGetRequestBody")
-	responseError = response.Error
-	assert.Equal(t, responseErrorExpected, responseErrorCalled, "Unexpected number of calls to responseError")
+	responseWrite = response.Write
+	assert.Equal(t, responseWriteExpected, responseWriteCalled, "Unexpected number of calls to responseWrite")
 	loggerAPIEnter = logger.APIEnter
 	assert.Equal(t, loggerAPIEnterExpected, loggerAPIEnterCalled, "Unexpected number of calls to loggerAPIEnter")
 	loggerAPIExit = logger.APIExit
 	assert.Equal(t, loggerAPIExitExpected, loggerAPIExitCalled, "Unexpected number of calls to loggerAPIExit")
+	apperrorGetInvalidOperation = apperror.GetInvalidOperation
+	assert.Equal(t, apperrorGetInvalidOperationExpected, apperrorGetInvalidOperationCalled, "Unexpected number of calls to apperrorGetInvalidOperation")
 }
 
 // mock structs
