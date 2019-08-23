@@ -17,13 +17,13 @@ package main
 import (
 	"fmt"
 	"net/http"
-
+	"github.com/google/uuid"
+	
+	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
 	"github.com/zhongjie-cai/WebServiceTemplate/application"
 	"github.com/zhongjie-cai/WebServiceTemplate/customization"
-	"github.com/zhongjie-cai/WebServiceTemplate/handler/favicon"
-	"github.com/zhongjie-cai/WebServiceTemplate/handler/health"
-	"github.com/zhongjie-cai/WebServiceTemplate/handler/swagger"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger/logtype"
+	"github.com/zhongjie-cai/WebServiceTemplate/response"
 	"github.com/zhongjie-cai/WebServiceTemplate/server/model"
 	"github.com/zhongjie-cai/WebServiceTemplate/session"
 )
@@ -31,19 +31,13 @@ import (
 // This is a sample of how to setup application for running the server
 func main() {
 	customization.AppName = func() string {
-		return appName
+		return "WebServiceTemplate"
 	}
 	customization.AppPort = func() string {
-		return appPort
+		return "18605"
 	}
 	customization.AppVersion = func() string {
-		return appVersion
-	}
-	customization.AppPath = func() string {
-		return appPath
-	}
-	customization.IsLocalhost = func() bool {
-		return true
+		return "0.1.0"
 	}
 	customization.LoggingFunc = func(session *session.Session, logType logtype.LogType, category, subcategory, description string) {
 		fmt.Printf("<%v|%v> %v\n", category, subcategory, description)
@@ -53,7 +47,7 @@ func main() {
 			model.Static{
 				Name:       "SwaggerUI",
 				PathPrefix: "/docs/",
-				Handler:    swagger.Handler(),
+				Handler:    swaggerHandler(),
 			},
 		}
 	}
@@ -63,55 +57,30 @@ func main() {
 				Endpoint:   "Health",
 				Method:     http.MethodGet,
 				Path:       "/health",
-				ActionFunc: health.GetHealth,
+				ActionFunc: getHealth,
 			},
 			model.Route{
 				Endpoint:   "SwaggerRedirect",
 				Method:     http.MethodGet,
 				Path:       "/docs",
-				ActionFunc: swagger.Redirect,
+				ActionFunc: swaggerRedirect,
 			},
 		}
 	}
 	application.Start()
 }
-```
 
-# handler/health/health.go
-
-```golang
-package health
-
-import (
-	"net/http"
-	"github.com/google/uuid"
-	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
-)
-
-// GetHealth handles the HTTP request for getting health report
-func GetHealth(
+// getHealth is an example of how a normal HTTP handling method is written with this template library
+func getHealth(
 	sessionID uuid.UUID,
 	requestBody string,
 	parameters map[string]string,
 ) (interface{}, apperror.AppError) {
 	return "some version number", nil
 }
-```
 
-# handler/swagger/swagger.go
-
-```golang
-package swagger
-
-import (
-	"net/http"
-	"github.com/google/uuid"
-	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
-	"github.com/zhongjie-cai/WebServiceTemplate/response"
-)
-
-// Redirect handles HTTP redirection for swagger UI requests
-func Redirect(
+// swaggerRedirect is an example of how a special HTTP handling method, which overrides the default library behavior, is written with this template library
+func swaggerRedirect(
 	sessionID uuid.UUID,
 	requestBody string,
 	parameters map[string]string,
@@ -132,8 +101,8 @@ func Redirect(
 	)
 }
 
-// Handler handles the hosting of the swagger UI static content
-func Handler() http.Handler {
+// swaggerHandler is an example of how a normal HTTP static content hosting is written with this template library
+func swaggerHandler() http.Handler {
 	return http.StripPrefix(
 		"/docs/",
 		http.FileServer(
