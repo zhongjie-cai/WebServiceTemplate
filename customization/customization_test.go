@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger/logtype"
 	"github.com/zhongjie-cai/WebServiceTemplate/server/model"
 	"github.com/zhongjie-cai/WebServiceTemplate/session"
@@ -25,6 +26,7 @@ func TestReset(t *testing.T) {
 	ServerKeyContent = func() string { return "" }
 	ValidateClientCert = func() bool { return false }
 	CaCertContent = func() string { return "" }
+	CreateErrorResponseFunc = func(appError apperror.AppError) (responseMessage string, statusCode int) { return "", 0 }
 	Routes = func() []model.Route { return nil }
 	Statics = func() []model.Static { return nil }
 
@@ -49,6 +51,7 @@ func TestReset(t *testing.T) {
 	assert.Nil(t, ServerKeyContent)
 	assert.Nil(t, ValidateClientCert)
 	assert.Nil(t, CaCertContent)
+	assert.Nil(t, CreateErrorResponseFunc)
 	assert.Nil(t, Routes)
 	assert.Nil(t, Statics)
 

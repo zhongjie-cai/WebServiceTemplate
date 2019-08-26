@@ -5,6 +5,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
+	"github.com/zhongjie-cai/WebServiceTemplate/customization"
 )
 
 // These are the constants used by the HTTP modules
@@ -102,9 +103,15 @@ func Write(
 	var responseMessage string
 	var statusCode int
 	if responseError != nil {
-		responseMessage, statusCode = createErrorResponseFunc(
-			responseError,
-		)
+		if customization.CreateErrorResponseFunc != nil {
+			responseMessage, statusCode = customization.CreateErrorResponseFunc(
+				responseError,
+			)
+		} else {
+			responseMessage, statusCode = createErrorResponseFunc(
+				responseError,
+			)
+		}
 	} else {
 		responseMessage, statusCode = createOkResponseFunc(
 			responseObject,

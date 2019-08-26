@@ -8,38 +8,41 @@ import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
+	"github.com/zhongjie-cai/WebServiceTemplate/customization"
 	"github.com/zhongjie-cai/WebServiceTemplate/jsonutil"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger"
 	"github.com/zhongjie-cai/WebServiceTemplate/session"
 )
 
 var (
-	strconvItoaExpected                    int
-	strconvItoaCalled                      int
-	jsonutilMarshalIgnoreErrorExpected     int
-	jsonutilMarshalIgnoreErrorCalled       int
-	apperrorGetGeneralFailureErrorExpected int
-	apperrorGetGeneralFailureErrorCalled   int
-	loggerAPIResponseExpected              int
-	loggerAPIResponseCalled                int
-	loggerAPIExitExpected                  int
-	loggerAPIExitCalled                    int
-	sessionGetRequestExpected              int
-	sessionGetRequestCalled                int
-	sessionGetResponseWriterExpected       int
-	sessionGetResponseWriterCalled         int
-	sessionClearResponseWriterExpected     int
-	sessionClearResponseWriterCalled       int
-	getStatusCodeFuncExpected              int
-	getStatusCodeFuncCalled                int
-	writeResponseFuncExpected              int
-	writeResponseFuncCalled                int
-	generateErrorResponseFuncExpected      int
-	generateErrorResponseFuncCalled        int
-	createOkResponseFuncExpected           int
-	createOkResponseFuncCalled             int
-	createErrorResponseFuncExpected        int
-	createErrorResponseFuncCalled          int
+	strconvItoaExpected                          int
+	strconvItoaCalled                            int
+	jsonutilMarshalIgnoreErrorExpected           int
+	jsonutilMarshalIgnoreErrorCalled             int
+	apperrorGetGeneralFailureErrorExpected       int
+	apperrorGetGeneralFailureErrorCalled         int
+	loggerAPIResponseExpected                    int
+	loggerAPIResponseCalled                      int
+	loggerAPIExitExpected                        int
+	loggerAPIExitCalled                          int
+	sessionGetRequestExpected                    int
+	sessionGetRequestCalled                      int
+	sessionGetResponseWriterExpected             int
+	sessionGetResponseWriterCalled               int
+	sessionClearResponseWriterExpected           int
+	sessionClearResponseWriterCalled             int
+	getStatusCodeFuncExpected                    int
+	getStatusCodeFuncCalled                      int
+	writeResponseFuncExpected                    int
+	writeResponseFuncCalled                      int
+	generateErrorResponseFuncExpected            int
+	generateErrorResponseFuncCalled              int
+	createOkResponseFuncExpected                 int
+	createOkResponseFuncCalled                   int
+	createErrorResponseFuncExpected              int
+	createErrorResponseFuncCalled                int
+	customizationCreateErrorResponseFuncExpected int
+	customizationCreateErrorResponseFuncCalled   int
 )
 
 func createMock(t *testing.T) {
@@ -117,6 +120,9 @@ func createMock(t *testing.T) {
 		createErrorResponseFuncCalled++
 		return "", 0
 	}
+	customizationCreateErrorResponseFuncExpected = 0
+	customizationCreateErrorResponseFuncCalled = 0
+	customization.CreateErrorResponseFunc = nil
 }
 
 func verifyAll(t *testing.T) {
@@ -146,6 +152,8 @@ func verifyAll(t *testing.T) {
 	assert.Equal(t, createOkResponseFuncExpected, createOkResponseFuncCalled, "Unexpected number of calls to createOkResponseFunc")
 	createErrorResponseFunc = createErrorResponse
 	assert.Equal(t, createErrorResponseFuncExpected, createErrorResponseFuncCalled, "Unexpected number of calls to createErrorResponseFunc")
+	customization.CreateErrorResponseFunc = nil
+	assert.Equal(t, customizationCreateErrorResponseFuncExpected, customizationCreateErrorResponseFuncCalled, "Unexpected number of calls to customization.CreateErrorResponseFunc")
 }
 
 // mock structs

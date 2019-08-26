@@ -11,6 +11,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
+	"github.com/zhongjie-cai/WebServiceTemplate/customization"
 )
 
 func TestGetStatusCode_GeneralFailure(t *testing.T) {
@@ -508,7 +509,81 @@ func TestWrite_Ok(t *testing.T) {
 	verifyAll(t)
 }
 
-func TestWrite_Error(t *testing.T) {
+func TestWrite_Error_WithCustomization(t *testing.T) {
+	// arrange
+	var dummySessionID = uuid.New()
+	var dummyResponseObject = "some response content"
+	var dummyResponseError = apperror.GetGeneralFailureError(nil)
+	var dummyResponseWriter = &dummyResponseWriter{
+		t,
+		nil,
+		nil,
+		nil,
+	}
+	var dummyResponseMessage = "some response message"
+	var dummyStatusCode = rand.Int()
+	var dummyStatusCodeString = strconv.Itoa(dummyStatusCode)
+
+	// mock
+	createMock(t)
+
+	// expect
+	strconvItoaExpected = 1
+	strconvItoa = func(i int) string {
+		strconvItoaCalled++
+		return strconv.Itoa(i)
+	}
+	sessionGetResponseWriterExpected = 1
+	sessionGetResponseWriter = func(sessionID uuid.UUID) http.ResponseWriter {
+		sessionGetResponseWriterCalled++
+		assert.Equal(t, dummySessionID, sessionID)
+		return dummyResponseWriter
+	}
+	customizationCreateErrorResponseFuncExpected = 1
+	customization.CreateErrorResponseFunc = func(appError apperror.AppError) (string, int) {
+		customizationCreateErrorResponseFuncCalled++
+		assert.Equal(t, dummyResponseError, appError)
+		return dummyResponseMessage, dummyStatusCode
+	}
+	loggerAPIResponseExpected = 1
+	loggerAPIResponse = func(sessionID uuid.UUID, category string, subcategory string, messageFormat string, parameters ...interface{}) {
+		loggerAPIResponseCalled++
+		assert.Equal(t, dummySessionID, sessionID)
+		assert.Equal(t, "response", category)
+		assert.Equal(t, dummyStatusCodeString, subcategory)
+		assert.Equal(t, dummyResponseMessage, messageFormat)
+		assert.Equal(t, 0, len(parameters))
+	}
+	writeResponseFuncExpected = 1
+	writeResponseFunc = func(responseWriter http.ResponseWriter, statusCode int, responseMessage string) {
+		writeResponseFuncCalled++
+		assert.Equal(t, dummyResponseWriter, responseWriter)
+		assert.Equal(t, dummyStatusCode, statusCode)
+		assert.Equal(t, dummyResponseMessage, responseMessage)
+	}
+	loggerAPIExitExpected = 1
+	loggerAPIExit = func(sessionID uuid.UUID, category string, subcategory string, messageFormat string, parameters ...interface{}) {
+		loggerAPIExitCalled++
+		assert.Equal(t, dummySessionID, sessionID)
+		assert.Equal(t, "response", category)
+		assert.Equal(t, "Write", subcategory)
+		assert.Equal(t, "%v", messageFormat)
+		assert.Equal(t, 1, len(parameters))
+		assert.Equal(t, dummyStatusCode, parameters[0])
+	}
+
+	// SUT + act
+	Write(
+		dummySessionID,
+		dummyResponseObject,
+		dummyResponseError,
+	)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestWrite_Error_NoCustomization(t *testing.T) {
 	// arrange
 	var dummySessionID = uuid.New()
 	var dummyResponseObject = "some response content"
