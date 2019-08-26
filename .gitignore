@@ -16,3 +16,6 @@ bin
 
 # Test coverage folder
 coverage
+
+# VSCode settings folder
+.vscode

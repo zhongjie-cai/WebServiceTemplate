@@ -1,5 +1,12 @@
 #!/bin/sh
+
+# -e  causes Exit immediately when a command exits with a non-zero status.
+# When a test fails in Go, it returns a non-zero status and causes the 
+# build pipeline to fail and exit when unit tests fails.
 set -e
+
+# Install dependency libraries
+./init/dependency.sh
 
 # These values are coming from script parameters
 AppVersion=${1:-0.0.0}

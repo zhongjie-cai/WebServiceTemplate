@@ -5,6 +5,9 @@
 # build pipeline to fail and exit when unit tests fails.
 set -e
 
+# Install dependency libraries
+./init/dependency.sh
+
 # Go Test all packages found within the main directory and subdirectories
 # The pipe is required to reverse the order of the comamnd, so that tee does not swallow the exit code
 
