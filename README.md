@@ -4,9 +4,10 @@ This project (for Golang) is provided as a template for quickly create any Golan
 Original source: https://github.com/zhongjie-cai/WebServiceTemplate
 
 Library dependencies (must be present in vendor folder or in Go path):
-* [UUID](https://github.com/google/uuid): `go get github.com/google/uuid`
-* [MUX](https://github.com/gorilla/mux): `go get github.com/gorilla/mux`
-* [Cache](https://github.com/patrickmn/go-cache): `go get github.com/patrickmn/go-cache`
+* [UUID](https://github.com/google/uuid): `go get -u github.com/google/uuid`
+* [MUX](https://github.com/gorilla/mux): `go get -u github.com/gorilla/mux`
+* [Cache](https://github.com/patrickmn/go-cache): `go get -u github.com/patrickmn/go-cache`
+* [Testify](https://github.com/stretchr/testify): `go get -u github.com/stretchr/testify` (For tests only)
 
 A sample application is shown below:
 
