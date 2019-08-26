@@ -1,6 +1,7 @@
 package request
 
 import (
+	"bytes"
 	"crypto/tls"
 	"crypto/x509"
 	"errors"
@@ -503,6 +504,8 @@ func TestGetRequestBody_Success(t *testing.T) {
 		strings.NewReader(bodyContent),
 	)
 	var dummySessionID = uuid.New()
+	var dummyBuffer = &bytes.Buffer{}
+	var dummyReadCloser = ioutil.NopCloser(nil)
 
 	// mock
 	createMock(t)
@@ -512,6 +515,18 @@ func TestGetRequestBody_Success(t *testing.T) {
 	ioutilReadAll = func(r io.Reader) ([]byte, error) {
 		ioutilReadAllCalled++
 		return ioutil.ReadAll(r)
+	}
+	bytesNewBufferExpected = 1
+	bytesNewBuffer = func(buf []byte) *bytes.Buffer {
+		bytesNewBufferCalled++
+		assert.Equal(t, []byte(bodyContent), buf)
+		return dummyBuffer
+	}
+	ioutilNopCloserExpected = 1
+	ioutilNopCloser = func(r io.Reader) io.ReadCloser {
+		ioutilNopCloserCalled++
+		assert.Equal(t, dummyBuffer, r)
+		return dummyReadCloser
 	}
 	loggerAPIRequestExpected = 1
 	loggerAPIRequest = func(sessionID uuid.UUID, category string, subcategory string, messageFormat string, parameters ...interface{}) {
@@ -531,6 +546,7 @@ func TestGetRequestBody_Success(t *testing.T) {
 
 	// assert
 	assert.Equal(t, bodyContent, result)
+	assert.Equal(t, dummyReadCloser, dummyHTTPRequest.Body)
 
 	// verify
 	verifyAll(t)

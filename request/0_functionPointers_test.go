@@ -1,6 +1,7 @@
 package request
 
 import (
+	"bytes"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -24,6 +25,10 @@ var (
 	apperrorWrapSimpleErrorCalled   int
 	ioutilReadAllExpected           int
 	ioutilReadAllCalled             int
+	ioutilNopCloserExpected         int
+	ioutilNopCloserCalled           int
+	bytesNewBufferExpected          int
+	bytesNewBufferCalled            int
 	loggerAPIRequestExpected        int
 	loggerAPIRequestCalled          int
 	getUUIDFromHeaderFuncExpected   int
@@ -61,6 +66,18 @@ func createMock(t *testing.T) {
 		ioutilReadAllCalled++
 		return nil, nil
 	}
+	ioutilNopCloserExpected = 0
+	ioutilNopCloserCalled = 0
+	ioutilNopCloser = func(r io.Reader) io.ReadCloser {
+		ioutilNopCloserCalled++
+		return nil
+	}
+	bytesNewBufferExpected = 0
+	bytesNewBufferCalled = 0
+	bytesNewBuffer = func(buf []byte) *bytes.Buffer {
+		bytesNewBufferCalled++
+		return nil
+	}
 	loggerAPIRequestExpected = 0
 	loggerAPIRequestCalled = 0
 	loggerAPIRequest = func(sessionID uuid.UUID, category string, subcategory string, messageFormat string, parameters ...interface{}) {
@@ -85,6 +102,10 @@ func verifyAll(t *testing.T) {
 	assert.Equal(t, apperrorWrapSimpleErrorExpected, apperrorWrapSimpleErrorCalled, "Unexpected number of calls to apperrorWrapSimpleError")
 	ioutilReadAll = ioutil.ReadAll
 	assert.Equal(t, ioutilReadAllExpected, ioutilReadAllCalled, "Unexpected number of calls to ioutilReadAll")
+	ioutilNopCloser = ioutil.NopCloser
+	assert.Equal(t, ioutilNopCloserExpected, ioutilNopCloserCalled, "Unexpected number of calls to ioutilNopCloser")
+	bytesNewBuffer = bytes.NewBuffer
+	assert.Equal(t, bytesNewBufferExpected, bytesNewBufferCalled, "Unexpected number of calls to bytesNewBuffer")
 	loggerAPIRequest = logger.APIRequest
 	assert.Equal(t, loggerAPIRequestExpected, loggerAPIRequestCalled, "Unexpected number of calls to loggerAPIRequest")
 	getUUIDFromHeaderFunc = getUUIDFromHeader

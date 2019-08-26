@@ -1,6 +1,7 @@
 package request
 
 import (
+	"bytes"
 	"io/ioutil"
 
 	"github.com/google/uuid"
@@ -16,6 +17,8 @@ var (
 	logtypeFromString       = logtype.FromString
 	apperrorWrapSimpleError = apperror.WrapSimpleError
 	ioutilReadAll           = ioutil.ReadAll
+	ioutilNopCloser         = ioutil.NopCloser
+	bytesNewBuffer          = bytes.NewBuffer
 	loggerAPIRequest        = logger.APIRequest
 	getUUIDFromHeaderFunc   = getUUIDFromHeader
 )

@@ -86,6 +86,11 @@ func GetRequestBody(
 			)
 			return ""
 		}
+		httpRequest.Body = ioutilNopCloser(
+			bytesNewBuffer(
+				bodyBytes,
+			),
+		)
 	}
 	var bodyContent = string(bodyBytes)
 	loggerAPIRequest(
