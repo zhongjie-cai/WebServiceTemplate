@@ -1,6 +1,7 @@
 package customization
 
 import (
+	"github.com/gorilla/mux"
 	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger/logtype"
 	"github.com/zhongjie-cai/WebServiceTemplate/server/model"
@@ -58,6 +59,9 @@ var Routes func() []model.Route
 // Statics is to customize the static contents registration
 var Statics func() []model.Static
 
+// Middlewares is to customize the middlewares registration
+var Middlewares func() []mux.MiddlewareFunc
+
 // Reset clears all customization of functions for the whole application
 func Reset() {
 	PreBootstrapFunc = nil
@@ -77,4 +81,5 @@ func Reset() {
 	CreateErrorResponseFunc = nil
 	Routes = nil
 	Statics = nil
+	Middlewares = nil
 }

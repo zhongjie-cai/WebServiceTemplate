@@ -57,6 +57,35 @@ func evaluatePathWithParameters(
 	return updatedPath
 }
 
+func evaluateQueries(
+	queries map[string]model.ParameterType,
+	parameterReplacementsMap map[model.ParameterType]string,
+) []string {
+	var evaluatedQueries = []string{}
+	for key, value := range queries {
+		var queryParameter string
+		var replacementValue, foundReplacement = parameterReplacementsMap[value]
+		if !foundReplacement || replacementValue == "" {
+			queryParameter = fmtSprintf(
+				"{%v}",
+				key,
+			)
+		} else {
+			queryParameter = fmtSprintf(
+				"{%v:%v}",
+				key,
+				replacementValue,
+			)
+		}
+		evaluatedQueries = append(
+			evaluatedQueries,
+			key,
+			queryParameter,
+		)
+	}
+	return evaluatedQueries
+}
+
 func registerRoutes(
 	router *mux.Router,
 ) {
@@ -84,11 +113,16 @@ func registerRoutes(
 			configuredRoute.Parameters,
 			model.ParameterTypeMap,
 		)
+		var queries = evaluateQueriesFunc(
+			configuredRoute.Queries,
+			model.ParameterTypeMap,
+		)
 		routeHandleFunc(
 			router,
 			configuredRoute.Endpoint,
 			configuredRoute.Method,
 			evaluatedPath,
+			queries,
 			handlerSession,
 			configuredRoute.ActionFunc,
 		)
@@ -126,6 +160,35 @@ func registerStatics(
 	}
 }
 
+func registerMiddlewares(
+	router *mux.Router,
+) {
+	if customization.Middlewares == nil {
+		loggerAppRoot(
+			"register",
+			"registerMiddlewares",
+			"customization.Middlewares function not set: no middleware registered!",
+		)
+		return
+	}
+	var middlewares = customization.Middlewares()
+	if middlewares == nil ||
+		len(middlewares) == 0 {
+		loggerAppRoot(
+			"register",
+			"registerMiddlewares",
+			"customization.Middlewares function empty: no middleware returned!",
+		)
+		return
+	}
+	for _, middleware := range middlewares {
+		routeAddMiddleware(
+			router,
+			middleware,
+		)
+	}
+}
+
 // Instantiate instantiates and registers the given routes according to custom specification
 func Instantiate() (*mux.Router, error) {
 	var router = routeCreateRouter()
@@ -133,6 +196,9 @@ func Instantiate() (*mux.Router, error) {
 		router,
 	)
 	registerStaticsFunc(
+		router,
+	)
+	registerMiddlewaresFunc(
 		router,
 	)
 	var routerError = routeWalkRegisteredRoutes(

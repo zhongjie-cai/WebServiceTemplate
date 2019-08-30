@@ -103,6 +103,7 @@ func HandleFunc(
 	endpoint string,
 	method string,
 	path string,
+	queries []string,
 	handleFunc func(http.ResponseWriter, *http.Request),
 	actionFunc model.ActionFunc,
 ) *mux.Route {
@@ -112,6 +113,8 @@ func HandleFunc(
 		handleFunc,
 	).Methods(
 		method,
+	).Queries(
+		queries...,
 	).Name(
 		name,
 	)
@@ -135,7 +138,15 @@ func HostStatic(
 	)
 }
 
-func defaultActionFunc(sessionID uuid.UUID, requestBody string, parameters map[string]string) (interface{}, apperror.AppError) {
+// AddMiddleware wraps the mux middleware addition function
+func AddMiddleware(
+	router *mux.Router,
+	middleware mux.MiddlewareFunc,
+) {
+	router.Use(middleware)
+}
+
+func defaultActionFunc(sessionID uuid.UUID, requestBody string, parameters map[string]string, queries map[string][]string) (interface{}, apperror.AppError) {
 	return nil, apperrorGetNotImplementedError(nil)
 }
 

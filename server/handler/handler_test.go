@@ -26,7 +26,7 @@ func TestHandleInSession_RouteError(t *testing.T) {
 	var dummySessionID = uuid.New()
 	var dummyActionExpected = 0
 	var dummyActionCalled = 0
-	var dummyAction = func(sessionID uuid.UUID, requestBody string, parameters map[string]string) (interface{}, apperror.AppError) {
+	var dummyAction = func(sessionID uuid.UUID, requestBody string, parameters map[string]string, queries map[string][]string) (interface{}, apperror.AppError) {
 		dummyActionCalled++
 		return nil, nil
 	}
@@ -141,7 +141,7 @@ func TestHandleInSession_Success(t *testing.T) {
 	var dummyResponseWriter = &dummyResponseWriter{t}
 	var dummyEndpoint = "some endpoint"
 	var dummySessionID = uuid.New()
-	var dummyAction func(uuid.UUID, string, map[string]string) (interface{}, apperror.AppError)
+	var dummyAction func(uuid.UUID, string, map[string]string, map[string][]string) (interface{}, apperror.AppError)
 	var dummyActionExpected int
 	var dummyActionCalled int
 	var dummyLoginID = uuid.New()
@@ -149,8 +149,12 @@ func TestHandleInSession_Success(t *testing.T) {
 	var dummyAllowedLogType = logtype.LogType(rand.Intn(256))
 	var dummyRequestBody = "some request body"
 	var dummyParameters = map[string]string{"foo": "bar"}
+	var dummyQueries = map[string][]string{"test": []string{"me", "you"}}
 	var dummyResponseObject = "some response object"
 	var dummyResponseError = apperror.GetGeneralFailureError(nil)
+
+	// stub
+	dummyHTTPRequest.Form = dummyQueries
 
 	// mock
 	createMock(t)
@@ -214,11 +218,12 @@ func TestHandleInSession_Success(t *testing.T) {
 		return dummyParameters
 	}
 	dummyActionExpected = 1
-	dummyAction = func(sessionID uuid.UUID, requestBody string, parameters map[string]string) (interface{}, apperror.AppError) {
+	dummyAction = func(sessionID uuid.UUID, requestBody string, parameters map[string]string, queries map[string][]string) (interface{}, apperror.AppError) {
 		dummyActionCalled++
 		assert.Equal(t, dummySessionID, sessionID)
 		assert.Equal(t, dummyRequestBody, requestBody)
 		assert.Equal(t, dummyParameters, parameters)
+		assert.Equal(t, dummyQueries, queries)
 		return dummyResponseObject, dummyResponseError
 	}
 	responseWriteExpected = 1

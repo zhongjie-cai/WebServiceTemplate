@@ -27,4 +27,5 @@ func verifyAll(t *testing.T) {
 	CreateErrorResponseFunc = nil
 	Routes = nil
 	Statics = nil
+	Middlewares = nil
 }

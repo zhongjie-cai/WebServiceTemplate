@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"net/http"
 	"github.com/google/uuid"
+	"github.com/gorilla/mux"
 	
 	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
 	"github.com/zhongjie-cai/WebServiceTemplate/application"
@@ -38,10 +39,15 @@ func main() {
 		return "18605"
 	}
 	customization.AppVersion = func() string {
-		return "0.1.0"
+		return "1.2.3"
 	}
 	customization.LoggingFunc = func(session *session.Session, logType logtype.LogType, category, subcategory, description string) {
 		fmt.Printf("<%v|%v> %v\n", category, subcategory, description)
+	}
+	customization.Middlewares = func() []mux.MiddlewareFunc {
+		return []mux.MiddlewareFunc {
+			loggingRequestURIMiddleware,
+		}
 	}
 	customization.Statics = func() []model.Static {
 		return []model.Static{
@@ -76,6 +82,7 @@ func getHealth(
 	sessionID uuid.UUID,
 	requestBody string,
 	parameters map[string]string,
+	queries map[string][]string,
 ) (interface{}, apperror.AppError) {
 	return "some version number", nil
 }
@@ -85,6 +92,7 @@ func swaggerRedirect(
 	sessionID uuid.UUID,
 	requestBody string,
 	parameters map[string]string,
+	queries map[string][]string,
 ) (interface{}, apperror.AppError) {
 	response.Override(
 		sessionID,
@@ -111,6 +119,26 @@ func swaggerHandler() http.Handler {
 				"./docs",
 			),
 		),
+	)
+}
+
+// loggingRequestURIMiddleware is an example of how a middleware function is written with this template library
+func loggingRequestURIMiddleware(nextHandler http.Handler) http.Handler {
+    return http.HandlerFunc(
+		func(
+			responseWriter http.ResponseWriter,
+			httpRequest *http.Request,
+		) {
+			// middleware logic & processing
+        	fmt.Println(
+				httpRequest.RequestURI,
+			)
+			// hand over to next handler in the chain
+        	nextHandler.ServeHTTP(
+				responseWriter,
+				httpRequest,
+			)
+		},
 	)
 }
 ```

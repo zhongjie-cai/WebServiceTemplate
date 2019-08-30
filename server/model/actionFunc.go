@@ -10,6 +10,7 @@ type ActionFunc func(
 	sessionID uuid.UUID,
 	requestBody string,
 	parameters map[string]string,
+	queries map[string][]string,
 ) (
 	responseObject interface{},
 	responseError apperror.AppError,

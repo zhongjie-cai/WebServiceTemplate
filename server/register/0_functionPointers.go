@@ -17,12 +17,15 @@ var (
 	loggerAppRoot                  = logger.AppRoot
 	routeHandleFunc                = route.HandleFunc
 	routeHostStatic                = route.HostStatic
+	routeAddMiddleware             = route.AddMiddleware
 	routeCreateRouter              = route.CreateRouter
 	routeWalkRegisteredRoutes      = route.WalkRegisteredRoutes
 	apperrorWrapSimpleError        = apperror.WrapSimpleError
 	handlerSession                 = handler.Session
 	doParameterReplacementFunc     = doParameterReplacement
 	evaluatePathWithParametersFunc = evaluatePathWithParameters
+	evaluateQueriesFunc            = evaluateQueries
 	registerRoutesFunc             = registerRoutes
 	registerStaticsFunc            = registerStatics
+	registerMiddlewaresFunc        = registerMiddlewares
 )

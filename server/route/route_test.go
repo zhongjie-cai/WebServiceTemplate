@@ -651,12 +651,14 @@ func TestHandleFunc(t *testing.T) {
 	var dummyEndpoint = "some endpoint"
 	var dummyMethod = "PUT"
 	var dummyPath = "/foo/{bar}"
+	var dummyQueries = []string{"test", "{test}"}
 	var dummyResponseWriter = &dummyResponseWriter{t}
 	var dummyHTTPRequest, _ = http.NewRequest(
 		http.MethodGet,
 		"http://localhost",
 		nil,
 	)
+	var dummyQueriesTemplates = []string{"test={test}"}
 
 	// stub
 	var dummyHandlerFuncExpected = 1
@@ -666,7 +668,7 @@ func TestHandleFunc(t *testing.T) {
 	}
 	var dummyActionFuncExpected = 0
 	var dummyActionFuncCalled = 0
-	var dummyActionFunc = func(uuid.UUID, string, map[string]string) (interface{}, apperror.AppError) {
+	var dummyActionFunc = func(uuid.UUID, string, map[string]string, map[string][]string) (interface{}, apperror.AppError) {
 		dummyActionFuncCalled++
 		return nil, nil
 	}
@@ -690,12 +692,14 @@ func TestHandleFunc(t *testing.T) {
 		dummyEndpoint,
 		dummyMethod,
 		dummyPath,
+		dummyQueries,
 		dummyHandlerFunc,
 		dummyActionFunc,
 	)
 	var name = route.GetName()
 	var methods, _ = route.GetMethods()
 	var pathTemplate, _ = route.GetPathTemplate()
+	var queriesTemplate, _ = route.GetQueriesTemplates()
 	route.GetHandler().ServeHTTP(dummyResponseWriter, dummyHTTPRequest)
 
 	// assert
@@ -703,8 +707,38 @@ func TestHandleFunc(t *testing.T) {
 	assert.Equal(t, 1, len(methods))
 	assert.Equal(t, dummyMethod, methods[0])
 	assert.Equal(t, dummyPath, pathTemplate)
+	assert.Equal(t, dummyQueriesTemplates, queriesTemplate)
 	assert.Equal(t, dummyHandlerFuncExpected, dummyHandlerFuncCalled)
 	assert.Equal(t, dummyActionFuncExpected, dummyActionFuncCalled)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestAddMiddleware(t *testing.T) {
+	// arrange
+	var dummyMiddleware = func(next http.Handler) http.Handler {
+		return next
+	}
+
+	// mock
+	createMock(t)
+
+	// expect
+	muxNewRouterExpected = 1
+	muxNewRouter = func() *mux.Router {
+		muxNewRouterCalled++
+		return mux.NewRouter()
+	}
+
+	// SUT
+	var router = CreateRouter()
+
+	// act
+	AddMiddleware(
+		router,
+		dummyMiddleware,
+	)
 
 	// verify
 	verifyAll(t)
@@ -715,6 +749,7 @@ func TestDefaultActionFunc(t *testing.T) {
 	var dummySessionID = uuid.New()
 	var dummyRequestBody = "some request body"
 	var dummyParameters = map[string]string{"foo": "bar"}
+	var dummyQueries = map[string][]string{"test": []string{"me", "you"}}
 	var dummyAppError = apperror.GetGeneralFailureError(nil)
 
 	// mock
@@ -733,6 +768,7 @@ func TestDefaultActionFunc(t *testing.T) {
 		dummySessionID,
 		dummyRequestBody,
 		dummyParameters,
+		dummyQueries,
 	)
 
 	// assert
@@ -746,7 +782,7 @@ func TestDefaultActionFunc(t *testing.T) {
 func TestGetActionByName_NotFound(t *testing.T) {
 	// arrange
 	var dummyName = "some name"
-	var dummyAction func(uuid.UUID, string, map[string]string) (interface{}, apperror.AppError)
+	var dummyAction func(uuid.UUID, string, map[string]string, map[string][]string) (interface{}, apperror.AppError)
 	var dummyOtherName = "some other name"
 	var expectedActionPointer = fmt.Sprintf("%v", reflect.ValueOf(defaultActionFunc))
 
@@ -775,7 +811,7 @@ func TestGetActionByName_Found(t *testing.T) {
 	var dummyName = "some name"
 	var dummyActionExpected = 0
 	var dummyActionCalled = 0
-	var dummyAction = func(uuid.UUID, string, map[string]string) (interface{}, apperror.AppError) {
+	var dummyAction = func(uuid.UUID, string, map[string]string, map[string][]string) (interface{}, apperror.AppError) {
 		dummyActionCalled++
 		return nil, nil
 	}
@@ -857,7 +893,7 @@ func TestGetRouteInfo_ValidRoute(t *testing.T) {
 	var dummyName = "some name"
 	var dummyActionExpected = 0
 	var dummyActionCalled = 0
-	var dummyAction = func(uuid.UUID, string, map[string]string) (interface{}, apperror.AppError) {
+	var dummyAction = func(uuid.UUID, string, map[string]string, map[string][]string) (interface{}, apperror.AppError) {
 		dummyActionCalled++
 		return nil, nil
 	}

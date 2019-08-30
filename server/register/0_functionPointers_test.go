@@ -26,6 +26,8 @@ var (
 	routeHandleFuncCalled                  int
 	routeHostStaticExpected                int
 	routeHostStaticCalled                  int
+	routeAddMiddlewareExpected             int
+	routeAddMiddlewareCalled               int
 	routeCreateRouterExpected              int
 	routeCreateRouterCalled                int
 	routeWalkRegisteredRoutesExpected      int
@@ -38,10 +40,14 @@ var (
 	doParameterReplacementFuncCalled       int
 	evaluatePathWithParametersFuncExpected int
 	evaluatePathWithParametersFuncCalled   int
+	evaluateQueriesFuncExpected            int
+	evaluateQueriesFuncCalled              int
 	registerRoutesFuncExpected             int
 	registerRoutesFuncCalled               int
 	registerStaticsFuncExpected            int
 	registerStaticsFuncCalled              int
+	registerMiddlewaresFuncExpected        int
+	registerMiddlewaresFuncCalled          int
 )
 
 func createMock(t *testing.T) {
@@ -64,7 +70,7 @@ func createMock(t *testing.T) {
 	}
 	routeHandleFuncExpected = 0
 	routeHandleFuncCalled = 0
-	routeHandleFunc = func(router *mux.Router, endpoint string, method string, path string, handlerFunc func(http.ResponseWriter, *http.Request), actionFunc model.ActionFunc) *mux.Route {
+	routeHandleFunc = func(router *mux.Router, endpoint string, method string, path string, queries []string, handlerFunc func(http.ResponseWriter, *http.Request), actionFunc model.ActionFunc) *mux.Route {
 		routeHandleFuncCalled++
 		return nil
 	}
@@ -73,6 +79,11 @@ func createMock(t *testing.T) {
 	routeHostStatic = func(router *mux.Router, name string, path string, handler http.Handler) *mux.Route {
 		routeHostStaticCalled++
 		return nil
+	}
+	routeAddMiddlewareExpected = 0
+	routeAddMiddlewareCalled = 0
+	routeAddMiddleware = func(router *mux.Router, middleware mux.MiddlewareFunc) {
+		routeAddMiddlewareCalled++
 	}
 	routeCreateRouterExpected = 0
 	routeCreateRouterCalled = 0
@@ -109,6 +120,12 @@ func createMock(t *testing.T) {
 		evaluatePathWithParametersFuncCalled++
 		return ""
 	}
+	evaluateQueriesFuncExpected = 0
+	evaluateQueriesFuncCalled = 0
+	evaluateQueriesFunc = func(queries map[string]model.ParameterType, replacementsMap map[model.ParameterType]string) []string {
+		evaluateQueriesFuncCalled++
+		return nil
+	}
 	registerRoutesFuncExpected = 0
 	registerRoutesFuncCalled = 0
 	registerRoutesFunc = func(router *mux.Router) {
@@ -118,6 +135,11 @@ func createMock(t *testing.T) {
 	registerStaticsFuncCalled = 0
 	registerStaticsFunc = func(router *mux.Router) {
 		registerStaticsFuncCalled++
+	}
+	registerMiddlewaresFuncExpected = 0
+	registerMiddlewaresFuncCalled = 0
+	registerMiddlewaresFunc = func(router *mux.Router) {
+		registerMiddlewaresFuncCalled++
 	}
 }
 
@@ -132,6 +154,8 @@ func verifyAll(t *testing.T) {
 	assert.Equal(t, routeHandleFuncExpected, routeHandleFuncCalled, "Unexpected number of calls to routeHandleFunc")
 	routeHostStatic = route.HostStatic
 	assert.Equal(t, routeHostStaticExpected, routeHostStaticCalled, "Unexpected number of calls to routeHostStatic")
+	routeAddMiddleware = route.AddMiddleware
+	assert.Equal(t, routeAddMiddlewareExpected, routeAddMiddlewareCalled, "Unexpected number of calls to routeAddMiddleware")
 	routeCreateRouter = route.CreateRouter
 	assert.Equal(t, routeCreateRouterExpected, routeCreateRouterCalled, "Unexpected number of calls to routeCreateRouter")
 	routeWalkRegisteredRoutes = route.WalkRegisteredRoutes
@@ -144,10 +168,14 @@ func verifyAll(t *testing.T) {
 	assert.Equal(t, doParameterReplacementFuncExpected, doParameterReplacementFuncCalled, "Unexpected number of calls to doParameterReplacementFunc")
 	evaluatePathWithParametersFunc = evaluatePathWithParameters
 	assert.Equal(t, evaluatePathWithParametersFuncExpected, evaluatePathWithParametersFuncCalled, "Unexpected number of calls to evaluatePathWithParametersFunc")
+	evaluateQueriesFunc = evaluateQueries
+	assert.Equal(t, evaluateQueriesFuncExpected, evaluateQueriesFuncCalled, "Unexpected number of calls to evaluateQueriesFunc")
 	registerRoutesFunc = registerRoutes
 	assert.Equal(t, registerRoutesFuncExpected, registerRoutesFuncCalled, "Unexpected number of calls to registerRoutesFunc")
 	registerStaticsFunc = registerStatics
 	assert.Equal(t, registerStaticsFuncExpected, registerStaticsFuncCalled, "Unexpected number of calls to registerStaticsFunc")
+	registerMiddlewaresFunc = registerMiddlewares
+	assert.Equal(t, registerMiddlewaresFuncExpected, registerMiddlewaresFuncCalled, "Unexpected number of calls to registerMiddlewaresFunc")
 }
 
 // mock structs

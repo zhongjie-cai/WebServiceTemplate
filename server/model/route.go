@@ -6,5 +6,6 @@ type Route struct {
 	Method     string
 	Path       string
 	Parameters map[string]ParameterType
+	Queries    map[string]ParameterType
 	ActionFunc ActionFunc
 }

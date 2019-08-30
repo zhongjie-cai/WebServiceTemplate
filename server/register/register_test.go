@@ -203,6 +203,53 @@ func TestEvaluatePathWithParameters(t *testing.T) {
 	verifyAll(t)
 }
 
+func TestEvaluateQueries(t *testing.T) {
+	// arrange
+	var dummyQueryName1 = "some query name 1"
+	var dummyParameterType1 = model.ParameterType("some paramter type 1")
+	var dummyQueryName2 = "some query name 2"
+	var dummyParameterType2 = model.ParameterType("some paramter type 2")
+	var dummyQueryName3 = "some query name 3"
+	var dummyParameterType3 = model.ParameterType("some paramter type 3")
+	var dummyQueries = map[string]model.ParameterType{
+		dummyQueryName1: dummyParameterType1,
+		dummyQueryName2: dummyParameterType2,
+		dummyQueryName3: dummyParameterType3,
+	}
+	var dummyParameterReplacementsMap = map[model.ParameterType]string{
+		model.ParameterType("some paramter type 2"): "bar",
+		model.ParameterType("some paramter type 3"): "",
+	}
+	var expectedResult = []string{
+		dummyQueryName1, "{" + dummyQueryName1 + "}",
+		dummyQueryName2, "{" + dummyQueryName2 + ":bar}",
+		dummyQueryName3, "{" + dummyQueryName3 + "}",
+	}
+
+	// mock
+	createMock(t)
+
+	// expect
+	fmtSprintfExpected = 3
+	fmtSprintf = func(format string, a ...interface{}) string {
+		fmtSprintfCalled++
+		return fmt.Sprintf(format, a...)
+	}
+
+	// SUT + act
+	var result = evaluateQueries(
+		dummyQueries,
+		dummyParameterReplacementsMap,
+	)
+
+	// assert
+	assert.Equal(t, 6, len(result))
+	assert.ElementsMatch(t, expectedResult, result)
+
+	// verify
+	verifyAll(t)
+}
+
 func TestRegisterRoutes_NilRoutesFunc(t *testing.T) {
 	// arrange
 	var dummyRouter = &mux.Router{}
@@ -278,7 +325,12 @@ func TestRegisterRoutes_ValidRoutes(t *testing.T) {
 	var dummyParameters1 = map[string]model.ParameterType{
 		"foo1": model.ParameterType("bar1"),
 	}
-	var dummyActionFunc1 = func(uuid.UUID, string, map[string]string) (interface{}, apperror.AppError) { return nil, nil }
+	var dummyQueries1 = map[string]model.ParameterType{
+		"test1": model.ParameterType("me1"),
+	}
+	var dummyActionFunc1 = func(uuid.UUID, string, map[string]string, map[string][]string) (interface{}, apperror.AppError) {
+		return nil, nil
+	}
 	var dummyActionFunc1Pointer = fmt.Sprintf("%v", reflect.ValueOf(dummyActionFunc1))
 	var dummyEndpoint2 = "some endpoint 2"
 	var dummyMethod2 = "some method 2"
@@ -286,7 +338,12 @@ func TestRegisterRoutes_ValidRoutes(t *testing.T) {
 	var dummyParameters2 = map[string]model.ParameterType{
 		"foo2": model.ParameterType("bar2"),
 	}
-	var dummyActionFunc2 = func(uuid.UUID, string, map[string]string) (interface{}, apperror.AppError) { return nil, nil }
+	var dummyQueries2 = map[string]model.ParameterType{
+		"test2": model.ParameterType("me2"),
+	}
+	var dummyActionFunc2 = func(uuid.UUID, string, map[string]string, map[string][]string) (interface{}, apperror.AppError) {
+		return nil, nil
+	}
 	var dummyActionFunc2Pointer = fmt.Sprintf("%v", reflect.ValueOf(dummyActionFunc2))
 	var dummyRoutes = []model.Route{
 		model.Route{
@@ -294,6 +351,7 @@ func TestRegisterRoutes_ValidRoutes(t *testing.T) {
 			Method:     dummyMethod1,
 			Path:       dummyPath1,
 			Parameters: dummyParameters1,
+			Queries:    dummyQueries1,
 			ActionFunc: dummyActionFunc1,
 		},
 		model.Route{
@@ -301,11 +359,14 @@ func TestRegisterRoutes_ValidRoutes(t *testing.T) {
 			Method:     dummyMethod2,
 			Path:       dummyPath2,
 			Parameters: dummyParameters2,
+			Queries:    dummyQueries2,
 			ActionFunc: dummyActionFunc2,
 		},
 	}
 	var dummyEvaluatedPath1 = "some evaluated path 1"
 	var dummyEvaluatedPath2 = "some evaluated path 2"
+	var dummyEvaluatedQueries1 = []string{"some evaluated queries 1"}
+	var dummyEvaluatedQueries2 = []string{"some evaluated queries 2"}
 
 	// mock
 	createMock(t)
@@ -329,8 +390,19 @@ func TestRegisterRoutes_ValidRoutes(t *testing.T) {
 		}
 		return ""
 	}
+	evaluateQueriesFuncExpected = 2
+	evaluateQueriesFunc = func(queries map[string]model.ParameterType, replacementsMap map[model.ParameterType]string) []string {
+		evaluateQueriesFuncCalled++
+		assert.Equal(t, model.ParameterTypeMap, replacementsMap)
+		if queries["test1"] == model.ParameterType("me1") {
+			return dummyEvaluatedQueries1
+		} else if queries["test2"] == model.ParameterType("me2") {
+			return dummyEvaluatedQueries2
+		}
+		return nil
+	}
 	routeHandleFuncExpected = 2
-	routeHandleFunc = func(router *mux.Router, endpoint string, method string, path string, handlerFunc func(http.ResponseWriter, *http.Request), actionFunc model.ActionFunc) *mux.Route {
+	routeHandleFunc = func(router *mux.Router, endpoint string, method string, path string, queries []string, handlerFunc func(http.ResponseWriter, *http.Request), actionFunc model.ActionFunc) *mux.Route {
 		routeHandleFuncCalled++
 		assert.Equal(t, dummyRouter, router)
 		assert.Equal(t, fmt.Sprintf("%v", reflect.ValueOf(handlerSession)), fmt.Sprintf("%v", reflect.ValueOf(handlerFunc)))
@@ -338,11 +410,13 @@ func TestRegisterRoutes_ValidRoutes(t *testing.T) {
 			assert.Equal(t, dummyEndpoint1, endpoint)
 			assert.Equal(t, dummyMethod1, method)
 			assert.Equal(t, dummyEvaluatedPath1, path)
+			assert.Equal(t, dummyEvaluatedQueries1, queries)
 			assert.Equal(t, dummyActionFunc1Pointer, fmt.Sprintf("%v", reflect.ValueOf(actionFunc)))
 		} else if routeHandleFuncCalled == 2 {
 			assert.Equal(t, dummyEndpoint2, endpoint)
 			assert.Equal(t, dummyMethod2, method)
 			assert.Equal(t, dummyEvaluatedPath2, path)
+			assert.Equal(t, dummyEvaluatedQueries2, queries)
 			assert.Equal(t, dummyActionFunc2Pointer, fmt.Sprintf("%v", reflect.ValueOf(actionFunc)))
 		}
 		return nil
@@ -390,17 +464,17 @@ func TestRegisterStatics_NilStaticsFunc(t *testing.T) {
 func TestRegisterStatics_EmptyStatics(t *testing.T) {
 	// arrange
 	var dummyRouter = &mux.Router{}
-	var routesExpected int
-	var routesCalled int
+	var staticsExpected int
+	var staticsCalled int
 	var dummyStatics []model.Static
 
 	// mock
 	createMock(t)
 
 	// expect
-	routesExpected = 1
+	staticsExpected = 1
 	customization.Statics = func() []model.Static {
-		routesCalled++
+		staticsCalled++
 		return dummyStatics
 	}
 	loggerAppRootExpected = 1
@@ -419,7 +493,7 @@ func TestRegisterStatics_EmptyStatics(t *testing.T) {
 
 	// verify
 	verifyAll(t)
-	assert.Equal(t, routesExpected, routesCalled, "Unexpected number of calls to Statics")
+	assert.Equal(t, staticsExpected, staticsCalled, "Unexpected number of calls to Statics")
 }
 
 func TestRegisterStatics_ValidStatics(t *testing.T) {
@@ -481,6 +555,115 @@ func TestRegisterStatics_ValidStatics(t *testing.T) {
 	assert.Equal(t, staticsExpected, staticsCalled, "Unexpected number of calls to Statics")
 }
 
+func TestRegisterMiddlewares_NilMiddlewaresFunc(t *testing.T) {
+	// arrange
+	var dummyRouter = &mux.Router{}
+
+	// stub
+	customization.Middlewares = nil
+
+	// mock
+	createMock(t)
+
+	// expect
+	loggerAppRootExpected = 1
+	loggerAppRoot = func(category string, subcategory string, messageFormat string, parameters ...interface{}) {
+		loggerAppRootCalled++
+		assert.Equal(t, "register", category)
+		assert.Equal(t, "registerMiddlewares", subcategory)
+		assert.Equal(t, "customization.Middlewares function not set: no middleware registered!", messageFormat)
+		assert.Equal(t, 0, len(parameters))
+	}
+
+	// SUT + act
+	registerMiddlewares(
+		dummyRouter,
+	)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestRegisterMiddlewares_EmptyMiddlewares(t *testing.T) {
+	// arrange
+	var dummyRouter = &mux.Router{}
+	var middlewaresExpected int
+	var middlewaresCalled int
+	var dummyMiddlewares []mux.MiddlewareFunc
+
+	// mock
+	createMock(t)
+
+	// expect
+	middlewaresExpected = 1
+	customization.Middlewares = func() []mux.MiddlewareFunc {
+		middlewaresCalled++
+		return dummyMiddlewares
+	}
+	loggerAppRootExpected = 1
+	loggerAppRoot = func(category string, subcategory string, messageFormat string, parameters ...interface{}) {
+		loggerAppRootCalled++
+		assert.Equal(t, "register", category)
+		assert.Equal(t, "registerMiddlewares", subcategory)
+		assert.Equal(t, "customization.Middlewares function empty: no middleware returned!", messageFormat)
+		assert.Equal(t, 0, len(parameters))
+	}
+
+	// SUT + act
+	registerMiddlewares(
+		dummyRouter,
+	)
+
+	// verify
+	verifyAll(t)
+	assert.Equal(t, middlewaresExpected, middlewaresCalled, "Unexpected number of calls to middlewares")
+}
+
+func TestRegisterMiddlewares_ValidMiddlewares(t *testing.T) {
+	// arrange
+	var dummyRouter = &mux.Router{}
+	var MiddlewaresExpected int
+	var MiddlewaresCalled int
+	var dummyMiddleware1 = func(http.Handler) http.Handler { return nil }
+	var dummyMiddleware1Pointer = fmt.Sprintf("%v", reflect.ValueOf(dummyMiddleware1))
+	var dummyMiddleware2 = func(http.Handler) http.Handler { return nil }
+	var dummyMiddleware2Pointer = fmt.Sprintf("%v", reflect.ValueOf(dummyMiddleware2))
+	var dummyMiddlewares = []mux.MiddlewareFunc{
+		dummyMiddleware1,
+		dummyMiddleware2,
+	}
+
+	// mock
+	createMock(t)
+
+	// expect
+	MiddlewaresExpected = 1
+	customization.Middlewares = func() []mux.MiddlewareFunc {
+		MiddlewaresCalled++
+		return dummyMiddlewares
+	}
+	routeAddMiddlewareExpected = 2
+	routeAddMiddleware = func(router *mux.Router, middleware mux.MiddlewareFunc) {
+		routeAddMiddlewareCalled++
+		assert.Equal(t, dummyRouter, router)
+		var middlewarePointer = fmt.Sprintf("%v", reflect.ValueOf(middleware))
+		if routeAddMiddlewareCalled == 1 {
+			assert.Equal(t, dummyMiddleware1Pointer, middlewarePointer)
+		} else if routeAddMiddlewareCalled == 2 {
+			assert.Equal(t, dummyMiddleware2Pointer, middlewarePointer)
+		}
+	}
+
+	// SUT + act
+	registerMiddlewares(
+		dummyRouter,
+	)
+
+	// verify
+	verifyAll(t)
+	assert.Equal(t, MiddlewaresExpected, MiddlewaresCalled, "Unexpected number of calls to Middlewares")
+}
+
 func TestInstantiate_RouterError(t *testing.T) {
 	// arrange
 	var dummyRouter = &mux.Router{}
@@ -505,6 +688,11 @@ func TestInstantiate_RouterError(t *testing.T) {
 	registerStaticsFuncExpected = 1
 	registerStaticsFunc = func(router *mux.Router) {
 		registerStaticsFuncCalled++
+		assert.Equal(t, dummyRouter, router)
+	}
+	registerMiddlewaresFuncExpected = 1
+	registerMiddlewaresFunc = func(router *mux.Router) {
+		registerMiddlewaresFuncCalled++
 		assert.Equal(t, dummyRouter, router)
 	}
 	routeWalkRegisteredRoutesExpected = 1
@@ -554,6 +742,11 @@ func TestInstantiate_Success(t *testing.T) {
 	registerStaticsFuncExpected = 1
 	registerStaticsFunc = func(router *mux.Router) {
 		registerStaticsFuncCalled++
+		assert.Equal(t, dummyRouter, router)
+	}
+	registerMiddlewaresFuncExpected = 1
+	registerMiddlewaresFunc = func(router *mux.Router) {
+		registerMiddlewaresFuncCalled++
 		assert.Equal(t, dummyRouter, router)
 	}
 	routeWalkRegisteredRoutesExpected = 1
