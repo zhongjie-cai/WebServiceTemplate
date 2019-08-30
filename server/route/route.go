@@ -141,9 +141,9 @@ func HostStatic(
 // AddMiddleware wraps the mux middleware addition function
 func AddMiddleware(
 	router *mux.Router,
-	middleware mux.MiddlewareFunc,
+	middleware model.MiddlewareFunc,
 ) {
-	router.Use(middleware)
+	router.Use((func(http.Handler) http.Handler)(middleware))
 }
 
 func defaultActionFunc(sessionID uuid.UUID, requestBody string, parameters map[string]string, queries map[string][]string) (interface{}, apperror.AppError) {

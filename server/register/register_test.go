@@ -589,14 +589,14 @@ func TestRegisterMiddlewares_EmptyMiddlewares(t *testing.T) {
 	var dummyRouter = &mux.Router{}
 	var middlewaresExpected int
 	var middlewaresCalled int
-	var dummyMiddlewares []mux.MiddlewareFunc
+	var dummyMiddlewares []model.MiddlewareFunc
 
 	// mock
 	createMock(t)
 
 	// expect
 	middlewaresExpected = 1
-	customization.Middlewares = func() []mux.MiddlewareFunc {
+	customization.Middlewares = func() []model.MiddlewareFunc {
 		middlewaresCalled++
 		return dummyMiddlewares
 	}
@@ -628,7 +628,7 @@ func TestRegisterMiddlewares_ValidMiddlewares(t *testing.T) {
 	var dummyMiddleware1Pointer = fmt.Sprintf("%v", reflect.ValueOf(dummyMiddleware1))
 	var dummyMiddleware2 = func(http.Handler) http.Handler { return nil }
 	var dummyMiddleware2Pointer = fmt.Sprintf("%v", reflect.ValueOf(dummyMiddleware2))
-	var dummyMiddlewares = []mux.MiddlewareFunc{
+	var dummyMiddlewares = []model.MiddlewareFunc{
 		dummyMiddleware1,
 		dummyMiddleware2,
 	}
@@ -638,12 +638,12 @@ func TestRegisterMiddlewares_ValidMiddlewares(t *testing.T) {
 
 	// expect
 	MiddlewaresExpected = 1
-	customization.Middlewares = func() []mux.MiddlewareFunc {
+	customization.Middlewares = func() []model.MiddlewareFunc {
 		MiddlewaresCalled++
 		return dummyMiddlewares
 	}
 	routeAddMiddlewareExpected = 2
-	routeAddMiddleware = func(router *mux.Router, middleware mux.MiddlewareFunc) {
+	routeAddMiddleware = func(router *mux.Router, middleware model.MiddlewareFunc) {
 		routeAddMiddlewareCalled++
 		assert.Equal(t, dummyRouter, router)
 		var middlewarePointer = fmt.Sprintf("%v", reflect.ValueOf(middleware))

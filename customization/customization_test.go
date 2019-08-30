@@ -3,8 +3,6 @@ package customization
 import (
 	"testing"
 
-	"github.com/gorilla/mux"
-
 	"github.com/stretchr/testify/assert"
 	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger/logtype"
@@ -31,7 +29,7 @@ func TestReset(t *testing.T) {
 	CreateErrorResponseFunc = func(appError apperror.AppError) (responseMessage string, statusCode int) { return "", 0 }
 	Routes = func() []model.Route { return nil }
 	Statics = func() []model.Static { return nil }
-	Middlewares = func() []mux.MiddlewareFunc { return nil }
+	Middlewares = func() []model.MiddlewareFunc { return nil }
 
 	// mock
 	createMock(t)

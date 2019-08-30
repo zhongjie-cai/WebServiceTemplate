@@ -82,7 +82,7 @@ func createMock(t *testing.T) {
 	}
 	routeAddMiddlewareExpected = 0
 	routeAddMiddlewareCalled = 0
-	routeAddMiddleware = func(router *mux.Router, middleware mux.MiddlewareFunc) {
+	routeAddMiddleware = func(router *mux.Router, middleware model.MiddlewareFunc) {
 		routeAddMiddlewareCalled++
 	}
 	routeCreateRouterExpected = 0

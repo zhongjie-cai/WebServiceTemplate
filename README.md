@@ -18,9 +18,9 @@ package main
 import (
 	"fmt"
 	"net/http"
+
 	"github.com/google/uuid"
-	"github.com/gorilla/mux"
-	
+
 	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
 	"github.com/zhongjie-cai/WebServiceTemplate/application"
 	"github.com/zhongjie-cai/WebServiceTemplate/customization"
@@ -44,8 +44,8 @@ func main() {
 	customization.LoggingFunc = func(session *session.Session, logType logtype.LogType, category, subcategory, description string) {
 		fmt.Printf("<%v|%v> %v\n", category, subcategory, description)
 	}
-	customization.Middlewares = func() []mux.MiddlewareFunc {
-		return []mux.MiddlewareFunc {
+	customization.Middlewares = func() []model.MiddlewareFunc {
+		return []model.MiddlewareFunc{
 			loggingRequestURIMiddleware,
 		}
 	}
@@ -108,6 +108,7 @@ func swaggerRedirect(
 			)
 		},
 	)
+	return nil, nil
 }
 
 // swaggerHandler is an example of how a normal HTTP static content hosting is written with this template library
@@ -124,17 +125,17 @@ func swaggerHandler() http.Handler {
 
 // loggingRequestURIMiddleware is an example of how a middleware function is written with this template library
 func loggingRequestURIMiddleware(nextHandler http.Handler) http.Handler {
-    return http.HandlerFunc(
+	return http.HandlerFunc(
 		func(
 			responseWriter http.ResponseWriter,
 			httpRequest *http.Request,
 		) {
 			// middleware logic & processing
-        	fmt.Println(
+			fmt.Println(
 				httpRequest.RequestURI,
 			)
 			// hand over to next handler in the chain
-        	nextHandler.ServeHTTP(
+			nextHandler.ServeHTTP(
 				responseWriter,
 				httpRequest,
 			)
