@@ -144,6 +144,9 @@ func tryUnmarshal(value string, dataTemplate interface{}) error {
 	if noQuoteJSONError == nil {
 		return nil
 	}
+	if value == "" {
+		return nil
+	}
 	var withQuoteJSONError = jsonUnmarshal(
 		[]byte("\""+value+"\""),
 		dataTemplate,

@@ -442,6 +442,36 @@ func TestClearResponseWriter_ValidSessionObject(t *testing.T) {
 	verifyAll(t)
 }
 
+func TestTryUnmarshal_NoQuoteJSONEmpty(t *testing.T) {
+	// arrange
+	var dummyValue string
+	var dummyDataTemplate int
+
+	// mock
+	createMock(t)
+
+	// expect
+	jsonUnmarshalExpected = 1
+	jsonUnmarshal = func(data []byte, v interface{}) error {
+		jsonUnmarshalCalled++
+		assert.Equal(t, []byte(dummyValue), data)
+		return json.Unmarshal(data, v)
+	}
+
+	// SUT + act
+	var err = tryUnmarshal(
+		dummyValue,
+		&dummyDataTemplate,
+	)
+
+	// assert
+	assert.NoError(t, err)
+	assert.Zero(t, dummyDataTemplate)
+
+	// verify
+	verifyAll(t)
+}
+
 func TestTryUnmarshal_NoQuoteJSONSuccess_Primitive(t *testing.T) {
 	// arrange
 	var dummyValue = rand.Int()
@@ -502,6 +532,41 @@ func TestTryUnmarshal_NoQuoteJSONSuccess_Struct(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, "bar", dummyDataTemplate.Foo)
 	assert.Equal(t, 123, dummyDataTemplate.Test)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestTryUnmarshal_WithQuoteJSONEmpty(t *testing.T) {
+	// arrange
+	var dummyValueString string
+	var dummyDataTemplate struct {
+		Foo  string `json:"foo"`
+		Test int    `json:"test"`
+	}
+
+	// mock
+	createMock(t)
+
+	// expect
+	jsonUnmarshalExpected = 1
+	jsonUnmarshal = func(data []byte, v interface{}) error {
+		jsonUnmarshalCalled++
+		assert.Equal(t, []byte(dummyValueString), data)
+		return json.Unmarshal(data, v)
+	}
+
+	// SUT + act
+	var err = tryUnmarshal(
+		dummyValueString,
+		&dummyDataTemplate,
+	)
+
+	// assert
+	assert.NoError(t, err)
+	assert.Zero(t, dummyDataTemplate)
+	assert.Zero(t, dummyDataTemplate.Foo)
+	assert.Zero(t, dummyDataTemplate.Test)
 
 	// verify
 	verifyAll(t)
