@@ -106,7 +106,7 @@ func TestHandlePanic(t *testing.T) {
 		return dummyAppError
 	}
 	responseWriteExpected = 1
-	responseWrite = func(sessionID uuid.UUID, responseObject interface{}, responseError apperror.AppError) {
+	responseWrite = func(sessionID uuid.UUID, responseObject interface{}, responseError error) {
 		responseWriteCalled++
 		assert.Equal(t, dummySessionID, sessionID)
 		assert.Nil(t, responseObject)

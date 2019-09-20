@@ -1,7 +1,6 @@
 package customization
 
 import (
-	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger/logtype"
 	"github.com/zhongjie-cai/WebServiceTemplate/server/model"
 	"github.com/zhongjie-cai/WebServiceTemplate/session"
@@ -50,7 +49,7 @@ var ValidateClientCert func() bool
 var CaCertContent func() string
 
 // CreateErrorResponseFunc is to customize the generation of HTTP error response
-var CreateErrorResponseFunc func(appError apperror.AppError) (responseMessage string, statusCode int)
+var CreateErrorResponseFunc func(err error) (responseMessage string, statusCode int)
 
 // Routes is to customize the routes registration
 var Routes func() []model.Route

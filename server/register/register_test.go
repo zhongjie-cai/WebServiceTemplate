@@ -328,7 +328,7 @@ func TestRegisterRoutes_ValidRoutes(t *testing.T) {
 	var dummyQueries1 = map[string]model.ParameterType{
 		"test1": model.ParameterType("me1"),
 	}
-	var dummyActionFunc1 = func(uuid.UUID) (interface{}, apperror.AppError) {
+	var dummyActionFunc1 = func(uuid.UUID) (interface{}, error) {
 		return nil, nil
 	}
 	var dummyActionFunc1Pointer = fmt.Sprintf("%v", reflect.ValueOf(dummyActionFunc1))
@@ -341,7 +341,7 @@ func TestRegisterRoutes_ValidRoutes(t *testing.T) {
 	var dummyQueries2 = map[string]model.ParameterType{
 		"test2": model.ParameterType("me2"),
 	}
-	var dummyActionFunc2 = func(uuid.UUID) (interface{}, apperror.AppError) {
+	var dummyActionFunc2 = func(uuid.UUID) (interface{}, error) {
 		return nil, nil
 	}
 	var dummyActionFunc2Pointer = fmt.Sprintf("%v", reflect.ValueOf(dummyActionFunc2))

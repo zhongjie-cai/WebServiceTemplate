@@ -1,6 +1,7 @@
 package response
 
 import (
+	"errors"
 	"go/types"
 	"math"
 	"math/rand"
@@ -81,6 +82,30 @@ func TestGetStatusCode_BadRequest(t *testing.T) {
 
 	// assert
 	assert.Equal(t, http.StatusBadRequest, result)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestGetStatusCode_NotFound(t *testing.T) {
+	// arrange
+	var dummyCode = apperror.CodeNotFound
+	var dummyAppError = dummyAppError{
+		t,
+		&dummyCode,
+		nil,
+	}
+
+	// mock
+	createMock(t)
+
+	// SUT + act
+	var result = getStatusCode(
+		dummyAppError,
+	)
+
+	// assert
+	assert.Equal(t, http.StatusNotFound, result)
 
 	// verify
 	verifyAll(t)
@@ -328,6 +353,53 @@ func TestCreateOkResponse_ValidContent(t *testing.T) {
 	verifyAll(t)
 }
 
+func TestGetAppError_IsAppError(t *testing.T) {
+	// arrange
+	var dummyError = apperror.GetGeneralFailureError(nil)
+
+	// mock
+	createMock(t)
+
+	// SUT + act
+	var err = getAppError(
+		dummyError,
+	)
+
+	// assert
+	assert.Equal(t, dummyError, err)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestGetAppError_IsNotAppError(t *testing.T) {
+	// arrange
+	var dummyError = errors.New("some error")
+	var dummyAppError = apperror.GetGeneralFailureError(nil)
+
+	// mock
+	createMock(t)
+
+	// expect
+	apperrorGetGeneralFailureErrorExpected = 1
+	apperrorGetGeneralFailureError = func(innerError error) apperror.AppError {
+		apperrorGetGeneralFailureErrorCalled++
+		assert.Equal(t, dummyError, innerError)
+		return dummyAppError
+	}
+
+	// SUT + act
+	var err = getAppError(
+		dummyError,
+	)
+
+	// assert
+	assert.Equal(t, dummyAppError, err)
+
+	// verify
+	verifyAll(t)
+}
+
 func TestGenerateErrorResponse(t *testing.T) {
 	// arrange
 	var codeInteger = rand.Intn(math.MaxInt8)
@@ -359,6 +431,7 @@ func TestGenerateErrorResponse(t *testing.T) {
 
 func TestCreateErrorResponse(t *testing.T) {
 	// arrange
+	var dummyError = errors.New("some error")
 	var dummyAppError = dummyAppError{
 		t,
 		nil,
@@ -376,6 +449,12 @@ func TestCreateErrorResponse(t *testing.T) {
 	createMock(t)
 
 	// expect
+	getAppErrorFuncExpected = 1
+	getAppErrorFunc = func(err error) apperror.AppError {
+		getAppErrorFuncCalled++
+		assert.Equal(t, dummyError, err)
+		return dummyAppError
+	}
 	generateErrorResponseFuncExpected = 1
 	generateErrorResponseFunc = func(appError apperror.AppError) errorResponseModel {
 		generateErrorResponseFuncCalled++
@@ -397,7 +476,7 @@ func TestCreateErrorResponse(t *testing.T) {
 
 	// SUT + act
 	var result, code = createErrorResponse(
-		dummyAppError,
+		dummyError,
 	)
 
 	// assert
@@ -513,7 +592,7 @@ func TestWrite_Error_WithCustomization(t *testing.T) {
 	// arrange
 	var dummySessionID = uuid.New()
 	var dummyResponseObject = "some response content"
-	var dummyResponseError = apperror.GetGeneralFailureError(nil)
+	var dummyResponseError = errors.New("some response error")
 	var dummyResponseWriter = &dummyResponseWriter{
 		t,
 		nil,
@@ -540,9 +619,9 @@ func TestWrite_Error_WithCustomization(t *testing.T) {
 		return dummyResponseWriter
 	}
 	customizationCreateErrorResponseFuncExpected = 1
-	customization.CreateErrorResponseFunc = func(appError apperror.AppError) (string, int) {
+	customization.CreateErrorResponseFunc = func(err error) (string, int) {
 		customizationCreateErrorResponseFuncCalled++
-		assert.Equal(t, dummyResponseError, appError)
+		assert.Equal(t, dummyResponseError, err)
 		return dummyResponseMessage, dummyStatusCode
 	}
 	loggerAPIResponseExpected = 1
@@ -587,7 +666,7 @@ func TestWrite_Error_NoCustomization(t *testing.T) {
 	// arrange
 	var dummySessionID = uuid.New()
 	var dummyResponseObject = "some response content"
-	var dummyResponseError = apperror.GetGeneralFailureError(nil)
+	var dummyResponseError = errors.New("some response error")
 	var dummyResponseWriter = &dummyResponseWriter{
 		t,
 		nil,
@@ -614,9 +693,9 @@ func TestWrite_Error_NoCustomization(t *testing.T) {
 		return dummyResponseWriter
 	}
 	createErrorResponseFuncExpected = 1
-	createErrorResponseFunc = func(appError apperror.AppError) (string, int) {
+	createErrorResponseFunc = func(err error) (string, int) {
 		createErrorResponseFuncCalled++
-		assert.Equal(t, dummyResponseError, appError)
+		assert.Equal(t, dummyResponseError, err)
 		return dummyResponseMessage, dummyStatusCode
 	}
 	loggerAPIResponseExpected = 1

@@ -86,7 +86,7 @@ func createMock(t *testing.T) {
 	}
 	responseWriteExpected = 0
 	responseWriteCalled = 0
-	responseWrite = func(sessionID uuid.UUID, responseObject interface{}, responseError apperror.AppError) {
+	responseWrite = func(sessionID uuid.UUID, responseObject interface{}, responseError error) {
 		responseWriteCalled++
 	}
 	loggerAPIEnterExpected = 0

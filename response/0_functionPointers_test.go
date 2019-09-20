@@ -35,6 +35,8 @@ var (
 	getStatusCodeFuncCalled                      int
 	writeResponseFuncExpected                    int
 	writeResponseFuncCalled                      int
+	getAppErrorFuncExpected                      int
+	getAppErrorFuncCalled                        int
 	generateErrorResponseFuncExpected            int
 	generateErrorResponseFuncCalled              int
 	createOkResponseFuncExpected                 int
@@ -102,6 +104,12 @@ func createMock(t *testing.T) {
 	writeResponseFunc = func(responseWriter http.ResponseWriter, statusCode int, responseMessage string) {
 		writeResponseFuncCalled++
 	}
+	getAppErrorFuncExpected = 0
+	getAppErrorFuncCalled = 0
+	getAppErrorFunc = func(err error) apperror.AppError {
+		getAppErrorFuncCalled++
+		return nil
+	}
 	generateErrorResponseFuncExpected = 0
 	generateErrorResponseFuncCalled = 0
 	generateErrorResponseFunc = func(appError apperror.AppError) errorResponseModel {
@@ -116,7 +124,7 @@ func createMock(t *testing.T) {
 	}
 	createErrorResponseFuncExpected = 0
 	createErrorResponseFuncCalled = 0
-	createErrorResponseFunc = func(appError apperror.AppError) (string, int) {
+	createErrorResponseFunc = func(err error) (string, int) {
 		createErrorResponseFuncCalled++
 		return "", 0
 	}
@@ -146,6 +154,8 @@ func verifyAll(t *testing.T) {
 	assert.Equal(t, getStatusCodeFuncExpected, getStatusCodeFuncCalled, "Unexpected number of calls to getStatusCodeFunc")
 	writeResponseFunc = writeResponse
 	assert.Equal(t, writeResponseFuncExpected, writeResponseFuncCalled, "Unexpected number of calls to writeResponseFunc")
+	getAppErrorFunc = getAppError
+	assert.Equal(t, getAppErrorFuncExpected, getAppErrorFuncCalled, "Unexpected number of calls to getAppErrorFunc")
 	generateErrorResponseFunc = generateErrorResponse
 	assert.Equal(t, generateErrorResponseFuncExpected, generateErrorResponseFuncCalled, "Unexpected number of calls to generateErrorResponseFunc")
 	createOkResponseFunc = createOkResponse

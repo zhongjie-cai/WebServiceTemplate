@@ -29,6 +29,8 @@ func getStatusCode(appError apperror.AppError) int {
 		statusCode = http.StatusMethodNotAllowed
 	case apperror.CodeBadRequest:
 		statusCode = http.StatusBadRequest
+	case apperror.CodeNotFound:
+		statusCode = http.StatusNotFound
 	case apperror.CodeCircuitBreak:
 		statusCode = http.StatusForbidden
 	case apperror.CodeOperationLock:
@@ -58,6 +60,18 @@ func createOkResponse(
 	return responseMessage, http.StatusOK
 }
 
+func getAppError(
+	err error,
+) apperror.AppError {
+	var appError, isAppError = err.(apperror.AppError)
+	if isAppError {
+		return appError
+	}
+	return apperrorGetGeneralFailureError(
+		err,
+	)
+}
+
 func generateErrorResponse(
 	appError apperror.AppError,
 ) errorResponseModel {
@@ -72,8 +86,9 @@ func generateErrorResponse(
 }
 
 func createErrorResponse(
-	appError apperror.AppError,
+	err error,
 ) (string, int) {
+	var appError = getAppErrorFunc(err)
 	var response = generateErrorResponseFunc(appError)
 	var responseMessage = jsonutilMarshalIgnoreError(response)
 	var statusCode = getStatusCodeFunc(appError)
@@ -94,7 +109,7 @@ func writeResponse(
 func Write(
 	sessionID uuid.UUID,
 	responseObject interface{},
-	responseError apperror.AppError,
+	responseError error,
 ) {
 	var responseWriter = sessionGetResponseWriter(
 		sessionID,

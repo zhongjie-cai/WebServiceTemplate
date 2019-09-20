@@ -173,6 +173,28 @@ However, if specific operation is needed for response, one could always retrieve
 var responseWriter = session.GetResponseWriter(sessionID)
 ```
 
+# Error Handling
+
+To simplify the error handling, one could utilize the built-in error type `apperror.AppError` interface, which provides support to many basic types of errors that are mapped to corresponding HTTP status codes:
+
+* GeneralFailure => InternalServerError (500)
+* InvalidOperation => MethodNotAllowed (405)
+* BadRequest => BadRequest (400)
+* NotFound => NotFound (404)
+* CircuitBreak => Forbidden (403)
+* OperationLock => Locked (423)
+* AccessForbidden => Forbidden (403)
+* DataCorruption => Conflict (409)
+* NotImplemented => NotImplemented (501)
+
+However, if specific operation is needed for response, one could always customize the error response creation by setting the `customization.CreateErrorResponseFunc` function:
+
+```golang
+customization.CreateErrorResponseFunc = func(err error) (responseMessage string, statusCode int) {
+	return err.Error(), 500
+}
+```
+
 # Swagger UI
 
 Copy the swagger UI folder "/docs/" from this library to your repository root path.  

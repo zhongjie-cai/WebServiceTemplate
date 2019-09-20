@@ -26,7 +26,7 @@ func TestHandleInSession_RouteError(t *testing.T) {
 	var dummySessionID = uuid.New()
 	var dummyActionExpected = 0
 	var dummyActionCalled = 0
-	var dummyAction = func(sessionID uuid.UUID) (interface{}, apperror.AppError) {
+	var dummyAction = func(sessionID uuid.UUID) (interface{}, error) {
 		dummyActionCalled++
 		return nil, nil
 	}
@@ -91,7 +91,7 @@ func TestHandleInSession_RouteError(t *testing.T) {
 		return dummyResponseError
 	}
 	responseWriteExpected = 1
-	responseWrite = func(sessionID uuid.UUID, responseObject interface{}, responseError apperror.AppError) {
+	responseWrite = func(sessionID uuid.UUID, responseObject interface{}, responseError error) {
 		responseWriteCalled++
 		assert.Equal(t, dummySessionID, sessionID)
 		assert.Nil(t, responseObject)
@@ -141,7 +141,7 @@ func TestHandleInSession_Success(t *testing.T) {
 	var dummyResponseWriter = &dummyResponseWriter{t}
 	var dummyEndpoint = "some endpoint"
 	var dummySessionID = uuid.New()
-	var dummyAction func(uuid.UUID) (interface{}, apperror.AppError)
+	var dummyAction func(uuid.UUID) (interface{}, error)
 	var dummyActionExpected int
 	var dummyActionCalled int
 	var dummyLoginID = uuid.New()
@@ -199,13 +199,13 @@ func TestHandleInSession_Success(t *testing.T) {
 		assert.Equal(t, 0, len(parameters))
 	}
 	dummyActionExpected = 1
-	dummyAction = func(sessionID uuid.UUID) (interface{}, apperror.AppError) {
+	dummyAction = func(sessionID uuid.UUID) (interface{}, error) {
 		dummyActionCalled++
 		assert.Equal(t, dummySessionID, sessionID)
 		return dummyResponseObject, dummyResponseError
 	}
 	responseWriteExpected = 1
-	responseWrite = func(sessionID uuid.UUID, responseObject interface{}, responseError apperror.AppError) {
+	responseWrite = func(sessionID uuid.UUID, responseObject interface{}, responseError error) {
 		responseWriteCalled++
 		assert.Equal(t, dummySessionID, sessionID)
 		assert.Equal(t, dummyResponseObject, responseObject)
