@@ -10,7 +10,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
-	"github.com/zhongjie-cai/WebServiceTemplate/logger"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger/logtype"
 )
 
@@ -29,8 +28,6 @@ var (
 	ioutilNopCloserCalled           int
 	bytesNewBufferExpected          int
 	bytesNewBufferCalled            int
-	loggerAPIRequestExpected        int
-	loggerAPIRequestCalled          int
 	getUUIDFromHeaderFuncExpected   int
 	getUUIDFromHeaderFuncCalled     int
 )
@@ -78,11 +75,6 @@ func createMock(t *testing.T) {
 		bytesNewBufferCalled++
 		return nil
 	}
-	loggerAPIRequestExpected = 0
-	loggerAPIRequestCalled = 0
-	loggerAPIRequest = func(sessionID uuid.UUID, category string, subcategory string, messageFormat string, parameters ...interface{}) {
-		loggerAPIRequestCalled++
-	}
 	getUUIDFromHeaderFuncExpected = 0
 	getUUIDFromHeaderFuncCalled = 0
 	getUUIDFromHeaderFunc = func(header http.Header, name string) uuid.UUID {
@@ -106,8 +98,6 @@ func verifyAll(t *testing.T) {
 	assert.Equal(t, ioutilNopCloserExpected, ioutilNopCloserCalled, "Unexpected number of calls to ioutilNopCloser")
 	bytesNewBuffer = bytes.NewBuffer
 	assert.Equal(t, bytesNewBufferExpected, bytesNewBufferCalled, "Unexpected number of calls to bytesNewBuffer")
-	loggerAPIRequest = logger.APIRequest
-	assert.Equal(t, loggerAPIRequestExpected, loggerAPIRequestCalled, "Unexpected number of calls to loggerAPIRequest")
 	getUUIDFromHeaderFunc = getUUIDFromHeader
 	assert.Equal(t, getUUIDFromHeaderFuncExpected, getUUIDFromHeaderFuncCalled, "Unexpected number of calls to getUUIDFromHeaderFunc")
 }

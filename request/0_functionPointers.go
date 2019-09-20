@@ -6,7 +6,6 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
-	"github.com/zhongjie-cai/WebServiceTemplate/logger"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger/logtype"
 )
 
@@ -19,6 +18,5 @@ var (
 	ioutilReadAll           = ioutil.ReadAll
 	ioutilNopCloser         = ioutil.NopCloser
 	bytesNewBuffer          = bytes.NewBuffer
-	loggerAPIRequest        = logger.APIRequest
 	getUUIDFromHeaderFunc   = getUUIDFromHeader
 )

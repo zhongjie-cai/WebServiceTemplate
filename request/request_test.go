@@ -421,25 +421,12 @@ func TestGetRequestBody_NilBody(t *testing.T) {
 		"http://127.0.0.1",
 		nil,
 	)
-	var dummySessionID = uuid.New()
 
 	// mock
 	createMock(t)
 
-	// expect
-	loggerAPIRequestExpected = 1
-	loggerAPIRequest = func(sessionID uuid.UUID, category string, subcategory string, messageFormat string, parameters ...interface{}) {
-		loggerAPIRequestCalled++
-		assert.Equal(t, dummySessionID, sessionID)
-		assert.Equal(t, "request", category)
-		assert.Equal(t, "GetRequestBody", subcategory)
-		assert.Equal(t, "", messageFormat)
-		assert.Equal(t, 0, len(parameters))
-	}
-
 	// SUT + act
 	var result = GetRequestBody(
-		dummySessionID,
 		dummyHTTPRequest,
 	)
 
@@ -458,7 +445,6 @@ func TestGetRequestBody_ErrorBody(t *testing.T) {
 		"http://localhost/featuretoggle",
 		strings.NewReader(bodyContent),
 	)
-	var dummySessionID = uuid.New()
 	var dummyError = errors.New("some error message")
 
 	// mock
@@ -471,20 +457,9 @@ func TestGetRequestBody_ErrorBody(t *testing.T) {
 		assert.Equal(t, dummyHTTPRequest.Body, r)
 		return nil, dummyError
 	}
-	loggerAPIRequestExpected = 1
-	loggerAPIRequest = func(sessionID uuid.UUID, category string, subcategory string, messageFormat string, parameters ...interface{}) {
-		loggerAPIRequestCalled++
-		assert.Equal(t, dummySessionID, sessionID)
-		assert.Equal(t, "request", category)
-		assert.Equal(t, "GetRequestBody", subcategory)
-		assert.Equal(t, "Error getting request body: %v", messageFormat)
-		assert.Equal(t, 1, len(parameters))
-		assert.Equal(t, dummyError, parameters[0])
-	}
 
 	// SUT + act
 	var result = GetRequestBody(
-		dummySessionID,
 		dummyHTTPRequest,
 	)
 
@@ -503,7 +478,6 @@ func TestGetRequestBody_Success(t *testing.T) {
 		"http://localhost/featuretoggle",
 		strings.NewReader(bodyContent),
 	)
-	var dummySessionID = uuid.New()
 	var dummyBuffer = &bytes.Buffer{}
 	var dummyReadCloser = ioutil.NopCloser(nil)
 
@@ -528,19 +502,9 @@ func TestGetRequestBody_Success(t *testing.T) {
 		assert.Equal(t, dummyBuffer, r)
 		return dummyReadCloser
 	}
-	loggerAPIRequestExpected = 1
-	loggerAPIRequest = func(sessionID uuid.UUID, category string, subcategory string, messageFormat string, parameters ...interface{}) {
-		loggerAPIRequestCalled++
-		assert.Equal(t, dummySessionID, sessionID)
-		assert.Equal(t, "request", category)
-		assert.Equal(t, "GetRequestBody", subcategory)
-		assert.Equal(t, bodyContent, messageFormat)
-		assert.Equal(t, 0, len(parameters))
-	}
 
 	// SUT + act
 	var result = GetRequestBody(
-		dummySessionID,
 		dummyHTTPRequest,
 	)
 

@@ -1,10 +1,15 @@
 package session
 
 import (
+	"encoding/json"
+	"errors"
 	"math"
 	"math/rand"
 	"net/http"
+	"strconv"
 	"testing"
+
+	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
 
 	"github.com/patrickmn/go-cache"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger/logtype"
@@ -435,4 +440,580 @@ func TestClearResponseWriter_ValidSessionObject(t *testing.T) {
 
 	// verify
 	verifyAll(t)
+}
+
+func TestTryUnmarshal_NoQuoteJSONSuccess_Primitive(t *testing.T) {
+	// arrange
+	var dummyValue = rand.Int()
+	var dummyValueString = strconv.Itoa(dummyValue)
+	var dummyDataTemplate int
+
+	// mock
+	createMock(t)
+
+	// expect
+	jsonUnmarshalExpected = 1
+	jsonUnmarshal = func(data []byte, v interface{}) error {
+		jsonUnmarshalCalled++
+		assert.Equal(t, []byte(dummyValueString), data)
+		return json.Unmarshal(data, v)
+	}
+
+	// SUT + act
+	var err = tryUnmarshal(
+		dummyValueString,
+		&dummyDataTemplate,
+	)
+
+	// assert
+	assert.NoError(t, err)
+	assert.Equal(t, dummyValue, dummyDataTemplate)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestTryUnmarshal_NoQuoteJSONSuccess_Struct(t *testing.T) {
+	// arrange
+	var dummyValueString = "{\"foo\":\"bar\",\"test\":123}"
+	var dummyDataTemplate struct {
+		Foo  string `json:"foo"`
+		Test int    `json:"test"`
+	}
+
+	// mock
+	createMock(t)
+
+	// expect
+	jsonUnmarshalExpected = 1
+	jsonUnmarshal = func(data []byte, v interface{}) error {
+		jsonUnmarshalCalled++
+		assert.Equal(t, []byte(dummyValueString), data)
+		return json.Unmarshal(data, v)
+	}
+
+	// SUT + act
+	var err = tryUnmarshal(
+		dummyValueString,
+		&dummyDataTemplate,
+	)
+
+	// assert
+	assert.NoError(t, err)
+	assert.Equal(t, "bar", dummyDataTemplate.Foo)
+	assert.Equal(t, 123, dummyDataTemplate.Test)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestTryUnmarshal_WithQuoteJSONSuccess(t *testing.T) {
+	// arrange
+	var dummyValue = "some value"
+	var dummyDataTemplate string
+
+	// mock
+	createMock(t)
+
+	// expect
+	jsonUnmarshalExpected = 2
+	jsonUnmarshal = func(data []byte, v interface{}) error {
+		jsonUnmarshalCalled++
+		if jsonUnmarshalCalled == 1 {
+			assert.Equal(t, []byte(dummyValue), data)
+		} else if jsonUnmarshalCalled == 2 {
+			assert.Equal(t, []byte("\""+dummyValue+"\""), data)
+		}
+		return json.Unmarshal(data, v)
+	}
+
+	// SUT + act
+	var err = tryUnmarshal(
+		dummyValue,
+		&dummyDataTemplate,
+	)
+
+	// assert
+	assert.NoError(t, err)
+	assert.Equal(t, dummyValue, dummyDataTemplate)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestTryUnmarshal_Failure(t *testing.T) {
+	// arrange
+	var dummyValue = "some value"
+	var dummyDataTemplate int
+	var dummyError = errors.New("some error")
+
+	// mock
+	createMock(t)
+
+	// expect
+	jsonUnmarshalExpected = 2
+	jsonUnmarshal = func(data []byte, v interface{}) error {
+		jsonUnmarshalCalled++
+		if jsonUnmarshalCalled == 1 {
+			assert.Equal(t, []byte(dummyValue), data)
+		} else if jsonUnmarshalCalled == 2 {
+			assert.Equal(t, []byte("\""+dummyValue+"\""), data)
+		}
+		return json.Unmarshal(data, v)
+	}
+	fmtErrorfExpected = 1
+	fmtErrorf = func(format string, a ...interface{}) error {
+		fmtErrorfCalled++
+		assert.Equal(t, "Unable to unmarshal value [%v] into data template", format)
+		assert.Equal(t, 1, len(a))
+		assert.Equal(t, dummyValue, a[0])
+		return dummyError
+	}
+
+	// SUT + act
+	var err = tryUnmarshal(
+		dummyValue,
+		&dummyDataTemplate,
+	)
+
+	// assert
+	assert.Equal(t, dummyError, err)
+	assert.Zero(t, dummyDataTemplate)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestGetRequestBody(t *testing.T) {
+	// arrange
+	var dummySessionID = uuid.New()
+	var dummyDataTemplate int
+	var dummyHTTPRequest = &http.Request{}
+	var dummyRequestBody = "some request body"
+	var dummyError = errors.New("some error")
+	var dummyResult = rand.Int()
+
+	// mock
+	createMock(t)
+
+	// expect
+	getRequestFuncExpected = 1
+	getRequestFunc = func(sessionID uuid.UUID) *http.Request {
+		getRequestFuncCalled++
+		assert.Equal(t, dummySessionID, sessionID)
+		return dummyHTTPRequest
+	}
+	requestGetRequestBodyExpected = 1
+	requestGetRequestBody = func(httpRequest *http.Request) string {
+		requestGetRequestBodyCalled++
+		assert.Equal(t, dummyHTTPRequest, httpRequest)
+		return dummyRequestBody
+	}
+	tryUnmarshalFuncExpected = 1
+	tryUnmarshalFunc = func(value string, dataTemplate interface{}) error {
+		tryUnmarshalFuncCalled++
+		assert.Equal(t, dummyRequestBody, value)
+		*(dataTemplate.(*int)) = dummyResult
+		return dummyError
+	}
+
+	// SUT + act
+	var err = GetRequestBody(
+		dummySessionID,
+		&dummyDataTemplate,
+	)
+
+	// assert
+	assert.Equal(t, dummyError, err)
+	assert.Equal(t, dummyResult, dummyDataTemplate)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestGetRequestParameter_ValueNotFound(t *testing.T) {
+	// arrange
+	var dummySessionID = uuid.New()
+	var dummyName = "some name"
+	var dummyDataTemplate int
+	var dummyHTTPRequest = &http.Request{}
+	var dummyParameters = map[string]string{
+		"foo":  "bar",
+		"test": "123",
+	}
+	var dummyError = errors.New("some error")
+
+	// mock
+	createMock(t)
+
+	// expect
+	getRequestFuncExpected = 1
+	getRequestFunc = func(sessionID uuid.UUID) *http.Request {
+		getRequestFuncCalled++
+		assert.Equal(t, dummySessionID, sessionID)
+		return dummyHTTPRequest
+	}
+	muxVarsExpected = 1
+	muxVars = func(r *http.Request) map[string]string {
+		muxVarsCalled++
+		assert.Equal(t, dummyHTTPRequest, r)
+		return dummyParameters
+	}
+	fmtErrorfExpected = 1
+	fmtErrorf = func(format string, a ...interface{}) error {
+		fmtErrorfCalled++
+		assert.Equal(t, "The expected parameter [%v] is not found in request", format)
+		assert.Equal(t, 1, len(a))
+		assert.Equal(t, dummyName, a[0])
+		return dummyError
+	}
+
+	// SUT + act
+	var err = GetRequestParameter(
+		dummySessionID,
+		dummyName,
+		&dummyDataTemplate,
+	)
+
+	// assert
+	assert.Equal(t, dummyError, err)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestGetRequestParameter_HappyPath(t *testing.T) {
+	// arrange
+	var dummySessionID = uuid.New()
+	var dummyName = "some name"
+	var dummyValue = "some value"
+	var dummyDataTemplate int
+	var dummyHTTPRequest = &http.Request{}
+	var dummyParameters = map[string]string{
+		"foo":     "bar",
+		"test":    "123",
+		dummyName: dummyValue,
+	}
+	var dummyError = errors.New("some error")
+	var dummyResult = rand.Int()
+
+	// mock
+	createMock(t)
+
+	// expect
+	getRequestFuncExpected = 1
+	getRequestFunc = func(sessionID uuid.UUID) *http.Request {
+		getRequestFuncCalled++
+		assert.Equal(t, dummySessionID, sessionID)
+		return dummyHTTPRequest
+	}
+	muxVarsExpected = 1
+	muxVars = func(r *http.Request) map[string]string {
+		muxVarsCalled++
+		assert.Equal(t, dummyHTTPRequest, r)
+		return dummyParameters
+	}
+	tryUnmarshalFuncExpected = 1
+	tryUnmarshalFunc = func(value string, dataTemplate interface{}) error {
+		tryUnmarshalFuncCalled++
+		assert.Equal(t, dummyValue, value)
+		*(dataTemplate.(*int)) = dummyResult
+		return dummyError
+	}
+
+	// SUT + act
+	var err = GetRequestParameter(
+		dummySessionID,
+		dummyName,
+		&dummyDataTemplate,
+	)
+
+	// assert
+	assert.Equal(t, dummyError, err)
+	assert.Equal(t, dummyResult, dummyDataTemplate)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestGetAllQueryStrings_NotFound(t *testing.T) {
+	// arrange
+	var dummySessionID = uuid.New()
+	var dummyName = "some name"
+	var dummyQueries = map[string][]string{
+		"test": []string{"me", "you"},
+	}
+	var dummyHTTPRequest = &http.Request{
+		Form: dummyQueries,
+	}
+
+	// mock
+	createMock(t)
+
+	// expect
+	getRequestFuncExpected = 1
+	getRequestFunc = func(sessionID uuid.UUID) *http.Request {
+		getRequestFuncCalled++
+		assert.Equal(t, dummySessionID, sessionID)
+		return dummyHTTPRequest
+	}
+
+	// SUT + act
+	var result = getAllQueryStrings(
+		dummySessionID,
+		dummyName,
+	)
+
+	// assert
+	assert.Nil(t, result)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestGetAllQueryStrings_HappyPath(t *testing.T) {
+	// arrange
+	var dummySessionID = uuid.New()
+	var dummyName = "some name"
+	var dummyQueries = map[string][]string{
+		dummyName: []string{"me", "you"},
+	}
+	var dummyHTTPRequest = &http.Request{
+		Form: dummyQueries,
+	}
+
+	// mock
+	createMock(t)
+
+	// expect
+	getRequestFuncExpected = 1
+	getRequestFunc = func(sessionID uuid.UUID) *http.Request {
+		getRequestFuncCalled++
+		assert.Equal(t, dummySessionID, sessionID)
+		return dummyHTTPRequest
+	}
+
+	// SUT + act
+	var result = getAllQueryStrings(
+		dummySessionID,
+		dummyName,
+	)
+
+	// assert
+	assert.Equal(t, 2, len(result))
+	assert.Equal(t, "me", result[0])
+	assert.Equal(t, "you", result[1])
+
+	// verify
+	verifyAll(t)
+}
+
+func TestGetRequestQueryString_EmptyList(t *testing.T) {
+	// arrange
+	var dummySessionID = uuid.New()
+	var dummyName = "some name"
+	var dummyDataTemplate int
+	var dummyQueryStrings []string
+	var dummyError = errors.New("some error")
+
+	// mock
+	createMock(t)
+
+	// expect
+	getAllQueryStringsFuncExpected = 1
+	getAllQueryStringsFunc = func(sessionID uuid.UUID, name string) []string {
+		getAllQueryStringsFuncCalled++
+		assert.Equal(t, dummySessionID, sessionID)
+		assert.Equal(t, dummyName, name)
+		return dummyQueryStrings
+	}
+	fmtErrorfExpected = 1
+	fmtErrorf = func(format string, a ...interface{}) error {
+		fmtErrorfCalled++
+		assert.Equal(t, "The expected query string [%v] is not found in request", format)
+		assert.Equal(t, 1, len(a))
+		assert.Equal(t, dummyName, a[0])
+		return dummyError
+	}
+
+	// SUT + act
+	var err = GetRequestQueryString(
+		dummySessionID,
+		dummyName,
+		&dummyDataTemplate,
+	)
+
+	// assert
+	assert.Equal(t, dummyError, err)
+	assert.Zero(t, dummyDataTemplate)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestGetRequestQueryString_HappyPath(t *testing.T) {
+	// arrange
+	var dummySessionID = uuid.New()
+	var dummyName = "some name"
+	var dummyDataTemplate int
+	var dummyQueryStrings = []string{
+		"some query string 1",
+		"some query string 2",
+		"some query string 3",
+	}
+	var dummyError = errors.New("some error")
+	var dummyResult = rand.Int()
+
+	// mock
+	createMock(t)
+
+	// expect
+	getAllQueryStringsFuncExpected = 1
+	getAllQueryStringsFunc = func(sessionID uuid.UUID, name string) []string {
+		getAllQueryStringsFuncCalled++
+		assert.Equal(t, dummySessionID, sessionID)
+		assert.Equal(t, dummyName, name)
+		return dummyQueryStrings
+	}
+	tryUnmarshalFuncExpected = 1
+	tryUnmarshalFunc = func(value string, dataTemplate interface{}) error {
+		tryUnmarshalFuncCalled++
+		assert.Equal(t, dummyQueryStrings[0], value)
+		*(dataTemplate.(*int)) = dummyResult
+		return dummyError
+	}
+
+	// SUT + act
+	var err = GetRequestQueryString(
+		dummySessionID,
+		dummyName,
+		&dummyDataTemplate,
+	)
+
+	// assert
+	assert.Equal(t, dummyError, err)
+	assert.Equal(t, dummyResult, dummyDataTemplate)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestGetRequestQueryStrings_EmptyList(t *testing.T) {
+	// arrange
+	var dummySessionID = uuid.New()
+	var dummyName = "some name"
+	var dummyDataTemplate int
+	var dummyQueryStrings []string
+	var dummyFillCallbackExpected int
+	var dummyFillCallbackCalled int
+	var dummyFillCallback func()
+	var dummyError = apperror.GetGeneralFailureError(nil)
+
+	// mock
+	createMock(t)
+
+	// expect
+	getAllQueryStringsFuncExpected = 1
+	getAllQueryStringsFunc = func(sessionID uuid.UUID, name string) []string {
+		getAllQueryStringsFuncCalled++
+		assert.Equal(t, dummySessionID, sessionID)
+		assert.Equal(t, dummyName, name)
+		return dummyQueryStrings
+	}
+	dummyFillCallbackExpected = 0
+	dummyFillCallback = func() {
+		dummyFillCallbackCalled++
+	}
+	apperrorConsolidateAllErrorsExpected = 1
+	apperrorConsolidateAllErrors = func(baseErrorMessage string, allErrors ...error) apperror.AppError {
+		apperrorConsolidateAllErrorsCalled++
+		assert.Equal(t, "Failed to get request query strings", baseErrorMessage)
+		assert.Equal(t, 0, len(allErrors))
+		return dummyError
+	}
+
+	// SUT + act
+	var err = GetRequestQueryStrings(
+		dummySessionID,
+		dummyName,
+		&dummyDataTemplate,
+		dummyFillCallback,
+	)
+
+	// assert
+	assert.Equal(t, dummyError, err)
+	assert.Zero(t, dummyDataTemplate)
+
+	// verify
+	verifyAll(t)
+	assert.Equal(t, dummyFillCallbackExpected, dummyFillCallbackCalled, "Unexpected number of calls to dummyFillCallback")
+}
+
+func TestGetRequestQueryStrings_HappyPath(t *testing.T) {
+	// arrange
+	var dummySessionID = uuid.New()
+	var dummyName = "some name"
+	var dummyDataTemplate int
+	var dummyQueryStrings = []string{
+		"some query string 1",
+		"some query string 2",
+		"some query string 3",
+	}
+	var dummyFillCallbackExpected int
+	var dummyFillCallbackCalled int
+	var dummyFillCallback func()
+	var unmarshalErrors = []error{
+		nil,
+		errors.New("some unmarshal error"),
+		nil,
+	}
+	var dummyError = apperror.GetGeneralFailureError(nil)
+	var dummyResult = rand.Int()
+
+	// mock
+	createMock(t)
+
+	// expect
+	getAllQueryStringsFuncExpected = 1
+	getAllQueryStringsFunc = func(sessionID uuid.UUID, name string) []string {
+		getAllQueryStringsFuncCalled++
+		assert.Equal(t, dummySessionID, sessionID)
+		assert.Equal(t, dummyName, name)
+		return dummyQueryStrings
+	}
+	tryUnmarshalFuncExpected = 3
+	tryUnmarshalFunc = func(value string, dataTemplate interface{}) error {
+		tryUnmarshalFuncCalled++
+		assert.Equal(t, dummyQueryStrings[tryUnmarshalFuncCalled-1], value)
+		*(dataTemplate.(*int)) = dummyResult
+		return unmarshalErrors[tryUnmarshalFuncCalled-1]
+	}
+	dummyFillCallbackExpected = 2
+	dummyFillCallback = func() {
+		dummyFillCallbackCalled++
+	}
+	apperrorConsolidateAllErrorsExpected = 1
+	apperrorConsolidateAllErrors = func(baseErrorMessage string, allErrors ...error) apperror.AppError {
+		apperrorConsolidateAllErrorsCalled++
+		assert.Equal(t, "Failed to get request query strings", baseErrorMessage)
+		assert.Equal(t, 1, len(allErrors))
+		assert.Equal(t, unmarshalErrors[1], allErrors[0])
+		return dummyError
+	}
+
+	// SUT + act
+	var err = GetRequestQueryStrings(
+		dummySessionID,
+		dummyName,
+		&dummyDataTemplate,
+		dummyFillCallback,
+	)
+
+	// assert
+	assert.Equal(t, dummyError, err)
+	assert.Equal(t, dummyResult, dummyDataTemplate)
+
+	// verify
+	verifyAll(t)
+	assert.Equal(t, dummyFillCallbackExpected, dummyFillCallbackCalled, "Unexpected number of calls to dummyFillCallback")
 }

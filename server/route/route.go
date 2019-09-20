@@ -146,7 +146,7 @@ func AddMiddleware(
 	router.Use((func(http.Handler) http.Handler)(middleware))
 }
 
-func defaultActionFunc(sessionID uuid.UUID, requestBody string, parameters map[string]string, queries map[string][]string) (interface{}, apperror.AppError) {
+func defaultActionFunc(sessionID uuid.UUID) (interface{}, apperror.AppError) {
 	return nil, apperrorGetNotImplementedError(nil)
 }
 

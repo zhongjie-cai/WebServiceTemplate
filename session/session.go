@@ -135,3 +135,106 @@ func ClearResponseWriter(sessionID uuid.UUID) {
 		sessionObject,
 	)
 }
+
+func tryUnmarshal(value string, dataTemplate interface{}) error {
+	var noQuoteJSONError = jsonUnmarshal(
+		[]byte(value),
+		dataTemplate,
+	)
+	if noQuoteJSONError == nil {
+		return nil
+	}
+	var withQuoteJSONError = jsonUnmarshal(
+		[]byte("\""+value+"\""),
+		dataTemplate,
+	)
+	if withQuoteJSONError == nil {
+		return nil
+	}
+	return fmtErrorf("Unable to unmarshal value [%v] into data template", value)
+}
+
+// GetRequestBody loads HTTP request body associated to session and unmarshals the content JSON to given data template
+func GetRequestBody(sessionID uuid.UUID, dataTemplate interface{}) error {
+	var httpRequest = getRequestFunc(
+		sessionID,
+	)
+	var requestBody = requestGetRequestBody(
+		httpRequest,
+	)
+	return tryUnmarshalFunc(
+		requestBody,
+		dataTemplate,
+	)
+}
+
+// GetRequestParameter loads HTTP request parameter associated to session for given name and unmarshals the content to given data template
+func GetRequestParameter(sessionID uuid.UUID, name string, dataTemplate interface{}) error {
+	var httpRequest = getRequestFunc(
+		sessionID,
+	)
+	var parameters = muxVars(
+		httpRequest,
+	)
+	var value, found = parameters[name]
+	if !found {
+		return fmtErrorf("The expected parameter [%v] is not found in request", name)
+	}
+	return tryUnmarshalFunc(
+		value,
+		dataTemplate,
+	)
+}
+
+func getAllQueryStrings(sessionID uuid.UUID, name string) []string {
+	var httpRequest = getRequestFunc(
+		sessionID,
+	)
+	var queryStrings, found = httpRequest.Form[name]
+	if !found {
+		return nil
+	}
+	return queryStrings
+}
+
+// GetRequestQueryString loads HTTP request single query string associated to session for given name and unmarshals the content to given data template
+func GetRequestQueryString(sessionID uuid.UUID, name string, dataTemplate interface{}) error {
+	var queryStrings = getAllQueryStringsFunc(
+		sessionID,
+		name,
+	)
+	if len(queryStrings) == 0 {
+		return fmtErrorf("The expected query string [%v] is not found in request", name)
+	}
+	return tryUnmarshalFunc(
+		queryStrings[0],
+		dataTemplate,
+	)
+}
+
+// GetRequestQueryStrings loads HTTP request query strings associated to session for given name and unmarshals the content to given data template; the fillCallback is called when each unmarshal operation succeeds, so consumer could fill in external arrays using data template during the process
+func GetRequestQueryStrings(sessionID uuid.UUID, name string, dataTemplate interface{}, fillCallback func()) error {
+	var queryStrings = getAllQueryStringsFunc(
+		sessionID,
+		name,
+	)
+	var unmarshalErrors = []error{}
+	for _, queryString := range queryStrings {
+		var unmarshalError = tryUnmarshalFunc(
+			queryString,
+			dataTemplate,
+		)
+		if unmarshalError != nil {
+			unmarshalErrors = append(
+				unmarshalErrors,
+				unmarshalError,
+			)
+		} else {
+			fillCallback()
+		}
+	}
+	return apperrorConsolidateAllErrors(
+		"Failed to get request query strings",
+		unmarshalErrors...,
+	)
+}

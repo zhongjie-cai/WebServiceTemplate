@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
-	"github.com/gorilla/mux"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
@@ -20,8 +19,6 @@ import (
 )
 
 var (
-	muxVarsExpected                     int
-	muxVarsCalled                       int
 	routeGetRouteInfoExpected           int
 	routeGetRouteInfoCalled             int
 	sessionRegisterExpected             int
@@ -36,8 +33,6 @@ var (
 	requestGetCorrelationIDCalled       int
 	requestGetAllowedLogTypeExpected    int
 	requestGetAllowedLogTypeCalled      int
-	requestGetRequestBodyExpected       int
-	requestGetRequestBodyCalled         int
 	responseWriteExpected               int
 	responseWriteCalled                 int
 	loggerAPIEnterExpected              int
@@ -49,12 +44,6 @@ var (
 )
 
 func createMock(t *testing.T) {
-	muxVarsExpected = 0
-	muxVarsCalled = 0
-	muxVars = func(r *http.Request) map[string]string {
-		muxVarsCalled++
-		return nil
-	}
 	routeGetRouteInfoExpected = 0
 	routeGetRouteInfoCalled = 0
 	routeGetRouteInfo = func(httpRequest *http.Request) (string, model.ActionFunc, error) {
@@ -95,12 +84,6 @@ func createMock(t *testing.T) {
 		requestGetAllowedLogTypeCalled++
 		return 0
 	}
-	requestGetRequestBodyExpected = 0
-	requestGetRequestBodyCalled = 0
-	requestGetRequestBody = func(sessionID uuid.UUID, httpRequest *http.Request) string {
-		requestGetRequestBodyCalled++
-		return ""
-	}
 	responseWriteExpected = 0
 	responseWriteCalled = 0
 	responseWrite = func(sessionID uuid.UUID, responseObject interface{}, responseError apperror.AppError) {
@@ -125,8 +108,6 @@ func createMock(t *testing.T) {
 }
 
 func verifyAll(t *testing.T) {
-	muxVars = mux.Vars
-	assert.Equal(t, muxVarsExpected, muxVarsCalled, "Unexpected number of calls to muxVars")
 	routeGetRouteInfo = route.GetRouteInfo
 	assert.Equal(t, routeGetRouteInfoExpected, routeGetRouteInfoCalled, "Unexpected number of calls to routeGetRouteInfo")
 	sessionRegister = session.Register
@@ -141,8 +122,6 @@ func verifyAll(t *testing.T) {
 	assert.Equal(t, requestGetCorrelationIDExpected, requestGetCorrelationIDCalled, "Unexpected number of calls to requestGetCorrelationID")
 	requestGetAllowedLogType = request.GetAllowedLogType
 	assert.Equal(t, requestGetAllowedLogTypeExpected, requestGetAllowedLogTypeCalled, "Unexpected number of calls to requestGetAllowedLogType")
-	requestGetRequestBody = request.GetRequestBody
-	assert.Equal(t, requestGetRequestBodyExpected, requestGetRequestBodyCalled, "Unexpected number of calls to requestGetRequestBody")
 	responseWrite = response.Write
 	assert.Equal(t, responseWriteExpected, responseWriteCalled, "Unexpected number of calls to responseWrite")
 	loggerAPIEnter = logger.APIEnter

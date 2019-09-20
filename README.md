@@ -80,9 +80,6 @@ func main() {
 // getHealth is an example of how a normal HTTP handling method is written with this template library
 func getHealth(
 	sessionID uuid.UUID,
-	requestBody string,
-	parameters map[string]string,
-	queries map[string][]string,
 ) (interface{}, apperror.AppError) {
 	return "some version number", nil
 }
@@ -90,9 +87,6 @@ func getHealth(
 // swaggerRedirect is an example of how a special HTTP handling method, which overrides the default library behavior, is written with this template library
 func swaggerRedirect(
 	sessionID uuid.UUID,
-	requestBody string,
-	parameters map[string]string,
-	queries map[string][]string,
 ) (interface{}, apperror.AppError) {
 	response.Override(
 		sessionID,
@@ -146,7 +140,25 @@ func loggingRequestURIMiddleware(nextHandler http.Handler) http.Handler {
 
 # Request & Response
 
-The registered handler receives the request body as a string, thus it is normally not necessary to load request from session.
+The registered handler could retrieve request body, parameters and query strings through session methods, thus it is normally not necessary to load request from session:
+
+```golang
+// request body: {"foo":"bar","test":123}
+var body struct {
+	Foo string `json:"foo"`
+	Test int `json:"test"`
+}
+var bodyError = session.GetRequestBody(sessionID, &body)
+
+// parameters: "id"=456
+var id int
+var idError = session.GetRequestParameter(sessionID, "id", &id)
+
+// query strigns: "uuid"="123456-1234-1234-1234-123456789abc"
+var uuid uuid.UUID
+var uuidError = session.GetRequestQueryString(sessionID, "uuid", &uuid)
+```
+
 However, if specific data is needed from request, one could always retrieve request from session through following function call using sessionID:
 
 ```golang
@@ -154,6 +166,7 @@ var httpRequest = session.GetRequest(sessionID)
 ```
 
 The response functions accept the session ID and internally load the response writer accordingly, thus it is normally not necessary to load response writer from session.
+
 However, if specific operation is needed for response, one could always retrieve response writer through following function call using sessionID:
 
 ```golang

@@ -64,19 +64,8 @@ func Session(
 			endpoint,
 			httpRequest.Method,
 		)
-		var requestBody = requestGetRequestBody(
-			sessionID,
-			httpRequest,
-		)
-		var parameters = muxVars(
-			httpRequest,
-		)
-		var queries = httpRequest.Form
 		var responseObject, responseError = action(
 			sessionID,
-			requestBody,
-			parameters,
-			queries,
 		)
 		responseWrite(
 			sessionID,

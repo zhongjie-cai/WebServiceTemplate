@@ -11,7 +11,6 @@ import (
 // These are the constants used by the HTTP modules
 const (
 	ContentTypeJSON = "application/json; charset=utf-8"
-	ContentTypeXML  = "application/xml; charset=utf-8"
 )
 
 // errorResponseModel defines the response object that is written back to consumer of the API

@@ -4,9 +4,8 @@ import (
 	"crypto/x509"
 	"net/http"
 
-	"github.com/zhongjie-cai/WebServiceTemplate/logger/logtype"
-
 	"github.com/google/uuid"
+	"github.com/zhongjie-cai/WebServiceTemplate/logger/logtype"
 )
 
 func getUUIDFromHeader(
@@ -66,7 +65,6 @@ func GetClientCertificates(httpRequest *http.Request) ([]*x509.Certificate, erro
 
 // GetRequestBody parses and returns the content of the httpRequest body in string representation
 func GetRequestBody(
-	sessionID uuid.UUID,
 	httpRequest *http.Request,
 ) string {
 	var bodyBytes []byte
@@ -77,13 +75,6 @@ func GetRequestBody(
 			httpRequest.Body,
 		)
 		if bodyError != nil {
-			loggerAPIRequest(
-				sessionID,
-				"request",
-				"GetRequestBody",
-				"Error getting request body: %v",
-				bodyError,
-			)
 			return ""
 		}
 		httpRequest.Body = ioutilNopCloser(
@@ -93,11 +84,5 @@ func GetRequestBody(
 		)
 	}
 	var bodyContent = string(bodyBytes)
-	loggerAPIRequest(
-		sessionID,
-		"request",
-		"GetRequestBody",
-		bodyContent,
-	)
 	return bodyContent
 }

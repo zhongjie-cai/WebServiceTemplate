@@ -668,7 +668,7 @@ func TestHandleFunc(t *testing.T) {
 	}
 	var dummyActionFuncExpected = 0
 	var dummyActionFuncCalled = 0
-	var dummyActionFunc = func(uuid.UUID, string, map[string]string, map[string][]string) (interface{}, apperror.AppError) {
+	var dummyActionFunc = func(uuid.UUID) (interface{}, apperror.AppError) {
 		dummyActionFuncCalled++
 		return nil, nil
 	}
@@ -747,9 +747,6 @@ func TestAddMiddleware(t *testing.T) {
 func TestDefaultActionFunc(t *testing.T) {
 	// arrange
 	var dummySessionID = uuid.New()
-	var dummyRequestBody = "some request body"
-	var dummyParameters = map[string]string{"foo": "bar"}
-	var dummyQueries = map[string][]string{"test": []string{"me", "you"}}
 	var dummyAppError = apperror.GetGeneralFailureError(nil)
 
 	// mock
@@ -766,9 +763,6 @@ func TestDefaultActionFunc(t *testing.T) {
 	// SUT + act
 	var result, err = defaultActionFunc(
 		dummySessionID,
-		dummyRequestBody,
-		dummyParameters,
-		dummyQueries,
 	)
 
 	// assert
@@ -782,7 +776,7 @@ func TestDefaultActionFunc(t *testing.T) {
 func TestGetActionByName_NotFound(t *testing.T) {
 	// arrange
 	var dummyName = "some name"
-	var dummyAction func(uuid.UUID, string, map[string]string, map[string][]string) (interface{}, apperror.AppError)
+	var dummyAction func(uuid.UUID) (interface{}, apperror.AppError)
 	var dummyOtherName = "some other name"
 	var expectedActionPointer = fmt.Sprintf("%v", reflect.ValueOf(defaultActionFunc))
 
@@ -811,7 +805,7 @@ func TestGetActionByName_Found(t *testing.T) {
 	var dummyName = "some name"
 	var dummyActionExpected = 0
 	var dummyActionCalled = 0
-	var dummyAction = func(uuid.UUID, string, map[string]string, map[string][]string) (interface{}, apperror.AppError) {
+	var dummyAction = func(uuid.UUID) (interface{}, apperror.AppError) {
 		dummyActionCalled++
 		return nil, nil
 	}
@@ -893,7 +887,7 @@ func TestGetRouteInfo_ValidRoute(t *testing.T) {
 	var dummyName = "some name"
 	var dummyActionExpected = 0
 	var dummyActionCalled = 0
-	var dummyAction = func(uuid.UUID, string, map[string]string, map[string][]string) (interface{}, apperror.AppError) {
+	var dummyAction = func(uuid.UUID) (interface{}, apperror.AppError) {
 		dummyActionCalled++
 		return nil, nil
 	}
