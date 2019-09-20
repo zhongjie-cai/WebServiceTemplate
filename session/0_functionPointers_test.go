@@ -23,6 +23,8 @@ var (
 	muxVarsCalled                        int
 	requestGetRequestBodyExpected        int
 	requestGetRequestBodyCalled          int
+	apperrorGetBadRequestErrorExpected   int
+	apperrorGetBadRequestErrorCalled     int
 	apperrorConsolidateAllErrorsExpected int
 	apperrorConsolidateAllErrorsCalled   int
 	getFuncExpected                      int
@@ -66,6 +68,12 @@ func createMock(t *testing.T) {
 		requestGetRequestBodyCalled++
 		return ""
 	}
+	apperrorGetBadRequestErrorExpected = 0
+	apperrorGetBadRequestErrorCalled = 0
+	apperrorGetBadRequestError = func(innerError error) apperror.AppError {
+		apperrorGetBadRequestErrorCalled++
+		return nil
+	}
 	apperrorConsolidateAllErrorsExpected = 0
 	apperrorConsolidateAllErrorsCalled = 0
 	apperrorConsolidateAllErrors = func(baseErrorMessage string, allErrors ...error) apperror.AppError {
@@ -80,7 +88,7 @@ func createMock(t *testing.T) {
 	}
 	tryUnmarshalFuncExpected = 0
 	tryUnmarshalFuncCalled = 0
-	tryUnmarshalFunc = func(value string, dataTemplate interface{}) error {
+	tryUnmarshalFunc = func(value string, dataTemplate interface{}) apperror.AppError {
 		tryUnmarshalFuncCalled++
 		return nil
 	}
@@ -105,6 +113,8 @@ func verifyAll(t *testing.T) {
 	assert.Equal(t, muxVarsExpected, muxVarsCalled, "Unexpected number of calls to muxVars")
 	requestGetRequestBody = request.GetRequestBody
 	assert.Equal(t, requestGetRequestBodyExpected, requestGetRequestBodyCalled, "Unexpected number of calls to requestGetRequestBody")
+	apperrorGetBadRequestError = apperror.GetBadRequestError
+	assert.Equal(t, apperrorGetBadRequestErrorExpected, apperrorGetBadRequestErrorCalled, "Unexpected number of calls to apperrorGetBadRequestError")
 	apperrorConsolidateAllErrors = apperror.ConsolidateAllErrors
 	assert.Equal(t, apperrorConsolidateAllErrorsExpected, apperrorConsolidateAllErrorsCalled, "Unexpected number of calls to apperrorConsolidateAllErrors")
 	getFunc = Get

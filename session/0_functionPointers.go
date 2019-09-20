@@ -17,6 +17,7 @@ var (
 	fmtErrorf                    = fmt.Errorf
 	muxVars                      = mux.Vars
 	requestGetRequestBody        = request.GetRequestBody
+	apperrorGetBadRequestError   = apperror.GetBadRequestError
 	apperrorConsolidateAllErrors = apperror.ConsolidateAllErrors
 	getFunc                      = Get
 	tryUnmarshalFunc             = tryUnmarshal

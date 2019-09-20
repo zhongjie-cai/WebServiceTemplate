@@ -609,8 +609,9 @@ func TestTryUnmarshal_WithQuoteJSONSuccess(t *testing.T) {
 func TestTryUnmarshal_Failure(t *testing.T) {
 	// arrange
 	var dummyValue = "some value"
-	var dummyDataTemplate int
+	var dummyDataTemplate uuid.UUID
 	var dummyError = errors.New("some error")
+	var dummyAppError = apperror.GetGeneralFailureError(nil)
 
 	// mock
 	createMock(t)
@@ -634,6 +635,12 @@ func TestTryUnmarshal_Failure(t *testing.T) {
 		assert.Equal(t, dummyValue, a[0])
 		return dummyError
 	}
+	apperrorGetBadRequestErrorExpected = 1
+	apperrorGetBadRequestError = func(innerError error) apperror.AppError {
+		apperrorGetBadRequestErrorCalled++
+		assert.Equal(t, dummyError, innerError)
+		return dummyAppError
+	}
 
 	// SUT + act
 	var err = tryUnmarshal(
@@ -642,20 +649,73 @@ func TestTryUnmarshal_Failure(t *testing.T) {
 	)
 
 	// assert
-	assert.Equal(t, dummyError, err)
+	assert.Equal(t, dummyAppError, err)
 	assert.Zero(t, dummyDataTemplate)
 
 	// verify
 	verifyAll(t)
 }
 
-func TestGetRequestBody(t *testing.T) {
+func TestGetRequestBody_EmptyBody(t *testing.T) {
+	// arrange
+	var dummySessionID = uuid.New()
+	var dummyDataTemplate int
+	var dummyHTTPRequest = &http.Request{}
+	var dummyRequestBody string
+	var dummyError = errors.New("some error")
+	var dummyAppError = apperror.GetGeneralFailureError(nil)
+
+	// mock
+	createMock(t)
+
+	// expect
+	getRequestFuncExpected = 1
+	getRequestFunc = func(sessionID uuid.UUID) *http.Request {
+		getRequestFuncCalled++
+		assert.Equal(t, dummySessionID, sessionID)
+		return dummyHTTPRequest
+	}
+	requestGetRequestBodyExpected = 1
+	requestGetRequestBody = func(httpRequest *http.Request) string {
+		requestGetRequestBodyCalled++
+		assert.Equal(t, dummyHTTPRequest, httpRequest)
+		return dummyRequestBody
+	}
+	fmtErrorfExpected = 1
+	fmtErrorf = func(format string, a ...interface{}) error {
+		fmtErrorfCalled++
+		assert.Equal(t, "The request body is empty", format)
+		assert.Equal(t, 0, len(a))
+		return dummyError
+	}
+	apperrorGetBadRequestErrorExpected = 1
+	apperrorGetBadRequestError = func(innerError error) apperror.AppError {
+		apperrorGetBadRequestErrorCalled++
+		assert.Equal(t, dummyError, innerError)
+		return dummyAppError
+	}
+
+	// SUT + act
+	var err = GetRequestBody(
+		dummySessionID,
+		&dummyDataTemplate,
+	)
+
+	// assert
+	assert.Equal(t, dummyAppError, err)
+	assert.Zero(t, dummyDataTemplate)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestGetRequestBody_ValidBody(t *testing.T) {
 	// arrange
 	var dummySessionID = uuid.New()
 	var dummyDataTemplate int
 	var dummyHTTPRequest = &http.Request{}
 	var dummyRequestBody = "some request body"
-	var dummyError = errors.New("some error")
+	var dummyAppError = apperror.GetGeneralFailureError(nil)
 	var dummyResult = rand.Int()
 
 	// mock
@@ -675,11 +735,11 @@ func TestGetRequestBody(t *testing.T) {
 		return dummyRequestBody
 	}
 	tryUnmarshalFuncExpected = 1
-	tryUnmarshalFunc = func(value string, dataTemplate interface{}) error {
+	tryUnmarshalFunc = func(value string, dataTemplate interface{}) apperror.AppError {
 		tryUnmarshalFuncCalled++
 		assert.Equal(t, dummyRequestBody, value)
 		*(dataTemplate.(*int)) = dummyResult
-		return dummyError
+		return dummyAppError
 	}
 
 	// SUT + act
@@ -689,7 +749,7 @@ func TestGetRequestBody(t *testing.T) {
 	)
 
 	// assert
-	assert.Equal(t, dummyError, err)
+	assert.Equal(t, dummyAppError, err)
 	assert.Equal(t, dummyResult, dummyDataTemplate)
 
 	// verify
@@ -707,6 +767,7 @@ func TestGetRequestParameter_ValueNotFound(t *testing.T) {
 		"test": "123",
 	}
 	var dummyError = errors.New("some error")
+	var dummyAppError = apperror.GetGeneralFailureError(nil)
 
 	// mock
 	createMock(t)
@@ -732,6 +793,12 @@ func TestGetRequestParameter_ValueNotFound(t *testing.T) {
 		assert.Equal(t, dummyName, a[0])
 		return dummyError
 	}
+	apperrorGetBadRequestErrorExpected = 1
+	apperrorGetBadRequestError = func(innerError error) apperror.AppError {
+		apperrorGetBadRequestErrorCalled++
+		assert.Equal(t, dummyError, innerError)
+		return dummyAppError
+	}
 
 	// SUT + act
 	var err = GetRequestParameter(
@@ -741,7 +808,7 @@ func TestGetRequestParameter_ValueNotFound(t *testing.T) {
 	)
 
 	// assert
-	assert.Equal(t, dummyError, err)
+	assert.Equal(t, dummyAppError, err)
 
 	// verify
 	verifyAll(t)
@@ -759,7 +826,7 @@ func TestGetRequestParameter_HappyPath(t *testing.T) {
 		"test":    "123",
 		dummyName: dummyValue,
 	}
-	var dummyError = errors.New("some error")
+	var dummyAppError = apperror.GetGeneralFailureError(nil)
 	var dummyResult = rand.Int()
 
 	// mock
@@ -779,11 +846,11 @@ func TestGetRequestParameter_HappyPath(t *testing.T) {
 		return dummyParameters
 	}
 	tryUnmarshalFuncExpected = 1
-	tryUnmarshalFunc = func(value string, dataTemplate interface{}) error {
+	tryUnmarshalFunc = func(value string, dataTemplate interface{}) apperror.AppError {
 		tryUnmarshalFuncCalled++
 		assert.Equal(t, dummyValue, value)
 		*(dataTemplate.(*int)) = dummyResult
-		return dummyError
+		return dummyAppError
 	}
 
 	// SUT + act
@@ -794,7 +861,7 @@ func TestGetRequestParameter_HappyPath(t *testing.T) {
 	)
 
 	// assert
-	assert.Equal(t, dummyError, err)
+	assert.Equal(t, dummyAppError, err)
 	assert.Equal(t, dummyResult, dummyDataTemplate)
 
 	// verify
@@ -880,6 +947,7 @@ func TestGetRequestQueryString_EmptyList(t *testing.T) {
 	var dummyDataTemplate int
 	var dummyQueryStrings []string
 	var dummyError = errors.New("some error")
+	var dummyAppError = apperror.GetGeneralFailureError(nil)
 
 	// mock
 	createMock(t)
@@ -900,6 +968,12 @@ func TestGetRequestQueryString_EmptyList(t *testing.T) {
 		assert.Equal(t, dummyName, a[0])
 		return dummyError
 	}
+	apperrorGetBadRequestErrorExpected = 1
+	apperrorGetBadRequestError = func(innerError error) apperror.AppError {
+		apperrorGetBadRequestErrorCalled++
+		assert.Equal(t, dummyError, innerError)
+		return dummyAppError
+	}
 
 	// SUT + act
 	var err = GetRequestQueryString(
@@ -909,7 +983,7 @@ func TestGetRequestQueryString_EmptyList(t *testing.T) {
 	)
 
 	// assert
-	assert.Equal(t, dummyError, err)
+	assert.Equal(t, dummyAppError, err)
 	assert.Zero(t, dummyDataTemplate)
 
 	// verify
@@ -926,7 +1000,7 @@ func TestGetRequestQueryString_HappyPath(t *testing.T) {
 		"some query string 2",
 		"some query string 3",
 	}
-	var dummyError = errors.New("some error")
+	var dummyAppError = apperror.GetGeneralFailureError(nil)
 	var dummyResult = rand.Int()
 
 	// mock
@@ -941,11 +1015,11 @@ func TestGetRequestQueryString_HappyPath(t *testing.T) {
 		return dummyQueryStrings
 	}
 	tryUnmarshalFuncExpected = 1
-	tryUnmarshalFunc = func(value string, dataTemplate interface{}) error {
+	tryUnmarshalFunc = func(value string, dataTemplate interface{}) apperror.AppError {
 		tryUnmarshalFuncCalled++
 		assert.Equal(t, dummyQueryStrings[0], value)
 		*(dataTemplate.(*int)) = dummyResult
-		return dummyError
+		return dummyAppError
 	}
 
 	// SUT + act
@@ -956,7 +1030,7 @@ func TestGetRequestQueryString_HappyPath(t *testing.T) {
 	)
 
 	// assert
-	assert.Equal(t, dummyError, err)
+	assert.Equal(t, dummyAppError, err)
 	assert.Equal(t, dummyResult, dummyDataTemplate)
 
 	// verify
@@ -1027,12 +1101,12 @@ func TestGetRequestQueryStrings_HappyPath(t *testing.T) {
 	var dummyFillCallbackExpected int
 	var dummyFillCallbackCalled int
 	var dummyFillCallback func()
-	var unmarshalErrors = []error{
+	var unmarshalErrors = []apperror.AppError{
 		nil,
-		errors.New("some unmarshal error"),
+		apperror.GetGeneralFailureError(nil),
 		nil,
 	}
-	var dummyError = apperror.GetGeneralFailureError(nil)
+	var dummyAppError = apperror.GetGeneralFailureError(nil)
 	var dummyResult = rand.Int()
 
 	// mock
@@ -1047,7 +1121,7 @@ func TestGetRequestQueryStrings_HappyPath(t *testing.T) {
 		return dummyQueryStrings
 	}
 	tryUnmarshalFuncExpected = 3
-	tryUnmarshalFunc = func(value string, dataTemplate interface{}) error {
+	tryUnmarshalFunc = func(value string, dataTemplate interface{}) apperror.AppError {
 		tryUnmarshalFuncCalled++
 		assert.Equal(t, dummyQueryStrings[tryUnmarshalFuncCalled-1], value)
 		*(dataTemplate.(*int)) = dummyResult
@@ -1063,7 +1137,7 @@ func TestGetRequestQueryStrings_HappyPath(t *testing.T) {
 		assert.Equal(t, "Failed to get request query strings", baseErrorMessage)
 		assert.Equal(t, 1, len(allErrors))
 		assert.Equal(t, unmarshalErrors[1], allErrors[0])
-		return dummyError
+		return dummyAppError
 	}
 
 	// SUT + act
@@ -1075,7 +1149,7 @@ func TestGetRequestQueryStrings_HappyPath(t *testing.T) {
 	)
 
 	// assert
-	assert.Equal(t, dummyError, err)
+	assert.Equal(t, dummyAppError, err)
 	assert.Equal(t, dummyResult, dummyDataTemplate)
 
 	// verify

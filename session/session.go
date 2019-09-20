@@ -4,6 +4,8 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
+
 	"github.com/google/uuid"
 	cache "github.com/patrickmn/go-cache"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger/logtype"
@@ -136,7 +138,7 @@ func ClearResponseWriter(sessionID uuid.UUID) {
 	)
 }
 
-func tryUnmarshal(value string, dataTemplate interface{}) error {
+func tryUnmarshal(value string, dataTemplate interface{}) apperror.AppError {
 	var noQuoteJSONError = jsonUnmarshal(
 		[]byte(value),
 		dataTemplate,
@@ -154,17 +156,29 @@ func tryUnmarshal(value string, dataTemplate interface{}) error {
 	if withQuoteJSONError == nil {
 		return nil
 	}
-	return fmtErrorf("Unable to unmarshal value [%v] into data template", value)
+	return apperrorGetBadRequestError(
+		fmtErrorf(
+			"Unable to unmarshal value [%v] into data template",
+			value,
+		),
+	)
 }
 
 // GetRequestBody loads HTTP request body associated to session and unmarshals the content JSON to given data template
-func GetRequestBody(sessionID uuid.UUID, dataTemplate interface{}) error {
+func GetRequestBody(sessionID uuid.UUID, dataTemplate interface{}) apperror.AppError {
 	var httpRequest = getRequestFunc(
 		sessionID,
 	)
 	var requestBody = requestGetRequestBody(
 		httpRequest,
 	)
+	if requestBody == "" {
+		return apperrorGetBadRequestError(
+			fmtErrorf(
+				"The request body is empty",
+			),
+		)
+	}
 	return tryUnmarshalFunc(
 		requestBody,
 		dataTemplate,
@@ -172,7 +186,7 @@ func GetRequestBody(sessionID uuid.UUID, dataTemplate interface{}) error {
 }
 
 // GetRequestParameter loads HTTP request parameter associated to session for given name and unmarshals the content to given data template
-func GetRequestParameter(sessionID uuid.UUID, name string, dataTemplate interface{}) error {
+func GetRequestParameter(sessionID uuid.UUID, name string, dataTemplate interface{}) apperror.AppError {
 	var httpRequest = getRequestFunc(
 		sessionID,
 	)
@@ -181,7 +195,12 @@ func GetRequestParameter(sessionID uuid.UUID, name string, dataTemplate interfac
 	)
 	var value, found = parameters[name]
 	if !found {
-		return fmtErrorf("The expected parameter [%v] is not found in request", name)
+		return apperrorGetBadRequestError(
+			fmtErrorf(
+				"The expected parameter [%v] is not found in request",
+				name,
+			),
+		)
 	}
 	return tryUnmarshalFunc(
 		value,
@@ -201,13 +220,18 @@ func getAllQueryStrings(sessionID uuid.UUID, name string) []string {
 }
 
 // GetRequestQueryString loads HTTP request single query string associated to session for given name and unmarshals the content to given data template
-func GetRequestQueryString(sessionID uuid.UUID, name string, dataTemplate interface{}) error {
+func GetRequestQueryString(sessionID uuid.UUID, name string, dataTemplate interface{}) apperror.AppError {
 	var queryStrings = getAllQueryStringsFunc(
 		sessionID,
 		name,
 	)
 	if len(queryStrings) == 0 {
-		return fmtErrorf("The expected query string [%v] is not found in request", name)
+		return apperrorGetBadRequestError(
+			fmtErrorf(
+				"The expected query string [%v] is not found in request",
+				name,
+			),
+		)
 	}
 	return tryUnmarshalFunc(
 		queryStrings[0],
@@ -216,7 +240,7 @@ func GetRequestQueryString(sessionID uuid.UUID, name string, dataTemplate interf
 }
 
 // GetRequestQueryStrings loads HTTP request query strings associated to session for given name and unmarshals the content to given data template; the fillCallback is called when each unmarshal operation succeeds, so consumer could fill in external arrays using data template during the process
-func GetRequestQueryStrings(sessionID uuid.UUID, name string, dataTemplate interface{}, fillCallback func()) error {
+func GetRequestQueryStrings(sessionID uuid.UUID, name string, dataTemplate interface{}, fillCallback func()) apperror.AppError {
 	var queryStrings = getAllQueryStringsFunc(
 		sessionID,
 		name,
