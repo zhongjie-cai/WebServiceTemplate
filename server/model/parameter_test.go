@@ -19,7 +19,7 @@ func TestEvaluate_PatternError(t *testing.T) {
 	regexpMatchStringExpected = 1
 	regexpMatchString = func(pattern string, s string) (bool, error) {
 		regexpMatchStringCalled++
-		assert.Equal(t, dummyPattern, pattern)
+		assert.Equal(t, "^"+dummyPattern+"$", pattern)
 		assert.Equal(t, dummyValue, s)
 		return regexp.MatchString(pattern, s)
 	}
@@ -51,7 +51,7 @@ func TestEvaluate_Anything_Empty(t *testing.T) {
 	regexpMatchStringExpected = 1
 	regexpMatchString = func(pattern string, s string) (bool, error) {
 		regexpMatchStringCalled++
-		assert.Equal(t, string(ParameterTypeAnything), pattern)
+		assert.Equal(t, "^"+string(ParameterTypeAnything+"$"), pattern)
 		assert.Equal(t, dummyValue, s)
 		return regexp.MatchString(pattern, s)
 	}
@@ -83,7 +83,7 @@ func TestEvaluate_Anything_Valid(t *testing.T) {
 	regexpMatchStringExpected = 1
 	regexpMatchString = func(pattern string, s string) (bool, error) {
 		regexpMatchStringCalled++
-		assert.Equal(t, string(ParameterTypeAnything), pattern)
+		assert.Equal(t, "^"+string(ParameterTypeAnything+"$"), pattern)
 		assert.Equal(t, dummyValue, s)
 		return regexp.MatchString(pattern, s)
 	}
@@ -115,7 +115,7 @@ func TestEvaluate_String_Empty(t *testing.T) {
 	regexpMatchStringExpected = 1
 	regexpMatchString = func(pattern string, s string) (bool, error) {
 		regexpMatchStringCalled++
-		assert.Equal(t, string(ParameterTypeString), pattern)
+		assert.Equal(t, "^"+string(ParameterTypeString+"$"), pattern)
 		assert.Equal(t, dummyValue, s)
 		return regexp.MatchString(pattern, s)
 	}
@@ -147,7 +147,7 @@ func TestEvaluate_String_Valid(t *testing.T) {
 	regexpMatchStringExpected = 1
 	regexpMatchString = func(pattern string, s string) (bool, error) {
 		regexpMatchStringCalled++
-		assert.Equal(t, string(ParameterTypeString), pattern)
+		assert.Equal(t, "^"+string(ParameterTypeString+"$"), pattern)
 		assert.Equal(t, dummyValue, s)
 		return regexp.MatchString(pattern, s)
 	}
@@ -179,7 +179,7 @@ func TestEvaluate_String_Invalid(t *testing.T) {
 	regexpMatchStringExpected = 1
 	regexpMatchString = func(pattern string, s string) (bool, error) {
 		regexpMatchStringCalled++
-		assert.Equal(t, string(ParameterTypeString), pattern)
+		assert.Equal(t, "^"+string(ParameterTypeString+"$"), pattern)
 		assert.Equal(t, dummyValue, s)
 		return regexp.MatchString(pattern, s)
 	}
@@ -211,7 +211,7 @@ func TestEvaluate_Integer_Empty(t *testing.T) {
 	regexpMatchStringExpected = 1
 	regexpMatchString = func(pattern string, s string) (bool, error) {
 		regexpMatchStringCalled++
-		assert.Equal(t, string(ParameterTypeInteger), pattern)
+		assert.Equal(t, "^"+string(ParameterTypeInteger+"$"), pattern)
 		assert.Equal(t, dummyValue, s)
 		return regexp.MatchString(pattern, s)
 	}
@@ -243,7 +243,7 @@ func TestEvaluate_Integer_Valid(t *testing.T) {
 	regexpMatchStringExpected = 1
 	regexpMatchString = func(pattern string, s string) (bool, error) {
 		regexpMatchStringCalled++
-		assert.Equal(t, string(ParameterTypeInteger), pattern)
+		assert.Equal(t, "^"+string(ParameterTypeInteger+"$"), pattern)
 		assert.Equal(t, dummyValue, s)
 		return regexp.MatchString(pattern, s)
 	}
@@ -275,7 +275,7 @@ func TestEvaluate_Integer_Invalid(t *testing.T) {
 	regexpMatchStringExpected = 1
 	regexpMatchString = func(pattern string, s string) (bool, error) {
 		regexpMatchStringCalled++
-		assert.Equal(t, string(ParameterTypeInteger), pattern)
+		assert.Equal(t, "^"+string(ParameterTypeInteger+"$"), pattern)
 		assert.Equal(t, dummyValue, s)
 		return regexp.MatchString(pattern, s)
 	}
@@ -307,7 +307,7 @@ func TestEvaluate_UUID_Empty(t *testing.T) {
 	regexpMatchStringExpected = 1
 	regexpMatchString = func(pattern string, s string) (bool, error) {
 		regexpMatchStringCalled++
-		assert.Equal(t, string(ParameterTypeUUID), pattern)
+		assert.Equal(t, "^"+string(ParameterTypeUUID+"$"), pattern)
 		assert.Equal(t, dummyValue, s)
 		return regexp.MatchString(pattern, s)
 	}
@@ -339,7 +339,7 @@ func TestEvaluate_UUID_Valid(t *testing.T) {
 	regexpMatchStringExpected = 1
 	regexpMatchString = func(pattern string, s string) (bool, error) {
 		regexpMatchStringCalled++
-		assert.Equal(t, string(ParameterTypeUUID), pattern)
+		assert.Equal(t, "^"+string(ParameterTypeUUID+"$"), pattern)
 		assert.Equal(t, dummyValue, s)
 		return regexp.MatchString(pattern, s)
 	}
@@ -371,7 +371,7 @@ func TestEvaluate_UUID_Invalid(t *testing.T) {
 	regexpMatchStringExpected = 1
 	regexpMatchString = func(pattern string, s string) (bool, error) {
 		regexpMatchStringCalled++
-		assert.Equal(t, string(ParameterTypeUUID), pattern)
+		assert.Equal(t, "^"+string(ParameterTypeUUID+"$"), pattern)
 		assert.Equal(t, dummyValue, s)
 		return regexp.MatchString(pattern, s)
 	}
@@ -403,7 +403,7 @@ func TestEvaluate_Date_Empty(t *testing.T) {
 	regexpMatchStringExpected = 1
 	regexpMatchString = func(pattern string, s string) (bool, error) {
 		regexpMatchStringCalled++
-		assert.Equal(t, string(ParameterTypeDate), pattern)
+		assert.Equal(t, "^"+string(ParameterTypeDate+"$"), pattern)
 		assert.Equal(t, dummyValue, s)
 		return regexp.MatchString(pattern, s)
 	}
@@ -435,7 +435,7 @@ func TestEvaluate_Date_Valid(t *testing.T) {
 	regexpMatchStringExpected = 1
 	regexpMatchString = func(pattern string, s string) (bool, error) {
 		regexpMatchStringCalled++
-		assert.Equal(t, string(ParameterTypeDate), pattern)
+		assert.Equal(t, "^"+string(ParameterTypeDate+"$"), pattern)
 		assert.Equal(t, dummyValue, s)
 		return regexp.MatchString(pattern, s)
 	}
@@ -467,7 +467,7 @@ func TestEvaluate_Date_Invalid(t *testing.T) {
 	regexpMatchStringExpected = 1
 	regexpMatchString = func(pattern string, s string) (bool, error) {
 		regexpMatchStringCalled++
-		assert.Equal(t, string(ParameterTypeDate), pattern)
+		assert.Equal(t, "^"+string(ParameterTypeDate+"$"), pattern)
 		assert.Equal(t, dummyValue, s)
 		return regexp.MatchString(pattern, s)
 	}
@@ -499,7 +499,7 @@ func TestEvaluate_Time_Empty(t *testing.T) {
 	regexpMatchStringExpected = 1
 	regexpMatchString = func(pattern string, s string) (bool, error) {
 		regexpMatchStringCalled++
-		assert.Equal(t, string(ParameterTypeTime), pattern)
+		assert.Equal(t, "^"+string(ParameterTypeTime+"$"), pattern)
 		assert.Equal(t, dummyValue, s)
 		return regexp.MatchString(pattern, s)
 	}
@@ -531,7 +531,7 @@ func TestEvaluate_Time_Valid_Full(t *testing.T) {
 	regexpMatchStringExpected = 1
 	regexpMatchString = func(pattern string, s string) (bool, error) {
 		regexpMatchStringCalled++
-		assert.Equal(t, string(ParameterTypeTime), pattern)
+		assert.Equal(t, "^"+string(ParameterTypeTime+"$"), pattern)
 		assert.Equal(t, dummyValue, s)
 		return regexp.MatchString(pattern, s)
 	}
@@ -563,7 +563,7 @@ func TestEvaluate_Time_Valid_Short(t *testing.T) {
 	regexpMatchStringExpected = 1
 	regexpMatchString = func(pattern string, s string) (bool, error) {
 		regexpMatchStringCalled++
-		assert.Equal(t, string(ParameterTypeTime), pattern)
+		assert.Equal(t, "^"+string(ParameterTypeTime+"$"), pattern)
 		assert.Equal(t, dummyValue, s)
 		return regexp.MatchString(pattern, s)
 	}
@@ -595,7 +595,7 @@ func TestEvaluate_Time_Invalid(t *testing.T) {
 	regexpMatchStringExpected = 1
 	regexpMatchString = func(pattern string, s string) (bool, error) {
 		regexpMatchStringCalled++
-		assert.Equal(t, string(ParameterTypeTime), pattern)
+		assert.Equal(t, "^"+string(ParameterTypeTime+"$"), pattern)
 		assert.Equal(t, dummyValue, s)
 		return regexp.MatchString(pattern, s)
 	}
@@ -627,7 +627,7 @@ func TestEvaluate_DateTime_Empty(t *testing.T) {
 	regexpMatchStringExpected = 1
 	regexpMatchString = func(pattern string, s string) (bool, error) {
 		regexpMatchStringCalled++
-		assert.Equal(t, string(ParameterTypeDateTime), pattern)
+		assert.Equal(t, "^"+string(ParameterTypeDateTime+"$"), pattern)
 		assert.Equal(t, dummyValue, s)
 		return regexp.MatchString(pattern, s)
 	}
@@ -659,7 +659,7 @@ func TestEvaluate_DateTime_Valid_Full(t *testing.T) {
 	regexpMatchStringExpected = 1
 	regexpMatchString = func(pattern string, s string) (bool, error) {
 		regexpMatchStringCalled++
-		assert.Equal(t, string(ParameterTypeDateTime), pattern)
+		assert.Equal(t, "^"+string(ParameterTypeDateTime+"$"), pattern)
 		assert.Equal(t, dummyValue, s)
 		return regexp.MatchString(pattern, s)
 	}
@@ -691,7 +691,7 @@ func TestEvaluate_DateTime_Valid_NoTimeZone(t *testing.T) {
 	regexpMatchStringExpected = 1
 	regexpMatchString = func(pattern string, s string) (bool, error) {
 		regexpMatchStringCalled++
-		assert.Equal(t, string(ParameterTypeDateTime), pattern)
+		assert.Equal(t, "^"+string(ParameterTypeDateTime+"$"), pattern)
 		assert.Equal(t, dummyValue, s)
 		return regexp.MatchString(pattern, s)
 	}
@@ -723,7 +723,7 @@ func TestEvaluate_DateTime_Valid_Short(t *testing.T) {
 	regexpMatchStringExpected = 1
 	regexpMatchString = func(pattern string, s string) (bool, error) {
 		regexpMatchStringCalled++
-		assert.Equal(t, string(ParameterTypeDateTime), pattern)
+		assert.Equal(t, "^"+string(ParameterTypeDateTime+"$"), pattern)
 		assert.Equal(t, dummyValue, s)
 		return regexp.MatchString(pattern, s)
 	}
@@ -755,7 +755,7 @@ func TestEvaluate_DateTime_Invalid(t *testing.T) {
 	regexpMatchStringExpected = 1
 	regexpMatchString = func(pattern string, s string) (bool, error) {
 		regexpMatchStringCalled++
-		assert.Equal(t, string(ParameterTypeDateTime), pattern)
+		assert.Equal(t, "^"+string(ParameterTypeDateTime+"$"), pattern)
 		assert.Equal(t, dummyValue, s)
 		return regexp.MatchString(pattern, s)
 	}
@@ -787,7 +787,7 @@ func TestEvaluate_Boolean_Empty(t *testing.T) {
 	regexpMatchStringExpected = 1
 	regexpMatchString = func(pattern string, s string) (bool, error) {
 		regexpMatchStringCalled++
-		assert.Equal(t, string(ParameterTypeBoolean), pattern)
+		assert.Equal(t, "^"+string(ParameterTypeBoolean+"$"), pattern)
 		assert.Equal(t, dummyValue, s)
 		return regexp.MatchString(pattern, s)
 	}
@@ -819,7 +819,7 @@ func TestEvaluate_Boolean_Valid(t *testing.T) {
 	regexpMatchStringExpected = 1
 	regexpMatchString = func(pattern string, s string) (bool, error) {
 		regexpMatchStringCalled++
-		assert.Equal(t, string(ParameterTypeBoolean), pattern)
+		assert.Equal(t, "^"+string(ParameterTypeBoolean+"$"), pattern)
 		assert.Equal(t, dummyValue, s)
 		return regexp.MatchString(pattern, s)
 	}
@@ -851,7 +851,7 @@ func TestEvaluate_Boolean_Invalid(t *testing.T) {
 	regexpMatchStringExpected = 1
 	regexpMatchString = func(pattern string, s string) (bool, error) {
 		regexpMatchStringCalled++
-		assert.Equal(t, string(ParameterTypeBoolean), pattern)
+		assert.Equal(t, "^"+string(ParameterTypeBoolean+"$"), pattern)
 		assert.Equal(t, dummyValue, s)
 		return regexp.MatchString(pattern, s)
 	}
@@ -883,7 +883,7 @@ func TestEvaluate_Float_Empty(t *testing.T) {
 	regexpMatchStringExpected = 1
 	regexpMatchString = func(pattern string, s string) (bool, error) {
 		regexpMatchStringCalled++
-		assert.Equal(t, string(ParameterTypeFloat), pattern)
+		assert.Equal(t, "^"+string(ParameterTypeFloat+"$"), pattern)
 		assert.Equal(t, dummyValue, s)
 		return regexp.MatchString(pattern, s)
 	}
@@ -915,7 +915,7 @@ func TestEvaluate_Float_Valid(t *testing.T) {
 	regexpMatchStringExpected = 1
 	regexpMatchString = func(pattern string, s string) (bool, error) {
 		regexpMatchStringCalled++
-		assert.Equal(t, string(ParameterTypeFloat), pattern)
+		assert.Equal(t, "^"+string(ParameterTypeFloat+"$"), pattern)
 		assert.Equal(t, dummyValue, s)
 		return regexp.MatchString(pattern, s)
 	}
@@ -947,7 +947,7 @@ func TestEvaluate_Float_Invalid(t *testing.T) {
 	regexpMatchStringExpected = 1
 	regexpMatchString = func(pattern string, s string) (bool, error) {
 		regexpMatchStringCalled++
-		assert.Equal(t, string(ParameterTypeFloat), pattern)
+		assert.Equal(t, "^"+string(ParameterTypeFloat+"$"), pattern)
 		assert.Equal(t, dummyValue, s)
 		return regexp.MatchString(pattern, s)
 	}
