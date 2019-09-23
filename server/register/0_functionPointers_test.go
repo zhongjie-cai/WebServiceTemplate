@@ -110,19 +110,19 @@ func createMock(t *testing.T) {
 	}
 	doParameterReplacementFuncExpected = 0
 	doParameterReplacementFuncCalled = 0
-	doParameterReplacementFunc = func(originalPath string, parameterName string, parameterType model.ParameterType, parameterReplacementsMap map[model.ParameterType]string) string {
+	doParameterReplacementFunc = func(originalPath string, parameterName string, parameterType model.ParameterType) string {
 		doParameterReplacementFuncCalled++
 		return ""
 	}
 	evaluatePathWithParametersFuncExpected = 0
 	evaluatePathWithParametersFuncCalled = 0
-	evaluatePathWithParametersFunc = func(path string, parameters map[string]model.ParameterType, replacementsMap map[model.ParameterType]string) string {
+	evaluatePathWithParametersFunc = func(path string, parameters map[string]model.ParameterType) string {
 		evaluatePathWithParametersFuncCalled++
 		return ""
 	}
 	evaluateQueriesFuncExpected = 0
 	evaluateQueriesFuncCalled = 0
-	evaluateQueriesFunc = func(queries map[string]model.ParameterType, replacementsMap map[model.ParameterType]string) []string {
+	evaluateQueriesFunc = func(queries map[string]model.ParameterType) []string {
 		evaluateQueriesFuncCalled++
 		return nil
 	}

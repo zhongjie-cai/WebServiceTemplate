@@ -5,17 +5,13 @@ type ParameterType string
 
 // These are constants for parameter types and their corresponding replacement RegExp statements
 const (
-	ParameterTypeString  ParameterType = "string"
-	regexpForString      string        = "\\w+"
-	ParameterTypeInteger ParameterType = "int"
-	regexpForInteger     string        = "\\d+"
-	ParameterTypeUUID    ParameterType = "uuid"
-	regexpForUUID        string        = "[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}"
+	ParameterTypeAnything ParameterType = "\\.*"
+	ParameterTypeString   ParameterType = "\\w+"
+	ParameterTypeInteger  ParameterType = "\\d+"
+	ParameterTypeUUID     ParameterType = "[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}"
+	ParameterTypeDateTime ParameterType = "[\\d]{4}-[\\d]{2}-[\\d]{2}T[\\d]{2}:[\\d]{2}:[\\d]{2}(\\.[\\d]{3})?Z([\\d]{2}:[\\d]{2})?"
+	ParameterTypeDate     ParameterType = "[\\d]{4}-[\\d]{2}-[\\d]{2}"
+	ParameterTypeTime     ParameterType = "[\\d]{2}:[\\d]{2}:[\\d]{2}(\\.[\\d]{3})?"
+	ParameterTypeBoolean  ParameterType = "(?i)(true|false)"
+	ParameterTypeFloat    ParameterType = "\\d+(\\.\\d+)?"
 )
-
-// ParameterTypeMap exposes the replacement mapping for parameters
-var ParameterTypeMap = map[ParameterType]string{
-	ParameterTypeString:  regexpForString,
-	ParameterTypeInteger: regexpForInteger,
-	ParameterTypeUUID:    regexpForUUID,
-}

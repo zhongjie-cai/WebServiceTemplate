@@ -10,10 +10,8 @@ func doParameterReplacement(
 	originalPath string,
 	parameterName string,
 	parameterType model.ParameterType,
-	parameterReplacementsMap map[model.ParameterType]string,
 ) string {
-	var parameterReplacement, found = parameterReplacementsMap[parameterType]
-	if !found {
+	if parameterType == "" {
 		loggerAppRoot(
 			"register",
 			"doParameterReplacement",
@@ -30,7 +28,7 @@ func doParameterReplacement(
 	var newParameter = fmtSprintf(
 		"{%v:%v}",
 		parameterName,
-		parameterReplacement,
+		parameterType,
 	)
 	return stringsReplace(
 		originalPath,
@@ -43,7 +41,6 @@ func doParameterReplacement(
 func evaluatePathWithParameters(
 	path string,
 	parameters map[string]model.ParameterType,
-	parameterReplacementsMap map[model.ParameterType]string,
 ) string {
 	var updatedPath = path
 	for parameterName, parameterType := range parameters {
@@ -51,7 +48,6 @@ func evaluatePathWithParameters(
 			updatedPath,
 			parameterName,
 			parameterType,
-			parameterReplacementsMap,
 		)
 	}
 	return updatedPath
@@ -59,13 +55,11 @@ func evaluatePathWithParameters(
 
 func evaluateQueries(
 	queries map[string]model.ParameterType,
-	parameterReplacementsMap map[model.ParameterType]string,
 ) []string {
 	var evaluatedQueries = []string{}
 	for key, value := range queries {
 		var queryParameter string
-		var replacementValue, foundReplacement = parameterReplacementsMap[value]
-		if !foundReplacement || replacementValue == "" {
+		if value == "" {
 			queryParameter = fmtSprintf(
 				"{%v}",
 				key,
@@ -74,7 +68,7 @@ func evaluateQueries(
 			queryParameter = fmtSprintf(
 				"{%v:%v}",
 				key,
-				replacementValue,
+				value,
 			)
 		}
 		evaluatedQueries = append(
@@ -111,11 +105,9 @@ func registerRoutes(
 		var evaluatedPath = evaluatePathWithParametersFunc(
 			configuredRoute.Path,
 			configuredRoute.Parameters,
-			model.ParameterTypeMap,
 		)
 		var queries = evaluateQueriesFunc(
 			configuredRoute.Queries,
-			model.ParameterTypeMap,
 		)
 		routeHandleFunc(
 			router,

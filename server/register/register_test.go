@@ -17,12 +17,11 @@ import (
 	"github.com/zhongjie-cai/WebServiceTemplate/server/model"
 )
 
-func TestDoParameterReplacement_NilReplacementsMap(t *testing.T) {
+func TestDoParameterReplacement_EmptyParameterType(t *testing.T) {
 	// arrange
 	var dummyParameterName = "some name"
 	var dummyOriginalPath = "/some/original/path/with/{" + dummyParameterName + "}/in/it"
-	var dummyParameterType = model.ParameterType("some type")
-	var dummyParameterReplacementsMap map[model.ParameterType]string
+	var dummyParameterType model.ParameterType
 
 	// mock
 	createMock(t)
@@ -44,7 +43,6 @@ func TestDoParameterReplacement_NilReplacementsMap(t *testing.T) {
 		dummyOriginalPath,
 		dummyParameterName,
 		dummyParameterType,
-		dummyParameterReplacementsMap,
 	)
 
 	// assert
@@ -54,56 +52,12 @@ func TestDoParameterReplacement_NilReplacementsMap(t *testing.T) {
 	verifyAll(t)
 }
 
-func TestDoParameterReplacement_NoReplacementFound(t *testing.T) {
+func TestDoParameterReplacement_ValidParameterType(t *testing.T) {
 	// arrange
 	var dummyParameterName = "some name"
 	var dummyOriginalPath = "/some/original/path/with/{" + dummyParameterName + "}/in/it"
 	var dummyParameterType = model.ParameterType("some type")
-	var dummyParameterReplacementsMap = map[model.ParameterType]string{
-		model.ParameterType("foo"): "bar",
-	}
-
-	// mock
-	createMock(t)
-
-	// expect
-	loggerAppRootExpected = 1
-	loggerAppRoot = func(category string, subcategory string, messageFormat string, parameters ...interface{}) {
-		loggerAppRootCalled++
-		assert.Equal(t, "register", category)
-		assert.Equal(t, "doParameterReplacement", subcategory)
-		assert.Equal(t, "Path parameter [%v] in path [%v] has no type specification; fallback to default.", messageFormat)
-		assert.Equal(t, 2, len(parameters))
-		assert.Equal(t, dummyParameterName, parameters[0])
-		assert.Equal(t, dummyOriginalPath, parameters[1])
-	}
-
-	// SUT + act
-	var result = doParameterReplacement(
-		dummyOriginalPath,
-		dummyParameterName,
-		dummyParameterType,
-		dummyParameterReplacementsMap,
-	)
-
-	// assert
-	assert.Equal(t, dummyOriginalPath, result)
-
-	// verify
-	verifyAll(t)
-}
-
-func TestDoParameterReplacement_ValidReplacementFound(t *testing.T) {
-	// arrange
-	var dummyParameterName = "some name"
-	var dummyOriginalPath = "/some/original/path/with/{" + dummyParameterName + "}/in/it"
-	var dummyParameterType = model.ParameterType("some type")
-	var dummyReplacement = "some replacement"
-	var dummyParameterReplacementsMap = map[model.ParameterType]string{
-		model.ParameterType("foo"): "bar",
-		dummyParameterType:         dummyReplacement,
-	}
-	var dummyResult = "/some/original/path/with/{" + dummyParameterName + ":" + dummyReplacement + "}/in/it"
+	var dummyResult = "/some/original/path/with/{" + dummyParameterName + ":" + string(dummyParameterType) + "}/in/it"
 
 	// mock
 	createMock(t)
@@ -120,7 +74,7 @@ func TestDoParameterReplacement_ValidReplacementFound(t *testing.T) {
 			assert.Equal(t, "{%v:%v}", format)
 			assert.Equal(t, 2, len(a))
 			assert.Equal(t, dummyParameterName, a[0])
-			assert.Equal(t, dummyReplacement, a[1])
+			assert.Equal(t, dummyParameterType, a[1])
 		}
 		return fmt.Sprintf(format, a...)
 	}
@@ -129,7 +83,7 @@ func TestDoParameterReplacement_ValidReplacementFound(t *testing.T) {
 		stringsReplaceCalled++
 		assert.Equal(t, dummyOriginalPath, s)
 		assert.Equal(t, "{"+dummyParameterName+"}", old)
-		assert.Equal(t, "{"+dummyParameterName+":"+dummyReplacement+"}", new)
+		assert.Equal(t, "{"+dummyParameterName+":"+string(dummyParameterType)+"}", new)
 		assert.Equal(t, -1, n)
 		return strings.Replace(s, old, new, n)
 	}
@@ -139,7 +93,6 @@ func TestDoParameterReplacement_ValidReplacementFound(t *testing.T) {
 		dummyOriginalPath,
 		dummyParameterName,
 		dummyParameterType,
-		dummyParameterReplacementsMap,
 	)
 
 	// assert
@@ -163,9 +116,6 @@ func TestEvaluatePathWithParameters(t *testing.T) {
 		dummyParameterName2: dummyParameterType2,
 		dummyParameterName3: dummyParameterType3,
 	}
-	var dummyParameterReplacementsMap = map[model.ParameterType]string{
-		model.ParameterType("foo"): "bar",
-	}
 	var dummyUpdatedPath = "some updated path"
 
 	// mock
@@ -173,9 +123,8 @@ func TestEvaluatePathWithParameters(t *testing.T) {
 
 	// expect
 	doParameterReplacementFuncExpected = 3
-	doParameterReplacementFunc = func(originalPath string, parameterName string, parameterType model.ParameterType, parameterReplacementsMap map[model.ParameterType]string) string {
+	doParameterReplacementFunc = func(originalPath string, parameterName string, parameterType model.ParameterType) string {
 		doParameterReplacementFuncCalled++
-		assert.Equal(t, dummyParameterReplacementsMap, parameterReplacementsMap)
 		if dummyParameterName1 == parameterName {
 			assert.Equal(t, dummyParameterType1, parameterType)
 			return dummyUpdatedPath
@@ -193,7 +142,6 @@ func TestEvaluatePathWithParameters(t *testing.T) {
 	var result = evaluatePathWithParameters(
 		dummyOriginalPath,
 		dummyParameters,
-		dummyParameterReplacementsMap,
 	)
 
 	// assert
@@ -206,31 +154,23 @@ func TestEvaluatePathWithParameters(t *testing.T) {
 func TestEvaluateQueries(t *testing.T) {
 	// arrange
 	var dummyQueryName1 = "some query name 1"
-	var dummyParameterType1 = model.ParameterType("some paramter type 1")
+	var dummyParameterType1 model.ParameterType
 	var dummyQueryName2 = "some query name 2"
 	var dummyParameterType2 = model.ParameterType("some paramter type 2")
-	var dummyQueryName3 = "some query name 3"
-	var dummyParameterType3 = model.ParameterType("some paramter type 3")
 	var dummyQueries = map[string]model.ParameterType{
 		dummyQueryName1: dummyParameterType1,
 		dummyQueryName2: dummyParameterType2,
-		dummyQueryName3: dummyParameterType3,
-	}
-	var dummyParameterReplacementsMap = map[model.ParameterType]string{
-		model.ParameterType("some paramter type 2"): "bar",
-		model.ParameterType("some paramter type 3"): "",
 	}
 	var expectedResult = []string{
 		dummyQueryName1, "{" + dummyQueryName1 + "}",
-		dummyQueryName2, "{" + dummyQueryName2 + ":bar}",
-		dummyQueryName3, "{" + dummyQueryName3 + "}",
+		dummyQueryName2, "{" + dummyQueryName2 + ":" + string(dummyParameterType2) + "}",
 	}
 
 	// mock
 	createMock(t)
 
 	// expect
-	fmtSprintfExpected = 3
+	fmtSprintfExpected = 2
 	fmtSprintf = func(format string, a ...interface{}) string {
 		fmtSprintfCalled++
 		return fmt.Sprintf(format, a...)
@@ -239,11 +179,10 @@ func TestEvaluateQueries(t *testing.T) {
 	// SUT + act
 	var result = evaluateQueries(
 		dummyQueries,
-		dummyParameterReplacementsMap,
 	)
 
 	// assert
-	assert.Equal(t, 6, len(result))
+	assert.Equal(t, 4, len(result))
 	assert.ElementsMatch(t, expectedResult, result)
 
 	// verify
@@ -378,9 +317,8 @@ func TestRegisterRoutes_ValidRoutes(t *testing.T) {
 		return dummyRoutes
 	}
 	evaluatePathWithParametersFuncExpected = 2
-	evaluatePathWithParametersFunc = func(path string, parameters map[string]model.ParameterType, replacementsMap map[model.ParameterType]string) string {
+	evaluatePathWithParametersFunc = func(path string, parameters map[string]model.ParameterType) string {
 		evaluatePathWithParametersFuncCalled++
-		assert.Equal(t, model.ParameterTypeMap, replacementsMap)
 		if dummyPath1 == path {
 			assert.Equal(t, dummyParameters1, parameters)
 			return dummyEvaluatedPath1
@@ -391,9 +329,8 @@ func TestRegisterRoutes_ValidRoutes(t *testing.T) {
 		return ""
 	}
 	evaluateQueriesFuncExpected = 2
-	evaluateQueriesFunc = func(queries map[string]model.ParameterType, replacementsMap map[model.ParameterType]string) []string {
+	evaluateQueriesFunc = func(queries map[string]model.ParameterType) []string {
 		evaluateQueriesFuncCalled++
-		assert.Equal(t, model.ParameterTypeMap, replacementsMap)
 		if queries["test1"] == model.ParameterType("me1") {
 			return dummyEvaluatedQueries1
 		} else if queries["test2"] == model.ParameterType("me2") {
