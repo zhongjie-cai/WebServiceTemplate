@@ -682,7 +682,7 @@ func TestEvaluate_DateTime_Valid_WithTimeZone(t *testing.T) {
 
 func TestEvaluate_DateTime_Valid_NoTimeZone(t *testing.T) {
 	// arrange
-	var dummyValue = "2006-01-02 15:04:05.789Z"
+	var dummyValue = "2006-01-02T15:04:05.789Z"
 
 	// mock
 	createMock(t)
@@ -714,7 +714,7 @@ func TestEvaluate_DateTime_Valid_NoTimeZone(t *testing.T) {
 
 func TestEvaluate_DateTime_Valid_Short(t *testing.T) {
 	// arrange
-	var dummyValue = "2006-01-02t15:04:05z"
+	var dummyValue = "2006-01-02T15:04:05Z"
 
 	// mock
 	createMock(t)

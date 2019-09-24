@@ -11,7 +11,7 @@ const (
 	ParameterTypeUUID     ParameterType = `[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}`
 	ParameterTypeDate     ParameterType = `\d{4}-\d{2}-\d{2}`
 	ParameterTypeTime     ParameterType = `\d{2}:\d{2}:\d{2}(?:\.\d+)?`
-	ParameterTypeDateTime ParameterType = ParameterTypeDate + `[Tt ]` + ParameterTypeTime + `(?:[Zz]|[+-]\d{2}:\d{2})`
+	ParameterTypeDateTime ParameterType = ParameterTypeDate + `T` + ParameterTypeTime + `(?:Z|[+-]\d{2}:\d{2})`
 	ParameterTypeBoolean  ParameterType = `(?i)(?:true|false)`
 	ParameterTypeFloat    ParameterType = `\d+(?:\.\d+)?`
 )
