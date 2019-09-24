@@ -212,7 +212,7 @@ func getAllQueryStrings(sessionID uuid.UUID, name string) []string {
 	var httpRequest = getRequestFunc(
 		sessionID,
 	)
-	var queryStrings, found = httpRequest.Form[name]
+	var queryStrings, found = httpRequest.URL.Query()[name]
 	if !found {
 		return nil
 	}

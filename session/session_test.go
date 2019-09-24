@@ -6,6 +6,7 @@ import (
 	"math"
 	"math/rand"
 	"net/http"
+	"net/url"
 	"strconv"
 	"testing"
 
@@ -872,11 +873,10 @@ func TestGetAllQueryStrings_NotFound(t *testing.T) {
 	// arrange
 	var dummySessionID = uuid.New()
 	var dummyName = "some name"
-	var dummyQueries = map[string][]string{
-		"test": []string{"me", "you"},
-	}
 	var dummyHTTPRequest = &http.Request{
-		Form: dummyQueries,
+		URL: &url.URL{
+			RawQuery: "test=me&test=you",
+		},
 	}
 
 	// mock
@@ -907,11 +907,10 @@ func TestGetAllQueryStrings_HappyPath(t *testing.T) {
 	// arrange
 	var dummySessionID = uuid.New()
 	var dummyName = "some name"
-	var dummyQueries = map[string][]string{
-		dummyName: []string{"me", "you"},
-	}
 	var dummyHTTPRequest = &http.Request{
-		Form: dummyQueries,
+		URL: &url.URL{
+			RawQuery: dummyName + "=me&" + dummyName + "=you",
+		},
 	}
 
 	// mock
