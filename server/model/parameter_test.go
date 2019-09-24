@@ -522,7 +522,7 @@ func TestEvaluate_Time_Empty(t *testing.T) {
 
 func TestEvaluate_Time_Valid_Full(t *testing.T) {
 	// arrange
-	var dummyValue = "15:04:05.789"
+	var dummyValue = "15:04:05.789012"
 
 	// mock
 	createMock(t)
@@ -586,7 +586,7 @@ func TestEvaluate_Time_Valid_Short(t *testing.T) {
 
 func TestEvaluate_Time_Invalid(t *testing.T) {
 	// arrange
-	var dummyValue = "15.04.05"
+	var dummyValue = "15.04.05.0a"
 
 	// mock
 	createMock(t)
@@ -648,9 +648,9 @@ func TestEvaluate_DateTime_Empty(t *testing.T) {
 	verifyAll(t)
 }
 
-func TestEvaluate_DateTime_Valid_Full(t *testing.T) {
+func TestEvaluate_DateTime_Valid_WithTimeZone(t *testing.T) {
 	// arrange
-	var dummyValue = "2006-01-02T15:04:05.789Z10:11"
+	var dummyValue = "2006-01-02T15:04:05.789+10:00"
 
 	// mock
 	createMock(t)
@@ -682,7 +682,7 @@ func TestEvaluate_DateTime_Valid_Full(t *testing.T) {
 
 func TestEvaluate_DateTime_Valid_NoTimeZone(t *testing.T) {
 	// arrange
-	var dummyValue = "2006-01-02T15:04:05.789Z"
+	var dummyValue = "2006-01-02 15:04:05.789Z"
 
 	// mock
 	createMock(t)
@@ -714,7 +714,7 @@ func TestEvaluate_DateTime_Valid_NoTimeZone(t *testing.T) {
 
 func TestEvaluate_DateTime_Valid_Short(t *testing.T) {
 	// arrange
-	var dummyValue = "2006-01-02T15:04:05Z"
+	var dummyValue = "2006-01-02t15:04:05z"
 
 	// mock
 	createMock(t)
