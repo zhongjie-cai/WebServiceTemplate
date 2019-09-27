@@ -15,7 +15,6 @@ type logEntry struct {
 	Version     string          `json:"version"`
 	Timestamp   time.Time       `json:"timestamp"`
 	Session     uuid.UUID       `json:"session"`
-	Login       uuid.UUID       `json:"login"`
 	Endpoint    string          `json:"endpoint"`
 	Level       logtype.LogType `json:"level"`
 	Category    string          `json:"category"`
@@ -47,7 +46,6 @@ func defaultLogging(
 			Version:     config.AppVersion(),
 			Timestamp:   timeutilGetTimeNowUTC(),
 			Session:     session.ID,
-			Login:       session.LoginID,
 			Endpoint:    session.Endpoint,
 			Level:       logType,
 			Category:    category,

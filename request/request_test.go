@@ -7,309 +7,114 @@ import (
 	"errors"
 	"io"
 	"io/ioutil"
-	"math/rand"
 	"net/http"
 	"strings"
 	"testing"
 
-	"github.com/google/uuid"
+	"github.com/zhongjie-cai/WebServiceTemplate/logger/logtype"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
-	"github.com/zhongjie-cai/WebServiceTemplate/logger/logtype"
 )
 
-func TestGetUUIDFromHeader_EmptyHeader(t *testing.T) {
-	// arrange
-	var dummyHeader = make(http.Header)
-	var dummyName = "some name"
-	var expectedError = errors.New("some error")
-	var expectedUUID = uuid.New()
-
-	// mock
-	createMock(t)
-
-	// expect
-	uuidParseExpected = 1
-	uuidParse = func(s string) (uuid.UUID, error) {
-		uuidParseCalled++
-		assert.Equal(t, "", s)
-		return uuid.Nil, expectedError
-	}
-	uuidNewExpected = 1
-	uuidNew = func() uuid.UUID {
-		uuidNewCalled++
-		return expectedUUID
-	}
-
-	// SUT + act
-	var parsedUUID = getUUIDFromHeader(
-		dummyHeader,
-		dummyName,
-	)
-
-	// assert
-	assert.NotZero(t, parsedUUID)
-
-	// verify
-	verifyAll(t)
-}
-
-func TestGetUUIDFromHeader_HeaderNoUUID(t *testing.T) {
-	// arrange
-	var dummyHeader = make(http.Header)
-	var dummyName = "some name"
-	var expectedError = errors.New("some error")
-	var expectedUUID = uuid.New()
-
-	// stub
-	dummyHeader.Add("foo", "bar")
-
-	// mock
-	createMock(t)
-
-	// expect
-	uuidParseExpected = 1
-	uuidParse = func(s string) (uuid.UUID, error) {
-		uuidParseCalled++
-		assert.Equal(t, "", s)
-		return uuid.Nil, expectedError
-	}
-	uuidNewExpected = 1
-	uuidNew = func() uuid.UUID {
-		uuidNewCalled++
-		return expectedUUID
-	}
-
-	// SUT + act
-	var parsedUUID = getUUIDFromHeader(
-		dummyHeader,
-		dummyName,
-	)
-
-	// assert
-	assert.Equal(t, expectedUUID, parsedUUID)
-
-	// verify
-	verifyAll(t)
-}
-
-func TestGetUUIDFromHeader_HeaderInvalidUUID(t *testing.T) {
-	// arrange
-	var dummyHeader = make(http.Header)
-	var dummyName = "some name"
-	var invalidUUID = "some invalid UUID"
-	var expectedError = errors.New("some error")
-	var expectedUUID = uuid.New()
-
-	// stub
-	dummyHeader.Add("foo", "bar")
-	dummyHeader.Add(dummyName, invalidUUID)
-
-	// mock
-	createMock(t)
-
-	// expect
-	uuidParseExpected = 1
-	uuidParse = func(s string) (uuid.UUID, error) {
-		uuidParseCalled++
-		assert.Equal(t, invalidUUID, s)
-		return uuid.Nil, expectedError
-	}
-	uuidNewExpected = 1
-	uuidNew = func() uuid.UUID {
-		uuidNewCalled++
-		return expectedUUID
-	}
-
-	// SUT + act
-	var parsedUUID = getUUIDFromHeader(
-		dummyHeader,
-		dummyName,
-	)
-
-	// assert
-	assert.Equal(t, expectedUUID, parsedUUID)
-
-	// verify
-	verifyAll(t)
-}
-
-func TestGetUUIDFromHeader_HeaderValidUUID(t *testing.T) {
-	// arrange
-	var dummyHeader = make(http.Header)
-	var dummyName = "some name"
-	var expectedUUID, _ = uuid.NewUUID()
-
-	// stub
-	dummyHeader.Add("foo", "bar")
-	dummyHeader.Add(dummyName, expectedUUID.String())
-
-	// mock
-	createMock(t)
-
-	// expect
-	uuidParseExpected = 1
-	uuidParse = func(s string) (uuid.UUID, error) {
-		uuidParseCalled++
-		return uuid.Parse(s)
-	}
-
-	// SUT + act
-	var parsedUUID = getUUIDFromHeader(
-		dummyHeader,
-		dummyName,
-	)
-
-	// assert
-	assert.Equal(t, expectedUUID.String(), parsedUUID.String())
-
-	// verify
-	verifyAll(t)
-}
-
-func TestGetLoginID_NilRequest(t *testing.T) {
+func TestGetAllowedLogType_NilHTTPRequest(t *testing.T) {
 	// arrange
 	var dummyHTTPRequest *http.Request
-	var expectedCorrelationID = uuid.New()
 
 	// mock
 	createMock(t)
 
-	// expect
-	uuidNewExpected = 1
-	uuidNew = func() uuid.UUID {
-		uuidNewCalled++
-		return expectedCorrelationID
-	}
-
 	// SUT + act
-	var result = GetLoginID(
+	var allowedLogType = GetAllowedLogType(
 		dummyHTTPRequest,
 	)
 
 	// assert
-	assert.Equal(t, expectedCorrelationID, result)
+	assert.Equal(t, logtype.GeneralTracing, allowedLogType)
 
-	// tear down
+	// verify
 	verifyAll(t)
 }
 
-func TestGetLoginID_ValidRequest(t *testing.T) {
+func TestGetAllowedLogType_NoMatchingHeaderFound(t *testing.T) {
 	// arrange
 	var dummyHTTPRequest, _ = http.NewRequest(
 		http.MethodGet,
 		"http://localhost/",
 		nil,
 	)
-	var expectedCorrelationID = uuid.New()
-
-	// mock
-	createMock(t)
-
-	// expect
-	getUUIDFromHeaderFuncExpected = 1
-	getUUIDFromHeaderFunc = func(header http.Header, name string) uuid.UUID {
-		getUUIDFromHeaderFuncCalled++
-		assert.Equal(t, dummyHTTPRequest.Header, header)
-		assert.Equal(t, "login-id", name)
-		return expectedCorrelationID
-	}
-
-	// SUT + act
-	var result = GetLoginID(
-		dummyHTTPRequest,
-	)
-
-	// assert
-	assert.Equal(t, expectedCorrelationID, result)
-
-	// tear down
-	verifyAll(t)
-}
-
-func TestGetCorrelationID_NilRequest(t *testing.T) {
-	// arrange
-	var dummyHTTPRequest *http.Request
-	var expectedCorrelationID = uuid.New()
-
-	// mock
-	createMock(t)
-
-	// expect
-	uuidNewExpected = 1
-	uuidNew = func() uuid.UUID {
-		uuidNewCalled++
-		return expectedCorrelationID
-	}
-
-	// SUT + act
-	var result = GetCorrelationID(
-		dummyHTTPRequest,
-	)
-
-	// assert
-	assert.Equal(t, expectedCorrelationID, result)
-
-	// tear down
-	verifyAll(t)
-}
-
-func TestGetCorrelationID_ValidRequest(t *testing.T) {
-	// arrange
-	var dummyHTTPRequest, _ = http.NewRequest(
-		http.MethodGet,
-		"http://localhost/",
-		nil,
-	)
-	var expectedCorrelationID = uuid.New()
-
-	// mock
-	createMock(t)
-
-	// expect
-	getUUIDFromHeaderFuncExpected = 1
-	getUUIDFromHeaderFunc = func(header http.Header, name string) uuid.UUID {
-		getUUIDFromHeaderFuncCalled++
-		assert.Equal(t, dummyHTTPRequest.Header, header)
-		assert.Equal(t, "correlation-id", name)
-		return expectedCorrelationID
-	}
-
-	// SUT + act
-	var result = GetCorrelationID(
-		dummyHTTPRequest,
-	)
-
-	// assert
-	assert.Equal(t, expectedCorrelationID, result)
-
-	// tear down
-	verifyAll(t)
-}
-
-func TestGetAllowedLogType(t *testing.T) {
-	// arrange
-	var dummyHTTPRequest, _ = http.NewRequest(
-		http.MethodGet,
-		"http://localhost/",
-		nil,
-	)
-	var dummyHeaderValue = "some header value"
-	var dummyLogType = logtype.LogType(rand.Intn(256))
 
 	// stub
 	dummyHTTPRequest.Header.Add("foo", "bar")
-	dummyHTTPRequest.Header.Add("log-type", dummyHeaderValue)
+
+	// mock
+	createMock(t)
+
+	// SUT + act
+	var allowedLogType = GetAllowedLogType(
+		dummyHTTPRequest,
+	)
+
+	// assert
+	assert.Equal(t, logtype.GeneralTracing, allowedLogType)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestGetAllowedLogType_MatchingHeaderEmpty(t *testing.T) {
+	// arrange
+	var dummyHTTPRequest, _ = http.NewRequest(
+		http.MethodGet,
+		"http://localhost/",
+		nil,
+	)
+
+	// stub
+	dummyHTTPRequest.Header.Add("Foo", "bar")
+	dummyHTTPRequest.Header["Log-Type"] = []string{}
+
+	// mock
+	createMock(t)
+
+	// SUT + act
+	var allowedLogType = GetAllowedLogType(
+		dummyHTTPRequest,
+	)
+
+	// assert
+	assert.Equal(t, logtype.GeneralTracing, allowedLogType)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestGetAllowedLogType_MatchingHeaderInvalid(t *testing.T) {
+	// arrange
+	var dummyHTTPRequest, _ = http.NewRequest(
+		http.MethodGet,
+		"http://localhost/",
+		nil,
+	)
+
+	// stub
+	dummyHTTPRequest.Header.Add("Foo", "bar")
+	dummyHTTPRequest.Header.Add("Log-Type", "abc")
+	dummyHTTPRequest.Header.Add("Log-Type", "def")
 
 	// mock
 	createMock(t)
 
 	// expect
-	logtypeFromStringExpected = 1
+	logtypeFromStringExpected = 2
 	logtypeFromString = func(value string) logtype.LogType {
 		logtypeFromStringCalled++
-		assert.Equal(t, dummyHeaderValue, value)
-		return dummyLogType
+		if logtypeFromStringCalled == 1 {
+			assert.Equal(t, "abc", value)
+		} else if logtypeFromStringCalled == 2 {
+			assert.Equal(t, "def", value)
+		}
+		return logtype.AppRoot
 	}
 
 	// SUT + act
@@ -318,7 +123,49 @@ func TestGetAllowedLogType(t *testing.T) {
 	)
 
 	// assert
-	assert.Equal(t, dummyLogType, allowedLogType)
+	assert.Equal(t, logtype.GeneralTracing, allowedLogType)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestGetAllowedLogType_MatchingHeaderValid(t *testing.T) {
+	// arrange
+	var dummyHTTPRequest, _ = http.NewRequest(
+		http.MethodGet,
+		"http://localhost/",
+		nil,
+	)
+
+	// stub
+	dummyHTTPRequest.Header.Add("Foo", "bar")
+	dummyHTTPRequest.Header.Add("Log-Type", logtype.MethodEnterName)
+	dummyHTTPRequest.Header.Add("Log-Type", logtype.MethodExitName)
+
+	// mock
+	createMock(t)
+
+	// expect
+	logtypeFromStringExpected = 2
+	logtypeFromString = func(value string) logtype.LogType {
+		logtypeFromStringCalled++
+		if logtypeFromStringCalled == 1 {
+			assert.Equal(t, logtype.MethodEnterName, value)
+			return logtype.MethodEnter
+		} else if logtypeFromStringCalled == 2 {
+			assert.Equal(t, logtype.MethodExitName, value)
+			return logtype.MethodExit
+		}
+		return logtype.AppRoot
+	}
+
+	// SUT + act
+	var allowedLogType = GetAllowedLogType(
+		dummyHTTPRequest,
+	)
+
+	// assert
+	assert.Equal(t, logtype.MethodEnter|logtype.MethodExit, allowedLogType)
 
 	// verify
 	verifyAll(t)

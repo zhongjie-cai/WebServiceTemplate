@@ -16,8 +16,6 @@ var (
 	sessionRegister             = session.Register
 	sessionUnregister           = session.Unregister
 	panicHandle                 = panic.Handle
-	requestGetLoginID           = request.GetLoginID
-	requestGetCorrelationID     = request.GetCorrelationID
 	requestGetAllowedLogType    = request.GetAllowedLogType
 	responseWrite               = response.Write
 	loggerAPIEnter              = logger.APIEnter

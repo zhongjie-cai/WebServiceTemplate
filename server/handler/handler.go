@@ -14,12 +14,6 @@ func Session(
 	)
 	var sessionID = sessionRegister(
 		endpoint,
-		requestGetLoginID(
-			httpRequest,
-		),
-		requestGetCorrelationID(
-			httpRequest,
-		),
 		requestGetAllowedLogType(
 			httpRequest,
 		),

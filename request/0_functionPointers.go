@@ -18,5 +18,4 @@ var (
 	ioutilReadAll           = ioutil.ReadAll
 	ioutilNopCloser         = ioutil.NopCloser
 	bytesNewBuffer          = bytes.NewBuffer
-	getUUIDFromHeaderFunc   = getUUIDFromHeader
 )

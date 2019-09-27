@@ -27,10 +27,6 @@ var (
 	sessionUnregisterCalled             int
 	panicHandleExpected                 int
 	panicHandleCalled                   int
-	requestGetLoginIDExpected           int
-	requestGetLoginIDCalled             int
-	requestGetCorrelationIDExpected     int
-	requestGetCorrelationIDCalled       int
 	requestGetAllowedLogTypeExpected    int
 	requestGetAllowedLogTypeCalled      int
 	responseWriteExpected               int
@@ -52,7 +48,7 @@ func createMock(t *testing.T) {
 	}
 	sessionRegisterExpected = 0
 	sessionRegisterCalled = 0
-	sessionRegister = func(endpoint string, loginID uuid.UUID, correlationID uuid.UUID, allowedLogType logtype.LogType, httpRequest *http.Request, responseWriter http.ResponseWriter) uuid.UUID {
+	sessionRegister = func(endpoint string, allowedLogType logtype.LogType, httpRequest *http.Request, responseWriter http.ResponseWriter) uuid.UUID {
 		sessionRegisterCalled++
 		return uuid.Nil
 	}
@@ -65,18 +61,6 @@ func createMock(t *testing.T) {
 	panicHandleCalled = 0
 	panicHandle = func(endpointName string, sessionID uuid.UUID, recoverResult interface{}, responseWriter http.ResponseWriter) {
 		panicHandleCalled++
-	}
-	requestGetLoginIDExpected = 0
-	requestGetLoginIDCalled = 0
-	requestGetLoginID = func(httpRequest *http.Request) uuid.UUID {
-		requestGetLoginIDCalled++
-		return uuid.Nil
-	}
-	requestGetCorrelationIDExpected = 0
-	requestGetCorrelationIDCalled = 0
-	requestGetCorrelationID = func(httpRequest *http.Request) uuid.UUID {
-		requestGetCorrelationIDCalled++
-		return uuid.Nil
 	}
 	requestGetAllowedLogTypeExpected = 0
 	requestGetAllowedLogTypeCalled = 0
@@ -116,10 +100,6 @@ func verifyAll(t *testing.T) {
 	assert.Equal(t, sessionUnregisterExpected, sessionUnregisterCalled, "Unexpected number of calls to sessionUnregister")
 	panicHandle = panic.Handle
 	assert.Equal(t, panicHandleExpected, panicHandleCalled, "Unexpected number of calls to panicHandle")
-	requestGetLoginID = request.GetLoginID
-	assert.Equal(t, requestGetLoginIDExpected, requestGetLoginIDCalled, "Unexpected number of calls to requestGetLoginID")
-	requestGetCorrelationID = request.GetCorrelationID
-	assert.Equal(t, requestGetCorrelationIDExpected, requestGetCorrelationIDCalled, "Unexpected number of calls to requestGetCorrelationID")
 	requestGetAllowedLogType = request.GetAllowedLogType
 	assert.Equal(t, requestGetAllowedLogTypeExpected, requestGetAllowedLogTypeCalled, "Unexpected number of calls to requestGetAllowedLogType")
 	responseWrite = response.Write

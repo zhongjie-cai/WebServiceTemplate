@@ -69,57 +69,17 @@ func TestInit_AllValuesSet(t *testing.T) {
 	assert.True(t, found)
 	assert.Equal(t, defaultSession, result)
 	assert.Zero(t, defaultSession.ID)
-	assert.Zero(t, defaultSession.Endpoint)
-	assert.Zero(t, defaultSession.LoginID)
+	assert.Equal(t, defaultEndpoint, defaultSession.Endpoint)
 	assert.Equal(t, logtype.BasicLogging, defaultSession.AllowedLogType)
 
 	// verify
 	verifyAll(t)
 }
 
-func TestRegister_NilLoginID(t *testing.T) {
-	// arrange
-	var dummyEndpoint = "dummy endpoint"
-	var dummyLoginID = uuid.Nil
-	var dummyCorrelationID = uuid.New()
-	var dummyAllowedLogType = logtype.LogType(rand.Intn(math.MaxInt8))
-	var dummyHTTPRequest = &http.Request{}
-	var dummyResponseWriter = dummyResponseWriter{}
-
-	// stub
-	sessionCache.Delete(uuid.Nil.String())
-
-	// mock
-	createMock(t)
-
-	// SUT
-	var result = Register(
-		dummyEndpoint,
-		dummyLoginID,
-		dummyCorrelationID,
-		dummyAllowedLogType,
-		dummyHTTPRequest,
-		dummyResponseWriter,
-	)
-
-	// act
-	var _, cacheOK = sessionCache.Get(result.String())
-
-	// assert
-	assert.Equal(t, uuid.Nil, result)
-	assert.False(t, cacheOK)
-
-	// verify
-	verifyAll(t)
-	sessionCache.Delete(uuid.Nil.String())
-}
-
-func TestRegister_ValidLoginID(t *testing.T) {
+func TestRegister(t *testing.T) {
 	// arrange
 	var dummySessionID = uuid.New()
 	var dummyEndpoint = "dummy endpoint"
-	var dummyLoginID = uuid.New()
-	var dummyCorrelationID = uuid.New()
 	var dummyAllowedLogType = logtype.LogType(rand.Intn(math.MaxInt8))
 	var dummyHTTPRequest = &http.Request{}
 	var dummyResponseWriter = dummyResponseWriter{}
@@ -140,8 +100,6 @@ func TestRegister_ValidLoginID(t *testing.T) {
 	// SUT
 	var result = Register(
 		dummyEndpoint,
-		dummyLoginID,
-		dummyCorrelationID,
 		dummyAllowedLogType,
 		dummyHTTPRequest,
 		dummyResponseWriter,
@@ -157,8 +115,6 @@ func TestRegister_ValidLoginID(t *testing.T) {
 	assert.True(t, typeOK)
 	assert.Equal(t, dummySessionID, session.ID)
 	assert.Equal(t, dummyEndpoint, session.Endpoint)
-	assert.Equal(t, dummyLoginID, session.LoginID)
-	assert.Equal(t, dummyCorrelationID, session.CorrelationID)
 	assert.Equal(t, dummyAllowedLogType, session.AllowedLogType)
 	assert.Equal(t, dummyHTTPRequest, session.Request)
 	assert.Equal(t, dummyResponseWriter, session.ResponseWriter)
@@ -234,10 +190,8 @@ func TestGet_CacheItemInvalid(t *testing.T) {
 func TestGet_CacheItemValid(t *testing.T) {
 	// arrange
 	var dummySessionID = uuid.New()
-	var dummyLoginID = uuid.New()
 	var expectedSession = &Session{
 		Endpoint:       "dummy endpoint",
-		LoginID:        dummyLoginID,
 		AllowedLogType: logtype.BasicLogging,
 	}
 

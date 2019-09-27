@@ -67,12 +67,10 @@ func TestDefaultLogging(t *testing.T) {
 	// arrange
 	var dummySessionID = uuid.New()
 	var dummyAllowedLogType = logtype.BasicLogging
-	var dummyLoginID = uuid.New()
 	var dummyEndpoint = "some endpoint"
 	var dummyLogSession = &session.Session{
 		ID:             dummySessionID,
 		AllowedLogType: dummyAllowedLogType,
-		LoginID:        dummyLoginID,
 		Endpoint:       dummyEndpoint,
 	}
 	var dummyLogType = logtype.MethodLogic
@@ -87,7 +85,6 @@ func TestDefaultLogging(t *testing.T) {
 		Version:     dummyAppVersion,
 		Timestamp:   dummyTimestamp,
 		Session:     dummySessionID,
-		Login:       dummyLoginID,
 		Endpoint:    dummyEndpoint,
 		Level:       dummyLogType,
 		Category:    dummyCategory,
@@ -187,12 +184,10 @@ func TestPrepareLogging_IsLocalhost_DefaultLogging(t *testing.T) {
 	// arrange
 	var dummySessionID = uuid.New()
 	var dummyAllowedLogType = logtype.BasicLogging
-	var dummyLoginID = uuid.New()
 	var dummyEndpoint = "some endpoint"
 	var dummyLogSession = &session.Session{
 		ID:             dummySessionID,
 		AllowedLogType: dummyAllowedLogType,
-		LoginID:        dummyLoginID,
 		Endpoint:       dummyEndpoint,
 	}
 	var dummyLogType = logtype.MethodEnter
@@ -245,12 +240,10 @@ func TestPrepareLogging_FlagMatch_DefaultLogging(t *testing.T) {
 	// arrange
 	var dummySessionID = uuid.New()
 	var dummyAllowedLogType = logtype.BasicLogging
-	var dummyLoginID = uuid.New()
 	var dummyEndpoint = "some endpoint"
 	var dummyLogSession = &session.Session{
 		ID:             dummySessionID,
 		AllowedLogType: dummyAllowedLogType,
-		LoginID:        dummyLoginID,
 		Endpoint:       dummyEndpoint,
 	}
 	var dummyLogType = logtype.MethodLogic
@@ -298,12 +291,10 @@ func TestPrepareLogging_IsLocalhost_CustomLogging(t *testing.T) {
 	// arrange
 	var dummySessionID = uuid.New()
 	var dummyAllowedLogType = logtype.BasicLogging
-	var dummyLoginID = uuid.New()
 	var dummyEndpoint = "some endpoint"
 	var dummyLogSession = &session.Session{
 		ID:             dummySessionID,
 		AllowedLogType: dummyAllowedLogType,
-		LoginID:        dummyLoginID,
 		Endpoint:       dummyEndpoint,
 	}
 	var dummyLogType = logtype.MethodEnter
@@ -356,12 +347,10 @@ func TestPrepareLogging_FlagMatch_CustomLogging(t *testing.T) {
 	// arrange
 	var dummySessionID = uuid.New()
 	var dummyAllowedLogType = logtype.BasicLogging
-	var dummyLoginID = uuid.New()
 	var dummyEndpoint = "some endpoint"
 	var dummyLogSession = &session.Session{
 		ID:             dummySessionID,
 		AllowedLogType: dummyAllowedLogType,
-		LoginID:        dummyLoginID,
 		Endpoint:       dummyEndpoint,
 	}
 	var dummyLogType = logtype.MethodLogic

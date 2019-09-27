@@ -30,8 +30,6 @@ func TestHandleInSession_RouteError(t *testing.T) {
 		dummyActionCalled++
 		return nil, nil
 	}
-	var dummyLoginID = uuid.New()
-	var dummyCorrelationID = uuid.New()
 	var dummyAllowedLogType = logtype.LogType(rand.Intn(256))
 	var dummyRouteError = errors.New("some route error")
 	var dummyResponseError = apperror.GetGeneralFailureError(nil)
@@ -46,18 +44,6 @@ func TestHandleInSession_RouteError(t *testing.T) {
 		assert.Equal(t, dummyHTTPRequest, httpRequest)
 		return dummyEndpoint, dummyAction, dummyRouteError
 	}
-	requestGetLoginIDExpected = 1
-	requestGetLoginID = func(httpRequest *http.Request) uuid.UUID {
-		requestGetLoginIDCalled++
-		assert.Equal(t, dummyHTTPRequest, httpRequest)
-		return dummyLoginID
-	}
-	requestGetCorrelationIDExpected = 1
-	requestGetCorrelationID = func(httpRequest *http.Request) uuid.UUID {
-		requestGetCorrelationIDCalled++
-		assert.Equal(t, dummyHTTPRequest, httpRequest)
-		return dummyCorrelationID
-	}
 	requestGetAllowedLogTypeExpected = 1
 	requestGetAllowedLogType = func(httpRequest *http.Request) logtype.LogType {
 		requestGetAllowedLogTypeCalled++
@@ -65,11 +51,9 @@ func TestHandleInSession_RouteError(t *testing.T) {
 		return dummyAllowedLogType
 	}
 	sessionRegisterExpected = 1
-	sessionRegister = func(endpoint string, loginID uuid.UUID, correlationID uuid.UUID, allowedLogType logtype.LogType, httpRequest *http.Request, responseWriter http.ResponseWriter) uuid.UUID {
+	sessionRegister = func(endpoint string, allowedLogType logtype.LogType, httpRequest *http.Request, responseWriter http.ResponseWriter) uuid.UUID {
 		sessionRegisterCalled++
 		assert.Equal(t, dummyEndpoint, endpoint)
-		assert.Equal(t, dummyLoginID, loginID)
-		assert.Equal(t, dummyCorrelationID, correlationID)
 		assert.Equal(t, dummyAllowedLogType, allowedLogType)
 		assert.Equal(t, dummyHTTPRequest, httpRequest)
 		assert.Equal(t, dummyResponseWriter, responseWriter)
@@ -144,8 +128,6 @@ func TestHandleInSession_Success(t *testing.T) {
 	var dummyAction func(uuid.UUID) (interface{}, error)
 	var dummyActionExpected int
 	var dummyActionCalled int
-	var dummyLoginID = uuid.New()
-	var dummyCorrelationID = uuid.New()
 	var dummyAllowedLogType = logtype.LogType(rand.Intn(256))
 	var dummyResponseObject = "some response object"
 	var dummyResponseError = apperror.GetGeneralFailureError(nil)
@@ -160,18 +142,6 @@ func TestHandleInSession_Success(t *testing.T) {
 		assert.Equal(t, dummyHTTPRequest, httpRequest)
 		return dummyEndpoint, dummyAction, nil
 	}
-	requestGetLoginIDExpected = 1
-	requestGetLoginID = func(httpRequest *http.Request) uuid.UUID {
-		requestGetLoginIDCalled++
-		assert.Equal(t, dummyHTTPRequest, httpRequest)
-		return dummyLoginID
-	}
-	requestGetCorrelationIDExpected = 1
-	requestGetCorrelationID = func(httpRequest *http.Request) uuid.UUID {
-		requestGetCorrelationIDCalled++
-		assert.Equal(t, dummyHTTPRequest, httpRequest)
-		return dummyCorrelationID
-	}
 	requestGetAllowedLogTypeExpected = 1
 	requestGetAllowedLogType = func(httpRequest *http.Request) logtype.LogType {
 		requestGetAllowedLogTypeCalled++
@@ -179,11 +149,9 @@ func TestHandleInSession_Success(t *testing.T) {
 		return dummyAllowedLogType
 	}
 	sessionRegisterExpected = 1
-	sessionRegister = func(endpoint string, loginID uuid.UUID, correlationID uuid.UUID, allowedLogType logtype.LogType, httpRequest *http.Request, responseWriter http.ResponseWriter) uuid.UUID {
+	sessionRegister = func(endpoint string, allowedLogType logtype.LogType, httpRequest *http.Request, responseWriter http.ResponseWriter) uuid.UUID {
 		sessionRegisterCalled++
 		assert.Equal(t, dummyEndpoint, endpoint)
-		assert.Equal(t, dummyLoginID, loginID)
-		assert.Equal(t, dummyCorrelationID, correlationID)
 		assert.Equal(t, dummyAllowedLogType, allowedLogType)
 		assert.Equal(t, dummyHTTPRequest, httpRequest)
 		assert.Equal(t, dummyResponseWriter, responseWriter)

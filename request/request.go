@@ -4,50 +4,28 @@ import (
 	"crypto/x509"
 	"net/http"
 
-	"github.com/google/uuid"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger/logtype"
 )
 
-func getUUIDFromHeader(
-	header http.Header,
-	name string,
-) uuid.UUID {
-	var parsedUUID uuid.UUID
-	var parseError error
-	var headerValue = header.Get(name)
-	parsedUUID, parseError = uuidParse(headerValue)
-	if parseError != nil {
-		parsedUUID = uuidNew()
-	}
-	return parsedUUID
-}
-
-// GetLoginID parses and returns the login ID in request header
-func GetLoginID(httpRequest *http.Request) uuid.UUID {
-	if httpRequest == nil {
-		return uuidNew()
-	}
-	return getUUIDFromHeaderFunc(
-		httpRequest.Header,
-		"login-id",
-	)
-}
-
-// GetCorrelationID parses and returns the correlation ID in request header
-func GetCorrelationID(httpRequest *http.Request) uuid.UUID {
-	if httpRequest == nil {
-		return uuidNew()
-	}
-	return getUUIDFromHeaderFunc(
-		httpRequest.Header,
-		"correlation-id",
-	)
-}
-
 // GetAllowedLogType parses and returns the allowed log type in request header
 func GetAllowedLogType(httpRequest *http.Request) logtype.LogType {
-	var headerValue = httpRequest.Header.Get("log-type")
-	return logtypeFromString(headerValue)
+	if httpRequest == nil {
+		return logtype.GeneralTracing
+	}
+	var headerValues, headerValuesFound = httpRequest.Header["Log-Type"]
+	if !headerValuesFound || len(headerValues) == 0 {
+		return logtype.GeneralTracing
+	}
+	var logType logtype.LogType
+	for _, headerValue := range headerValues {
+		logType = logType | logtypeFromString(
+			headerValue,
+		)
+	}
+	if logType == logtype.AppRoot {
+		return logtype.GeneralTracing
+	}
+	return logType
 }
 
 // GetClientCertificates parses and returns the client certificates in request header

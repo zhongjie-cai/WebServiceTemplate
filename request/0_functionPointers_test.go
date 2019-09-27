@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"io"
 	"io/ioutil"
-	"net/http"
 	"testing"
 
 	"github.com/google/uuid"
@@ -28,8 +27,6 @@ var (
 	ioutilNopCloserCalled           int
 	bytesNewBufferExpected          int
 	bytesNewBufferCalled            int
-	getUUIDFromHeaderFuncExpected   int
-	getUUIDFromHeaderFuncCalled     int
 )
 
 func createMock(t *testing.T) {
@@ -75,12 +72,6 @@ func createMock(t *testing.T) {
 		bytesNewBufferCalled++
 		return nil
 	}
-	getUUIDFromHeaderFuncExpected = 0
-	getUUIDFromHeaderFuncCalled = 0
-	getUUIDFromHeaderFunc = func(header http.Header, name string) uuid.UUID {
-		getUUIDFromHeaderFuncCalled++
-		return uuid.Nil
-	}
 }
 
 func verifyAll(t *testing.T) {
@@ -98,6 +89,4 @@ func verifyAll(t *testing.T) {
 	assert.Equal(t, ioutilNopCloserExpected, ioutilNopCloserCalled, "Unexpected number of calls to ioutilNopCloser")
 	bytesNewBuffer = bytes.NewBuffer
 	assert.Equal(t, bytesNewBufferExpected, bytesNewBufferCalled, "Unexpected number of calls to bytesNewBuffer")
-	getUUIDFromHeaderFunc = getUUIDFromHeader
-	assert.Equal(t, getUUIDFromHeaderFuncExpected, getUUIDFromHeaderFuncCalled, "Unexpected number of calls to getUUIDFromHeaderFunc")
 }

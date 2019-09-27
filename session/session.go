@@ -4,10 +4,9 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
-
 	"github.com/google/uuid"
 	cache "github.com/patrickmn/go-cache"
+	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger/logtype"
 )
 
@@ -28,10 +27,10 @@ var (
 	sessionCache          = cache.New(15*time.Minute, 30*time.Minute)
 	defaultRequest, _     = http.NewRequest("", "", nil)
 	defaultResponseWriter = &nilResponseWriter{}
+	defaultEndpoint       = "AppRoot"
 	defaultSession        = &Session{
 		ID:             uuid.Nil,
-		Endpoint:       "",
-		LoginID:        uuid.Nil,
+		Endpoint:       defaultEndpoint,
 		AllowedLogType: logtype.BasicLogging,
 		Request:        defaultRequest,
 		ResponseWriter: defaultResponseWriter,
@@ -42,8 +41,6 @@ var (
 type Session struct {
 	ID             uuid.UUID
 	Endpoint       string
-	LoginID        uuid.UUID
-	CorrelationID  uuid.UUID
 	AllowedLogType logtype.LogType
 	Request        *http.Request
 	ResponseWriter http.ResponseWriter
@@ -62,23 +59,16 @@ func Init(appName string, roleType string, hostName string, version string, buil
 // Register registers the information of a session for given session ID
 func Register(
 	endpoint string,
-	loginID uuid.UUID,
-	correlationID uuid.UUID,
 	allowedLogType logtype.LogType,
 	httpRequest *http.Request,
 	responseWriter http.ResponseWriter,
 ) uuid.UUID {
-	if loginID == uuid.Nil {
-		return uuid.Nil
-	}
 	var sessionID = uuidNew()
 	sessionCache.SetDefault(
 		sessionID.String(),
 		&Session{
 			ID:             sessionID,
 			Endpoint:       endpoint,
-			LoginID:        loginID,
-			CorrelationID:  correlationID,
 			AllowedLogType: allowedLogType,
 			Request:        httpRequest,
 			ResponseWriter: responseWriter,
