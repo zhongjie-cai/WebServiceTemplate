@@ -22,5 +22,6 @@ var (
 	getFunc                      = Get
 	tryUnmarshalFunc             = tryUnmarshal
 	getRequestFunc               = GetRequest
-	getAllQueryStringsFunc       = getAllQueryStrings
+	getAllQueriesFunc            = getAllQueries
+	getAllHeadersFunc            = getAllHeaders
 )

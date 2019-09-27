@@ -33,8 +33,10 @@ var (
 	tryUnmarshalFuncCalled               int
 	getRequestFuncExpected               int
 	getRequestFuncCalled                 int
-	getAllQueryStringsFuncExpected       int
-	getAllQueryStringsFuncCalled         int
+	getAllQueriesFuncExpected            int
+	getAllQueriesFuncCalled              int
+	getAllHeadersFuncExpected            int
+	getAllHeadersFuncCalled              int
 )
 
 func createMock(t *testing.T) {
@@ -98,10 +100,16 @@ func createMock(t *testing.T) {
 		getRequestFuncCalled++
 		return nil
 	}
-	getAllQueryStringsFuncExpected = 0
-	getAllQueryStringsFuncCalled = 0
-	getAllQueryStringsFunc = func(sessionID uuid.UUID, name string) []string {
-		getAllQueryStringsFuncCalled++
+	getAllQueriesFuncExpected = 0
+	getAllQueriesFuncCalled = 0
+	getAllQueriesFunc = func(sessionID uuid.UUID, name string) []string {
+		getAllQueriesFuncCalled++
+		return nil
+	}
+	getAllHeadersFuncExpected = 0
+	getAllHeadersFuncCalled = 0
+	getAllHeadersFunc = func(sessionID uuid.UUID, name string) []string {
+		getAllHeadersFuncCalled++
 		return nil
 	}
 }
@@ -123,8 +131,10 @@ func verifyAll(t *testing.T) {
 	assert.Equal(t, tryUnmarshalFuncExpected, tryUnmarshalFuncCalled, "Unexpected number of calls to tryUnmarshalFunc")
 	getRequestFunc = GetRequest
 	assert.Equal(t, getRequestFuncExpected, getRequestFuncCalled, "Unexpected number of calls to getRequestFunc")
-	getAllQueryStringsFunc = getAllQueryStrings
-	assert.Equal(t, getAllQueryStringsFuncExpected, getAllQueryStringsFuncCalled, "Unexpected number of calls to getAllQueryStringsFunc")
+	getAllQueriesFunc = getAllQueries
+	assert.Equal(t, getAllQueriesFuncExpected, getAllQueriesFuncCalled, "Unexpected number of calls to getAllQueriesFunc")
+	getAllHeadersFunc = getAllHeaders
+	assert.Equal(t, getAllHeadersFuncExpected, getAllHeadersFuncCalled, "Unexpected number of calls to getAllHeadersFunc")
 }
 
 // mock structs

@@ -208,24 +208,24 @@ func GetRequestParameter(sessionID uuid.UUID, name string, dataTemplate interfac
 	)
 }
 
-func getAllQueryStrings(sessionID uuid.UUID, name string) []string {
+func getAllQueries(sessionID uuid.UUID, name string) []string {
 	var httpRequest = getRequestFunc(
 		sessionID,
 	)
-	var queryStrings, found = httpRequest.URL.Query()[name]
+	var queries, found = httpRequest.URL.Query()[name]
 	if !found {
 		return nil
 	}
-	return queryStrings
+	return queries
 }
 
-// GetRequestQueryString loads HTTP request single query string associated to session for given name and unmarshals the content to given data template
-func GetRequestQueryString(sessionID uuid.UUID, name string, dataTemplate interface{}) apperror.AppError {
-	var queryStrings = getAllQueryStringsFunc(
+// GetRequestQuery loads HTTP request single query string associated to session for given name and unmarshals the content to given data template
+func GetRequestQuery(sessionID uuid.UUID, name string, dataTemplate interface{}) apperror.AppError {
+	var queries = getAllQueriesFunc(
 		sessionID,
 		name,
 	)
-	if len(queryStrings) == 0 {
+	if len(queries) == 0 {
 		return apperrorGetBadRequestError(
 			fmtErrorf(
 				"The expected query string [%v] is not found in request",
@@ -234,21 +234,21 @@ func GetRequestQueryString(sessionID uuid.UUID, name string, dataTemplate interf
 		)
 	}
 	return tryUnmarshalFunc(
-		queryStrings[0],
+		queries[0],
 		dataTemplate,
 	)
 }
 
-// GetRequestQueryStrings loads HTTP request query strings associated to session for given name and unmarshals the content to given data template; the fillCallback is called when each unmarshal operation succeeds, so consumer could fill in external arrays using data template during the process
-func GetRequestQueryStrings(sessionID uuid.UUID, name string, dataTemplate interface{}, fillCallback func()) apperror.AppError {
-	var queryStrings = getAllQueryStringsFunc(
+// GetRequestQueries loads HTTP request query strings associated to session for given name and unmarshals the content to given data template; the fillCallback is called when each unmarshal operation succeeds, so consumer could fill in external arrays using data template during the process
+func GetRequestQueries(sessionID uuid.UUID, name string, dataTemplate interface{}, fillCallback func()) apperror.AppError {
+	var queries = getAllQueriesFunc(
 		sessionID,
 		name,
 	)
 	var unmarshalErrors = []error{}
-	for _, queryString := range queryStrings {
+	for _, query := range queries {
 		var unmarshalError = tryUnmarshalFunc(
-			queryString,
+			query,
 			dataTemplate,
 		)
 		if unmarshalError != nil {
@@ -262,6 +262,64 @@ func GetRequestQueryStrings(sessionID uuid.UUID, name string, dataTemplate inter
 	}
 	return apperrorConsolidateAllErrors(
 		"Failed to get request query strings",
+		unmarshalErrors...,
+	)
+}
+
+func getAllHeaders(sessionID uuid.UUID, name string) []string {
+	var httpRequest = getRequestFunc(
+		sessionID,
+	)
+	var headers, found = httpRequest.Header[name]
+	if !found {
+		return nil
+	}
+	return headers
+}
+
+// GetRequestHeader loads HTTP request single header string associated to session for given name and unmarshals the content to given data template
+func GetRequestHeader(sessionID uuid.UUID, name string, dataTemplate interface{}) apperror.AppError {
+	var headers = getAllHeadersFunc(
+		sessionID,
+		name,
+	)
+	if len(headers) == 0 {
+		return apperrorGetBadRequestError(
+			fmtErrorf(
+				"The expected header string [%v] is not found in request",
+				name,
+			),
+		)
+	}
+	return tryUnmarshalFunc(
+		headers[0],
+		dataTemplate,
+	)
+}
+
+// GetRequestHeaders loads HTTP request header strings associated to session for given name and unmarshals the content to given data template; the fillCallback is called when each unmarshal operation succeeds, so consumer could fill in external arrays using data template during the process
+func GetRequestHeaders(sessionID uuid.UUID, name string, dataTemplate interface{}, fillCallback func()) apperror.AppError {
+	var headers = getAllHeadersFunc(
+		sessionID,
+		name,
+	)
+	var unmarshalErrors = []error{}
+	for _, header := range headers {
+		var unmarshalError = tryUnmarshalFunc(
+			header,
+			dataTemplate,
+		)
+		if unmarshalError != nil {
+			unmarshalErrors = append(
+				unmarshalErrors,
+				unmarshalError,
+			)
+		} else {
+			fillCallback()
+		}
+	}
+	return apperrorConsolidateAllErrors(
+		"Failed to get request header strings",
 		unmarshalErrors...,
 	)
 }

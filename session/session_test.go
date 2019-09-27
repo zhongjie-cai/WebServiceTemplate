@@ -869,7 +869,7 @@ func TestGetRequestParameter_HappyPath(t *testing.T) {
 	verifyAll(t)
 }
 
-func TestGetAllQueryStrings_NotFound(t *testing.T) {
+func TestGetAllQueries_NotFound(t *testing.T) {
 	// arrange
 	var dummySessionID = uuid.New()
 	var dummyName = "some name"
@@ -891,7 +891,7 @@ func TestGetAllQueryStrings_NotFound(t *testing.T) {
 	}
 
 	// SUT + act
-	var result = getAllQueryStrings(
+	var result = getAllQueries(
 		dummySessionID,
 		dummyName,
 	)
@@ -903,7 +903,7 @@ func TestGetAllQueryStrings_NotFound(t *testing.T) {
 	verifyAll(t)
 }
 
-func TestGetAllQueryStrings_HappyPath(t *testing.T) {
+func TestGetAllQueries_HappyPath(t *testing.T) {
 	// arrange
 	var dummySessionID = uuid.New()
 	var dummyName = "some name"
@@ -925,7 +925,7 @@ func TestGetAllQueryStrings_HappyPath(t *testing.T) {
 	}
 
 	// SUT + act
-	var result = getAllQueryStrings(
+	var result = getAllQueries(
 		dummySessionID,
 		dummyName,
 	)
@@ -939,12 +939,12 @@ func TestGetAllQueryStrings_HappyPath(t *testing.T) {
 	verifyAll(t)
 }
 
-func TestGetRequestQueryString_EmptyList(t *testing.T) {
+func TestGetRequestQuery_EmptyList(t *testing.T) {
 	// arrange
 	var dummySessionID = uuid.New()
 	var dummyName = "some name"
 	var dummyDataTemplate int
-	var dummyQueryStrings []string
+	var dummyQueries []string
 	var dummyError = errors.New("some error")
 	var dummyAppError = apperror.GetGeneralFailureError(nil)
 
@@ -952,12 +952,12 @@ func TestGetRequestQueryString_EmptyList(t *testing.T) {
 	createMock(t)
 
 	// expect
-	getAllQueryStringsFuncExpected = 1
-	getAllQueryStringsFunc = func(sessionID uuid.UUID, name string) []string {
-		getAllQueryStringsFuncCalled++
+	getAllQueriesFuncExpected = 1
+	getAllQueriesFunc = func(sessionID uuid.UUID, name string) []string {
+		getAllQueriesFuncCalled++
 		assert.Equal(t, dummySessionID, sessionID)
 		assert.Equal(t, dummyName, name)
-		return dummyQueryStrings
+		return dummyQueries
 	}
 	fmtErrorfExpected = 1
 	fmtErrorf = func(format string, a ...interface{}) error {
@@ -975,7 +975,7 @@ func TestGetRequestQueryString_EmptyList(t *testing.T) {
 	}
 
 	// SUT + act
-	var err = GetRequestQueryString(
+	var err = GetRequestQuery(
 		dummySessionID,
 		dummyName,
 		&dummyDataTemplate,
@@ -989,12 +989,12 @@ func TestGetRequestQueryString_EmptyList(t *testing.T) {
 	verifyAll(t)
 }
 
-func TestGetRequestQueryString_HappyPath(t *testing.T) {
+func TestGetRequestQuery_HappyPath(t *testing.T) {
 	// arrange
 	var dummySessionID = uuid.New()
 	var dummyName = "some name"
 	var dummyDataTemplate int
-	var dummyQueryStrings = []string{
+	var dummyQueries = []string{
 		"some query string 1",
 		"some query string 2",
 		"some query string 3",
@@ -1006,23 +1006,23 @@ func TestGetRequestQueryString_HappyPath(t *testing.T) {
 	createMock(t)
 
 	// expect
-	getAllQueryStringsFuncExpected = 1
-	getAllQueryStringsFunc = func(sessionID uuid.UUID, name string) []string {
-		getAllQueryStringsFuncCalled++
+	getAllQueriesFuncExpected = 1
+	getAllQueriesFunc = func(sessionID uuid.UUID, name string) []string {
+		getAllQueriesFuncCalled++
 		assert.Equal(t, dummySessionID, sessionID)
 		assert.Equal(t, dummyName, name)
-		return dummyQueryStrings
+		return dummyQueries
 	}
 	tryUnmarshalFuncExpected = 1
 	tryUnmarshalFunc = func(value string, dataTemplate interface{}) apperror.AppError {
 		tryUnmarshalFuncCalled++
-		assert.Equal(t, dummyQueryStrings[0], value)
+		assert.Equal(t, dummyQueries[0], value)
 		*(dataTemplate.(*int)) = dummyResult
 		return dummyAppError
 	}
 
 	// SUT + act
-	var err = GetRequestQueryString(
+	var err = GetRequestQuery(
 		dummySessionID,
 		dummyName,
 		&dummyDataTemplate,
@@ -1036,12 +1036,12 @@ func TestGetRequestQueryString_HappyPath(t *testing.T) {
 	verifyAll(t)
 }
 
-func TestGetRequestQueryStrings_EmptyList(t *testing.T) {
+func TestGetRequestQueries_EmptyList(t *testing.T) {
 	// arrange
 	var dummySessionID = uuid.New()
 	var dummyName = "some name"
 	var dummyDataTemplate int
-	var dummyQueryStrings []string
+	var dummyQueries []string
 	var dummyFillCallbackExpected int
 	var dummyFillCallbackCalled int
 	var dummyFillCallback func()
@@ -1051,12 +1051,12 @@ func TestGetRequestQueryStrings_EmptyList(t *testing.T) {
 	createMock(t)
 
 	// expect
-	getAllQueryStringsFuncExpected = 1
-	getAllQueryStringsFunc = func(sessionID uuid.UUID, name string) []string {
-		getAllQueryStringsFuncCalled++
+	getAllQueriesFuncExpected = 1
+	getAllQueriesFunc = func(sessionID uuid.UUID, name string) []string {
+		getAllQueriesFuncCalled++
 		assert.Equal(t, dummySessionID, sessionID)
 		assert.Equal(t, dummyName, name)
-		return dummyQueryStrings
+		return dummyQueries
 	}
 	dummyFillCallbackExpected = 0
 	dummyFillCallback = func() {
@@ -1071,7 +1071,7 @@ func TestGetRequestQueryStrings_EmptyList(t *testing.T) {
 	}
 
 	// SUT + act
-	var err = GetRequestQueryStrings(
+	var err = GetRequestQueries(
 		dummySessionID,
 		dummyName,
 		&dummyDataTemplate,
@@ -1087,12 +1087,12 @@ func TestGetRequestQueryStrings_EmptyList(t *testing.T) {
 	assert.Equal(t, dummyFillCallbackExpected, dummyFillCallbackCalled, "Unexpected number of calls to dummyFillCallback")
 }
 
-func TestGetRequestQueryStrings_HappyPath(t *testing.T) {
+func TestGetRequestQueries_HappyPath(t *testing.T) {
 	// arrange
 	var dummySessionID = uuid.New()
 	var dummyName = "some name"
 	var dummyDataTemplate int
-	var dummyQueryStrings = []string{
+	var dummyQueries = []string{
 		"some query string 1",
 		"some query string 2",
 		"some query string 3",
@@ -1112,17 +1112,17 @@ func TestGetRequestQueryStrings_HappyPath(t *testing.T) {
 	createMock(t)
 
 	// expect
-	getAllQueryStringsFuncExpected = 1
-	getAllQueryStringsFunc = func(sessionID uuid.UUID, name string) []string {
-		getAllQueryStringsFuncCalled++
+	getAllQueriesFuncExpected = 1
+	getAllQueriesFunc = func(sessionID uuid.UUID, name string) []string {
+		getAllQueriesFuncCalled++
 		assert.Equal(t, dummySessionID, sessionID)
 		assert.Equal(t, dummyName, name)
-		return dummyQueryStrings
+		return dummyQueries
 	}
 	tryUnmarshalFuncExpected = 3
 	tryUnmarshalFunc = func(value string, dataTemplate interface{}) apperror.AppError {
 		tryUnmarshalFuncCalled++
-		assert.Equal(t, dummyQueryStrings[tryUnmarshalFuncCalled-1], value)
+		assert.Equal(t, dummyQueries[tryUnmarshalFuncCalled-1], value)
 		*(dataTemplate.(*int)) = dummyResult
 		return unmarshalErrors[tryUnmarshalFuncCalled-1]
 	}
@@ -1140,7 +1140,294 @@ func TestGetRequestQueryStrings_HappyPath(t *testing.T) {
 	}
 
 	// SUT + act
-	var err = GetRequestQueryStrings(
+	var err = GetRequestQueries(
+		dummySessionID,
+		dummyName,
+		&dummyDataTemplate,
+		dummyFillCallback,
+	)
+
+	// assert
+	assert.Equal(t, dummyAppError, err)
+	assert.Equal(t, dummyResult, dummyDataTemplate)
+
+	// verify
+	verifyAll(t)
+	assert.Equal(t, dummyFillCallbackExpected, dummyFillCallbackCalled, "Unexpected number of calls to dummyFillCallback")
+}
+
+func TestGetAllHeaders_NotFound(t *testing.T) {
+	// arrange
+	var dummySessionID = uuid.New()
+	var dummyName = "some name"
+	var dummyHTTPRequest = &http.Request{
+		Header: http.Header{
+			"test": []string{"me", "you"},
+		},
+	}
+
+	// mock
+	createMock(t)
+
+	// expect
+	getRequestFuncExpected = 1
+	getRequestFunc = func(sessionID uuid.UUID) *http.Request {
+		getRequestFuncCalled++
+		assert.Equal(t, dummySessionID, sessionID)
+		return dummyHTTPRequest
+	}
+
+	// SUT + act
+	var result = getAllHeaders(
+		dummySessionID,
+		dummyName,
+	)
+
+	// assert
+	assert.Nil(t, result)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestGetAllHeaders_HappyPath(t *testing.T) {
+	// arrange
+	var dummySessionID = uuid.New()
+	var dummyName = "some name"
+	var dummyHTTPRequest = &http.Request{
+		Header: http.Header{
+			dummyName: []string{"me", "you"},
+		},
+	}
+
+	// mock
+	createMock(t)
+
+	// expect
+	getRequestFuncExpected = 1
+	getRequestFunc = func(sessionID uuid.UUID) *http.Request {
+		getRequestFuncCalled++
+		assert.Equal(t, dummySessionID, sessionID)
+		return dummyHTTPRequest
+	}
+
+	// SUT + act
+	var result = getAllHeaders(
+		dummySessionID,
+		dummyName,
+	)
+
+	// assert
+	assert.Equal(t, 2, len(result))
+	assert.Equal(t, "me", result[0])
+	assert.Equal(t, "you", result[1])
+
+	// verify
+	verifyAll(t)
+}
+
+func TestGetRequestHeader_EmptyList(t *testing.T) {
+	// arrange
+	var dummySessionID = uuid.New()
+	var dummyName = "some name"
+	var dummyDataTemplate int
+	var dummyHeaders []string
+	var dummyError = errors.New("some error")
+	var dummyAppError = apperror.GetGeneralFailureError(nil)
+
+	// mock
+	createMock(t)
+
+	// expect
+	getAllHeadersFuncExpected = 1
+	getAllHeadersFunc = func(sessionID uuid.UUID, name string) []string {
+		getAllHeadersFuncCalled++
+		assert.Equal(t, dummySessionID, sessionID)
+		assert.Equal(t, dummyName, name)
+		return dummyHeaders
+	}
+	fmtErrorfExpected = 1
+	fmtErrorf = func(format string, a ...interface{}) error {
+		fmtErrorfCalled++
+		assert.Equal(t, "The expected header string [%v] is not found in request", format)
+		assert.Equal(t, 1, len(a))
+		assert.Equal(t, dummyName, a[0])
+		return dummyError
+	}
+	apperrorGetBadRequestErrorExpected = 1
+	apperrorGetBadRequestError = func(innerError error) apperror.AppError {
+		apperrorGetBadRequestErrorCalled++
+		assert.Equal(t, dummyError, innerError)
+		return dummyAppError
+	}
+
+	// SUT + act
+	var err = GetRequestHeader(
+		dummySessionID,
+		dummyName,
+		&dummyDataTemplate,
+	)
+
+	// assert
+	assert.Equal(t, dummyAppError, err)
+	assert.Zero(t, dummyDataTemplate)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestGetRequestHeader_HappyPath(t *testing.T) {
+	// arrange
+	var dummySessionID = uuid.New()
+	var dummyName = "some name"
+	var dummyDataTemplate int
+	var dummyHeaders = []string{
+		"some header string 1",
+		"some header string 2",
+		"some header string 3",
+	}
+	var dummyAppError = apperror.GetGeneralFailureError(nil)
+	var dummyResult = rand.Int()
+
+	// mock
+	createMock(t)
+
+	// expect
+	getAllHeadersFuncExpected = 1
+	getAllHeadersFunc = func(sessionID uuid.UUID, name string) []string {
+		getAllHeadersFuncCalled++
+		assert.Equal(t, dummySessionID, sessionID)
+		assert.Equal(t, dummyName, name)
+		return dummyHeaders
+	}
+	tryUnmarshalFuncExpected = 1
+	tryUnmarshalFunc = func(value string, dataTemplate interface{}) apperror.AppError {
+		tryUnmarshalFuncCalled++
+		assert.Equal(t, dummyHeaders[0], value)
+		*(dataTemplate.(*int)) = dummyResult
+		return dummyAppError
+	}
+
+	// SUT + act
+	var err = GetRequestHeader(
+		dummySessionID,
+		dummyName,
+		&dummyDataTemplate,
+	)
+
+	// assert
+	assert.Equal(t, dummyAppError, err)
+	assert.Equal(t, dummyResult, dummyDataTemplate)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestGetRequestHeaders_EmptyList(t *testing.T) {
+	// arrange
+	var dummySessionID = uuid.New()
+	var dummyName = "some name"
+	var dummyDataTemplate int
+	var dummyHeaders []string
+	var dummyFillCallbackExpected int
+	var dummyFillCallbackCalled int
+	var dummyFillCallback func()
+	var dummyError = apperror.GetGeneralFailureError(nil)
+
+	// mock
+	createMock(t)
+
+	// expect
+	getAllHeadersFuncExpected = 1
+	getAllHeadersFunc = func(sessionID uuid.UUID, name string) []string {
+		getAllHeadersFuncCalled++
+		assert.Equal(t, dummySessionID, sessionID)
+		assert.Equal(t, dummyName, name)
+		return dummyHeaders
+	}
+	dummyFillCallbackExpected = 0
+	dummyFillCallback = func() {
+		dummyFillCallbackCalled++
+	}
+	apperrorConsolidateAllErrorsExpected = 1
+	apperrorConsolidateAllErrors = func(baseErrorMessage string, allErrors ...error) apperror.AppError {
+		apperrorConsolidateAllErrorsCalled++
+		assert.Equal(t, "Failed to get request header strings", baseErrorMessage)
+		assert.Equal(t, 0, len(allErrors))
+		return dummyError
+	}
+
+	// SUT + act
+	var err = GetRequestHeaders(
+		dummySessionID,
+		dummyName,
+		&dummyDataTemplate,
+		dummyFillCallback,
+	)
+
+	// assert
+	assert.Equal(t, dummyError, err)
+	assert.Zero(t, dummyDataTemplate)
+
+	// verify
+	verifyAll(t)
+	assert.Equal(t, dummyFillCallbackExpected, dummyFillCallbackCalled, "Unexpected number of calls to dummyFillCallback")
+}
+
+func TestGetRequestHeaders_HappyPath(t *testing.T) {
+	// arrange
+	var dummySessionID = uuid.New()
+	var dummyName = "some name"
+	var dummyDataTemplate int
+	var dummyHeaders = []string{
+		"some header string 1",
+		"some header string 2",
+		"some header string 3",
+	}
+	var dummyFillCallbackExpected int
+	var dummyFillCallbackCalled int
+	var dummyFillCallback func()
+	var unmarshalErrors = []apperror.AppError{
+		nil,
+		apperror.GetGeneralFailureError(nil),
+		nil,
+	}
+	var dummyAppError = apperror.GetGeneralFailureError(nil)
+	var dummyResult = rand.Int()
+
+	// mock
+	createMock(t)
+
+	// expect
+	getAllHeadersFuncExpected = 1
+	getAllHeadersFunc = func(sessionID uuid.UUID, name string) []string {
+		getAllHeadersFuncCalled++
+		assert.Equal(t, dummySessionID, sessionID)
+		assert.Equal(t, dummyName, name)
+		return dummyHeaders
+	}
+	tryUnmarshalFuncExpected = 3
+	tryUnmarshalFunc = func(value string, dataTemplate interface{}) apperror.AppError {
+		tryUnmarshalFuncCalled++
+		assert.Equal(t, dummyHeaders[tryUnmarshalFuncCalled-1], value)
+		*(dataTemplate.(*int)) = dummyResult
+		return unmarshalErrors[tryUnmarshalFuncCalled-1]
+	}
+	dummyFillCallbackExpected = 2
+	dummyFillCallback = func() {
+		dummyFillCallbackCalled++
+	}
+	apperrorConsolidateAllErrorsExpected = 1
+	apperrorConsolidateAllErrors = func(baseErrorMessage string, allErrors ...error) apperror.AppError {
+		apperrorConsolidateAllErrorsCalled++
+		assert.Equal(t, "Failed to get request header strings", baseErrorMessage)
+		assert.Equal(t, 1, len(allErrors))
+		assert.Equal(t, unmarshalErrors[1], allErrors[0])
+		return dummyAppError
+	}
+
+	// SUT + act
+	var err = GetRequestHeaders(
 		dummySessionID,
 		dummyName,
 		&dummyDataTemplate,
