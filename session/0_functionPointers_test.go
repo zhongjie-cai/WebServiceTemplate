@@ -2,6 +2,7 @@ package session
 
 import (
 	"net/http"
+	"net/textproto"
 	"testing"
 
 	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
@@ -13,30 +14,32 @@ import (
 )
 
 var (
-	uuidNewExpected                      int
-	uuidNewCalled                        int
-	jsonUnmarshalExpected                int
-	jsonUnmarshalCalled                  int
-	fmtErrorfExpected                    int
-	fmtErrorfCalled                      int
-	muxVarsExpected                      int
-	muxVarsCalled                        int
-	requestGetRequestBodyExpected        int
-	requestGetRequestBodyCalled          int
-	apperrorGetBadRequestErrorExpected   int
-	apperrorGetBadRequestErrorCalled     int
-	apperrorConsolidateAllErrorsExpected int
-	apperrorConsolidateAllErrorsCalled   int
-	getFuncExpected                      int
-	getFuncCalled                        int
-	tryUnmarshalFuncExpected             int
-	tryUnmarshalFuncCalled               int
-	getRequestFuncExpected               int
-	getRequestFuncCalled                 int
-	getAllQueriesFuncExpected            int
-	getAllQueriesFuncCalled              int
-	getAllHeadersFuncExpected            int
-	getAllHeadersFuncCalled              int
+	uuidNewExpected                         int
+	uuidNewCalled                           int
+	jsonUnmarshalExpected                   int
+	jsonUnmarshalCalled                     int
+	fmtErrorfExpected                       int
+	fmtErrorfCalled                         int
+	muxVarsExpected                         int
+	muxVarsCalled                           int
+	requestGetRequestBodyExpected           int
+	requestGetRequestBodyCalled             int
+	apperrorGetBadRequestErrorExpected      int
+	apperrorGetBadRequestErrorCalled        int
+	apperrorConsolidateAllErrorsExpected    int
+	apperrorConsolidateAllErrorsCalled      int
+	textprotoCanonicalMIMEHeaderKeyExpected int
+	textprotoCanonicalMIMEHeaderKeyCalled   int
+	getFuncExpected                         int
+	getFuncCalled                           int
+	tryUnmarshalFuncExpected                int
+	tryUnmarshalFuncCalled                  int
+	getRequestFuncExpected                  int
+	getRequestFuncCalled                    int
+	getAllQueriesFuncExpected               int
+	getAllQueriesFuncCalled                 int
+	getAllHeadersFuncExpected               int
+	getAllHeadersFuncCalled                 int
 )
 
 func createMock(t *testing.T) {
@@ -82,6 +85,12 @@ func createMock(t *testing.T) {
 		apperrorConsolidateAllErrorsCalled++
 		return nil
 	}
+	textprotoCanonicalMIMEHeaderKeyExpected = 0
+	textprotoCanonicalMIMEHeaderKeyCalled = 0
+	textprotoCanonicalMIMEHeaderKey = func(s string) string {
+		textprotoCanonicalMIMEHeaderKeyCalled++
+		return ""
+	}
 	getFuncExpected = 0
 	getFuncCalled = 0
 	getFunc = func(sessionID uuid.UUID) *Session {
@@ -125,6 +134,8 @@ func verifyAll(t *testing.T) {
 	assert.Equal(t, apperrorGetBadRequestErrorExpected, apperrorGetBadRequestErrorCalled, "Unexpected number of calls to apperrorGetBadRequestError")
 	apperrorConsolidateAllErrors = apperror.ConsolidateAllErrors
 	assert.Equal(t, apperrorConsolidateAllErrorsExpected, apperrorConsolidateAllErrorsCalled, "Unexpected number of calls to apperrorConsolidateAllErrors")
+	textprotoCanonicalMIMEHeaderKey = textproto.CanonicalMIMEHeaderKey
+	assert.Equal(t, textprotoCanonicalMIMEHeaderKeyExpected, textprotoCanonicalMIMEHeaderKeyCalled, "Unexpected number of calls to textprotoCanonicalMIMEHeaderKey")
 	getFunc = Get
 	assert.Equal(t, getFuncExpected, getFuncCalled, "Unexpected number of calls to getFunc")
 	tryUnmarshalFunc = tryUnmarshal

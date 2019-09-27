@@ -3,6 +3,7 @@ package session
 import (
 	"encoding/json"
 	"fmt"
+	"net/textproto"
 
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
@@ -12,16 +13,17 @@ import (
 
 // func pointers for injection / testing: logger.go
 var (
-	uuidNew                      = uuid.New
-	jsonUnmarshal                = json.Unmarshal
-	fmtErrorf                    = fmt.Errorf
-	muxVars                      = mux.Vars
-	requestGetRequestBody        = request.GetRequestBody
-	apperrorGetBadRequestError   = apperror.GetBadRequestError
-	apperrorConsolidateAllErrors = apperror.ConsolidateAllErrors
-	getFunc                      = Get
-	tryUnmarshalFunc             = tryUnmarshal
-	getRequestFunc               = GetRequest
-	getAllQueriesFunc            = getAllQueries
-	getAllHeadersFunc            = getAllHeaders
+	uuidNew                         = uuid.New
+	jsonUnmarshal                   = json.Unmarshal
+	fmtErrorf                       = fmt.Errorf
+	muxVars                         = mux.Vars
+	requestGetRequestBody           = request.GetRequestBody
+	apperrorGetBadRequestError      = apperror.GetBadRequestError
+	apperrorConsolidateAllErrors    = apperror.ConsolidateAllErrors
+	textprotoCanonicalMIMEHeaderKey = textproto.CanonicalMIMEHeaderKey
+	getFunc                         = Get
+	tryUnmarshalFunc                = tryUnmarshal
+	getRequestFunc                  = GetRequest
+	getAllQueriesFunc               = getAllQueries
+	getAllHeadersFunc               = getAllHeaders
 )

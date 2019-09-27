@@ -10,13 +10,11 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
-
-	"github.com/patrickmn/go-cache"
-	"github.com/zhongjie-cai/WebServiceTemplate/logger/logtype"
-
 	"github.com/google/uuid"
+	"github.com/patrickmn/go-cache"
 	"github.com/stretchr/testify/assert"
+	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
+	"github.com/zhongjie-cai/WebServiceTemplate/logger/logtype"
 )
 
 func TestNilResponseWriter(t *testing.T) {
@@ -1114,11 +1112,14 @@ func TestGetAllHeaders_NotFound(t *testing.T) {
 	// arrange
 	var dummySessionID = uuid.New()
 	var dummyName = "some name"
+	var dummyCanonicalName = "some conanical name"
 	var dummyHTTPRequest = &http.Request{
-		Header: http.Header{
-			"test": []string{"me", "you"},
-		},
+		Header: http.Header{},
 	}
+
+	// stub
+	dummyHTTPRequest.Header.Add("test", "me")
+	dummyHTTPRequest.Header.Add("test", "you")
 
 	// mock
 	createMock(t)
@@ -1129,6 +1130,12 @@ func TestGetAllHeaders_NotFound(t *testing.T) {
 		getRequestFuncCalled++
 		assert.Equal(t, dummySessionID, sessionID)
 		return dummyHTTPRequest
+	}
+	textprotoCanonicalMIMEHeaderKeyExpected = 1
+	textprotoCanonicalMIMEHeaderKey = func(s string) string {
+		textprotoCanonicalMIMEHeaderKeyCalled++
+		assert.Equal(t, dummyName, s)
+		return dummyCanonicalName
 	}
 
 	// SUT + act
@@ -1148,11 +1155,14 @@ func TestGetAllHeaders_HappyPath(t *testing.T) {
 	// arrange
 	var dummySessionID = uuid.New()
 	var dummyName = "some name"
+	var dummyCanonicalName = "some conanical name"
 	var dummyHTTPRequest = &http.Request{
-		Header: http.Header{
-			dummyName: []string{"me", "you"},
-		},
+		Header: http.Header{},
 	}
+
+	// stub
+	dummyHTTPRequest.Header.Add(dummyCanonicalName, "me")
+	dummyHTTPRequest.Header.Add(dummyCanonicalName, "you")
 
 	// mock
 	createMock(t)
@@ -1163,6 +1173,12 @@ func TestGetAllHeaders_HappyPath(t *testing.T) {
 		getRequestFuncCalled++
 		assert.Equal(t, dummySessionID, sessionID)
 		return dummyHTTPRequest
+	}
+	textprotoCanonicalMIMEHeaderKeyExpected = 1
+	textprotoCanonicalMIMEHeaderKey = func(s string) string {
+		textprotoCanonicalMIMEHeaderKeyCalled++
+		assert.Equal(t, dummyName, s)
+		return dummyCanonicalName
 	}
 
 	// SUT + act

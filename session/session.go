@@ -260,7 +260,8 @@ func getAllHeaders(sessionID uuid.UUID, name string) []string {
 	var httpRequest = getRequestFunc(
 		sessionID,
 	)
-	var headers, found = httpRequest.Header[name]
+	var canonicalName = textprotoCanonicalMIMEHeaderKey(name)
+	var headers, found = httpRequest.Header[canonicalName]
 	if !found {
 		return nil
 	}
