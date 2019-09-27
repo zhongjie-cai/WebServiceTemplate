@@ -39,6 +39,30 @@ func TestGetStatusCode_GeneralFailure(t *testing.T) {
 	verifyAll(t)
 }
 
+func TestGetStatusCode_Unauthorized(t *testing.T) {
+	// arrange
+	var dummyCode = apperror.CodeUnauthorized
+	var dummyAppError = dummyAppError{
+		t,
+		&dummyCode,
+		nil,
+	}
+
+	// mock
+	createMock(t)
+
+	// SUT + act
+	var result = getStatusCode(
+		dummyAppError,
+	)
+
+	// assert
+	assert.Equal(t, http.StatusUnauthorized, result)
+
+	// verify
+	verifyAll(t)
+}
+
 func TestGetStatusCode_InvalidOperation(t *testing.T) {
 	// arrange
 	var dummyCode = apperror.CodeInvalidOperation

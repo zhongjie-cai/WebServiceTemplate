@@ -2,7 +2,20 @@ package handler
 
 import (
 	"net/http"
+
+	"github.com/zhongjie-cai/WebServiceTemplate/customization"
 )
+
+func verifyAuthorization(
+	httpRequest *http.Request,
+) error {
+	if customization.AuthorizationFunc == nil {
+		return nil
+	}
+	return customization.AuthorizationFunc(
+		httpRequest,
+	)
+}
 
 // Session wraps the HTTP handler with session related operations
 func Session(
@@ -58,14 +71,25 @@ func Session(
 			endpoint,
 			httpRequest.Method,
 		)
-		var responseObject, responseError = action(
-			sessionID,
+		var authorizationError = verifyAuthorizationFunc(
+			httpRequest,
 		)
-		responseWrite(
-			sessionID,
-			responseObject,
-			responseError,
-		)
+		if authorizationError == nil {
+			var responseObject, responseError = action(
+				sessionID,
+			)
+			responseWrite(
+				sessionID,
+				responseObject,
+				responseError,
+			)
+		} else {
+			responseWrite(
+				sessionID,
+				nil,
+				authorizationError,
+			)
+		}
 		loggerAPIExit(
 			sessionID,
 			"handler",

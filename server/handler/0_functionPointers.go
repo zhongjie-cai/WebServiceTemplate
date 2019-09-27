@@ -21,4 +21,5 @@ var (
 	loggerAPIEnter              = logger.APIEnter
 	loggerAPIExit               = logger.APIExit
 	apperrorGetInvalidOperation = apperror.GetInvalidOperation
+	verifyAuthorizationFunc     = verifyAuthorization
 )

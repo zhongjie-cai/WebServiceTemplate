@@ -8,6 +8,7 @@ type Code int
 // These are the integer values of the enum that corresponds to a given error
 const (
 	CodeGeneralFailure Code = iota
+	CodeUnauthorized
 	CodeInvalidOperation
 	CodeBadRequest
 	CodeNotFound
@@ -30,6 +31,7 @@ const (
 func (code Code) String() string {
 	var names = [...]string{
 		"GeneralFailure",
+		"Unauthorized",
 		"InvalidOperation",
 		"BadRequest",
 		"NotFound",
@@ -121,6 +123,15 @@ func GetGeneralFailureError(innerError error) AppError {
 		innerError,
 		CodeGeneralFailure,
 		"An error occurred during execution",
+	)
+}
+
+// GetUnauthorized creates an error related to Unauthorized
+func GetUnauthorized(innerError error) AppError {
+	return wrapErrorFunc(
+		innerError,
+		CodeUnauthorized,
+		"Access denied due to authorization error",
 	)
 }
 

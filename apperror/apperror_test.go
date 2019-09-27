@@ -47,6 +47,23 @@ func TestCodeEnumString_GeneralFailure(t *testing.T) {
 	verifyAll(t)
 }
 
+func TestCodeEnumString_Unauthorized(t *testing.T) {
+	// mock
+	createMock(t)
+
+	// SUT
+	var testCode = CodeUnauthorized
+
+	// act
+	var convertedString = testCode.String()
+
+	// assert
+	assert.Equal(t, "Unauthorized", convertedString)
+
+	// verify
+	verifyAll(t)
+}
+
 func TestCodeEnumString_InvalidOperation(t *testing.T) {
 	// mock
 	createMock(t)
@@ -543,6 +560,35 @@ func TestGetGeneralFailureError(t *testing.T) {
 
 	// SUT + act
 	var appError = GetGeneralFailureError(expectedInnerError)
+
+	// assert
+	assert.Equal(t, expectedResult, appError)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestGetUnauthorized(t *testing.T) {
+	// arrange
+	var expectedInnerError = errors.New("dummy inner error")
+	var expectedResult = appError{}
+
+	// mock
+	createMock(t)
+
+	// expect
+	wrapErrorFuncExpected = 1
+	wrapErrorFunc = func(innerError error, errorCode Code, messageFormat string, parameters ...interface{}) AppError {
+		wrapErrorFuncCalled++
+		assert.Equal(t, expectedInnerError, innerError)
+		assert.Equal(t, CodeUnauthorized, errorCode)
+		assert.Equal(t, "Access denied due to authorization error", messageFormat)
+		assert.Equal(t, 0, len(parameters))
+		return expectedResult
+	}
+
+	// SUT + act
+	var appError = GetUnauthorized(expectedInnerError)
 
 	// assert
 	assert.Equal(t, expectedResult, appError)

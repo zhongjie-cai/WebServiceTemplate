@@ -1,6 +1,8 @@
 package customization
 
 import (
+	"net/http"
+
 	"github.com/zhongjie-cai/WebServiceTemplate/logger/logtype"
 	"github.com/zhongjie-cai/WebServiceTemplate/server/model"
 	"github.com/zhongjie-cai/WebServiceTemplate/session"
@@ -48,6 +50,9 @@ var ValidateClientCert func() bool
 // CaCertContent is to customize the loading logic for CA certificate content
 var CaCertContent func() string
 
+// AuthorizationFunc is to customize the authorization function used before each route action takes place, so as to limit access accordingly
+var AuthorizationFunc func(httpRequest *http.Request) error
+
 // CreateErrorResponseFunc is to customize the generation of HTTP error response
 var CreateErrorResponseFunc func(err error) (responseMessage string, statusCode int)
 
@@ -76,6 +81,8 @@ func Reset() {
 	ServerKeyContent = nil
 	ValidateClientCert = nil
 	CaCertContent = nil
+	AuthorizationFunc = nil
+	AuthorizationFunc = nil
 	CreateErrorResponseFunc = nil
 	Routes = nil
 	Statics = nil

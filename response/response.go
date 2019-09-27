@@ -25,6 +25,8 @@ func getStatusCode(appError apperror.AppError) int {
 	switch appError.Code() {
 	case apperror.CodeGeneralFailure:
 		statusCode = http.StatusInternalServerError
+	case apperror.CodeUnauthorized:
+		statusCode = http.StatusUnauthorized
 	case apperror.CodeInvalidOperation:
 		statusCode = http.StatusMethodNotAllowed
 	case apperror.CodeBadRequest:

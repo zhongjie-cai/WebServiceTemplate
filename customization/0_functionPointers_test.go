@@ -24,6 +24,7 @@ func verifyAll(t *testing.T) {
 	ServerKeyContent = nil
 	ValidateClientCert = nil
 	CaCertContent = nil
+	AuthorizationFunc = nil
 	CreateErrorResponseFunc = nil
 	Routes = nil
 	Statics = nil

@@ -1,6 +1,7 @@
 package customization
 
 import (
+	"net/http"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -25,6 +26,7 @@ func TestReset(t *testing.T) {
 	ServerKeyContent = func() string { return "" }
 	ValidateClientCert = func() bool { return false }
 	CaCertContent = func() string { return "" }
+	AuthorizationFunc = func(httpRequest *http.Request) error { return nil }
 	CreateErrorResponseFunc = func(err error) (responseMessage string, statusCode int) { return "", 0 }
 	Routes = func() []model.Route { return nil }
 	Statics = func() []model.Static { return nil }
@@ -51,6 +53,7 @@ func TestReset(t *testing.T) {
 	assert.Nil(t, ServerKeyContent)
 	assert.Nil(t, ValidateClientCert)
 	assert.Nil(t, CaCertContent)
+	assert.Nil(t, AuthorizationFunc)
 	assert.Nil(t, CreateErrorResponseFunc)
 	assert.Nil(t, Routes)
 	assert.Nil(t, Statics)

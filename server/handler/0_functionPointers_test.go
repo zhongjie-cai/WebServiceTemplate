@@ -8,6 +8,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
+	"github.com/zhongjie-cai/WebServiceTemplate/customization"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger/logtype"
 	"github.com/zhongjie-cai/WebServiceTemplate/request"
@@ -19,24 +20,28 @@ import (
 )
 
 var (
-	routeGetRouteInfoExpected           int
-	routeGetRouteInfoCalled             int
-	sessionRegisterExpected             int
-	sessionRegisterCalled               int
-	sessionUnregisterExpected           int
-	sessionUnregisterCalled             int
-	panicHandleExpected                 int
-	panicHandleCalled                   int
-	requestGetAllowedLogTypeExpected    int
-	requestGetAllowedLogTypeCalled      int
-	responseWriteExpected               int
-	responseWriteCalled                 int
-	loggerAPIEnterExpected              int
-	loggerAPIEnterCalled                int
-	loggerAPIExitExpected               int
-	loggerAPIExitCalled                 int
-	apperrorGetInvalidOperationExpected int
-	apperrorGetInvalidOperationCalled   int
+	routeGetRouteInfoExpected              int
+	routeGetRouteInfoCalled                int
+	sessionRegisterExpected                int
+	sessionRegisterCalled                  int
+	sessionUnregisterExpected              int
+	sessionUnregisterCalled                int
+	panicHandleExpected                    int
+	panicHandleCalled                      int
+	requestGetAllowedLogTypeExpected       int
+	requestGetAllowedLogTypeCalled         int
+	responseWriteExpected                  int
+	responseWriteCalled                    int
+	loggerAPIEnterExpected                 int
+	loggerAPIEnterCalled                   int
+	loggerAPIExitExpected                  int
+	loggerAPIExitCalled                    int
+	apperrorGetInvalidOperationExpected    int
+	apperrorGetInvalidOperationCalled      int
+	verifyAuthorizationFuncExpected        int
+	verifyAuthorizationFuncCalled          int
+	customizationAuthorizationFuncExpected int
+	customizationAuthorizationFuncCalled   int
 )
 
 func createMock(t *testing.T) {
@@ -89,6 +94,18 @@ func createMock(t *testing.T) {
 		apperrorGetInvalidOperationCalled++
 		return nil
 	}
+	verifyAuthorizationFuncExpected = 0
+	verifyAuthorizationFuncCalled = 0
+	verifyAuthorizationFunc = func(httpRequest *http.Request) error {
+		verifyAuthorizationFuncCalled++
+		return nil
+	}
+	customizationAuthorizationFuncExpected = 0
+	customizationAuthorizationFuncCalled = 0
+	customization.AuthorizationFunc = func(httpRequest *http.Request) error {
+		customizationAuthorizationFuncCalled++
+		return nil
+	}
 }
 
 func verifyAll(t *testing.T) {
@@ -110,6 +127,10 @@ func verifyAll(t *testing.T) {
 	assert.Equal(t, loggerAPIExitExpected, loggerAPIExitCalled, "Unexpected number of calls to loggerAPIExit")
 	apperrorGetInvalidOperation = apperror.GetInvalidOperation
 	assert.Equal(t, apperrorGetInvalidOperationExpected, apperrorGetInvalidOperationCalled, "Unexpected number of calls to apperrorGetInvalidOperation")
+	verifyAuthorizationFunc = verifyAuthorization
+	assert.Equal(t, verifyAuthorizationFuncExpected, verifyAuthorizationFuncCalled, "Unexpected number of calls to verifyAuthorizationFunc")
+	customization.AuthorizationFunc = nil
+	assert.Equal(t, customizationAuthorizationFuncExpected, customizationAuthorizationFuncCalled, "Unexpected number of calls to customization.AuthorizationFunc")
 }
 
 // mock structs
