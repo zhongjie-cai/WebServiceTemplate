@@ -20,28 +20,30 @@ import (
 )
 
 var (
-	routeGetRouteInfoExpected              int
-	routeGetRouteInfoCalled                int
-	sessionRegisterExpected                int
-	sessionRegisterCalled                  int
-	sessionUnregisterExpected              int
-	sessionUnregisterCalled                int
-	panicHandleExpected                    int
-	panicHandleCalled                      int
-	requestGetAllowedLogTypeExpected       int
-	requestGetAllowedLogTypeCalled         int
-	responseWriteExpected                  int
-	responseWriteCalled                    int
-	loggerAPIEnterExpected                 int
-	loggerAPIEnterCalled                   int
-	loggerAPIExitExpected                  int
-	loggerAPIExitCalled                    int
-	apperrorGetInvalidOperationExpected    int
-	apperrorGetInvalidOperationCalled      int
-	verifyAuthorizationFuncExpected        int
-	verifyAuthorizationFuncCalled          int
-	customizationAuthorizationFuncExpected int
-	customizationAuthorizationFuncCalled   int
+	routeGetRouteInfoExpected             int
+	routeGetRouteInfoCalled               int
+	sessionRegisterExpected               int
+	sessionRegisterCalled                 int
+	sessionUnregisterExpected             int
+	sessionUnregisterCalled               int
+	panicHandleExpected                   int
+	panicHandleCalled                     int
+	requestGetAllowedLogTypeExpected      int
+	requestGetAllowedLogTypeCalled        int
+	responseWriteExpected                 int
+	responseWriteCalled                   int
+	loggerAPIEnterExpected                int
+	loggerAPIEnterCalled                  int
+	loggerAPIExitExpected                 int
+	loggerAPIExitCalled                   int
+	apperrorGetInvalidOperationExpected   int
+	apperrorGetInvalidOperationCalled     int
+	executeCustomizedFunctionFuncExpected int
+	executeCustomizedFunctionFuncCalled   int
+	customizationPreActionFuncExpected    int
+	customizationPreActionFuncCalled      int
+	customizationPostActionFuncExpected   int
+	customizationPostActionFuncCalled     int
 )
 
 func createMock(t *testing.T) {
@@ -94,16 +96,22 @@ func createMock(t *testing.T) {
 		apperrorGetInvalidOperationCalled++
 		return nil
 	}
-	verifyAuthorizationFuncExpected = 0
-	verifyAuthorizationFuncCalled = 0
-	verifyAuthorizationFunc = func(httpRequest *http.Request) error {
-		verifyAuthorizationFuncCalled++
+	executeCustomizedFunctionFuncExpected = 0
+	executeCustomizedFunctionFuncCalled = 0
+	executeCustomizedFunctionFunc = func(sessionID uuid.UUID, customFunc func(uuid.UUID) error) error {
+		executeCustomizedFunctionFuncCalled++
 		return nil
 	}
-	customizationAuthorizationFuncExpected = 0
-	customizationAuthorizationFuncCalled = 0
-	customization.AuthorizationFunc = func(httpRequest *http.Request) error {
-		customizationAuthorizationFuncCalled++
+	customizationPreActionFuncExpected = 0
+	customizationPreActionFuncCalled = 0
+	customization.PreActionFunc = func(sessionID uuid.UUID) error {
+		customizationPreActionFuncCalled++
+		return nil
+	}
+	customizationPostActionFuncExpected = 0
+	customizationPostActionFuncCalled = 0
+	customization.PostActionFunc = func(sessionID uuid.UUID) error {
+		customizationPostActionFuncCalled++
 		return nil
 	}
 }
@@ -127,10 +135,12 @@ func verifyAll(t *testing.T) {
 	assert.Equal(t, loggerAPIExitExpected, loggerAPIExitCalled, "Unexpected number of calls to loggerAPIExit")
 	apperrorGetInvalidOperation = apperror.GetInvalidOperation
 	assert.Equal(t, apperrorGetInvalidOperationExpected, apperrorGetInvalidOperationCalled, "Unexpected number of calls to apperrorGetInvalidOperation")
-	verifyAuthorizationFunc = verifyAuthorization
-	assert.Equal(t, verifyAuthorizationFuncExpected, verifyAuthorizationFuncCalled, "Unexpected number of calls to verifyAuthorizationFunc")
-	customization.AuthorizationFunc = nil
-	assert.Equal(t, customizationAuthorizationFuncExpected, customizationAuthorizationFuncCalled, "Unexpected number of calls to customization.AuthorizationFunc")
+	executeCustomizedFunctionFunc = executeCustomizedFunction
+	assert.Equal(t, executeCustomizedFunctionFuncExpected, executeCustomizedFunctionFuncCalled, "Unexpected number of calls to executeCustomizedFunctionFunc")
+	customization.PreActionFunc = nil
+	assert.Equal(t, customizationPreActionFuncExpected, customizationPreActionFuncCalled, "Unexpected number of calls to customization.PreActionFunc")
+	customization.PostActionFunc = nil
+	assert.Equal(t, customizationPostActionFuncExpected, customizationPostActionFuncCalled, "Unexpected number of calls to customization.PostActionFunc")
 }
 
 // mock structs

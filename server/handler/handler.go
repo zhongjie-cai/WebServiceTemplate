@@ -3,17 +3,19 @@ package handler
 import (
 	"net/http"
 
+	"github.com/google/uuid"
 	"github.com/zhongjie-cai/WebServiceTemplate/customization"
 )
 
-func verifyAuthorization(
-	httpRequest *http.Request,
+func executeCustomizedFunction(
+	sessionID uuid.UUID,
+	customFunc func(uuid.UUID) error,
 ) error {
-	if customization.AuthorizationFunc == nil {
+	if customFunc == nil {
 		return nil
 	}
-	return customization.AuthorizationFunc(
-		httpRequest,
+	return customFunc(
+		sessionID,
 	)
 }
 
@@ -71,24 +73,52 @@ func Session(
 			endpoint,
 			httpRequest.Method,
 		)
-		var authorizationError = verifyAuthorizationFunc(
-			httpRequest,
+		var preActionError = executeCustomizedFunctionFunc(
+			sessionID,
+			customization.PreActionFunc,
 		)
-		if authorizationError == nil {
-			var responseObject, responseError = action(
-				sessionID,
-			)
-			responseWrite(
-				sessionID,
-				responseObject,
-				responseError,
-			)
-		} else {
+		if preActionError != nil {
 			responseWrite(
 				sessionID,
 				nil,
-				authorizationError,
+				preActionError,
 			)
+		} else {
+			var responseObject, responseError = action(
+				sessionID,
+			)
+			var postActionError = executeCustomizedFunctionFunc(
+				sessionID,
+				customization.PostActionFunc,
+			)
+			if postActionError != nil {
+				if responseError != nil {
+					loggerAPIExit(
+						sessionID,
+						"handler",
+						endpoint,
+						"Post-action error: %v",
+						postActionError,
+					)
+					responseWrite(
+						sessionID,
+						nil,
+						responseError,
+					)
+				} else {
+					responseWrite(
+						sessionID,
+						nil,
+						postActionError,
+					)
+				}
+			} else {
+				responseWrite(
+					sessionID,
+					responseObject,
+					responseError,
+				)
+			}
 		}
 		loggerAPIExit(
 			sessionID,

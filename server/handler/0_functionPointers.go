@@ -12,14 +12,14 @@ import (
 
 // func pointers for injection / testing: common.go
 var (
-	routeGetRouteInfo           = route.GetRouteInfo
-	sessionRegister             = session.Register
-	sessionUnregister           = session.Unregister
-	panicHandle                 = panic.Handle
-	requestGetAllowedLogType    = request.GetAllowedLogType
-	responseWrite               = response.Write
-	loggerAPIEnter              = logger.APIEnter
-	loggerAPIExit               = logger.APIExit
-	apperrorGetInvalidOperation = apperror.GetInvalidOperation
-	verifyAuthorizationFunc     = verifyAuthorization
+	routeGetRouteInfo             = route.GetRouteInfo
+	sessionRegister               = session.Register
+	sessionUnregister             = session.Unregister
+	panicHandle                   = panic.Handle
+	requestGetAllowedLogType      = request.GetAllowedLogType
+	responseWrite                 = response.Write
+	loggerAPIEnter                = logger.APIEnter
+	loggerAPIExit                 = logger.APIExit
+	apperrorGetInvalidOperation   = apperror.GetInvalidOperation
+	executeCustomizedFunctionFunc = executeCustomizedFunction
 )

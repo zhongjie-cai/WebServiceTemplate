@@ -1,8 +1,7 @@
 package customization
 
 import (
-	"net/http"
-
+	"github.com/google/uuid"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger/logtype"
 	"github.com/zhongjie-cai/WebServiceTemplate/server/model"
 	"github.com/zhongjie-cai/WebServiceTemplate/session"
@@ -50,8 +49,11 @@ var ValidateClientCert func() bool
 // CaCertContent is to customize the loading logic for CA certificate content
 var CaCertContent func() string
 
-// AuthorizationFunc is to customize the authorization function used before each route action takes place, so as to limit access accordingly
-var AuthorizationFunc func(httpRequest *http.Request) error
+// PreActionFunc is to customize the pre-action function used before each route action takes place, e.g. authorization, etc.
+var PreActionFunc func(sessionID uuid.UUID) error
+
+// PostActionFunc is to customize the post-action function used after each route action takes place, e.g. finalization, etc.
+var PostActionFunc func(sessionID uuid.UUID) error
 
 // CreateErrorResponseFunc is to customize the generation of HTTP error response
 var CreateErrorResponseFunc func(err error) (responseMessage string, statusCode int)
@@ -81,8 +83,8 @@ func Reset() {
 	ServerKeyContent = nil
 	ValidateClientCert = nil
 	CaCertContent = nil
-	AuthorizationFunc = nil
-	AuthorizationFunc = nil
+	PreActionFunc = nil
+	PostActionFunc = nil
 	CreateErrorResponseFunc = nil
 	Routes = nil
 	Statics = nil
