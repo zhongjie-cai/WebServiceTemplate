@@ -9,6 +9,10 @@ import (
 	"github.com/gorilla/mux"
 )
 
+const (
+	stringSeparator string = "|"
+)
+
 var registeredRouteActionFuncs map[string]model.ActionFunc
 
 func getName(route *mux.Route) string {
@@ -25,17 +29,17 @@ func getPathRegexp(route *mux.Route) (string, error) {
 
 func getQueriesTemplates(route *mux.Route) string {
 	var queriesTemplates, _ = route.GetQueriesTemplates()
-	return stringsJoin(queriesTemplates, ",")
+	return stringsJoin(queriesTemplates, stringSeparator)
 }
 
 func getQueriesRegexp(route *mux.Route) string {
 	var queriesRegexps, _ = route.GetQueriesRegexp()
-	return stringsJoin(queriesRegexps, ",")
+	return stringsJoin(queriesRegexps, stringSeparator)
 }
 
 func getMethods(route *mux.Route) string {
 	var methods, _ = route.GetMethods()
-	return stringsJoin(methods, ",")
+	return stringsJoin(methods, stringSeparator)
 }
 
 func printRegisteredRouteDetails(
@@ -106,7 +110,11 @@ func HandleFunc(
 	handleFunc func(http.ResponseWriter, *http.Request),
 	actionFunc model.ActionFunc,
 ) *mux.Route {
-	var name = method + ":" + endpoint
+	var name = fmtSprintf(
+		"%v:%v",
+		endpoint,
+		method,
+	)
 	var route = router.HandleFunc(
 		path,
 		handleFunc,

@@ -67,7 +67,7 @@ func TestInit_AllValuesSet(t *testing.T) {
 	assert.True(t, found)
 	assert.Equal(t, defaultSession, result)
 	assert.Zero(t, defaultSession.ID)
-	assert.Equal(t, defaultEndpoint, defaultSession.Endpoint)
+	assert.Equal(t, defaultName, defaultSession.Name)
 	assert.Equal(t, logtype.BasicLogging, defaultSession.AllowedLogType)
 
 	// verify
@@ -77,7 +77,7 @@ func TestInit_AllValuesSet(t *testing.T) {
 func TestRegister(t *testing.T) {
 	// arrange
 	var dummySessionID = uuid.New()
-	var dummyEndpoint = "dummy endpoint"
+	var dummyName = "dummy name"
 	var dummyAllowedLogType = logtype.LogType(rand.Intn(math.MaxInt8))
 	var dummyHTTPRequest = &http.Request{}
 	var dummyResponseWriter = dummyResponseWriter{}
@@ -97,7 +97,7 @@ func TestRegister(t *testing.T) {
 
 	// SUT
 	var result = Register(
-		dummyEndpoint,
+		dummyName,
 		dummyAllowedLogType,
 		dummyHTTPRequest,
 		dummyResponseWriter,
@@ -112,7 +112,7 @@ func TestRegister(t *testing.T) {
 	assert.True(t, cacheOK)
 	assert.True(t, typeOK)
 	assert.Equal(t, dummySessionID, session.ID)
-	assert.Equal(t, dummyEndpoint, session.Endpoint)
+	assert.Equal(t, dummyName, session.Name)
 	assert.Equal(t, dummyAllowedLogType, session.AllowedLogType)
 	assert.Equal(t, dummyHTTPRequest, session.Request)
 	assert.Equal(t, dummyResponseWriter, session.ResponseWriter)
@@ -189,7 +189,7 @@ func TestGet_CacheItemValid(t *testing.T) {
 	// arrange
 	var dummySessionID = uuid.New()
 	var expectedSession = &Session{
-		Endpoint:       "dummy endpoint",
+		Name:           "dummy name",
 		AllowedLogType: logtype.BasicLogging,
 	}
 
@@ -208,6 +208,65 @@ func TestGet_CacheItemValid(t *testing.T) {
 	// verify
 	verifyAll(t)
 	sessionCache.Delete(dummySessionID.String())
+}
+
+func TestGetName_NilSessionObject(t *testing.T) {
+	// arrange
+	var dummySessionID = uuid.New()
+	var dummySessionObject *Session
+
+	// mock
+	createMock(t)
+
+	// expect
+	getFuncExpected = 1
+	getFunc = func(sessionID uuid.UUID) *Session {
+		getFuncCalled++
+		assert.Equal(t, dummySessionID, sessionID)
+		return dummySessionObject
+	}
+
+	// SUT + act
+	var result = GetName(
+		dummySessionID,
+	)
+
+	// assert
+	assert.Equal(t, defaultName, result)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestGetName_ValidSessionObject(t *testing.T) {
+	// arrange
+	var dummySessionID = uuid.New()
+	var dummyName = "some name"
+	var dummySessionObject = &Session{
+		Name: dummyName,
+	}
+
+	// mock
+	createMock(t)
+
+	// expect
+	getFuncExpected = 1
+	getFunc = func(sessionID uuid.UUID) *Session {
+		getFuncCalled++
+		assert.Equal(t, dummySessionID, sessionID)
+		return dummySessionObject
+	}
+
+	// SUT + act
+	var result = GetName(
+		dummySessionID,
+	)
+
+	// assert
+	assert.Equal(t, dummyName, result)
+
+	// verify
+	verifyAll(t)
 }
 
 func TestGetRequest_NilSessionObject(t *testing.T) {

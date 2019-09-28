@@ -216,7 +216,7 @@ func TestGetQueriesTemplate_Defined(t *testing.T) {
 	)
 
 	// assert
-	assert.Equal(t, "abc={def},xyz={zyx}", result)
+	assert.Equal(t, "abc={def}|xyz={zyx}", result)
 
 	// verify
 	verifyAll(t)
@@ -279,7 +279,7 @@ func TestGetQueriesRegexp_Defined(t *testing.T) {
 	)
 
 	// assert
-	assert.Equal(t, "^abc=(?P<v0>.*)$,^xyz=(?P<v0>.*)$", result)
+	assert.Equal(t, "^abc=(?P<v0>.*)$|^xyz=(?P<v0>.*)$", result)
 
 	// verify
 	verifyAll(t)
@@ -340,7 +340,7 @@ func TestGetMethods_Defined(t *testing.T) {
 	)
 
 	// assert
-	assert.Equal(t, "GET,PUT", result)
+	assert.Equal(t, "GET|PUT", result)
 
 	// verify
 	verifyAll(t)
@@ -649,7 +649,8 @@ func TestHostStatic(t *testing.T) {
 func TestHandleFunc(t *testing.T) {
 	// arrange
 	var dummyEndpoint = "some endpoint"
-	var dummyMethod = "PUT"
+	var dummyMethod = "SOME METHOD"
+	var dummyName = "some name"
 	var dummyPath = "/foo/{bar}"
 	var dummyQueries = []string{"test", "{test}"}
 	var dummyResponseWriter = &dummyResponseWriter{t}
@@ -677,6 +678,15 @@ func TestHandleFunc(t *testing.T) {
 	createMock(t)
 
 	// expect
+	fmtSprintfExpected = 1
+	fmtSprintf = func(format string, a ...interface{}) string {
+		fmtSprintfCalled++
+		assert.Equal(t, "%v:%v", format)
+		assert.Equal(t, 2, len(a))
+		assert.Equal(t, dummyEndpoint, a[0])
+		assert.Equal(t, dummyMethod, a[1])
+		return dummyName
+	}
 	muxNewRouterExpected = 1
 	muxNewRouter = func() *mux.Router {
 		muxNewRouterCalled++
@@ -703,7 +713,7 @@ func TestHandleFunc(t *testing.T) {
 	route.GetHandler().ServeHTTP(dummyResponseWriter, dummyHTTPRequest)
 
 	// assert
-	assert.Equal(t, dummyMethod+":"+dummyEndpoint, name)
+	assert.Equal(t, dummyName, name)
 	assert.Equal(t, 1, len(methods))
 	assert.Equal(t, dummyMethod, methods[0])
 	assert.Equal(t, dummyPath, pathTemplate)

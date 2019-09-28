@@ -5,14 +5,13 @@ import (
 	"testing"
 	"time"
 
+	"github.com/google/uuid"
+	"github.com/stretchr/testify/assert"
 	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
 	"github.com/zhongjie-cai/WebServiceTemplate/config"
 	"github.com/zhongjie-cai/WebServiceTemplate/customization"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger/logtype"
 	"github.com/zhongjie-cai/WebServiceTemplate/session"
-
-	"github.com/google/uuid"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestInitialize_NotSet(t *testing.T) {
@@ -67,11 +66,11 @@ func TestDefaultLogging(t *testing.T) {
 	// arrange
 	var dummySessionID = uuid.New()
 	var dummyAllowedLogType = logtype.BasicLogging
-	var dummyEndpoint = "some endpoint"
+	var dummyName = "some Name"
 	var dummyLogSession = &session.Session{
 		ID:             dummySessionID,
 		AllowedLogType: dummyAllowedLogType,
-		Endpoint:       dummyEndpoint,
+		Name:           dummyName,
 	}
 	var dummyLogType = logtype.MethodLogic
 	var dummyCategory = "some category"
@@ -85,7 +84,7 @@ func TestDefaultLogging(t *testing.T) {
 		Version:     dummyAppVersion,
 		Timestamp:   dummyTimestamp,
 		Session:     dummySessionID,
-		Endpoint:    dummyEndpoint,
+		Name:        dummyName,
 		Level:       dummyLogType,
 		Category:    dummyCategory,
 		Subcategory: dummySubCategory,
@@ -184,11 +183,11 @@ func TestPrepareLogging_IsLocalhost_DefaultLogging(t *testing.T) {
 	// arrange
 	var dummySessionID = uuid.New()
 	var dummyAllowedLogType = logtype.BasicLogging
-	var dummyEndpoint = "some endpoint"
+	var dummyName = "some Name"
 	var dummyLogSession = &session.Session{
 		ID:             dummySessionID,
 		AllowedLogType: dummyAllowedLogType,
-		Endpoint:       dummyEndpoint,
+		Name:           dummyName,
 	}
 	var dummyLogType = logtype.MethodEnter
 	var dummyCategory = "some category"
@@ -240,11 +239,11 @@ func TestPrepareLogging_FlagMatch_DefaultLogging(t *testing.T) {
 	// arrange
 	var dummySessionID = uuid.New()
 	var dummyAllowedLogType = logtype.BasicLogging
-	var dummyEndpoint = "some endpoint"
+	var dummyName = "some Name"
 	var dummyLogSession = &session.Session{
 		ID:             dummySessionID,
 		AllowedLogType: dummyAllowedLogType,
-		Endpoint:       dummyEndpoint,
+		Name:           dummyName,
 	}
 	var dummyLogType = logtype.MethodLogic
 	var dummyCategory = "some category"
@@ -291,11 +290,11 @@ func TestPrepareLogging_IsLocalhost_CustomLogging(t *testing.T) {
 	// arrange
 	var dummySessionID = uuid.New()
 	var dummyAllowedLogType = logtype.BasicLogging
-	var dummyEndpoint = "some endpoint"
+	var dummyName = "some Name"
 	var dummyLogSession = &session.Session{
 		ID:             dummySessionID,
 		AllowedLogType: dummyAllowedLogType,
-		Endpoint:       dummyEndpoint,
+		Name:           dummyName,
 	}
 	var dummyLogType = logtype.MethodEnter
 	var dummyCategory = "some category"
@@ -347,11 +346,11 @@ func TestPrepareLogging_FlagMatch_CustomLogging(t *testing.T) {
 	// arrange
 	var dummySessionID = uuid.New()
 	var dummyAllowedLogType = logtype.BasicLogging
-	var dummyEndpoint = "some endpoint"
+	var dummyName = "some Name"
 	var dummyLogSession = &session.Session{
 		ID:             dummySessionID,
 		AllowedLogType: dummyAllowedLogType,
-		Endpoint:       dummyEndpoint,
+		Name:           dummyName,
 	}
 	var dummyLogType = logtype.MethodLogic
 	var dummyCategory = "some category"

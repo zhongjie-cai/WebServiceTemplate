@@ -27,10 +27,10 @@ var (
 	sessionCache          = cache.New(15*time.Minute, 30*time.Minute)
 	defaultRequest, _     = http.NewRequest("", "", nil)
 	defaultResponseWriter = &nilResponseWriter{}
-	defaultEndpoint       = "AppRoot"
+	defaultName           = "AppRoot"
 	defaultSession        = &Session{
 		ID:             uuid.Nil,
-		Endpoint:       defaultEndpoint,
+		Name:           defaultName,
 		AllowedLogType: logtype.BasicLogging,
 		Request:        defaultRequest,
 		ResponseWriter: defaultResponseWriter,
@@ -40,7 +40,7 @@ var (
 // Session is the storage for the current HTTP request session, containing information needed for logging, monitoring, etc.
 type Session struct {
 	ID             uuid.UUID
-	Endpoint       string
+	Name           string
 	AllowedLogType logtype.LogType
 	Request        *http.Request
 	ResponseWriter http.ResponseWriter
@@ -58,7 +58,7 @@ func Init(appName string, roleType string, hostName string, version string, buil
 
 // Register registers the information of a session for given session ID
 func Register(
-	endpoint string,
+	name string,
 	allowedLogType logtype.LogType,
 	httpRequest *http.Request,
 	responseWriter http.ResponseWriter,
@@ -68,7 +68,7 @@ func Register(
 		sessionID.String(),
 		&Session{
 			ID:             sessionID,
-			Endpoint:       endpoint,
+			Name:           name,
 			AllowedLogType: allowedLogType,
 			Request:        httpRequest,
 			ResponseWriter: responseWriter,
@@ -95,6 +95,15 @@ func Get(sessionID uuid.UUID) *Session {
 		return defaultSession
 	}
 	return session
+}
+
+// GetName returns the name registered to session object for given session ID
+func GetName(sessionID uuid.UUID) string {
+	var sessionObject = getFunc(sessionID)
+	if sessionObject == nil {
+		return defaultName
+	}
+	return sessionObject.Name
 }
 
 // GetRequest returns the HTTP request object from session object for given session ID
