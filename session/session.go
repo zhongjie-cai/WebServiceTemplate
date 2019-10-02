@@ -124,19 +124,6 @@ func GetResponseWriter(sessionID uuid.UUID) http.ResponseWriter {
 	return sessionObject.ResponseWriter
 }
 
-// ClearResponseWriter clears the response writer instance and sets it to nil writer that takes no actions at all
-func ClearResponseWriter(sessionID uuid.UUID) {
-	var sessionObject = getFunc(sessionID)
-	if sessionObject == nil {
-		return
-	}
-	sessionObject.ResponseWriter = defaultResponseWriter
-	sessionCache.SetDefault(
-		sessionID.String(),
-		sessionObject,
-	)
-}
-
 func tryUnmarshal(value string, dataTemplate interface{}) apperror.AppError {
 	var noQuoteJSONError = jsonUnmarshal(
 		[]byte(value),

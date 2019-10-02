@@ -513,8 +513,10 @@ func TestCreateErrorResponse(t *testing.T) {
 
 func TestWriteResponse(t *testing.T) {
 	// arrange
+	var dummySessionID = uuid.New()
 	var dummyHeader = make(http.Header)
 	var dummyStatusCode = rand.Int()
+	var dummyStatusCodeString = strconv.Itoa(dummyStatusCode)
 	var dummyResponseMessage = "some response message"
 	var dummyResponseBytes = []byte(dummyResponseMessage)
 	var dummyResponseWriter = &dummyResponseWriter{
@@ -527,8 +529,35 @@ func TestWriteResponse(t *testing.T) {
 	// mock
 	createMock(t)
 
+	// expect
+	strconvItoaExpected = 1
+	strconvItoa = func(i int) string {
+		strconvItoaCalled++
+		return strconv.Itoa(i)
+	}
+	loggerAPIResponseExpected = 1
+	loggerAPIResponse = func(sessionID uuid.UUID, category string, subcategory string, messageFormat string, parameters ...interface{}) {
+		loggerAPIResponseCalled++
+		assert.Equal(t, dummySessionID, sessionID)
+		assert.Equal(t, "response", category)
+		assert.Equal(t, dummyStatusCodeString, subcategory)
+		assert.Equal(t, dummyResponseMessage, messageFormat)
+		assert.Equal(t, 0, len(parameters))
+	}
+	loggerAPIExitExpected = 1
+	loggerAPIExit = func(sessionID uuid.UUID, category string, subcategory string, messageFormat string, parameters ...interface{}) {
+		loggerAPIExitCalled++
+		assert.Equal(t, dummySessionID, sessionID)
+		assert.Equal(t, "response", category)
+		assert.Equal(t, "Write", subcategory)
+		assert.Equal(t, "%v", messageFormat)
+		assert.Equal(t, 1, len(parameters))
+		assert.Equal(t, dummyStatusCode, parameters[0])
+	}
+
 	// SUT + act
 	writeResponse(
+		dummySessionID,
 		dummyResponseWriter,
 		dummyStatusCode,
 		dummyResponseMessage,
@@ -538,141 +567,140 @@ func TestWriteResponse(t *testing.T) {
 	verifyAll(t)
 }
 
-func TestWrite_Ok(t *testing.T) {
+func TestConstructResponse_Error_WithCustomization(t *testing.T) {
 	// arrange
-	var dummySessionID = uuid.New()
-	var dummyResponseObject = "some response content"
-	var dummyResponseError apperror.AppError
-	var dummyResponseWriter = &dummyResponseWriter{
-		t,
-		nil,
-		nil,
-		nil,
-	}
-	var dummyResponseMessage = "some response message"
-	var dummyStatusCode = rand.Int()
-	var dummyStatusCodeString = strconv.Itoa(dummyStatusCode)
-
-	// mock
-	createMock(t)
-
-	// expect
-	strconvItoaExpected = 1
-	strconvItoa = func(i int) string {
-		strconvItoaCalled++
-		return strconv.Itoa(i)
-	}
-	sessionGetResponseWriterExpected = 1
-	sessionGetResponseWriter = func(sessionID uuid.UUID) http.ResponseWriter {
-		sessionGetResponseWriterCalled++
-		assert.Equal(t, dummySessionID, sessionID)
-		return dummyResponseWriter
-	}
-	createOkResponseFuncExpected = 1
-	createOkResponseFunc = func(responseContent interface{}) (string, int) {
-		createOkResponseFuncCalled++
-		assert.Equal(t, dummyResponseObject, responseContent)
-		return dummyResponseMessage, dummyStatusCode
-	}
-	loggerAPIResponseExpected = 1
-	loggerAPIResponse = func(sessionID uuid.UUID, category string, subcategory string, messageFormat string, parameters ...interface{}) {
-		loggerAPIResponseCalled++
-		assert.Equal(t, dummySessionID, sessionID)
-		assert.Equal(t, "response", category)
-		assert.Equal(t, dummyStatusCodeString, subcategory)
-		assert.Equal(t, dummyResponseMessage, messageFormat)
-		assert.Equal(t, 0, len(parameters))
-	}
-	writeResponseFuncExpected = 1
-	writeResponseFunc = func(responseWriter http.ResponseWriter, statusCode int, responseMessage string) {
-		writeResponseFuncCalled++
-		assert.Equal(t, dummyResponseWriter, responseWriter)
-		assert.Equal(t, dummyStatusCode, statusCode)
-		assert.Equal(t, dummyResponseMessage, responseMessage)
-	}
-	loggerAPIExitExpected = 1
-	loggerAPIExit = func(sessionID uuid.UUID, category string, subcategory string, messageFormat string, parameters ...interface{}) {
-		loggerAPIExitCalled++
-		assert.Equal(t, dummySessionID, sessionID)
-		assert.Equal(t, "response", category)
-		assert.Equal(t, "Write", subcategory)
-		assert.Equal(t, "%v", messageFormat)
-		assert.Equal(t, 1, len(parameters))
-		assert.Equal(t, dummyStatusCode, parameters[0])
-	}
-
-	// SUT + act
-	Write(
-		dummySessionID,
-		dummyResponseObject,
-		dummyResponseError,
-	)
-
-	// verify
-	verifyAll(t)
-}
-
-func TestWrite_Error_WithCustomization(t *testing.T) {
-	// arrange
-	var dummySessionID = uuid.New()
 	var dummyResponseObject = "some response content"
 	var dummyResponseError = errors.New("some response error")
-	var dummyResponseWriter = &dummyResponseWriter{
-		t,
-		nil,
-		nil,
-		nil,
-	}
 	var dummyResponseMessage = "some response message"
 	var dummyStatusCode = rand.Int()
-	var dummyStatusCodeString = strconv.Itoa(dummyStatusCode)
 
 	// mock
 	createMock(t)
 
 	// expect
-	strconvItoaExpected = 1
-	strconvItoa = func(i int) string {
-		strconvItoaCalled++
-		return strconv.Itoa(i)
-	}
-	sessionGetResponseWriterExpected = 1
-	sessionGetResponseWriter = func(sessionID uuid.UUID) http.ResponseWriter {
-		sessionGetResponseWriterCalled++
-		assert.Equal(t, dummySessionID, sessionID)
-		return dummyResponseWriter
-	}
 	customizationCreateErrorResponseFuncExpected = 1
 	customization.CreateErrorResponseFunc = func(err error) (string, int) {
 		customizationCreateErrorResponseFuncCalled++
 		assert.Equal(t, dummyResponseError, err)
 		return dummyResponseMessage, dummyStatusCode
 	}
-	loggerAPIResponseExpected = 1
-	loggerAPIResponse = func(sessionID uuid.UUID, category string, subcategory string, messageFormat string, parameters ...interface{}) {
-		loggerAPIResponseCalled++
+
+	// SUT + act
+	var message, code = constructResponse(
+		dummyResponseObject,
+		dummyResponseError,
+	)
+
+	// assert
+	assert.Equal(t, dummyResponseMessage, message)
+	assert.Equal(t, dummyStatusCode, code)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestConstructResponse_Error_NoCustomization(t *testing.T) {
+	// arrange
+	var dummyResponseObject = "some response content"
+	var dummyResponseError = errors.New("some response error")
+	var dummyResponseMessage = "some response message"
+	var dummyStatusCode = rand.Int()
+
+	// mock
+	createMock(t)
+
+	// expect
+	createErrorResponseFuncExpected = 1
+	createErrorResponseFunc = func(err error) (string, int) {
+		createErrorResponseFuncCalled++
+		assert.Equal(t, dummyResponseError, err)
+		return dummyResponseMessage, dummyStatusCode
+	}
+
+	// SUT + act
+	var message, code = constructResponse(
+		dummyResponseObject,
+		dummyResponseError,
+	)
+
+	// assert
+	assert.Equal(t, dummyResponseMessage, message)
+	assert.Equal(t, dummyStatusCode, code)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestConstructResponse_NoError(t *testing.T) {
+	// arrange
+	var dummyResponseObject = "some response content"
+	var dummyResponseError apperror.AppError
+	var dummyResponseMessage = "some response message"
+	var dummyStatusCode = rand.Int()
+
+	// mock
+	createMock(t)
+
+	// expect
+	createOkResponseFuncExpected = 1
+	createOkResponseFunc = func(responseContent interface{}) (string, int) {
+		createOkResponseFuncCalled++
+		assert.Equal(t, dummyResponseObject, responseContent)
+		return dummyResponseMessage, dummyStatusCode
+	}
+
+	// SUT + act
+	var message, code = constructResponse(
+		dummyResponseObject,
+		dummyResponseError,
+	)
+
+	// assert
+	assert.Equal(t, dummyResponseMessage, message)
+	assert.Equal(t, dummyStatusCode, code)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestWrite_NotOverrided(t *testing.T) {
+	// arrange
+	var dummySessionID = uuid.New()
+	var dummyResponseObject = "some response content"
+	var dummyResponseError = errors.New("some response error")
+	var dummyResponseWriter = &dummyResponseWriter{
+		t,
+		nil,
+		nil,
+		nil,
+	}
+	var dummyResponseMessage = "some response message"
+	var dummyStatusCode = rand.Int()
+
+	// mock
+	createMock(t)
+
+	// expect
+	sessionGetResponseWriterExpected = 1
+	sessionGetResponseWriter = func(sessionID uuid.UUID) http.ResponseWriter {
+		sessionGetResponseWriterCalled++
 		assert.Equal(t, dummySessionID, sessionID)
-		assert.Equal(t, "response", category)
-		assert.Equal(t, dummyStatusCodeString, subcategory)
-		assert.Equal(t, dummyResponseMessage, messageFormat)
-		assert.Equal(t, 0, len(parameters))
+		return dummyResponseWriter
+	}
+	constructResponseFuncExpected = 1
+	constructResponseFunc = func(responseObject interface{}, responseError error) (string, int) {
+		constructResponseFuncCalled++
+		assert.Equal(t, dummyResponseObject, responseObject)
+		assert.Equal(t, dummyResponseError, responseError)
+		return dummyResponseMessage, dummyStatusCode
 	}
 	writeResponseFuncExpected = 1
-	writeResponseFunc = func(responseWriter http.ResponseWriter, statusCode int, responseMessage string) {
+	writeResponseFunc = func(sessionID uuid.UUID, responseWriter http.ResponseWriter, statusCode int, responseMessage string) {
 		writeResponseFuncCalled++
+		assert.Equal(t, dummySessionID, sessionID)
 		assert.Equal(t, dummyResponseWriter, responseWriter)
 		assert.Equal(t, dummyStatusCode, statusCode)
 		assert.Equal(t, dummyResponseMessage, responseMessage)
-	}
-	loggerAPIExitExpected = 1
-	loggerAPIExit = func(sessionID uuid.UUID, category string, subcategory string, messageFormat string, parameters ...interface{}) {
-		loggerAPIExitCalled++
-		assert.Equal(t, dummySessionID, sessionID)
-		assert.Equal(t, "response", category)
-		assert.Equal(t, "Write", subcategory)
-		assert.Equal(t, "%v", messageFormat)
-		assert.Equal(t, 1, len(parameters))
-		assert.Equal(t, dummyStatusCode, parameters[0])
 	}
 
 	// SUT + act
@@ -686,10 +714,10 @@ func TestWrite_Error_WithCustomization(t *testing.T) {
 	verifyAll(t)
 }
 
-func TestWrite_Error_NoCustomization(t *testing.T) {
+func TestWrite_Overrided(t *testing.T) {
 	// arrange
 	var dummySessionID = uuid.New()
-	var dummyResponseObject = "some response content"
+	var dummyResponseObject = overrideResponse{}
 	var dummyResponseError = errors.New("some response error")
 	var dummyResponseWriter = &dummyResponseWriter{
 		t,
@@ -699,44 +727,23 @@ func TestWrite_Error_NoCustomization(t *testing.T) {
 	}
 	var dummyResponseMessage = "some response message"
 	var dummyStatusCode = rand.Int()
-	var dummyStatusCodeString = strconv.Itoa(dummyStatusCode)
 
 	// mock
 	createMock(t)
 
 	// expect
-	strconvItoaExpected = 1
-	strconvItoa = func(i int) string {
-		strconvItoaCalled++
-		return strconv.Itoa(i)
-	}
 	sessionGetResponseWriterExpected = 1
 	sessionGetResponseWriter = func(sessionID uuid.UUID) http.ResponseWriter {
 		sessionGetResponseWriterCalled++
 		assert.Equal(t, dummySessionID, sessionID)
 		return dummyResponseWriter
 	}
-	createErrorResponseFuncExpected = 1
-	createErrorResponseFunc = func(err error) (string, int) {
-		createErrorResponseFuncCalled++
-		assert.Equal(t, dummyResponseError, err)
+	constructResponseFuncExpected = 1
+	constructResponseFunc = func(responseObject interface{}, responseError error) (string, int) {
+		constructResponseFuncCalled++
+		assert.Equal(t, dummyResponseObject, responseObject)
+		assert.Equal(t, dummyResponseError, responseError)
 		return dummyResponseMessage, dummyStatusCode
-	}
-	loggerAPIResponseExpected = 1
-	loggerAPIResponse = func(sessionID uuid.UUID, category string, subcategory string, messageFormat string, parameters ...interface{}) {
-		loggerAPIResponseCalled++
-		assert.Equal(t, dummySessionID, sessionID)
-		assert.Equal(t, "response", category)
-		assert.Equal(t, dummyStatusCodeString, subcategory)
-		assert.Equal(t, dummyResponseMessage, messageFormat)
-		assert.Equal(t, 0, len(parameters))
-	}
-	writeResponseFuncExpected = 1
-	writeResponseFunc = func(responseWriter http.ResponseWriter, statusCode int, responseMessage string) {
-		writeResponseFuncCalled++
-		assert.Equal(t, dummyResponseWriter, responseWriter)
-		assert.Equal(t, dummyStatusCode, statusCode)
-		assert.Equal(t, dummyResponseMessage, responseMessage)
 	}
 	loggerAPIExitExpected = 1
 	loggerAPIExit = func(sessionID uuid.UUID, category string, subcategory string, messageFormat string, parameters ...interface{}) {
@@ -744,9 +751,8 @@ func TestWrite_Error_NoCustomization(t *testing.T) {
 		assert.Equal(t, dummySessionID, sessionID)
 		assert.Equal(t, "response", category)
 		assert.Equal(t, "Write", subcategory)
-		assert.Equal(t, "%v", messageFormat)
-		assert.Equal(t, 1, len(parameters))
-		assert.Equal(t, dummyStatusCode, parameters[0])
+		assert.Equal(t, "Overrided", messageFormat)
+		assert.Equal(t, 0, len(parameters))
 	}
 
 	// SUT + act
@@ -796,17 +802,16 @@ func TestOverride(t *testing.T) {
 		assert.Equal(t, dummyHTTPRequest, httpRequest)
 		assert.Equal(t, dummyResponseWriter, responseWriter)
 	}
-	sessionClearResponseWriterExpected = 1
-	sessionClearResponseWriter = func(sessionID uuid.UUID) {
-		sessionClearResponseWriterCalled++
-		assert.Equal(t, dummySessionID, sessionID)
-	}
 
 	// SUT + act
-	Override(
+	var result, err = Override(
 		dummySessionID,
 		dummyCallback,
 	)
+
+	// assert
+	assert.IsType(t, overrideResponse{}, result)
+	assert.NoError(t, err)
 
 	// verify
 	verifyAll(t)

@@ -88,7 +88,7 @@ func getHealth(
 func swaggerRedirect(
 	sessionID uuid.UUID,
 ) (interface{}, apperror.AppError) {
-	response.Override(
+	return response.Override(
 		sessionID,
 		func(
 			httpRequest *http.Request,
@@ -102,7 +102,6 @@ func swaggerRedirect(
 			)
 		},
 	)
-	return nil, nil
 }
 
 // swaggerHandler is an example of how a normal HTTP static content hosting is written with this template library

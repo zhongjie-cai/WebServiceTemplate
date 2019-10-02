@@ -29,8 +29,6 @@ var (
 	sessionGetRequestCalled                      int
 	sessionGetResponseWriterExpected             int
 	sessionGetResponseWriterCalled               int
-	sessionClearResponseWriterExpected           int
-	sessionClearResponseWriterCalled             int
 	getStatusCodeFuncExpected                    int
 	getStatusCodeFuncCalled                      int
 	writeResponseFuncExpected                    int
@@ -43,6 +41,8 @@ var (
 	createOkResponseFuncCalled                   int
 	createErrorResponseFuncExpected              int
 	createErrorResponseFuncCalled                int
+	constructResponseFuncExpected                int
+	constructResponseFuncCalled                  int
 	customizationCreateErrorResponseFuncExpected int
 	customizationCreateErrorResponseFuncCalled   int
 )
@@ -88,11 +88,6 @@ func createMock(t *testing.T) {
 		sessionGetResponseWriterCalled++
 		return nil
 	}
-	sessionClearResponseWriterExpected = 0
-	sessionClearResponseWriterCalled = 0
-	sessionClearResponseWriter = func(sessionID uuid.UUID) {
-		sessionClearResponseWriterCalled++
-	}
 	getStatusCodeFuncExpected = 0
 	getStatusCodeFuncCalled = 0
 	getStatusCodeFunc = func(appError apperror.AppError) int {
@@ -101,7 +96,7 @@ func createMock(t *testing.T) {
 	}
 	writeResponseFuncExpected = 0
 	writeResponseFuncCalled = 0
-	writeResponseFunc = func(responseWriter http.ResponseWriter, statusCode int, responseMessage string) {
+	writeResponseFunc = func(sessionID uuid.UUID, responseWriter http.ResponseWriter, statusCode int, responseMessage string) {
 		writeResponseFuncCalled++
 	}
 	getAppErrorFuncExpected = 0
@@ -128,6 +123,12 @@ func createMock(t *testing.T) {
 		createErrorResponseFuncCalled++
 		return "", 0
 	}
+	constructResponseFuncExpected = 0
+	constructResponseFuncCalled = 0
+	constructResponseFunc = func(responseObject interface{}, responseError error) (string, int) {
+		constructResponseFuncCalled++
+		return "", 0
+	}
 	customizationCreateErrorResponseFuncExpected = 0
 	customizationCreateErrorResponseFuncCalled = 0
 	customization.CreateErrorResponseFunc = nil
@@ -148,8 +149,6 @@ func verifyAll(t *testing.T) {
 	assert.Equal(t, sessionGetRequestExpected, sessionGetRequestCalled, "Unexpected number of calls to sessionGetRequest")
 	sessionGetResponseWriter = session.GetResponseWriter
 	assert.Equal(t, sessionGetResponseWriterExpected, sessionGetResponseWriterCalled, "Unexpected number of calls to sessionGetResponseWriter")
-	sessionClearResponseWriter = session.ClearResponseWriter
-	assert.Equal(t, sessionClearResponseWriterExpected, sessionClearResponseWriterCalled, "Unexpected number of calls to sessionClearResponseWriter")
 	getStatusCodeFunc = getStatusCode
 	assert.Equal(t, getStatusCodeFuncExpected, getStatusCodeFuncCalled, "Unexpected number of calls to getStatusCodeFunc")
 	writeResponseFunc = writeResponse
@@ -162,6 +161,8 @@ func verifyAll(t *testing.T) {
 	assert.Equal(t, createOkResponseFuncExpected, createOkResponseFuncCalled, "Unexpected number of calls to createOkResponseFunc")
 	createErrorResponseFunc = createErrorResponse
 	assert.Equal(t, createErrorResponseFuncExpected, createErrorResponseFuncCalled, "Unexpected number of calls to createErrorResponseFunc")
+	constructResponseFunc = constructResponse
+	assert.Equal(t, constructResponseFuncExpected, constructResponseFuncCalled, "Unexpected number of calls to constructResponseFunc")
 	customization.CreateErrorResponseFunc = nil
 	assert.Equal(t, customizationCreateErrorResponseFuncExpected, customizationCreateErrorResponseFuncCalled, "Unexpected number of calls to customization.CreateErrorResponseFunc")
 }

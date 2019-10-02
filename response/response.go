@@ -20,6 +20,9 @@ type errorResponseModel struct {
 	Messages []string `json:"messages"`
 }
 
+// overrideResponse defines a dummy response returned by override to suppress logging
+type overrideResponse struct{}
+
 func getStatusCode(appError apperror.AppError) int {
 	var statusCode int
 	switch appError.Code() {
@@ -98,13 +101,46 @@ func createErrorResponse(
 }
 
 func writeResponse(
+	sessionID uuid.UUID,
 	responseWriter http.ResponseWriter,
 	statusCode int,
 	responseMessage string,
 ) {
+	loggerAPIResponse(
+		sessionID,
+		"response",
+		strconvItoa(statusCode),
+		responseMessage,
+	)
 	responseWriter.Header().Set("Content-Type", ContentTypeJSON)
 	responseWriter.WriteHeader(statusCode)
 	responseWriter.Write([]byte(responseMessage))
+	loggerAPIExit(
+		sessionID,
+		"response",
+		"Write",
+		"%v",
+		statusCode,
+	)
+}
+
+func constructResponse(
+	responseObject interface{},
+	responseError error,
+) (string, int) {
+	if responseError != nil {
+		if customization.CreateErrorResponseFunc != nil {
+			return customization.CreateErrorResponseFunc(
+				responseError,
+			)
+		}
+		return createErrorResponseFunc(
+			responseError,
+		)
+	}
+	return createOkResponseFunc(
+		responseObject,
+	)
 }
 
 // Write responds to the consumer with corresponding HTTP status code and response body
@@ -116,48 +152,33 @@ func Write(
 	var responseWriter = sessionGetResponseWriter(
 		sessionID,
 	)
-	var responseMessage string
-	var statusCode int
-	if responseError != nil {
-		if customization.CreateErrorResponseFunc != nil {
-			responseMessage, statusCode = customization.CreateErrorResponseFunc(
-				responseError,
-			)
-		} else {
-			responseMessage, statusCode = createErrorResponseFunc(
-				responseError,
-			)
-		}
+	var responseMessage, statusCode = constructResponseFunc(
+		responseObject,
+		responseError,
+	)
+	var _, isOverrided = responseObject.(overrideResponse)
+	if !isOverrided {
+		writeResponseFunc(
+			sessionID,
+			responseWriter,
+			statusCode,
+			responseMessage,
+		)
 	} else {
-		responseMessage, statusCode = createOkResponseFunc(
-			responseObject,
+		loggerAPIExit(
+			sessionID,
+			"response",
+			"Write",
+			"Overrided",
 		)
 	}
-	loggerAPIResponse(
-		sessionID,
-		"response",
-		strconvItoa(statusCode),
-		responseMessage,
-	)
-	writeResponseFunc(
-		responseWriter,
-		statusCode,
-		responseMessage,
-	)
-	loggerAPIExit(
-		sessionID,
-		"response",
-		"Write",
-		"%v",
-		statusCode,
-	)
 }
 
 // Override overrides the default response.Write functionality by the given callback function; consumers must manually deal with response writer accordingly
 func Override(
 	sessionID uuid.UUID,
 	callback func(*http.Request, http.ResponseWriter),
-) {
+) (interface{}, error) {
 	var httpRequest = sessionGetRequest(
 		sessionID,
 	)
@@ -168,7 +189,5 @@ func Override(
 		httpRequest,
 		responseWriter,
 	)
-	sessionClearResponseWriter(
-		sessionID,
-	)
+	return overrideResponse{}, nil
 }
