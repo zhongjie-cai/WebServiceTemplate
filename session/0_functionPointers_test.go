@@ -1,6 +1,7 @@
 package session
 
 import (
+	"encoding/json"
 	"net/http"
 	"net/textproto"
 	"testing"
@@ -16,6 +17,8 @@ import (
 var (
 	uuidNewExpected                         int
 	uuidNewCalled                           int
+	jsonMarshalExpected                     int
+	jsonMarshalCalled                       int
 	jsonUnmarshalExpected                   int
 	jsonUnmarshalCalled                     int
 	fmtErrorfExpected                       int
@@ -48,6 +51,12 @@ func createMock(t *testing.T) {
 	uuidNew = func() uuid.UUID {
 		uuidNewCalled++
 		return uuid.Nil
+	}
+	jsonMarshalExpected = 0
+	jsonMarshalCalled = 0
+	jsonMarshal = func(v interface{}) ([]byte, error) {
+		jsonMarshalCalled++
+		return nil, nil
 	}
 	jsonUnmarshalExpected = 0
 	jsonUnmarshalCalled = 0
@@ -126,6 +135,10 @@ func createMock(t *testing.T) {
 func verifyAll(t *testing.T) {
 	uuidNew = uuid.New
 	assert.Equal(t, uuidNewExpected, uuidNewCalled, "Unexpected number of calls to uuidNew")
+	jsonMarshal = json.Marshal
+	assert.Equal(t, jsonMarshalExpected, jsonMarshalCalled, "Unexpected number of calls to jsonMarshal")
+	jsonUnmarshal = json.Unmarshal
+	assert.Equal(t, jsonUnmarshalExpected, jsonUnmarshalCalled, "Unexpected number of calls to jsonUnmarshal")
 	muxVars = mux.Vars
 	assert.Equal(t, muxVarsExpected, muxVarsCalled, "Unexpected number of calls to muxVars")
 	requestGetRequestBody = request.GetRequestBody
@@ -165,4 +178,10 @@ func (drw dummyResponseWriter) Write(bytes []byte) (int, error) {
 
 func (drw dummyResponseWriter) WriteHeader(statusCode int) {
 	assert.Fail(drw.t, "Unexpected number of calls to WriteHeader")
+}
+
+type dummyAttachment struct {
+	ID   uuid.UUID
+	Foo  string
+	Test int
 }

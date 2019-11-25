@@ -19,3 +19,4 @@ coverage
 
 # VSCode settings folder
 .vscode
+.env

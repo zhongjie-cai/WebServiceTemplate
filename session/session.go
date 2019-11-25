@@ -44,6 +44,7 @@ type Session struct {
 	AllowedLogType logtype.LogType
 	Request        *http.Request
 	ResponseWriter http.ResponseWriter
+	attachment     map[string]interface{}
 }
 
 // Init initialize the default session for the application
@@ -72,6 +73,7 @@ func Register(
 			AllowedLogType: allowedLogType,
 			Request:        httpRequest,
 			ResponseWriter: responseWriter,
+			attachment:     map[string]interface{}{},
 		},
 	)
 	return sessionID
@@ -309,4 +311,56 @@ func GetRequestHeaders(sessionID uuid.UUID, name string, dataTemplate interface{
 		"Failed to get request header strings",
 		unmarshalErrors...,
 	)
+}
+
+// Attach attaches any value object into the given session associated to the session ID
+func Attach(sessionID uuid.UUID, name string, value interface{}) bool {
+	var session = getFunc(
+		sessionID,
+	)
+	if session == nil {
+		return false
+	}
+	if session.attachment == nil {
+		session.attachment = map[string]interface{}{}
+	}
+	session.attachment[name] = value
+	return true
+}
+
+// Dettach dettaches any value object from the given session associated to the session ID
+func Dettach(sessionID uuid.UUID, name string) bool {
+	var session = getFunc(
+		sessionID,
+	)
+	if session == nil {
+		return false
+	}
+	if session.attachment != nil {
+		delete(session.attachment, name)
+	}
+	return true
+}
+
+// GetAttachment retrieves any value object from the given session associated to the session ID and unmarshals the content to given data template
+func GetAttachment(sessionID uuid.UUID, name string, dataTemplate interface{}) bool {
+	var session = getFunc(
+		sessionID,
+	)
+	if session == nil {
+		return false
+	}
+	var attachment, found = session.attachment[name]
+	if !found {
+		return false
+	}
+	var bytes, marshalError = jsonMarshal(attachment)
+	if marshalError != nil {
+		return false
+	}
+	var unmarshalError = jsonUnmarshal(
+		bytes,
+		dataTemplate,
+	)
+	return unmarshalError == nil
 }

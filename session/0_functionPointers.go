@@ -14,6 +14,7 @@ import (
 // func pointers for injection / testing: logger.go
 var (
 	uuidNew                         = uuid.New
+	jsonMarshal                     = json.Marshal
 	jsonUnmarshal                   = json.Unmarshal
 	fmtErrorf                       = fmt.Errorf
 	muxVars                         = mux.Vars

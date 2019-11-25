@@ -1404,3 +1404,435 @@ func TestGetRequestHeaders_HappyPath(t *testing.T) {
 	verifyAll(t)
 	assert.Equal(t, dummyFillCallbackExpected, dummyFillCallbackCalled, "Unexpected number of calls to dummyFillCallback")
 }
+
+func TestAttach_NoSession(t *testing.T) {
+	// arrange
+	var dummySessionID = uuid.New()
+	var dummyName = "some name"
+	var dummyValue = dummyAttachment{
+		ID:   uuid.New(),
+		Foo:  "bar",
+		Test: rand.Intn(100),
+	}
+	var dummySessionObject *Session
+
+	// mock
+	createMock(t)
+
+	// expect
+	getFuncExpected = 1
+	getFunc = func(sessionID uuid.UUID) *Session {
+		getFuncCalled++
+		assert.Equal(t, dummySessionID, sessionID)
+		return dummySessionObject
+	}
+
+	// SUT + act
+	var result = Attach(
+		dummySessionID,
+		dummyName,
+		dummyValue,
+	)
+
+	// assert
+	assert.False(t, result)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestAttach_HasSession_NoAttachment(t *testing.T) {
+	// arrange
+	var dummySessionID = uuid.New()
+	var dummyName = "some name"
+	var dummyValue = dummyAttachment{
+		ID:   uuid.New(),
+		Foo:  "bar",
+		Test: rand.Intn(100),
+	}
+	var dummySessionObject = &Session{}
+
+	// mock
+	createMock(t)
+
+	// expect
+	getFuncExpected = 1
+	getFunc = func(sessionID uuid.UUID) *Session {
+		getFuncCalled++
+		assert.Equal(t, dummySessionID, sessionID)
+		return dummySessionObject
+	}
+
+	// SUT + act
+	var result = Attach(
+		dummySessionID,
+		dummyName,
+		dummyValue,
+	)
+
+	// assert
+	assert.True(t, result)
+	assert.Equal(t, dummyValue, dummySessionObject.attachment[dummyName])
+
+	// verify
+	verifyAll(t)
+}
+
+func TestAttach_HasSession_WithAttachment(t *testing.T) {
+	// arrange
+	var dummySessionID = uuid.New()
+	var dummyName = "some name"
+	var dummyValue = dummyAttachment{
+		ID:   uuid.New(),
+		Foo:  "bar",
+		Test: rand.Intn(100),
+	}
+	var dummySessionObject = &Session{
+		attachment: map[string]interface{}{
+			dummyName: "some value",
+		},
+	}
+
+	// mock
+	createMock(t)
+
+	// expect
+	getFuncExpected = 1
+	getFunc = func(sessionID uuid.UUID) *Session {
+		getFuncCalled++
+		assert.Equal(t, dummySessionID, sessionID)
+		return dummySessionObject
+	}
+
+	// SUT + act
+	var result = Attach(
+		dummySessionID,
+		dummyName,
+		dummyValue,
+	)
+
+	// assert
+	assert.True(t, result)
+	assert.Equal(t, dummyValue, dummySessionObject.attachment[dummyName])
+
+	// verify
+	verifyAll(t)
+}
+
+func TestDettach_NoSession(t *testing.T) {
+	// arrange
+	var dummySessionID = uuid.New()
+	var dummyName = "some name"
+	var dummySessionObject *Session
+
+	// mock
+	createMock(t)
+
+	// expect
+	getFuncExpected = 1
+	getFunc = func(sessionID uuid.UUID) *Session {
+		getFuncCalled++
+		assert.Equal(t, dummySessionID, sessionID)
+		return dummySessionObject
+	}
+
+	// SUT + act
+	var result = Dettach(
+		dummySessionID,
+		dummyName,
+	)
+
+	// assert
+	assert.False(t, result)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestDettach_HasSession_NoAttachment(t *testing.T) {
+	// arrange
+	var dummySessionID = uuid.New()
+	var dummyName = "some name"
+	var dummySessionObject = &Session{}
+
+	// mock
+	createMock(t)
+
+	// expect
+	getFuncExpected = 1
+	getFunc = func(sessionID uuid.UUID) *Session {
+		getFuncCalled++
+		assert.Equal(t, dummySessionID, sessionID)
+		return dummySessionObject
+	}
+
+	// SUT + act
+	var result = Dettach(
+		dummySessionID,
+		dummyName,
+	)
+
+	// assert
+	assert.True(t, result)
+	var _, found = dummySessionObject.attachment[dummyName]
+	assert.False(t, found)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestDettach_HasSession_WithAttachment(t *testing.T) {
+	// arrange
+	var dummySessionID = uuid.New()
+	var dummyName = "some name"
+	var dummySessionObject = &Session{
+		attachment: map[string]interface{}{
+			dummyName: "some value",
+		},
+	}
+
+	// mock
+	createMock(t)
+
+	// expect
+	getFuncExpected = 1
+	getFunc = func(sessionID uuid.UUID) *Session {
+		getFuncCalled++
+		assert.Equal(t, dummySessionID, sessionID)
+		return dummySessionObject
+	}
+
+	// SUT + act
+	var result = Dettach(
+		dummySessionID,
+		dummyName,
+	)
+
+	// assert
+	assert.True(t, result)
+	var _, found = dummySessionObject.attachment[dummyName]
+	assert.False(t, found)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestGetAttachment_NoSession(t *testing.T) {
+	// arrange
+	var dummySessionID = uuid.New()
+	var dummyName = "some name"
+	var dummySessionObject *Session
+	var dummyDataTemplate dummyAttachment
+
+	// mock
+	createMock(t)
+
+	// expect
+	getFuncExpected = 1
+	getFunc = func(sessionID uuid.UUID) *Session {
+		getFuncCalled++
+		assert.Equal(t, dummySessionID, sessionID)
+		return dummySessionObject
+	}
+
+	// SUT + act
+	var result = GetAttachment(
+		dummySessionID,
+		dummyName,
+		&dummyDataTemplate,
+	)
+
+	// assert
+	assert.False(t, result)
+	assert.Zero(t, dummyDataTemplate)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestGetAttachment_NoAttachment(t *testing.T) {
+	// arrange
+	var dummySessionID = uuid.New()
+	var dummyName = "some name"
+	var dummySessionObject = &Session{}
+	var dummyDataTemplate dummyAttachment
+
+	// mock
+	createMock(t)
+
+	// expect
+	getFuncExpected = 1
+	getFunc = func(sessionID uuid.UUID) *Session {
+		getFuncCalled++
+		assert.Equal(t, dummySessionID, sessionID)
+		return dummySessionObject
+	}
+
+	// SUT + act
+	var result = GetAttachment(
+		dummySessionID,
+		dummyName,
+		&dummyDataTemplate,
+	)
+
+	// assert
+	assert.False(t, result)
+	assert.Zero(t, dummyDataTemplate)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestGetAttachment_MarshalError(t *testing.T) {
+	// arrange
+	var dummySessionID = uuid.New()
+	var dummyName = "some name"
+	var dummyValue = dummyAttachment{
+		Foo:  "bar",
+		Test: rand.Intn(100),
+		ID:   uuid.New(),
+	}
+	var dummySessionObject = &Session{
+		attachment: map[string]interface{}{
+			dummyName: dummyValue,
+		},
+	}
+	var dummyDataTemplate dummyAttachment
+
+	// mock
+	createMock(t)
+
+	// expect
+	getFuncExpected = 1
+	getFunc = func(sessionID uuid.UUID) *Session {
+		getFuncCalled++
+		assert.Equal(t, dummySessionID, sessionID)
+		return dummySessionObject
+	}
+	jsonMarshalExpected = 1
+	jsonMarshal = func(v interface{}) ([]byte, error) {
+		jsonMarshalCalled++
+		assert.Equal(t, dummyValue, v)
+		return nil, errors.New("some marshal error")
+	}
+
+	// SUT + act
+	var result = GetAttachment(
+		dummySessionID,
+		dummyName,
+		&dummyDataTemplate,
+	)
+
+	// assert
+	assert.False(t, result)
+	assert.Zero(t, dummyDataTemplate)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestGetAttachment_UnmarshalError(t *testing.T) {
+	// arrange
+	var dummySessionID = uuid.New()
+	var dummyName = "some name"
+	var dummyValue = dummyAttachment{
+		Foo:  "bar",
+		Test: rand.Intn(100),
+		ID:   uuid.New(),
+	}
+	var dummySessionObject = &Session{
+		attachment: map[string]interface{}{
+			dummyName: dummyValue,
+		},
+	}
+	var dummyDataTemplate int
+
+	// mock
+	createMock(t)
+
+	// expect
+	getFuncExpected = 1
+	getFunc = func(sessionID uuid.UUID) *Session {
+		getFuncCalled++
+		assert.Equal(t, dummySessionID, sessionID)
+		return dummySessionObject
+	}
+	jsonMarshalExpected = 1
+	jsonMarshal = func(v interface{}) ([]byte, error) {
+		jsonMarshalCalled++
+		assert.Equal(t, dummyValue, v)
+		return json.Marshal(v)
+	}
+	jsonUnmarshalExpected = 1
+	jsonUnmarshal = func(data []byte, v interface{}) error {
+		jsonUnmarshalCalled++
+		return json.Unmarshal(data, v)
+	}
+
+	// SUT + act
+	var result = GetAttachment(
+		dummySessionID,
+		dummyName,
+		&dummyDataTemplate,
+	)
+
+	// assert
+	assert.False(t, result)
+	assert.Zero(t, dummyDataTemplate)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestGetAttachment_Success(t *testing.T) {
+	// arrange
+	var dummySessionID = uuid.New()
+	var dummyName = "some name"
+	var dummyValue = dummyAttachment{
+		Foo:  "bar",
+		Test: rand.Intn(100),
+		ID:   uuid.New(),
+	}
+	var dummySessionObject = &Session{
+		attachment: map[string]interface{}{
+			dummyName: dummyValue,
+		},
+	}
+	var dummyDataTemplate dummyAttachment
+
+	// mock
+	createMock(t)
+
+	// expect
+	getFuncExpected = 1
+	getFunc = func(sessionID uuid.UUID) *Session {
+		getFuncCalled++
+		assert.Equal(t, dummySessionID, sessionID)
+		return dummySessionObject
+	}
+	jsonMarshalExpected = 1
+	jsonMarshal = func(v interface{}) ([]byte, error) {
+		jsonMarshalCalled++
+		assert.Equal(t, dummyValue, v)
+		return json.Marshal(v)
+	}
+	jsonUnmarshalExpected = 1
+	jsonUnmarshal = func(data []byte, v interface{}) error {
+		jsonUnmarshalCalled++
+		return json.Unmarshal(data, v)
+	}
+
+	// SUT + act
+	var result = GetAttachment(
+		dummySessionID,
+		dummyName,
+		&dummyDataTemplate,
+	)
+
+	// assert
+	assert.True(t, result)
+	assert.Equal(t, dummyValue, dummyDataTemplate)
+
+	// verify
+	verifyAll(t)
+}
