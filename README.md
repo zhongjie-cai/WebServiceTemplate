@@ -194,6 +194,48 @@ customization.CreateErrorResponseFunc = func(err error) (responseMessage string,
 }
 ```
 
+# Session Attachment
+
+The registered session contains an attachment dictionary, which allows the user to attach any object which is JSON serializable into the given session associated to a session ID.
+
+```golang
+var myAttachmentName = "my attachment name"
+var myAttachmentObject = anyJSONSerializableStruct {
+	...
+}
+var success = session.Attach(sessionID, myAttachmentName, myAttachmentObject)
+if !success {
+	// failed to attach an object: add your customized logic here if needed
+} else {
+	// succeeded to attach an object: add your customized logic here if needed
+}
+```
+
+To retrieve a previously attached object from session, simply use the following sample logic.
+
+```golang
+var myAttachmentName = "my attachment name"
+var retrievedAttachment anyJSONSerializableStruct
+var success = session.GetAttachment(sessionID, myAttachmentName, &retrievedAttachment)
+if !success {
+	// failed to retrieve an attachment: add your customized logic here if needed
+} else {
+	// succeeded to retrieve an attachment: add your customized logic here if needed
+}
+```
+
+In some situations, it is good to detach a certain attachment, especially if it is a big object consuming large memory, which can be done as following.
+
+```golang
+var myAttachmentName = "my attachment name"
+var success = session.Detach(sessionID, myAttachmentName)
+if !success {
+	// failed to detach an attachment: add your customized logic here if needed
+} else {
+	// succeeded to detach an attachment: add your customized logic here if needed
+}
+```
+
 # Swagger UI
 
 Copy the swagger UI folder "/docs/" from this library to your repository root path.  
