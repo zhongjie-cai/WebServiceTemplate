@@ -20,11 +20,11 @@ import (
 	"net/http"
 
 	"github.com/google/uuid"
-
 	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
 	"github.com/zhongjie-cai/WebServiceTemplate/application"
 	"github.com/zhongjie-cai/WebServiceTemplate/customization"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger/logtype"
+	"github.com/zhongjie-cai/WebServiceTemplate/logger/loglevel"
 	"github.com/zhongjie-cai/WebServiceTemplate/response"
 	"github.com/zhongjie-cai/WebServiceTemplate/server/model"
 	"github.com/zhongjie-cai/WebServiceTemplate/session"
@@ -41,7 +41,7 @@ func main() {
 	customization.AppVersion = func() string {
 		return "1.2.3"
 	}
-	customization.LoggingFunc = func(session *session.Session, logType logtype.LogType, category, subcategory, description string) {
+	customization.LoggingFunc = func(session *session.Session, logType logtype.LogType, logLevel loglevel.LogLevel, category, subcategory, description string) {
 		fmt.Printf("<%v|%v> %v\n", category, subcategory, description)
 	}
 	customization.Middlewares = func() []model.MiddlewareFunc {
