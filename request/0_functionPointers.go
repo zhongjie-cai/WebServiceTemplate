@@ -6,6 +6,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
+	"github.com/zhongjie-cai/WebServiceTemplate/logger/loglevel"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger/logtype"
 )
 
@@ -14,6 +15,7 @@ var (
 	uuidParse               = uuid.Parse
 	uuidNew                 = uuid.New
 	logtypeFromString       = logtype.FromString
+	loglevelFromString      = loglevel.FromString
 	apperrorWrapSimpleError = apperror.WrapSimpleError
 	ioutilReadAll           = ioutil.ReadAll
 	ioutilNopCloser         = ioutil.NopCloser

@@ -4,8 +4,9 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/google/uuid"
+	"github.com/zhongjie-cai/WebServiceTemplate/logger/loglevel"
 
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
 	"github.com/zhongjie-cai/WebServiceTemplate/customization"
@@ -30,6 +31,8 @@ var (
 	panicHandleCalled                     int
 	requestGetAllowedLogTypeExpected      int
 	requestGetAllowedLogTypeCalled        int
+	requestGetAllowedLogLevelExpected     int
+	requestGetAllowedLogLevelCalled       int
 	responseWriteExpected                 int
 	responseWriteCalled                   int
 	loggerAPIEnterExpected                int
@@ -55,7 +58,7 @@ func createMock(t *testing.T) {
 	}
 	sessionRegisterExpected = 0
 	sessionRegisterCalled = 0
-	sessionRegister = func(endpoint string, allowedLogType logtype.LogType, httpRequest *http.Request, responseWriter http.ResponseWriter) uuid.UUID {
+	sessionRegister = func(endpoint string, allowedLogType logtype.LogType, allowedLogLevel loglevel.LogLevel, httpRequest *http.Request, responseWriter http.ResponseWriter) uuid.UUID {
 		sessionRegisterCalled++
 		return uuid.Nil
 	}
@@ -73,6 +76,12 @@ func createMock(t *testing.T) {
 	requestGetAllowedLogTypeCalled = 0
 	requestGetAllowedLogType = func(httpRequest *http.Request) logtype.LogType {
 		requestGetAllowedLogTypeCalled++
+		return 0
+	}
+	requestGetAllowedLogLevelExpected = 0
+	requestGetAllowedLogLevelCalled = 0
+	requestGetAllowedLogLevel = func(httpRequest *http.Request) loglevel.LogLevel {
+		requestGetAllowedLogLevelCalled++
 		return 0
 	}
 	responseWriteExpected = 0
@@ -127,6 +136,8 @@ func verifyAll(t *testing.T) {
 	assert.Equal(t, panicHandleExpected, panicHandleCalled, "Unexpected number of calls to panicHandle")
 	requestGetAllowedLogType = request.GetAllowedLogType
 	assert.Equal(t, requestGetAllowedLogTypeExpected, requestGetAllowedLogTypeCalled, "Unexpected number of calls to requestGetAllowedLogType")
+	requestGetAllowedLogLevel = request.GetAllowedLogLevel
+	assert.Equal(t, requestGetAllowedLogLevelExpected, requestGetAllowedLogLevelCalled, "Unexpected number of calls to requestGetAllowedLogLevel")
 	responseWrite = response.Write
 	assert.Equal(t, responseWriteExpected, responseWriteCalled, "Unexpected number of calls to responseWrite")
 	loggerAPIEnter = logger.APIEnter

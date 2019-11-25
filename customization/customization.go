@@ -2,6 +2,7 @@ package customization
 
 import (
 	"github.com/google/uuid"
+	"github.com/zhongjie-cai/WebServiceTemplate/logger/loglevel"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger/logtype"
 	"github.com/zhongjie-cai/WebServiceTemplate/server/model"
 	"github.com/zhongjie-cai/WebServiceTemplate/session"
@@ -17,7 +18,7 @@ var PostBootstrapFunc func() error
 var AppClosingFunc func() error
 
 // LoggingFunc is to customize the logging backend for the whole application
-var LoggingFunc func(session *session.Session, logType logtype.LogType, category, subcategory, description string)
+var LoggingFunc func(session *session.Session, logType logtype.LogType, logLevel loglevel.LogLevel, category, subcategory, description string)
 
 // AppVersion is to customize the application version string
 var AppVersion func() string

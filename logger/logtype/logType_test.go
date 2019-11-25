@@ -28,7 +28,7 @@ func TestString_AppRoot(t *testing.T) {
 	verifyAll(t)
 }
 
-func TestString_NonSupportedLogCategories(t *testing.T) {
+func TestString_NonSupportedLogTypes(t *testing.T) {
 	// arrange
 	var unsupportedValue = 1 << 31
 
@@ -79,7 +79,7 @@ func TestString_SingleSupportedLogType(t *testing.T) {
 	verifyAll(t)
 }
 
-func TestString_MultipleSupportedLogCategories(t *testing.T) {
+func TestString_MultipleSupportedLogTypes(t *testing.T) {
 	// arrange
 	var supportedValue = APIEnter | APIRequest | MethodLogic | APIResponse | APIExit
 
@@ -225,7 +225,7 @@ func TestFromString_AppRoot(t *testing.T) {
 	verifyAll(t)
 }
 
-func TestFromString_APIEnter(t *testing.T) {
+func TestFromString_HappyPath(t *testing.T) {
 	for key, value := range logTypeNameMapping {
 		// mock
 		createMock(t)

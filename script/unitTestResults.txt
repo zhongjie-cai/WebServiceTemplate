@@ -1,0 +1,404 @@
+=== RUN   TestCodeEnumString_UnknownNegative
+--- PASS: TestCodeEnumString_UnknownNegative (0.00s)
+=== RUN   TestCodeEnumString_GeneralFailure
+--- PASS: TestCodeEnumString_GeneralFailure (0.00s)
+=== RUN   TestCodeEnumString_Unauthorized
+--- PASS: TestCodeEnumString_Unauthorized (0.00s)
+=== RUN   TestCodeEnumString_InvalidOperation
+--- PASS: TestCodeEnumString_InvalidOperation (0.00s)
+=== RUN   TestCodeEnumString_BadRequest
+--- PASS: TestCodeEnumString_BadRequest (0.00s)
+=== RUN   TestCodeEnumString_NotFound
+--- PASS: TestCodeEnumString_NotFound (0.00s)
+=== RUN   TestCodeEnumString_CircuitBreak
+--- PASS: TestCodeEnumString_CircuitBreak (0.00s)
+=== RUN   TestCodeEnumString_OperationLock
+--- PASS: TestCodeEnumString_OperationLock (0.00s)
+=== RUN   TestCodeEnumString_AccessForbidden
+--- PASS: TestCodeEnumString_AccessForbidden (0.00s)
+=== RUN   TestCodeEnumString_GetDataCorruption
+--- PASS: TestCodeEnumString_GetDataCorruption (0.00s)
+=== RUN   TestCodeEnumString_GetNotImplemented
+--- PASS: TestCodeEnumString_GetNotImplemented (0.00s)
+=== RUN   TestCodeEnumString_UnknownTooBig
+--- PASS: TestCodeEnumString_UnknownTooBig (0.00s)
+=== RUN   TestAppErrorGetCode
+--- PASS: TestAppErrorGetCode (0.00s)
+=== RUN   TestAppErrorGetError_NoInner
+--- PASS: TestAppErrorGetError_NoInner (0.00s)
+=== RUN   TestAppErrorGetError_WithInner
+--- PASS: TestAppErrorGetError_WithInner (0.00s)
+=== RUN   TestAppErrorGetInnerErrors_NoInner
+--- PASS: TestAppErrorGetInnerErrors_NoInner (0.00s)
+=== RUN   TestAppErrorGetInnerErrors_WithInner
+--- PASS: TestAppErrorGetInnerErrors_WithInner (0.00s)
+=== RUN   TestAppErrorGetMessages_NoInner
+--- PASS: TestAppErrorGetMessages_NoInner (0.00s)
+=== RUN   TestAppErrorGetMessages_WithNormalInner
+--- PASS: TestAppErrorGetMessages_WithNormalInner (0.00s)
+=== RUN   TestAppErrorGetMessages_WithAppErrorInner
+--- PASS: TestAppErrorGetMessages_WithAppErrorInner (0.00s)
+=== RUN   TestGetGeneralFailureError
+--- PASS: TestGetGeneralFailureError (0.00s)
+=== RUN   TestGetUnauthorized
+--- PASS: TestGetUnauthorized (0.00s)
+=== RUN   TestGetInvalidOperation
+--- PASS: TestGetInvalidOperation (0.00s)
+=== RUN   TestGetBadRequestError
+--- PASS: TestGetBadRequestError (0.00s)
+=== RUN   TestGetNotFoundError
+--- PASS: TestGetNotFoundError (0.00s)
+=== RUN   TestGetCircuitBreakError
+--- PASS: TestGetCircuitBreakError (0.00s)
+=== RUN   TestGetOperationLockError
+--- PASS: TestGetOperationLockError (0.00s)
+=== RUN   TestGetAccessForbiddenError
+--- PASS: TestGetAccessForbiddenError (0.00s)
+=== RUN   TestGetDataCorruptionError
+--- PASS: TestGetDataCorruptionError (0.00s)
+=== RUN   TestGetNotImplementedError
+--- PASS: TestGetNotImplementedError (0.00s)
+=== RUN   TestConsolidateAllErrors_NilList
+--- PASS: TestConsolidateAllErrors_NilList (0.00s)
+=== RUN   TestConsolidateAllErrors_EmptyList
+--- PASS: TestConsolidateAllErrors_EmptyList (0.00s)
+=== RUN   TestConsolidateAllErrors_ListOfNil
+--- PASS: TestConsolidateAllErrors_ListOfNil (0.00s)
+=== RUN   TestConsolidateAllErrors_ListOfEmptyErrors
+--- PASS: TestConsolidateAllErrors_ListOfEmptyErrors (0.00s)
+=== RUN   TestConsolidateAllErrors_ListOfValidErrors
+--- PASS: TestConsolidateAllErrors_ListOfValidErrors (0.00s)
+=== RUN   TestWrapError
+--- PASS: TestWrapError (0.00s)
+=== RUN   TestWrapSimpleError
+--- PASS: TestWrapSimpleError (0.00s)
+=== RUN   TestGetInnermostErrors_NonAppError
+--- PASS: TestGetInnermostErrors_NonAppError (0.00s)
+=== RUN   TestGetInnermostErrors_AppError_NoInner
+--- PASS: TestGetInnermostErrors_AppError_NoInner (0.00s)
+=== RUN   TestGetInnermostErrors_AppError_WithInner
+--- PASS: TestGetInnermostErrors_AppError_WithInner (0.00s)
+=== RUN   TestGetInnermostErrors_AppError_MultiLayer_NoInner
+--- PASS: TestGetInnermostErrors_AppError_MultiLayer_NoInner (0.00s)
+=== RUN   TestGetInnermostErrors_AppError_MultiLayer_WithInner
+--- PASS: TestGetInnermostErrors_AppError_MultiLayer_WithInner (0.00s)
+PASS
+ok  	github.com/zhongjie-cai/WebServiceTemplate/apperror	(cached)
+=== RUN   TestDoPreBootstraping_NoPreBoostrapFunc
+--- PASS: TestDoPreBootstraping_NoPreBoostrapFunc (0.00s)
+=== RUN   TestDoPreBootstraping_PreBoostrapFuncError
+--- PASS: TestDoPreBootstraping_PreBoostrapFuncError (0.00s)
+=== RUN   TestDoPreBootstraping_PreBoostrapFuncSuccess
+--- PASS: TestDoPreBootstraping_PreBoostrapFuncSuccess (0.00s)
+=== RUN   TestBootstrapApplication_WithError
+--- PASS: TestBootstrapApplication_WithError (0.00s)
+=== RUN   TestBootstrapApplication_NoError
+--- PASS: TestBootstrapApplication_NoError (0.00s)
+=== RUN   TestDoPostBootstraping_NoPostBoostrapFunc
+--- PASS: TestDoPostBootstraping_NoPostBoostrapFunc (0.00s)
+=== RUN   TestDoPostBootstraping_PostBoostrapFuncError
+--- PASS: TestDoPostBootstraping_PostBoostrapFuncError (0.00s)
+=== RUN   TestDoPostBootstraping_PostBoostrapFuncSuccess
+--- PASS: TestDoPostBootstraping_PostBoostrapFuncSuccess (0.00s)
+=== RUN   TestDoApplicationStarting_HostError
+--- PASS: TestDoApplicationStarting_HostError (0.00s)
+=== RUN   TestDoApplicationStarting_HostSuccess
+--- PASS: TestDoApplicationStarting_HostSuccess (0.00s)
+=== RUN   TestDoApplicationClosing_NilAppClosingFunc
+--- PASS: TestDoApplicationClosing_NilAppClosingFunc (0.00s)
+=== RUN   TestDoApplicationClosing_AppClosingError
+--- PASS: TestDoApplicationClosing_AppClosingError (0.00s)
+=== RUN   TestDoApplicationClosing_AppClosingSuccess
+--- PASS: TestDoApplicationClosing_AppClosingSuccess (0.00s)
+=== RUN   TestStart_PreBoostrapExit
+--- PASS: TestStart_PreBoostrapExit (0.00s)
+=== RUN   TestStart_BoostrappingExit
+--- PASS: TestStart_BoostrappingExit (0.00s)
+=== RUN   TestStart_PostBoostrapExit
+--- PASS: TestStart_PostBoostrapExit (0.00s)
+=== RUN   TestStart_RunApplication
+--- PASS: TestStart_RunApplication (0.00s)
+PASS
+ok  	github.com/zhongjie-cai/WebServiceTemplate/application	1.777s
+=== RUN   TestLoadTLSCertificate_ErrorTLSCert
+--- PASS: TestLoadTLSCertificate_ErrorTLSCert (0.00s)
+=== RUN   TestLoadTLSCertificate_Success
+--- PASS: TestLoadTLSCertificate_Success (0.00s)
+=== RUN   TestLoadX509CertPool_ParseError
+--- PASS: TestLoadX509CertPool_ParseError (0.00s)
+=== RUN   TestLoadX509CertPool_Success
+--- PASS: TestLoadX509CertPool_Success (0.00s)
+=== RUN   TestInitializeServerCert_NoServeHTTPS
+--- PASS: TestInitializeServerCert_NoServeHTTPS (0.00s)
+=== RUN   TestInitializeServerCert_ServerCertError
+--- PASS: TestInitializeServerCert_ServerCertError (0.00s)
+=== RUN   TestInitializeServerCert_Success
+--- PASS: TestInitializeServerCert_Success (0.00s)
+=== RUN   TestInitializeCaCertPool_NoValidateClientCert
+--- PASS: TestInitializeCaCertPool_NoValidateClientCert (0.00s)
+=== RUN   TestInitializeCaCertPool_CaCertPoolError
+--- PASS: TestInitializeCaCertPool_CaCertPoolError (0.00s)
+=== RUN   TestInitializeCaCertPool_Success
+--- PASS: TestInitializeCaCertPool_Success (0.00s)
+=== RUN   TestInitialize_ErrorConsolidated
+--- PASS: TestInitialize_ErrorConsolidated (0.00s)
+=== RUN   TestGetServerCertificate
+--- PASS: TestGetServerCertificate (0.00s)
+=== RUN   TestGetClientCertPool
+--- PASS: TestGetClientCertPool (0.00s)
+PASS
+ok  	github.com/zhongjie-cai/WebServiceTemplate/certificate	(cached)
+=== RUN   TestDefaultAppVersion
+--- PASS: TestDefaultAppVersion (0.00s)
+=== RUN   TestDefaultAppPort
+--- PASS: TestDefaultAppPort (0.00s)
+=== RUN   TestDefaultAppName
+--- PASS: TestDefaultAppName (0.00s)
+=== RUN   TestDefaultAppPath
+--- PASS: TestDefaultAppPath (0.00s)
+=== RUN   TestDefaultIsLocalhost
+--- PASS: TestDefaultIsLocalhost (0.00s)
+=== RUN   TestDefaultServeHTTPS
+--- PASS: TestDefaultServeHTTPS (0.00s)
+=== RUN   TestDefaultServerCertContent
+--- PASS: TestDefaultServerCertContent (0.00s)
+=== RUN   TestDefaultServerKeyContent
+--- PASS: TestDefaultServerKeyContent (0.00s)
+=== RUN   TestDefaultValidateClientCert
+--- PASS: TestDefaultValidateClientCert (0.00s)
+=== RUN   TestDefaultCaCertContent
+--- PASS: TestDefaultCaCertContent (0.00s)
+=== RUN   TestFunctionPointerEquals_AllDifferent
+--- PASS: TestFunctionPointerEquals_AllDifferent (0.00s)
+=== RUN   TestFunctionPointerEquals_PointerDifferent
+--- PASS: TestFunctionPointerEquals_PointerDifferent (0.00s)
+=== RUN   TestFunctionPointerEquals_NothingDifferent
+--- PASS: TestFunctionPointerEquals_NothingDifferent (0.00s)
+=== RUN   TestValidateStringFunction_ForcedToDefault
+--- PASS: TestValidateStringFunction_ForcedToDefault (0.00s)
+=== RUN   TestValidateStringFunction_NilStringFunc
+--- PASS: TestValidateStringFunction_NilStringFunc (0.00s)
+=== RUN   TestValidateStringFunction_DefaultStringFunc
+--- PASS: TestValidateStringFunction_DefaultStringFunc (0.00s)
+=== RUN   TestValidateStringFunction_EmptyStringFunc
+--- PASS: TestValidateStringFunction_EmptyStringFunc (0.00s)
+=== RUN   TestValidateStringFunction_ValidStringFunc
+--- PASS: TestValidateStringFunction_ValidStringFunc (0.00s)
+=== RUN   TestValidateBooleanFunction_ForcedToDefault
+--- PASS: TestValidateBooleanFunction_ForcedToDefault (0.00s)
+=== RUN   TestValidateBooleanFunction_NilBooleanFunc
+--- PASS: TestValidateBooleanFunction_NilBooleanFunc (0.00s)
+=== RUN   TestValidateBooleanFunction_DefaultBooleanFunc
+--- PASS: TestValidateBooleanFunction_DefaultBooleanFunc (0.00s)
+=== RUN   TestValidateBooleanFunction_ValidBooleanFunc
+--- PASS: TestValidateBooleanFunction_ValidBooleanFunc (0.00s)
+=== RUN   TestIsServerCertificateAvailable_CertEmpty
+--- PASS: TestIsServerCertificateAvailable_CertEmpty (0.00s)
+=== RUN   TestIsServerCertificateAvailable_KeyEmpty
+--- PASS: TestIsServerCertificateAvailable_KeyEmpty (0.00s)
+=== RUN   TestIsServerCertificateAvailable_NotEmpty
+--- PASS: TestIsServerCertificateAvailable_NotEmpty (0.00s)
+=== RUN   TestIsCaCertificateAvailable_Empty
+--- PASS: TestIsCaCertificateAvailable_Empty (0.00s)
+=== RUN   TestIsCaCertificateAvailable_NotEmpty
+--- PASS: TestIsCaCertificateAvailable_NotEmpty (0.00s)
+=== RUN   TestInitialize
+--- PASS: TestInitialize (0.00s)
+PASS
+ok  	github.com/zhongjie-cai/WebServiceTemplate/config	0.897s
+=== RUN   TestCryptoLogic_HappyPath
+--- PASS: TestCryptoLogic_HappyPath (0.00s)
+=== RUN   TestEncrypt_InvalidKey
+--- PASS: TestEncrypt_InvalidKey (0.00s)
+=== RUN   TestDecrypt_InvalidKey
+--- PASS: TestDecrypt_InvalidKey (0.00s)
+=== RUN   TestDecrypt_WrongBase64CipherText
+--- PASS: TestDecrypt_WrongBase64CipherText (0.00s)
+=== RUN   TestDecrypt_TooShortCipherText
+--- PASS: TestDecrypt_TooShortCipherText (0.00s)
+=== RUN   TestDecrypt_InvalidCipherText
+--- PASS: TestDecrypt_InvalidCipherText (0.00s)
+PASS
+ok  	github.com/zhongjie-cai/WebServiceTemplate/crypto	(cached)
+=== RUN   TestReset
+--- PASS: TestReset (0.00s)
+PASS
+ok  	github.com/zhongjie-cai/WebServiceTemplate/customization	0.218s
+=== RUN   TestMarshalIgnoreError_Empty
+--- PASS: TestMarshalIgnoreError_Empty (0.00s)
+=== RUN   TestMarshalIgnoreError_Success
+--- PASS: TestMarshalIgnoreError_Success (0.00s)
+PASS
+ok  	github.com/zhongjie-cai/WebServiceTemplate/jsonutil	(cached)
+=== RUN   TestInitialize_NotSet
+--- PASS: TestInitialize_NotSet (0.00s)
+=== RUN   TestInitialize_Set
+--- PASS: TestInitialize_Set (0.00s)
+=== RUN   TestDefaultLogging
+--- PASS: TestDefaultLogging (0.00s)
+=== RUN   TestIsLoggingAllowed_NilSession
+--- PASS: TestIsLoggingAllowed_NilSession (0.00s)
+=== RUN   TestIsLoggingAllowed_IsLocalHost
+--- PASS: TestIsLoggingAllowed_IsLocalHost (0.00s)
+=== RUN   TestIsLoggingAllowed_FlagNotMatch
+--- PASS: TestIsLoggingAllowed_FlagNotMatch (0.00s)
+=== RUN   TestIsLoggingAllowed_FlagMatch_LevelNotMatch
+--- PASS: TestIsLoggingAllowed_FlagMatch_LevelNotMatch (0.00s)
+=== RUN   TestIsLoggingAllowed_FlagMatch_LevelMatch
+--- PASS: TestIsLoggingAllowed_FlagMatch_LevelMatch (0.00s)
+=== RUN   TestPrepareLogging_LoggingNotAllowed
+--- PASS: TestPrepareLogging_LoggingNotAllowed (0.00s)
+=== RUN   TestPrepareLogging_LogAllowed_DefaultLogging
+--- PASS: TestPrepareLogging_LogAllowed_DefaultLogging (0.00s)
+=== RUN   TestPrepareLogging_LogAllowed_CustomLogging
+--- PASS: TestPrepareLogging_LogAllowed_CustomLogging (0.00s)
+=== RUN   TestAppRoot
+--- PASS: TestAppRoot (0.00s)
+=== RUN   TestAPIEnter
+--- PASS: TestAPIEnter (0.00s)
+=== RUN   TestAPIRequest
+--- PASS: TestAPIRequest (0.00s)
+=== RUN   TestMethodEnter
+--- PASS: TestMethodEnter (0.00s)
+=== RUN   TestMethodParameter
+--- PASS: TestMethodParameter (0.00s)
+=== RUN   TestMethodLogic
+--- PASS: TestMethodLogic (0.00s)
+=== RUN   TestDependencyCall
+--- PASS: TestDependencyCall (0.00s)
+=== RUN   TestDependencyRequest
+--- PASS: TestDependencyRequest (0.00s)
+=== RUN   TestDependencyResponse
+--- PASS: TestDependencyResponse (0.00s)
+=== RUN   TestDependencyFinish
+--- PASS: TestDependencyFinish (0.00s)
+=== RUN   TestMethodReturn
+--- PASS: TestMethodReturn (0.00s)
+=== RUN   TestMethodExit
+--- PASS: TestMethodExit (0.00s)
+=== RUN   TestAPIResponse
+--- PASS: TestAPIResponse (0.00s)
+=== RUN   TestAPIExit
+--- PASS: TestAPIExit (0.00s)
+PASS
+ok  	github.com/zhongjie-cai/WebServiceTemplate/logger	0.759s
+=== RUN   TestString_NonSupportedLogLevels
+--- PASS: TestString_NonSupportedLogLevels (0.00s)
+=== RUN   TestString_SupportedLogLevel
+--- PASS: TestString_SupportedLogLevel (0.00s)
+=== RUN   TestFromString_NoMatchFound
+--- PASS: TestFromString_NoMatchFound (0.00s)
+=== RUN   TestFromString_HappyPath
+--- PASS: TestFromString_HappyPath (0.00s)
+PASS
+ok  	github.com/zhongjie-cai/WebServiceTemplate/logger/loglevel	(cached)
+=== RUN   TestString_AppRoot
+--- PASS: TestString_AppRoot (0.00s)
+=== RUN   TestString_NonSupportedLogTypes
+--- PASS: TestString_NonSupportedLogTypes (0.00s)
+=== RUN   TestString_SingleSupportedLogType
+--- PASS: TestString_SingleSupportedLogType (0.00s)
+=== RUN   TestString_MultipleSupportedLogTypes
+--- PASS: TestString_MultipleSupportedLogTypes (0.00s)
+=== RUN   TestHasFlag_FlagMatch_AppRoot
+--- PASS: TestHasFlag_FlagMatch_AppRoot (0.00s)
+=== RUN   TestHasFlag_FlagNoMatch_AppRoot
+--- PASS: TestHasFlag_FlagNoMatch_AppRoot (0.00s)
+=== RUN   TestHasFlag_FlagMatch_NotAppRoot
+--- PASS: TestHasFlag_FlagMatch_NotAppRoot (0.00s)
+=== RUN   TestHasFlag_FlagNoMatch_NotAppRoot
+--- PASS: TestHasFlag_FlagNoMatch_NotAppRoot (0.00s)
+=== RUN   TestFromString_NoMatchFound
+--- PASS: TestFromString_NoMatchFound (0.00s)
+=== RUN   TestFromString_AppRoot
+--- PASS: TestFromString_AppRoot (0.00s)
+=== RUN   TestFromString_HappyPath
+--- PASS: TestFromString_HappyPath (0.00s)
+PASS
+ok  	github.com/zhongjie-cai/WebServiceTemplate/logger/logtype	(cached)
+=== RUN   TestGetAllowedLogType_NilHTTPRequest
+--- PASS: TestGetAllowedLogType_NilHTTPRequest (0.00s)
+=== RUN   TestGetAllowedLogType_NoMatchingHeaderFound
+--- PASS: TestGetAllowedLogType_NoMatchingHeaderFound (0.00s)
+=== RUN   TestGetAllowedLogType_MatchingHeaderEmpty
+--- PASS: TestGetAllowedLogType_MatchingHeaderEmpty (0.00s)
+=== RUN   TestGetAllowedLogType_MatchingHeaderInvalid
+--- PASS: TestGetAllowedLogType_MatchingHeaderInvalid (0.00s)
+=== RUN   TestGetAllowedLogType_MatchingHeaderValid
+--- PASS: TestGetAllowedLogType_MatchingHeaderValid (0.00s)
+=== RUN   TestGetAllowedLogLevel_NilHTTPRequest
+--- PASS: TestGetAllowedLogLevel_NilHTTPRequest (0.00s)
+=== RUN   TestGetAllowedLogLevel_NoMatchingHeaderFound
+--- PASS: TestGetAllowedLogLevel_NoMatchingHeaderFound (0.00s)
+=== RUN   TestGetAllowedLogLevel_MatchingHeaderEmpty
+--- PASS: TestGetAllowedLogLevel_MatchingHeaderEmpty (0.00s)
+=== RUN   TestGetAllowedLogLevel_MatchingHeader
+--- PASS: TestGetAllowedLogLevel_MatchingHeader (0.00s)
+=== RUN   TestGetClientCertificates_RequestNil
+--- PASS: TestGetClientCertificates_RequestNil (0.00s)
+=== RUN   TestGetClientCertificates_TLSNil
+--- PASS: TestGetClientCertificates_TLSNil (0.00s)
+=== RUN   TestGetClientCertificates_Success
+--- PASS: TestGetClientCertificates_Success (0.00s)
+=== RUN   TestGetRequestBody_NilBody
+--- PASS: TestGetRequestBody_NilBody (0.00s)
+=== RUN   TestGetRequestBody_ErrorBody
+--- PASS: TestGetRequestBody_ErrorBody (0.00s)
+=== RUN   TestGetRequestBody_Success
+--- PASS: TestGetRequestBody_Success (0.00s)
+PASS
+ok  	github.com/zhongjie-cai/WebServiceTemplate/request	0.322s
+=== RUN   TestGetStatusCode_GeneralFailure
+--- PASS: TestGetStatusCode_GeneralFailure (0.00s)
+=== RUN   TestGetStatusCode_Unauthorized
+--- PASS: TestGetStatusCode_Unauthorized (0.00s)
+=== RUN   TestGetStatusCode_InvalidOperation
+--- PASS: TestGetStatusCode_InvalidOperation (0.00s)
+=== RUN   TestGetStatusCode_BadRequest
+--- PASS: TestGetStatusCode_BadRequest (0.00s)
+=== RUN   TestGetStatusCode_NotFound
+--- PASS: TestGetStatusCode_NotFound (0.00s)
+=== RUN   TestGetStatusCode_CircuitBreak
+--- PASS: TestGetStatusCode_CircuitBreak (0.00s)
+=== RUN   TestGetStatusCode_OperationLock
+--- PASS: TestGetStatusCode_OperationLock (0.00s)
+=== RUN   TestGetStatusCode_AccessForbidden
+--- PASS: TestGetStatusCode_AccessForbidden (0.00s)
+=== RUN   TestGetStatusCode_DataCorruption
+--- PASS: TestGetStatusCode_DataCorruption (0.00s)
+=== RUN   TestGetStatusCode_NotImplemented
+--- PASS: TestGetStatusCode_NotImplemented (0.00s)
+=== RUN   TestGetStatusCode_OtherCode
+--- PASS: TestGetStatusCode_OtherCode (0.00s)
+=== RUN   TestCreateOkResponse_EmptyContent
+--- PASS: TestCreateOkResponse_EmptyContent (0.00s)
+=== RUN   TestCreateOkResponse_DirectNilContent
+--- PASS: TestCreateOkResponse_DirectNilContent (0.00s)
+=== RUN   TestCreateOkResponse_IndirectNilContent
+--- PASS: TestCreateOkResponse_IndirectNilContent (0.00s)
+=== RUN   TestCreateOkResponse_ValidContent
+--- PASS: TestCreateOkResponse_ValidContent (0.00s)
+=== RUN   TestGetAppError_IsAppError
+--- PASS: TestGetAppError_IsAppError (0.00s)
+=== RUN   TestGetAppError_IsNotAppError
+--- PASS: TestGetAppError_IsNotAppError (0.00s)
+=== RUN   TestGenerateErrorResponse
+--- PASS: TestGenerateErrorResponse (0.00s)
+=== RUN   TestCreateErrorResponse
+--- PASS: TestCreateErrorResponse (0.00s)
+=== RUN   TestWriteResponse
+--- PASS: TestWriteResponse (0.00s)
+=== RUN   TestConstructResponse_Error_WithCustomization
+--- PASS: TestConstructResponse_Error_WithCustomization (0.00s)
+=== RUN   TestConstructResponse_Error_NoCustomization
+--- PASS: TestConstructResponse_Error_NoCustomization (0.00s)
+=== RUN   TestConstructResponse_NoError
+--- PASS: TestConstructResponse_NoError (0.00s)
+=== RUN   TestWrite_NotOverrided
+--- PASS: TestWrite_NotOverrided (0.00s)
+=== RUN   TestWrite_Overrided
+--- PASS: TestWrite_Overrided (0.00s)
+=== RUN   TestOverride
+--- PASS: TestOverride (0.00s)
+PASS
+ok  	github.com/zhongjie-cai/WebServiceTemplate/response	1.350s

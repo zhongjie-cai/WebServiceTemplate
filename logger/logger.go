@@ -6,20 +6,22 @@ import (
 	"github.com/google/uuid"
 	"github.com/zhongjie-cai/WebServiceTemplate/config"
 	"github.com/zhongjie-cai/WebServiceTemplate/customization"
+	"github.com/zhongjie-cai/WebServiceTemplate/logger/loglevel"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger/logtype"
 	"github.com/zhongjie-cai/WebServiceTemplate/session"
 )
 
 type logEntry struct {
-	Application string          `json:"application"`
-	Version     string          `json:"version"`
-	Timestamp   time.Time       `json:"timestamp"`
-	Session     uuid.UUID       `json:"session"`
-	Name        string          `json:"name"`
-	Level       logtype.LogType `json:"level"`
-	Category    string          `json:"category"`
-	Subcategory string          `json:"subcategory"`
-	Description string          `json:"description"`
+	Application string            `json:"application"`
+	Version     string            `json:"version"`
+	Timestamp   time.Time         `json:"timestamp"`
+	Session     uuid.UUID         `json:"session"`
+	Name        string            `json:"name"`
+	Type        logtype.LogType   `json:"type"`
+	Level       loglevel.LogLevel `json:"level"`
+	Category    string            `json:"category"`
+	Subcategory string            `json:"subcategory"`
+	Description string            `json:"description"`
 }
 
 // Initialize initiates and checks all application logging related function injections
@@ -36,6 +38,7 @@ func Initialize() error {
 func defaultLogging(
 	session *session.Session,
 	logType logtype.LogType,
+	logLevel loglevel.LogLevel,
 	category,
 	subcategory,
 	description string,
@@ -47,7 +50,8 @@ func defaultLogging(
 			Timestamp:   timeutilGetTimeNowUTC(),
 			Session:     session.ID,
 			Name:        session.Name,
-			Level:       logType,
+			Type:        logType,
+			Level:       logLevel,
 			Category:    category,
 			Subcategory: subcategory,
 			Description: description,
@@ -58,9 +62,29 @@ func defaultLogging(
 	)
 }
 
+func isLoggingAllowed(
+	session *session.Session,
+	logType logtype.LogType,
+	logLevel loglevel.LogLevel,
+) bool {
+	if session == nil {
+		return false
+	}
+	if !config.IsLocalhost() {
+		if !session.AllowedLogType.HasFlag(logType) {
+			return false
+		}
+		if session.AllowedLogLevel > logLevel {
+			return false
+		}
+	}
+	return true
+}
+
 func prepareLogging(
 	sessionID uuid.UUID,
 	logType logtype.LogType,
+	logLevel loglevel.LogLevel,
 	category,
 	subcategory,
 	description string,
@@ -68,14 +92,14 @@ func prepareLogging(
 	var session = sessionGet(
 		sessionID,
 	)
-	if !session.AllowedLogType.HasFlag(logType) &&
-		!config.IsLocalhost() {
+	if !isLoggingAllowedFunc(session, logType, logLevel) {
 		return
 	}
 	if customization.LoggingFunc == nil {
 		defaultLoggingFunc(
 			session,
 			logType,
+			logLevel,
 			category,
 			subcategory,
 			description,
@@ -84,6 +108,7 @@ func prepareLogging(
 		customization.LoggingFunc(
 			session,
 			logType,
+			logLevel,
 			category,
 			subcategory,
 			description,
@@ -96,6 +121,7 @@ func AppRoot(category string, subcategory string, messageFormat string, paramete
 	prepareLoggingFunc(
 		uuid.Nil,
 		logtype.AppRoot,
+		loglevel.Info,
 		category,
 		subcategory,
 		fmtSprintf(
@@ -110,6 +136,7 @@ func APIEnter(sessionID uuid.UUID, category string, subcategory string, messageF
 	prepareLoggingFunc(
 		sessionID,
 		logtype.APIEnter,
+		loglevel.Info,
 		category,
 		subcategory,
 		fmtSprintf(
@@ -124,6 +151,7 @@ func APIRequest(sessionID uuid.UUID, category string, subcategory string, messag
 	prepareLoggingFunc(
 		sessionID,
 		logtype.APIRequest,
+		loglevel.Info,
 		category,
 		subcategory,
 		fmtSprintf(
@@ -138,6 +166,7 @@ func MethodEnter(sessionID uuid.UUID, category string, subcategory string, messa
 	prepareLoggingFunc(
 		sessionID,
 		logtype.MethodEnter,
+		loglevel.Info,
 		category,
 		subcategory,
 		fmtSprintf(
@@ -152,6 +181,7 @@ func MethodParameter(sessionID uuid.UUID, category string, subcategory string, m
 	prepareLoggingFunc(
 		sessionID,
 		logtype.MethodParameter,
+		loglevel.Info,
 		category,
 		subcategory,
 		fmtSprintf(
@@ -162,10 +192,11 @@ func MethodParameter(sessionID uuid.UUID, category string, subcategory string, m
 }
 
 // MethodLogic logs the given message as MethodLogic category
-func MethodLogic(sessionID uuid.UUID, category string, subcategory string, messageFormat string, parameters ...interface{}) {
+func MethodLogic(sessionID uuid.UUID, logLevel loglevel.LogLevel, category string, subcategory string, messageFormat string, parameters ...interface{}) {
 	prepareLoggingFunc(
 		sessionID,
 		logtype.MethodLogic,
+		logLevel,
 		category,
 		subcategory,
 		fmtSprintf(
@@ -180,6 +211,7 @@ func DependencyCall(sessionID uuid.UUID, category string, subcategory string, me
 	prepareLoggingFunc(
 		sessionID,
 		logtype.DependencyCall,
+		loglevel.Info,
 		category,
 		subcategory,
 		fmtSprintf(
@@ -194,6 +226,7 @@ func DependencyRequest(sessionID uuid.UUID, category string, subcategory string,
 	prepareLoggingFunc(
 		sessionID,
 		logtype.DependencyRequest,
+		loglevel.Info,
 		category,
 		subcategory,
 		fmtSprintf(
@@ -208,6 +241,7 @@ func DependencyResponse(sessionID uuid.UUID, category string, subcategory string
 	prepareLoggingFunc(
 		sessionID,
 		logtype.DependencyResponse,
+		loglevel.Info,
 		category,
 		subcategory,
 		fmtSprintf(
@@ -222,6 +256,7 @@ func DependencyFinish(sessionID uuid.UUID, category string, subcategory string, 
 	prepareLoggingFunc(
 		sessionID,
 		logtype.DependencyFinish,
+		loglevel.Info,
 		category,
 		subcategory,
 		fmtSprintf(
@@ -236,6 +271,7 @@ func MethodReturn(sessionID uuid.UUID, category string, subcategory string, mess
 	prepareLoggingFunc(
 		sessionID,
 		logtype.MethodReturn,
+		loglevel.Info,
 		category,
 		subcategory,
 		fmtSprintf(
@@ -250,6 +286,7 @@ func MethodExit(sessionID uuid.UUID, category string, subcategory string, messag
 	prepareLoggingFunc(
 		sessionID,
 		logtype.MethodExit,
+		loglevel.Info,
 		category,
 		subcategory,
 		fmtSprintf(
@@ -264,6 +301,7 @@ func APIResponse(sessionID uuid.UUID, category string, subcategory string, messa
 	prepareLoggingFunc(
 		sessionID,
 		logtype.APIResponse,
+		loglevel.Info,
 		category,
 		subcategory,
 		fmtSprintf(
@@ -278,6 +316,7 @@ func APIExit(sessionID uuid.UUID, category string, subcategory string, messageFo
 	prepareLoggingFunc(
 		sessionID,
 		logtype.APIExit,
+		loglevel.Info,
 		category,
 		subcategory,
 		fmtSprintf(

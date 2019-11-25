@@ -6,6 +6,7 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/zhongjie-cai/WebServiceTemplate/logger/loglevel"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger/logtype"
 	"github.com/zhongjie-cai/WebServiceTemplate/server/model"
 	"github.com/zhongjie-cai/WebServiceTemplate/session"
@@ -16,7 +17,8 @@ func TestReset(t *testing.T) {
 	PreBootstrapFunc = func() error { return nil }
 	PostBootstrapFunc = func() error { return nil }
 	AppClosingFunc = func() error { return nil }
-	LoggingFunc = func(session *session.Session, logType logtype.LogType, category, subcategory, description string) {}
+	LoggingFunc = func(session *session.Session, logType logtype.LogType, logLevel loglevel.LogLevel, category, subcategory, description string) {
+	}
 	AppVersion = func() string { return "" }
 	AppPort = func() string { return "" }
 	AppName = func() string { return "" }

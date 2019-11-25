@@ -4,6 +4,8 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/zhongjie-cai/WebServiceTemplate/logger/loglevel"
+
 	"github.com/google/uuid"
 	cache "github.com/patrickmn/go-cache"
 	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
@@ -29,22 +31,44 @@ var (
 	defaultResponseWriter = &nilResponseWriter{}
 	defaultName           = "AppRoot"
 	defaultSession        = &Session{
-		ID:             uuid.Nil,
-		Name:           defaultName,
-		AllowedLogType: logtype.BasicLogging,
-		Request:        defaultRequest,
-		ResponseWriter: defaultResponseWriter,
+		ID:              uuid.Nil,
+		Name:            defaultName,
+		AllowedLogType:  logtype.BasicLogging,
+		AllowedLogLevel: loglevel.Debug,
+		Request:         defaultRequest,
+		ResponseWriter:  defaultResponseWriter,
 	}
 )
 
 // Session is the storage for the current HTTP request session, containing information needed for logging, monitoring, etc.
 type Session struct {
-	ID             uuid.UUID
-	Name           string
-	AllowedLogType logtype.LogType
-	Request        *http.Request
-	ResponseWriter http.ResponseWriter
-	attachment     map[string]interface{}
+	ID              uuid.UUID
+	Name            string
+	AllowedLogType  logtype.LogType
+	AllowedLogLevel loglevel.LogLevel
+	Request         *http.Request
+	ResponseWriter  http.ResponseWriter
+	attachment      map[string]interface{}
+}
+
+// GetAttachment retrieves any value object from the given session associated to the session ID and unmarshals the content to given data template
+func (session *Session) GetAttachment(name string, dataTemplate interface{}) bool {
+	if session == nil {
+		return false
+	}
+	var attachment, found = session.attachment[name]
+	if !found {
+		return false
+	}
+	var bytes, marshalError = jsonMarshal(attachment)
+	if marshalError != nil {
+		return false
+	}
+	var unmarshalError = jsonUnmarshal(
+		bytes,
+		dataTemplate,
+	)
+	return unmarshalError == nil
 }
 
 // Init initialize the default session for the application
@@ -61,6 +85,7 @@ func Init(appName string, roleType string, hostName string, version string, buil
 func Register(
 	name string,
 	allowedLogType logtype.LogType,
+	allowedLogLevel loglevel.LogLevel,
 	httpRequest *http.Request,
 	responseWriter http.ResponseWriter,
 ) uuid.UUID {
@@ -68,12 +93,13 @@ func Register(
 	sessionCache.SetDefault(
 		sessionID.String(),
 		&Session{
-			ID:             sessionID,
-			Name:           name,
-			AllowedLogType: allowedLogType,
-			Request:        httpRequest,
-			ResponseWriter: responseWriter,
-			attachment:     map[string]interface{}{},
+			ID:              sessionID,
+			Name:            name,
+			AllowedLogType:  allowedLogType,
+			AllowedLogLevel: allowedLogLevel,
+			Request:         httpRequest,
+			ResponseWriter:  responseWriter,
+			attachment:      map[string]interface{}{},
 		},
 	)
 	return sessionID
@@ -347,20 +373,8 @@ func GetAttachment(sessionID uuid.UUID, name string, dataTemplate interface{}) b
 	var session = getFunc(
 		sessionID,
 	)
-	if session == nil {
-		return false
-	}
-	var attachment, found = session.attachment[name]
-	if !found {
-		return false
-	}
-	var bytes, marshalError = jsonMarshal(attachment)
-	if marshalError != nil {
-		return false
-	}
-	var unmarshalError = jsonUnmarshal(
-		bytes,
+	return session.GetAttachment(
+		name,
 		dataTemplate,
 	)
-	return unmarshalError == nil
 }

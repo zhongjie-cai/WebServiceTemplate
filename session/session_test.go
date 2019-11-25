@@ -10,6 +10,8 @@ import (
 	"strconv"
 	"testing"
 
+	"github.com/zhongjie-cai/WebServiceTemplate/logger/loglevel"
+
 	"github.com/google/uuid"
 	"github.com/patrickmn/go-cache"
 	"github.com/stretchr/testify/assert"
@@ -69,6 +71,7 @@ func TestInit_AllValuesSet(t *testing.T) {
 	assert.Zero(t, defaultSession.ID)
 	assert.Equal(t, defaultName, defaultSession.Name)
 	assert.Equal(t, logtype.BasicLogging, defaultSession.AllowedLogType)
+	assert.Equal(t, loglevel.Debug, defaultSession.AllowedLogLevel)
 
 	// verify
 	verifyAll(t)
@@ -79,6 +82,7 @@ func TestRegister(t *testing.T) {
 	var dummySessionID = uuid.New()
 	var dummyName = "dummy name"
 	var dummyAllowedLogType = logtype.LogType(rand.Intn(math.MaxInt8))
+	var dummyAllowedLogLevel = loglevel.LogLevel(rand.Intn(math.MaxInt8))
 	var dummyHTTPRequest = &http.Request{}
 	var dummyResponseWriter = dummyResponseWriter{}
 
@@ -99,6 +103,7 @@ func TestRegister(t *testing.T) {
 	var result = Register(
 		dummyName,
 		dummyAllowedLogType,
+		dummyAllowedLogLevel,
 		dummyHTTPRequest,
 		dummyResponseWriter,
 	)
@@ -114,6 +119,7 @@ func TestRegister(t *testing.T) {
 	assert.Equal(t, dummySessionID, session.ID)
 	assert.Equal(t, dummyName, session.Name)
 	assert.Equal(t, dummyAllowedLogType, session.AllowedLogType)
+	assert.Equal(t, dummyAllowedLogLevel, session.AllowedLogLevel)
 	assert.Equal(t, dummyHTTPRequest, session.Request)
 	assert.Equal(t, dummyResponseWriter, session.ResponseWriter)
 

@@ -2,7 +2,10 @@ package request
 
 import (
 	"crypto/x509"
+	"math"
 	"net/http"
+
+	"github.com/zhongjie-cai/WebServiceTemplate/logger/loglevel"
 
 	"github.com/zhongjie-cai/WebServiceTemplate/logger/logtype"
 )
@@ -26,6 +29,25 @@ func GetAllowedLogType(httpRequest *http.Request) logtype.LogType {
 		return logtype.GeneralTracing
 	}
 	return logType
+}
+
+// GetAllowedLogLevel parses and returns the allowed log level in request header
+func GetAllowedLogLevel(httpRequest *http.Request) loglevel.LogLevel {
+	if httpRequest == nil {
+		return loglevel.Warn
+	}
+	var headerValues, headerValuesFound = httpRequest.Header["Log-Level"]
+	if !headerValuesFound || len(headerValues) == 0 {
+		return loglevel.Warn
+	}
+	var logLevel = loglevel.LogLevel(math.MaxInt32)
+	for _, headerValue := range headerValues {
+		var tempLogLevel = loglevelFromString(headerValue)
+		if tempLogLevel < logLevel {
+			logLevel = tempLogLevel
+		}
+	}
+	return logLevel
 }
 
 // GetClientCertificates parses and returns the client certificates in request header

@@ -9,6 +9,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
+	"github.com/zhongjie-cai/WebServiceTemplate/logger/loglevel"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger/logtype"
 )
 
@@ -19,6 +20,8 @@ var (
 	uuidNewCalled                   int
 	logtypeFromStringExpected       int
 	logtypeFromStringCalled         int
+	loglevelFromStringExpected      int
+	loglevelFromStringCalled        int
 	apperrorWrapSimpleErrorExpected int
 	apperrorWrapSimpleErrorCalled   int
 	ioutilReadAllExpected           int
@@ -46,6 +49,12 @@ func createMock(t *testing.T) {
 	logtypeFromStringCalled = 0
 	logtypeFromString = func(value string) logtype.LogType {
 		logtypeFromStringCalled++
+		return 0
+	}
+	loglevelFromStringExpected = 0
+	loglevelFromStringCalled = 0
+	loglevelFromString = func(value string) loglevel.LogLevel {
+		loglevelFromStringCalled++
 		return 0
 	}
 	apperrorWrapSimpleErrorExpected = 0
@@ -81,6 +90,8 @@ func verifyAll(t *testing.T) {
 	assert.Equal(t, uuidNewExpected, uuidNewCalled, "Unexpected number of calls to uuidNew")
 	logtypeFromString = logtype.FromString
 	assert.Equal(t, logtypeFromStringExpected, logtypeFromStringCalled, "Unexpected number of calls to logtypeFromString")
+	loglevelFromString = loglevel.FromString
+	assert.Equal(t, loglevelFromStringExpected, loglevelFromStringCalled, "Unexpected number of calls to loglevelFromString")
 	apperrorWrapSimpleError = apperror.WrapSimpleError
 	assert.Equal(t, apperrorWrapSimpleErrorExpected, apperrorWrapSimpleErrorCalled, "Unexpected number of calls to apperrorWrapSimpleError")
 	ioutilReadAll = ioutil.ReadAll

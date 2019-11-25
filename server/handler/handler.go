@@ -32,6 +32,9 @@ func Session(
 		requestGetAllowedLogType(
 			httpRequest,
 		),
+		requestGetAllowedLogLevel(
+			httpRequest,
+		),
 		httpRequest,
 		responseWriter,
 	)

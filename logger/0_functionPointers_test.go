@@ -5,6 +5,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/zhongjie-cai/WebServiceTemplate/logger/loglevel"
+
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
@@ -35,6 +37,8 @@ var (
 	configAppVersionCalled             int
 	configIsLocalhostExpected          int
 	configIsLocalhostCalled            int
+	isLoggingAllowedFuncExpected       int
+	isLoggingAllowedFuncCalled         int
 	sessionGetExpected                 int
 	sessionGetCalled                   int
 	apperrorWrapSimpleErrorExpected    int
@@ -100,6 +104,12 @@ func createMock(t *testing.T) {
 		configIsLocalhostCalled++
 		return false
 	}
+	isLoggingAllowedFuncExpected = 0
+	isLoggingAllowedFuncCalled = 0
+	isLoggingAllowedFunc = func(session *session.Session, logType logtype.LogType, logLevel loglevel.LogLevel) bool {
+		isLoggingAllowedFuncCalled++
+		return false
+	}
 	sessionGetExpected = 0
 	sessionGetCalled = 0
 	sessionGet = func(sessionID uuid.UUID) *session.Session {
@@ -114,12 +124,12 @@ func createMock(t *testing.T) {
 	}
 	defaultLoggingFuncExpected = 0
 	defaultLoggingFuncCalled = 0
-	defaultLoggingFunc = func(session *session.Session, logType logtype.LogType, category, subcategory, description string) {
+	defaultLoggingFunc = func(session *session.Session, logType logtype.LogType, logLevel loglevel.LogLevel, category, subcategory, description string) {
 		defaultLoggingFuncCalled++
 	}
 	prepareLoggingFuncExpected = 0
 	prepareLoggingFuncCalled = 0
-	prepareLoggingFunc = func(sessionID uuid.UUID, logType logtype.LogType, category, subcategory, description string) {
+	prepareLoggingFunc = func(sessionID uuid.UUID, logType logtype.LogType, logLevel loglevel.LogLevel, category, subcategory, description string) {
 		prepareLoggingFuncCalled++
 	}
 }
@@ -143,6 +153,8 @@ func verifyAll(t *testing.T) {
 	assert.Equal(t, configAppVersionExpected, configAppVersionCalled, "Unexpected number of calls to configAppVersion")
 	config.IsLocalhost = func() bool { return false }
 	assert.Equal(t, configIsLocalhostExpected, configIsLocalhostCalled, "Unexpected number of calls to configIsLocalhost")
+	isLoggingAllowedFunc = isLoggingAllowed
+	assert.Equal(t, isLoggingAllowedFuncExpected, isLoggingAllowedFuncCalled, "Unexpected number of calls to isLoggingAllowedFunc")
 	sessionGet = session.Get
 	assert.Equal(t, sessionGetExpected, sessionGetCalled, "Unexpected number of calls to sessionGet")
 	apperrorWrapSimpleError = apperror.WrapSimpleError

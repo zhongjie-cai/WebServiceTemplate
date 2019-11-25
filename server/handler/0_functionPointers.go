@@ -17,6 +17,7 @@ var (
 	sessionUnregister             = session.Unregister
 	panicHandle                   = panic.Handle
 	requestGetAllowedLogType      = request.GetAllowedLogType
+	requestGetAllowedLogLevel     = request.GetAllowedLogLevel
 	responseWrite                 = response.Write
 	loggerAPIEnter                = logger.APIEnter
 	loggerAPIExit                 = logger.APIExit

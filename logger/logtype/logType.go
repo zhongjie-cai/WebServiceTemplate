@@ -1,9 +1,9 @@
 package logtype
 
-// LogType is the category of logging
+// LogType is the entry type of logging
 type LogType int
 
-// These are the enum definitions of log categories and presets
+// These are the enum definitions of log types and presets
 const (
 	AppRoot  LogType = 0
 	APIEnter LogType = 1 << iota
@@ -61,7 +61,7 @@ const (
 	FullLoggingName        string = "FullLogging"
 )
 
-var supportedLogCategories = map[LogType]string{
+var supportedLogTypes = map[LogType]string{
 	APIEnter:           APIEnterName,
 	APIRequest:         APIRequestName,
 	MethodEnter:        MethodEnterName,
@@ -106,13 +106,13 @@ var logTypeNameMapping = map[string]LogType{
 }
 
 // FromString converts a LogType flag instance to its string representation
-func (logCategory LogType) String() string {
-	if logCategory == AppRoot {
+func (logtype LogType) String() string {
+	if logtype == AppRoot {
 		return AppRootName
 	}
 	var result []string
-	for key, value := range supportedLogCategories {
-		if logCategory&key == key {
+	for key, value := range supportedLogTypes {
+		if logtype&key == key {
 			result = append(result, value)
 		}
 	}
@@ -120,11 +120,11 @@ func (logCategory LogType) String() string {
 }
 
 // HasFlag checks whether this log category has the flag set or not
-func (logCategory LogType) HasFlag(flag LogType) bool {
+func (logtype LogType) HasFlag(flag LogType) bool {
 	if flag == AppRoot {
 		return true
 	}
-	if logCategory&flag == flag {
+	if logtype&flag == flag {
 		return true
 	}
 	return false
