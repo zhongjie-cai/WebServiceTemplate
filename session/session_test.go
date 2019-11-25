@@ -1519,7 +1519,7 @@ func TestAttach_HasSession_WithAttachment(t *testing.T) {
 	verifyAll(t)
 }
 
-func TestDettach_NoSession(t *testing.T) {
+func TestDetach_NoSession(t *testing.T) {
 	// arrange
 	var dummySessionID = uuid.New()
 	var dummyName = "some name"
@@ -1537,7 +1537,7 @@ func TestDettach_NoSession(t *testing.T) {
 	}
 
 	// SUT + act
-	var result = Dettach(
+	var result = Detach(
 		dummySessionID,
 		dummyName,
 	)
@@ -1549,7 +1549,7 @@ func TestDettach_NoSession(t *testing.T) {
 	verifyAll(t)
 }
 
-func TestDettach_HasSession_NoAttachment(t *testing.T) {
+func TestDetach_HasSession_NoAttachment(t *testing.T) {
 	// arrange
 	var dummySessionID = uuid.New()
 	var dummyName = "some name"
@@ -1567,7 +1567,7 @@ func TestDettach_HasSession_NoAttachment(t *testing.T) {
 	}
 
 	// SUT + act
-	var result = Dettach(
+	var result = Detach(
 		dummySessionID,
 		dummyName,
 	)
@@ -1581,7 +1581,7 @@ func TestDettach_HasSession_NoAttachment(t *testing.T) {
 	verifyAll(t)
 }
 
-func TestDettach_HasSession_WithAttachment(t *testing.T) {
+func TestDetach_HasSession_WithAttachment(t *testing.T) {
 	// arrange
 	var dummySessionID = uuid.New()
 	var dummyName = "some name"
@@ -1603,7 +1603,7 @@ func TestDettach_HasSession_WithAttachment(t *testing.T) {
 	}
 
 	// SUT + act
-	var result = Dettach(
+	var result = Detach(
 		dummySessionID,
 		dummyName,
 	)

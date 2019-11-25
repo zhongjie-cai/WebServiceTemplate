@@ -328,8 +328,8 @@ func Attach(sessionID uuid.UUID, name string, value interface{}) bool {
 	return true
 }
 
-// Dettach dettaches any value object from the given session associated to the session ID
-func Dettach(sessionID uuid.UUID, name string) bool {
+// Detach detaches any value object from the given session associated to the session ID
+func Detach(sessionID uuid.UUID, name string) bool {
 	var session = getFunc(
 		sessionID,
 	)
