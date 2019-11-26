@@ -17,6 +17,10 @@ bin
 # Test coverage folder
 coverage
 
+# Test result files
+script/*Results.txt
+script/testResultsPipe
+
 # VSCode settings folder
 .vscode
 .env

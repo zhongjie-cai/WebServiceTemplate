@@ -8,12 +8,12 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/zhongjie-cai/WebServiceTemplate/logger/loglevel"
-
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
+	apperrorModel "github.com/zhongjie-cai/WebServiceTemplate/apperror/model"
 	"github.com/zhongjie-cai/WebServiceTemplate/customization"
+	"github.com/zhongjie-cai/WebServiceTemplate/logger/loglevel"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger/logtype"
 	"github.com/zhongjie-cai/WebServiceTemplate/server/model"
 )
@@ -138,9 +138,10 @@ func TestHandleInSession_RouteError(t *testing.T) {
 		assert.Equal(t, 0, len(parameters))
 	}
 	apperrorGetInvalidOperationExpected = 1
-	apperrorGetInvalidOperation = func(innerError error) apperror.AppError {
+	apperrorGetInvalidOperation = func(innerErrors ...error) apperrorModel.AppError {
 		apperrorGetInvalidOperationCalled++
-		assert.Equal(t, dummyRouteError, innerError)
+		assert.Equal(t, 1, len(innerErrors))
+		assert.Equal(t, dummyRouteError, innerErrors[0])
 		return dummyResponseError
 	}
 	responseWriteExpected = 1

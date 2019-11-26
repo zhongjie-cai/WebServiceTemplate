@@ -7,6 +7,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
+	apperrorModel "github.com/zhongjie-cai/WebServiceTemplate/apperror/model"
 )
 
 func TestGetRecoverError_Error(t *testing.T) {
@@ -19,9 +20,10 @@ func TestGetRecoverError_Error(t *testing.T) {
 
 	// expect
 	apperrorGetGeneralFailureErrorExpected = 1
-	apperrorGetGeneralFailureError = func(innerError error) apperror.AppError {
+	apperrorGetGeneralFailureError = func(innerErrors ...error) apperrorModel.AppError {
 		apperrorGetGeneralFailureErrorCalled++
-		assert.Equal(t, dummyRecoverResult, innerError)
+		assert.Equal(t, 1, len(innerErrors))
+		assert.Equal(t, dummyRecoverResult, innerErrors[0])
 		return dummyAppError
 	}
 
@@ -56,9 +58,10 @@ func TestGetRecoverError_NonError(t *testing.T) {
 		return dummyError
 	}
 	apperrorGetGeneralFailureErrorExpected = 1
-	apperrorGetGeneralFailureError = func(innerError error) apperror.AppError {
+	apperrorGetGeneralFailureError = func(innerErrors ...error) apperrorModel.AppError {
 		apperrorGetGeneralFailureErrorCalled++
-		assert.Equal(t, dummyError, innerError)
+		assert.Equal(t, 1, len(innerErrors))
+		assert.Equal(t, dummyError, innerErrors[0])
 		return dummyAppError
 	}
 
@@ -100,7 +103,7 @@ func TestHandlePanic(t *testing.T) {
 
 	// expect
 	getRecoverErrorFuncExpected = 1
-	getRecoverErrorFunc = func(recoverResult interface{}) apperror.AppError {
+	getRecoverErrorFunc = func(recoverResult interface{}) apperrorModel.AppError {
 		getRecoverErrorFuncCalled++
 		assert.Equal(t, dummyRecoverResult, recoverResult)
 		return dummyAppError

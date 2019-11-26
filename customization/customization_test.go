@@ -4,12 +4,12 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
-
 	"github.com/stretchr/testify/assert"
+	apperrorEnum "github.com/zhongjie-cai/WebServiceTemplate/apperror/enum"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger/loglevel"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger/logtype"
-	"github.com/zhongjie-cai/WebServiceTemplate/server/model"
-	"github.com/zhongjie-cai/WebServiceTemplate/session"
+	serverModel "github.com/zhongjie-cai/WebServiceTemplate/server/model"
+	sessionModel "github.com/zhongjie-cai/WebServiceTemplate/session/model"
 )
 
 func TestReset(t *testing.T) {
@@ -17,7 +17,7 @@ func TestReset(t *testing.T) {
 	PreBootstrapFunc = func() error { return nil }
 	PostBootstrapFunc = func() error { return nil }
 	AppClosingFunc = func() error { return nil }
-	LoggingFunc = func(session *session.Session, logType logtype.LogType, logLevel loglevel.LogLevel, category, subcategory, description string) {
+	LoggingFunc = func(session sessionModel.Session, logType logtype.LogType, logLevel loglevel.LogLevel, category, subcategory, description string) {
 	}
 	AppVersion = func() string { return "" }
 	AppPort = func() string { return "" }
@@ -32,9 +32,10 @@ func TestReset(t *testing.T) {
 	PreActionFunc = func(sessionID uuid.UUID) error { return nil }
 	PostActionFunc = func(sessionID uuid.UUID) error { return nil }
 	CreateErrorResponseFunc = func(err error) (responseMessage string, statusCode int) { return "", 0 }
-	Routes = func() []model.Route { return nil }
-	Statics = func() []model.Static { return nil }
-	Middlewares = func() []model.MiddlewareFunc { return nil }
+	Routes = func() []serverModel.Route { return nil }
+	Statics = func() []serverModel.Static { return nil }
+	Middlewares = func() []serverModel.MiddlewareFunc { return nil }
+	AppErrors = func() (map[apperrorEnum.Code]string, map[apperrorEnum.Code]int) { return nil, nil }
 
 	// mock
 	createMock(t)
@@ -63,6 +64,7 @@ func TestReset(t *testing.T) {
 	assert.Nil(t, Routes)
 	assert.Nil(t, Statics)
 	assert.Nil(t, Middlewares)
+	assert.Nil(t, AppErrors)
 
 	// verify
 	verifyAll(t)

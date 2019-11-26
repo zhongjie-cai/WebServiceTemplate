@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
+	apperrorModel "github.com/zhongjie-cai/WebServiceTemplate/apperror/model"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger"
 	"github.com/zhongjie-cai/WebServiceTemplate/response"
 )
@@ -36,7 +37,7 @@ func createMock(t *testing.T) {
 	}
 	getRecoverErrorFuncExpected = 0
 	getRecoverErrorFuncCalled = 0
-	getRecoverErrorFunc = func(recoverResult interface{}) apperror.AppError {
+	getRecoverErrorFunc = func(recoverResult interface{}) apperrorModel.AppError {
 		getRecoverErrorFuncCalled++
 		return nil
 	}
@@ -52,7 +53,7 @@ func createMock(t *testing.T) {
 	}
 	apperrorGetGeneralFailureErrorExpected = 0
 	apperrorGetGeneralFailureErrorCalled = 0
-	apperrorGetGeneralFailureError = func(innerError error) apperror.AppError {
+	apperrorGetGeneralFailureError = func(innerErrors ...error) apperrorModel.AppError {
 		apperrorGetGeneralFailureErrorCalled++
 		return nil
 	}

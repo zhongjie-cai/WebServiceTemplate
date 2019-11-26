@@ -12,12 +12,12 @@ import (
 
 // func pointers for injection / testing: logCategory.go
 var (
-	uuidParse               = uuid.Parse
-	uuidNew                 = uuid.New
-	logtypeFromString       = logtype.FromString
-	loglevelFromString      = loglevel.FromString
-	apperrorWrapSimpleError = apperror.WrapSimpleError
-	ioutilReadAll           = ioutil.ReadAll
-	ioutilNopCloser         = ioutil.NopCloser
-	bytesNewBuffer          = bytes.NewBuffer
+	uuidParse              = uuid.Parse
+	uuidNew                = uuid.New
+	logtypeFromString      = logtype.FromString
+	loglevelFromString     = loglevel.FromString
+	apperrorGetCustomError = apperror.GetCustomError
+	ioutilReadAll          = ioutil.ReadAll
+	ioutilNopCloser        = ioutil.NopCloser
+	bytesNewBuffer         = bytes.NewBuffer
 )

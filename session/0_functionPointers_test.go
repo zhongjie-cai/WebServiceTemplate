@@ -6,12 +6,14 @@ import (
 	"net/textproto"
 	"testing"
 
-	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
-
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
+	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
+	apperrorModel "github.com/zhongjie-cai/WebServiceTemplate/apperror/model"
+	"github.com/zhongjie-cai/WebServiceTemplate/config"
 	"github.com/zhongjie-cai/WebServiceTemplate/request"
+	"github.com/zhongjie-cai/WebServiceTemplate/session/model"
 )
 
 var (
@@ -29,8 +31,8 @@ var (
 	requestGetRequestBodyCalled             int
 	apperrorGetBadRequestErrorExpected      int
 	apperrorGetBadRequestErrorCalled        int
-	apperrorConsolidateAllErrorsExpected    int
-	apperrorConsolidateAllErrorsCalled      int
+	apperrorWrapSimpleErrorExpected         int
+	apperrorWrapSimpleErrorCalled           int
 	textprotoCanonicalMIMEHeaderKeyExpected int
 	textprotoCanonicalMIMEHeaderKeyCalled   int
 	getFuncExpected                         int
@@ -43,6 +45,8 @@ var (
 	getAllQueriesFuncCalled                 int
 	getAllHeadersFuncExpected               int
 	getAllHeadersFuncCalled                 int
+	configIsLocalhostExpected               int
+	configIsLocalhostCalled                 int
 )
 
 func createMock(t *testing.T) {
@@ -84,14 +88,14 @@ func createMock(t *testing.T) {
 	}
 	apperrorGetBadRequestErrorExpected = 0
 	apperrorGetBadRequestErrorCalled = 0
-	apperrorGetBadRequestError = func(innerError error) apperror.AppError {
+	apperrorGetBadRequestError = func(innerErrors ...error) apperrorModel.AppError {
 		apperrorGetBadRequestErrorCalled++
 		return nil
 	}
-	apperrorConsolidateAllErrorsExpected = 0
-	apperrorConsolidateAllErrorsCalled = 0
-	apperrorConsolidateAllErrors = func(baseErrorMessage string, allErrors ...error) apperror.AppError {
-		apperrorConsolidateAllErrorsCalled++
+	apperrorWrapSimpleErrorExpected = 0
+	apperrorWrapSimpleErrorCalled = 0
+	apperrorWrapSimpleError = func(innerErrors []error, messageFormat string, parameters ...interface{}) apperrorModel.AppError {
+		apperrorWrapSimpleErrorCalled++
 		return nil
 	}
 	textprotoCanonicalMIMEHeaderKeyExpected = 0
@@ -102,13 +106,13 @@ func createMock(t *testing.T) {
 	}
 	getFuncExpected = 0
 	getFuncCalled = 0
-	getFunc = func(sessionID uuid.UUID) *Session {
+	getFunc = func(sessionID uuid.UUID) model.Session {
 		getFuncCalled++
 		return nil
 	}
 	tryUnmarshalFuncExpected = 0
 	tryUnmarshalFuncCalled = 0
-	tryUnmarshalFunc = func(value string, dataTemplate interface{}) apperror.AppError {
+	tryUnmarshalFunc = func(value string, dataTemplate interface{}) apperrorModel.AppError {
 		tryUnmarshalFuncCalled++
 		return nil
 	}
@@ -120,15 +124,21 @@ func createMock(t *testing.T) {
 	}
 	getAllQueriesFuncExpected = 0
 	getAllQueriesFuncCalled = 0
-	getAllQueriesFunc = func(sessionID uuid.UUID, name string) []string {
+	getAllQueriesFunc = func(session *session, name string) []string {
 		getAllQueriesFuncCalled++
 		return nil
 	}
 	getAllHeadersFuncExpected = 0
 	getAllHeadersFuncCalled = 0
-	getAllHeadersFunc = func(sessionID uuid.UUID, name string) []string {
+	getAllHeadersFunc = func(session *session, name string) []string {
 		getAllHeadersFuncCalled++
 		return nil
+	}
+	configIsLocalhostExpected = 0
+	configIsLocalhostCalled = 0
+	config.IsLocalhost = func() bool {
+		configIsLocalhostCalled++
+		return false
 	}
 }
 
@@ -145,8 +155,8 @@ func verifyAll(t *testing.T) {
 	assert.Equal(t, requestGetRequestBodyExpected, requestGetRequestBodyCalled, "Unexpected number of calls to requestGetRequestBody")
 	apperrorGetBadRequestError = apperror.GetBadRequestError
 	assert.Equal(t, apperrorGetBadRequestErrorExpected, apperrorGetBadRequestErrorCalled, "Unexpected number of calls to apperrorGetBadRequestError")
-	apperrorConsolidateAllErrors = apperror.ConsolidateAllErrors
-	assert.Equal(t, apperrorConsolidateAllErrorsExpected, apperrorConsolidateAllErrorsCalled, "Unexpected number of calls to apperrorConsolidateAllErrors")
+	apperrorWrapSimpleError = apperror.WrapSimpleError
+	assert.Equal(t, apperrorWrapSimpleErrorExpected, apperrorWrapSimpleErrorCalled, "Unexpected number of calls to apperrorWrapSimpleError")
 	textprotoCanonicalMIMEHeaderKey = textproto.CanonicalMIMEHeaderKey
 	assert.Equal(t, textprotoCanonicalMIMEHeaderKeyExpected, textprotoCanonicalMIMEHeaderKeyCalled, "Unexpected number of calls to textprotoCanonicalMIMEHeaderKey")
 	getFunc = Get
@@ -159,6 +169,8 @@ func verifyAll(t *testing.T) {
 	assert.Equal(t, getAllQueriesFuncExpected, getAllQueriesFuncCalled, "Unexpected number of calls to getAllQueriesFunc")
 	getAllHeadersFunc = getAllHeaders
 	assert.Equal(t, getAllHeadersFuncExpected, getAllHeadersFuncCalled, "Unexpected number of calls to getAllHeadersFunc")
+	config.IsLocalhost = func() bool { return false }
+	assert.Equal(t, configIsLocalhostExpected, configIsLocalhostCalled, "Unexpected number of calls to configIsLocalhost")
 }
 
 // mock structs

@@ -4,13 +4,13 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/zhongjie-cai/WebServiceTemplate/logger/loglevel"
-
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
+	apperrorModel "github.com/zhongjie-cai/WebServiceTemplate/apperror/model"
 	"github.com/zhongjie-cai/WebServiceTemplate/customization"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger"
+	"github.com/zhongjie-cai/WebServiceTemplate/logger/loglevel"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger/logtype"
 	"github.com/zhongjie-cai/WebServiceTemplate/request"
 	"github.com/zhongjie-cai/WebServiceTemplate/response"
@@ -101,7 +101,7 @@ func createMock(t *testing.T) {
 	}
 	apperrorGetInvalidOperationExpected = 0
 	apperrorGetInvalidOperationCalled = 0
-	apperrorGetInvalidOperation = func(innerError error) apperror.AppError {
+	apperrorGetInvalidOperation = func(innerErrors ...error) apperrorModel.AppError {
 		apperrorGetInvalidOperationCalled++
 		return nil
 	}

@@ -8,6 +8,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
+	apperrorEnum "github.com/zhongjie-cai/WebServiceTemplate/apperror/enum"
+	apperrorModel "github.com/zhongjie-cai/WebServiceTemplate/apperror/model"
 	"github.com/zhongjie-cai/WebServiceTemplate/timeutil"
 )
 
@@ -16,10 +18,10 @@ var (
 	timeutilGetTimeNowUTCCalled              int
 	timeutilFormatDateTimeExpected           int
 	timeutilFormatDateTimeCalled             int
+	apperrorGetCustomErrorExpected           int
+	apperrorGetCustomErrorCalled             int
 	apperrorWrapSimpleErrorExpected          int
 	apperrorWrapSimpleErrorCalled            int
-	apperrorConsolidateAllErrorsExpected     int
-	apperrorConsolidateAllErrorsCalled       int
 	reflectValueOfExpected                   int
 	reflectValueOfCalled                     int
 	fmtSprintfExpected                       int
@@ -49,16 +51,16 @@ func createMock(t *testing.T) {
 		timeutilFormatDateTimeCalled++
 		return ""
 	}
-	apperrorWrapSimpleErrorExpected = 0
-	apperrorWrapSimpleErrorCalled = 0
-	apperrorWrapSimpleError = func(innerError error, messageFormat string, parameters ...interface{}) apperror.AppError {
-		apperrorWrapSimpleErrorCalled++
+	apperrorGetCustomErrorExpected = 0
+	apperrorGetCustomErrorCalled = 0
+	apperrorGetCustomError = func(errorCode apperrorEnum.Code, messageFormat string, parameters ...interface{}) apperrorModel.AppError {
+		apperrorGetCustomErrorCalled++
 		return nil
 	}
-	apperrorConsolidateAllErrorsExpected = 0
-	apperrorConsolidateAllErrorsCalled = 0
-	apperrorConsolidateAllErrors = func(baseErrorMessage string, allErrors ...error) apperror.AppError {
-		apperrorConsolidateAllErrorsCalled++
+	apperrorWrapSimpleErrorExpected = 0
+	apperrorWrapSimpleErrorCalled = 0
+	apperrorWrapSimpleError = func(innerErrors []error, messageFormat string, parameters ...interface{}) apperrorModel.AppError {
+		apperrorWrapSimpleErrorCalled++
 		return nil
 	}
 	reflectValueOfExpected = 0
@@ -110,10 +112,10 @@ func verifyAll(t *testing.T) {
 	assert.Equal(t, timeutilGetTimeNowUTCExpected, timeutilGetTimeNowUTCCalled, "Unexpected number of calls to timeutilGetTimeNowUTC")
 	timeutilFormatDateTime = timeutil.FormatDateTime
 	assert.Equal(t, timeutilFormatDateTimeExpected, timeutilFormatDateTimeCalled, "Unexpected number of calls to timeutilFormatDateTime")
+	apperrorGetCustomError = apperror.GetCustomError
+	assert.Equal(t, apperrorGetCustomErrorExpected, apperrorGetCustomErrorCalled, "Unexpected number of calls to apperrorGetCustomError")
 	apperrorWrapSimpleError = apperror.WrapSimpleError
 	assert.Equal(t, apperrorWrapSimpleErrorExpected, apperrorWrapSimpleErrorCalled, "Unexpected number of calls to apperrorWrapSimpleError")
-	apperrorConsolidateAllErrors = apperror.ConsolidateAllErrors
-	assert.Equal(t, apperrorConsolidateAllErrorsExpected, apperrorConsolidateAllErrorsCalled, "Unexpected number of calls to apperrorConsolidateAllErrors")
 	reflectValueOf = reflect.ValueOf
 	assert.Equal(t, reflectValueOfExpected, reflectValueOfCalled, "Unexpected number of calls to reflectValueOf")
 	fmtSprintf = fmt.Sprintf

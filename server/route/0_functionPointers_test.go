@@ -7,10 +7,11 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
-
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
 	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
+	apperrorEnum "github.com/zhongjie-cai/WebServiceTemplate/apperror/enum"
+	apperrorModel "github.com/zhongjie-cai/WebServiceTemplate/apperror/model"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger"
 	"github.com/zhongjie-cai/WebServiceTemplate/response"
 	"github.com/zhongjie-cai/WebServiceTemplate/server/model"
@@ -19,10 +20,10 @@ import (
 var (
 	apperrorWrapSimpleErrorExpected         int
 	apperrorWrapSimpleErrorCalled           int
-	apperrorConsolidateAllErrorsExpected    int
-	apperrorConsolidateAllErrorsCalled      int
 	apperrorGetNotImplementedErrorExpected  int
 	apperrorGetNotImplementedErrorCalled    int
+	apperrorGetCustomErrorExpected          int
+	apperrorGetCustomErrorCalled            int
 	stringsJoinExpected                     int
 	stringsJoinCalled                       int
 	fmtSprintfExpected                      int
@@ -56,20 +57,20 @@ var (
 func createMock(t *testing.T) {
 	apperrorWrapSimpleErrorExpected = 0
 	apperrorWrapSimpleErrorCalled = 0
-	apperrorWrapSimpleError = func(innerError error, messageFormat string, parameters ...interface{}) apperror.AppError {
+	apperrorWrapSimpleError = func(innerErrors []error, messageFormat string, parameters ...interface{}) apperrorModel.AppError {
 		apperrorWrapSimpleErrorCalled++
-		return nil
-	}
-	apperrorConsolidateAllErrorsExpected = 0
-	apperrorConsolidateAllErrorsCalled = 0
-	apperrorConsolidateAllErrors = func(baseErrorMessage string, allErrors ...error) apperror.AppError {
-		apperrorConsolidateAllErrorsCalled++
 		return nil
 	}
 	apperrorGetNotImplementedErrorExpected = 0
 	apperrorGetNotImplementedErrorCalled = 0
-	apperrorGetNotImplementedError = func(innerError error) apperror.AppError {
+	apperrorGetNotImplementedError = func(innerErrors ...error) apperrorModel.AppError {
 		apperrorGetNotImplementedErrorCalled++
+		return nil
+	}
+	apperrorGetCustomErrorExpected = 0
+	apperrorGetCustomErrorCalled = 0
+	apperrorGetCustomError = func(errorCode apperrorEnum.Code, messageFormat string, parameters ...interface{}) apperrorModel.AppError {
+		apperrorGetCustomErrorCalled++
 		return nil
 	}
 	stringsJoinExpected = 0
@@ -159,10 +160,10 @@ func createMock(t *testing.T) {
 func verifyAll(t *testing.T) {
 	apperrorWrapSimpleError = apperror.WrapSimpleError
 	assert.Equal(t, apperrorWrapSimpleErrorExpected, apperrorWrapSimpleErrorCalled, "Unexpected number of calls to apperrorWrapSimpleError")
-	apperrorConsolidateAllErrors = apperror.ConsolidateAllErrors
-	assert.Equal(t, apperrorConsolidateAllErrorsExpected, apperrorConsolidateAllErrorsCalled, "Unexpected number of calls to apperrorConsolidateAllErrors")
 	apperrorGetNotImplementedError = apperror.GetNotImplementedError
 	assert.Equal(t, apperrorGetNotImplementedErrorExpected, apperrorGetNotImplementedErrorCalled, "Unexpected number of calls to apperrorGetNotImplementedError")
+	apperrorGetCustomError = apperror.GetCustomError
+	assert.Equal(t, apperrorGetCustomErrorExpected, apperrorGetCustomErrorCalled, "Unexpected number of calls to apperrorGetCustomError")
 	stringsJoin = strings.Join
 	assert.Equal(t, stringsJoinExpected, stringsJoinCalled, "Unexpected number of calls to stringsJoin")
 	fmtSprintf = fmt.Sprintf

@@ -7,27 +7,29 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
+	apperrorEnum "github.com/zhongjie-cai/WebServiceTemplate/apperror/enum"
+	apperrorModel "github.com/zhongjie-cai/WebServiceTemplate/apperror/model"
 )
 
 var (
-	tlsX509KeyPairExpected               int
-	tlsX509KeyPairCalled                 int
-	x509NewCertPoolExpected              int
-	x509NewCertPoolCalled                int
-	apperrorWrapSimpleErrorExpected      int
-	apperrorWrapSimpleErrorCalled        int
-	apperrorConsolidateAllErrorsExpected int
-	apperrorConsolidateAllErrorsCalled   int
-	loadTLSCertificateFuncExpected       int
-	loadTLSCertificateFuncCalled         int
-	appendCertsFromPEMFuncExpected       int
-	appendCertsFromPEMFuncCalled         int
-	loadX509CertPoolFuncExpected         int
-	loadX509CertPoolFuncCalled           int
-	initializeServerCertFuncExpected     int
-	initializeServerCertFuncCalled       int
-	initializeCaCertPoolFuncExpected     int
-	initializeCaCertPoolFuncCalled       int
+	tlsX509KeyPairExpected           int
+	tlsX509KeyPairCalled             int
+	x509NewCertPoolExpected          int
+	x509NewCertPoolCalled            int
+	apperrorGetCustomErrorExpected   int
+	apperrorGetCustomErrorCalled     int
+	apperrorWrapSimpleErrorExpected  int
+	apperrorWrapSimpleErrorCalled    int
+	loadTLSCertificateFuncExpected   int
+	loadTLSCertificateFuncCalled     int
+	appendCertsFromPEMFuncExpected   int
+	appendCertsFromPEMFuncCalled     int
+	loadX509CertPoolFuncExpected     int
+	loadX509CertPoolFuncCalled       int
+	initializeServerCertFuncExpected int
+	initializeServerCertFuncCalled   int
+	initializeCaCertPoolFuncExpected int
+	initializeCaCertPoolFuncCalled   int
 )
 
 func createMock(t *testing.T) {
@@ -43,16 +45,16 @@ func createMock(t *testing.T) {
 		x509NewCertPoolCalled++
 		return nil
 	}
-	apperrorWrapSimpleErrorExpected = 0
-	apperrorWrapSimpleErrorCalled = 0
-	apperrorWrapSimpleError = func(innerError error, messageFormat string, parameters ...interface{}) apperror.AppError {
-		apperrorWrapSimpleErrorCalled++
+	apperrorGetCustomErrorExpected = 0
+	apperrorGetCustomErrorCalled = 0
+	apperrorGetCustomError = func(errorCode apperrorEnum.Code, messageFormat string, parameters ...interface{}) apperrorModel.AppError {
+		apperrorGetCustomErrorCalled++
 		return nil
 	}
-	apperrorConsolidateAllErrorsExpected = 0
-	apperrorConsolidateAllErrorsCalled = 0
-	apperrorConsolidateAllErrors = func(baseErrorMessage string, allErrors ...error) apperror.AppError {
-		apperrorConsolidateAllErrorsCalled++
+	apperrorWrapSimpleErrorExpected = 0
+	apperrorWrapSimpleErrorCalled = 0
+	apperrorWrapSimpleError = func(innerErrors []error, messageFormat string, parameters ...interface{}) apperrorModel.AppError {
+		apperrorWrapSimpleErrorCalled++
 		return nil
 	}
 	loadTLSCertificateFuncExpected = 0
@@ -92,10 +94,10 @@ func verifyAll(t *testing.T) {
 	assert.Equal(t, tlsX509KeyPairExpected, tlsX509KeyPairCalled, "Unexpected number of calls to tlsX509KeyPair")
 	x509NewCertPool = x509.NewCertPool
 	assert.Equal(t, x509NewCertPoolExpected, x509NewCertPoolCalled, "Unexpected number of calls to x509NewCertPool")
+	apperrorGetCustomError = apperror.GetCustomError
+	assert.Equal(t, apperrorGetCustomErrorExpected, apperrorGetCustomErrorCalled, "Unexpected number of calls to apperrorGetCustomError")
 	apperrorWrapSimpleError = apperror.WrapSimpleError
 	assert.Equal(t, apperrorWrapSimpleErrorExpected, apperrorWrapSimpleErrorCalled, "Unexpected number of calls to apperrorWrapSimpleError")
-	apperrorConsolidateAllErrors = apperror.ConsolidateAllErrors
-	assert.Equal(t, apperrorConsolidateAllErrorsExpected, apperrorConsolidateAllErrorsCalled, "Unexpected number of calls to apperrorConsolidateAllErrors")
 	loadTLSCertificateFunc = loadTLSCertificate
 	assert.Equal(t, loadTLSCertificateFuncExpected, loadTLSCertificateFuncCalled, "Unexpected number of calls to loadTLSCertificateFunc")
 	appendCertsFromPEMFunc = appendCertsFromPEM

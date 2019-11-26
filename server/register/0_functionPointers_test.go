@@ -9,6 +9,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
 	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
+	apperrorModel "github.com/zhongjie-cai/WebServiceTemplate/apperror/model"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger"
 	"github.com/zhongjie-cai/WebServiceTemplate/server/handler"
 	"github.com/zhongjie-cai/WebServiceTemplate/server/model"
@@ -99,7 +100,7 @@ func createMock(t *testing.T) {
 	}
 	apperrorWrapSimpleErrorExpected = 0
 	apperrorWrapSimpleErrorCalled = 0
-	apperrorWrapSimpleError = func(innerError error, messageFormat string, parameters ...interface{}) apperror.AppError {
+	apperrorWrapSimpleError = func(innerErrors []error, messageFormat string, parameters ...interface{}) apperrorModel.AppError {
 		apperrorWrapSimpleErrorCalled++
 		return nil
 	}

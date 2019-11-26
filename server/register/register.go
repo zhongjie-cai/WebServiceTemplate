@@ -199,7 +199,7 @@ func Instantiate() (*mux.Router, error) {
 	if routerError != nil {
 		return nil,
 			apperrorWrapSimpleError(
-				routerError,
+				[]error{routerError},
 				"Failed to instantiate routes",
 			)
 	}

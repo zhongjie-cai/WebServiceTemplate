@@ -4,33 +4,21 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/zhongjie-cai/WebServiceTemplate/logger/loglevel"
-
 	"github.com/google/uuid"
 	cache "github.com/patrickmn/go-cache"
-	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
+	apperrorModel "github.com/zhongjie-cai/WebServiceTemplate/apperror/model"
+	"github.com/zhongjie-cai/WebServiceTemplate/config"
+	"github.com/zhongjie-cai/WebServiceTemplate/logger/loglevel"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger/logtype"
+	"github.com/zhongjie-cai/WebServiceTemplate/session/model"
 )
-
-type nilResponseWriter struct{}
-
-func (r *nilResponseWriter) Header() http.Header {
-	return http.Header{}
-}
-
-func (r *nilResponseWriter) Write(body []byte) (int, error) {
-	return 0, nil
-}
-
-func (r *nilResponseWriter) WriteHeader(status int) {
-}
 
 var (
 	sessionCache          = cache.New(15*time.Minute, 30*time.Minute)
 	defaultRequest, _     = http.NewRequest("", "", nil)
 	defaultResponseWriter = &nilResponseWriter{}
 	defaultName           = "AppRoot"
-	defaultSession        = &Session{
+	defaultSession        = session{
 		ID:              uuid.Nil,
 		Name:            defaultName,
 		AllowedLogType:  logtype.BasicLogging,
@@ -40,8 +28,7 @@ var (
 	}
 )
 
-// Session is the storage for the current HTTP request session, containing information needed for logging, monitoring, etc.
-type Session struct {
+type session struct {
 	ID              uuid.UUID
 	Name            string
 	AllowedLogType  logtype.LogType
@@ -51,108 +38,39 @@ type Session struct {
 	attachment      map[string]interface{}
 }
 
-// GetAttachment retrieves any value object from the given session associated to the session ID and unmarshals the content to given data template
-func (session *Session) GetAttachment(name string, dataTemplate interface{}) bool {
+// GetID returns the ID of this registered session object
+func (session *session) GetID() uuid.UUID {
 	if session == nil {
-		return false
+		return uuid.Nil
 	}
-	var attachment, found = session.attachment[name]
-	if !found {
-		return false
-	}
-	var bytes, marshalError = jsonMarshal(attachment)
-	if marshalError != nil {
-		return false
-	}
-	var unmarshalError = jsonUnmarshal(
-		bytes,
-		dataTemplate,
-	)
-	return unmarshalError == nil
-}
-
-// Init initialize the default session for the application
-func Init(appName string, roleType string, hostName string, version string, buildTime string) {
-	// Initialize default session entry
-	sessionCache.Set(
-		uuid.Nil.String(),
-		defaultSession,
-		cache.NoExpiration,
-	)
-}
-
-// Register registers the information of a session for given session ID
-func Register(
-	name string,
-	allowedLogType logtype.LogType,
-	allowedLogLevel loglevel.LogLevel,
-	httpRequest *http.Request,
-	responseWriter http.ResponseWriter,
-) uuid.UUID {
-	var sessionID = uuidNew()
-	sessionCache.SetDefault(
-		sessionID.String(),
-		&Session{
-			ID:              sessionID,
-			Name:            name,
-			AllowedLogType:  allowedLogType,
-			AllowedLogLevel: allowedLogLevel,
-			Request:         httpRequest,
-			ResponseWriter:  responseWriter,
-			attachment:      map[string]interface{}{},
-		},
-	)
-	return sessionID
-}
-
-// Unregister unregisters the information of a session for given session ID
-func Unregister(sessionID uuid.UUID) {
-	sessionCache.Delete(
-		sessionID.String(),
-	)
-}
-
-// Get retrieves a registered session for given session ID
-func Get(sessionID uuid.UUID) *Session {
-	var cacheItem, sessionLoaded = sessionCache.Get(sessionID.String())
-	if !sessionLoaded {
-		return defaultSession
-	}
-	var session, ok = cacheItem.(*Session)
-	if !ok {
-		return defaultSession
-	}
-	return session
+	return session.ID
 }
 
 // GetName returns the name registered to session object for given session ID
-func GetName(sessionID uuid.UUID) string {
-	var sessionObject = getFunc(sessionID)
-	if sessionObject == nil {
+func (session *session) GetName() string {
+	if session == nil {
 		return defaultName
 	}
-	return sessionObject.Name
+	return session.Name
 }
 
 // GetRequest returns the HTTP request object from session object for given session ID
-func GetRequest(sessionID uuid.UUID) *http.Request {
-	var sessionObject = getFunc(sessionID)
-	if sessionObject == nil {
+func (session *session) GetRequest() *http.Request {
+	if session == nil {
 		return defaultRequest
 	}
-	return sessionObject.Request
+	return session.Request
 }
 
 // GetResponseWriter returns the HTTP response writer object from session object for given session ID
-func GetResponseWriter(sessionID uuid.UUID) http.ResponseWriter {
-	var sessionObject = getFunc(sessionID)
-	if sessionObject == nil {
+func (session *session) GetResponseWriter() http.ResponseWriter {
+	if session == nil {
 		return defaultResponseWriter
 	}
-	return sessionObject.ResponseWriter
+	return session.ResponseWriter
 }
 
-func tryUnmarshal(value string, dataTemplate interface{}) apperror.AppError {
+func tryUnmarshal(value string, dataTemplate interface{}) apperrorModel.AppError {
 	var noQuoteJSONError = jsonUnmarshal(
 		[]byte(value),
 		dataTemplate,
@@ -179,10 +97,8 @@ func tryUnmarshal(value string, dataTemplate interface{}) apperror.AppError {
 }
 
 // GetRequestBody loads HTTP request body associated to session and unmarshals the content JSON to given data template
-func GetRequestBody(sessionID uuid.UUID, dataTemplate interface{}) apperror.AppError {
-	var httpRequest = getRequestFunc(
-		sessionID,
-	)
+func (session *session) GetRequestBody(dataTemplate interface{}) apperrorModel.AppError {
+	var httpRequest = session.GetRequest()
 	var requestBody = requestGetRequestBody(
 		httpRequest,
 	)
@@ -200,10 +116,8 @@ func GetRequestBody(sessionID uuid.UUID, dataTemplate interface{}) apperror.AppE
 }
 
 // GetRequestParameter loads HTTP request parameter associated to session for given name and unmarshals the content to given data template
-func GetRequestParameter(sessionID uuid.UUID, name string, dataTemplate interface{}) apperror.AppError {
-	var httpRequest = getRequestFunc(
-		sessionID,
-	)
+func (session *session) GetRequestParameter(name string, dataTemplate interface{}) apperrorModel.AppError {
+	var httpRequest = session.GetRequest()
 	var parameters = muxVars(
 		httpRequest,
 	)
@@ -222,10 +136,8 @@ func GetRequestParameter(sessionID uuid.UUID, name string, dataTemplate interfac
 	)
 }
 
-func getAllQueries(sessionID uuid.UUID, name string) []string {
-	var httpRequest = getRequestFunc(
-		sessionID,
-	)
+func getAllQueries(session *session, name string) []string {
+	var httpRequest = session.GetRequest()
 	var queries, found = httpRequest.URL.Query()[name]
 	if !found {
 		return nil
@@ -234,9 +146,9 @@ func getAllQueries(sessionID uuid.UUID, name string) []string {
 }
 
 // GetRequestQuery loads HTTP request single query string associated to session for given name and unmarshals the content to given data template
-func GetRequestQuery(sessionID uuid.UUID, name string, dataTemplate interface{}) apperror.AppError {
+func (session *session) GetRequestQuery(name string, dataTemplate interface{}) apperrorModel.AppError {
 	var queries = getAllQueriesFunc(
-		sessionID,
+		session,
 		name,
 	)
 	if len(queries) == 0 {
@@ -254,9 +166,9 @@ func GetRequestQuery(sessionID uuid.UUID, name string, dataTemplate interface{})
 }
 
 // GetRequestQueries loads HTTP request query strings associated to session for given name and unmarshals the content to given data template; the fillCallback is called when each unmarshal operation succeeds, so consumer could fill in external arrays using data template during the process
-func GetRequestQueries(sessionID uuid.UUID, name string, dataTemplate interface{}, fillCallback func()) apperror.AppError {
+func (session *session) GetRequestQueries(name string, dataTemplate interface{}, fillCallback func()) apperrorModel.AppError {
 	var queries = getAllQueriesFunc(
-		sessionID,
+		session,
 		name,
 	)
 	var unmarshalErrors = []error{}
@@ -274,16 +186,14 @@ func GetRequestQueries(sessionID uuid.UUID, name string, dataTemplate interface{
 			fillCallback()
 		}
 	}
-	return apperrorConsolidateAllErrors(
+	return apperrorWrapSimpleError(
+		unmarshalErrors,
 		"Failed to get request query strings",
-		unmarshalErrors...,
 	)
 }
 
-func getAllHeaders(sessionID uuid.UUID, name string) []string {
-	var httpRequest = getRequestFunc(
-		sessionID,
-	)
+func getAllHeaders(session *session, name string) []string {
+	var httpRequest = session.GetRequest()
 	var canonicalName = textprotoCanonicalMIMEHeaderKey(name)
 	var headers, found = httpRequest.Header[canonicalName]
 	if !found {
@@ -293,9 +203,9 @@ func getAllHeaders(sessionID uuid.UUID, name string) []string {
 }
 
 // GetRequestHeader loads HTTP request single header string associated to session for given name and unmarshals the content to given data template
-func GetRequestHeader(sessionID uuid.UUID, name string, dataTemplate interface{}) apperror.AppError {
+func (session *session) GetRequestHeader(name string, dataTemplate interface{}) apperrorModel.AppError {
 	var headers = getAllHeadersFunc(
-		sessionID,
+		session,
 		name,
 	)
 	if len(headers) == 0 {
@@ -313,9 +223,9 @@ func GetRequestHeader(sessionID uuid.UUID, name string, dataTemplate interface{}
 }
 
 // GetRequestHeaders loads HTTP request header strings associated to session for given name and unmarshals the content to given data template; the fillCallback is called when each unmarshal operation succeeds, so consumer could fill in external arrays using data template during the process
-func GetRequestHeaders(sessionID uuid.UUID, name string, dataTemplate interface{}, fillCallback func()) apperror.AppError {
+func (session *session) GetRequestHeaders(name string, dataTemplate interface{}, fillCallback func()) apperrorModel.AppError {
 	var headers = getAllHeadersFunc(
-		sessionID,
+		session,
 		name,
 	)
 	var unmarshalErrors = []error{}
@@ -333,17 +243,14 @@ func GetRequestHeaders(sessionID uuid.UUID, name string, dataTemplate interface{
 			fillCallback()
 		}
 	}
-	return apperrorConsolidateAllErrors(
+	return apperrorWrapSimpleError(
+		unmarshalErrors,
 		"Failed to get request header strings",
-		unmarshalErrors...,
 	)
 }
 
 // Attach attaches any value object into the given session associated to the session ID
-func Attach(sessionID uuid.UUID, name string, value interface{}) bool {
-	var session = getFunc(
-		sessionID,
-	)
+func (session *session) Attach(name string, value interface{}) bool {
 	if session == nil {
 		return false
 	}
@@ -355,10 +262,7 @@ func Attach(sessionID uuid.UUID, name string, value interface{}) bool {
 }
 
 // Detach detaches any value object from the given session associated to the session ID
-func Detach(sessionID uuid.UUID, name string) bool {
-	var session = getFunc(
-		sessionID,
-	)
+func (session *session) Detach(name string) bool {
 	if session == nil {
 		return false
 	}
@@ -369,10 +273,164 @@ func Detach(sessionID uuid.UUID, name string) bool {
 }
 
 // GetAttachment retrieves any value object from the given session associated to the session ID and unmarshals the content to given data template
-func GetAttachment(sessionID uuid.UUID, name string, dataTemplate interface{}) bool {
-	var session = getFunc(
-		sessionID,
+func (session *session) GetAttachment(name string, dataTemplate interface{}) bool {
+	if session == nil {
+		return false
+	}
+	var attachment, found = session.attachment[name]
+	if !found {
+		return false
+	}
+	var bytes, marshalError = jsonMarshal(attachment)
+	if marshalError != nil {
+		return false
+	}
+	var unmarshalError = jsonUnmarshal(
+		bytes,
+		dataTemplate,
 	)
+	return unmarshalError == nil
+}
+
+// IsLogAllowed checks the passed in log type and level and determines whether they match the session log criteria or not
+func (session *session) IsLogAllowed(logType logtype.LogType, logLevel loglevel.LogLevel) bool {
+	if session == nil {
+		return false
+	}
+	if !config.IsLocalhost() {
+		if !session.AllowedLogType.HasFlag(logType) {
+			return false
+		}
+		if session.AllowedLogLevel > logLevel {
+			return false
+		}
+	}
+	return true
+}
+
+// Init initialize the default session for the application
+func Init(appName string, roleType string, hostName string, version string, buildTime string) {
+	// Initialize default session entry
+	sessionCache.Set(
+		uuid.Nil.String(),
+		defaultSession,
+		cache.NoExpiration,
+	)
+}
+
+// Register registers the information of a session for given session ID
+func Register(
+	name string,
+	allowedLogType logtype.LogType,
+	allowedLogLevel loglevel.LogLevel,
+	httpRequest *http.Request,
+	responseWriter http.ResponseWriter,
+) uuid.UUID {
+	var sessionID = uuidNew()
+	sessionCache.SetDefault(
+		sessionID.String(),
+		session{
+			ID:              sessionID,
+			Name:            name,
+			AllowedLogType:  allowedLogType,
+			AllowedLogLevel: allowedLogLevel,
+			Request:         httpRequest,
+			ResponseWriter:  responseWriter,
+			attachment:      map[string]interface{}{},
+		},
+	)
+	return sessionID
+}
+
+// Unregister unregisters the information of a session for given session ID
+func Unregister(sessionID uuid.UUID) {
+	sessionCache.Delete(
+		sessionID.String(),
+	)
+}
+
+// Get retrieves a registered session for given session ID
+func Get(sessionID uuid.UUID) model.Session {
+	var cacheItem, sessionLoaded = sessionCache.Get(sessionID.String())
+	if !sessionLoaded {
+		return &defaultSession
+	}
+	var session, ok = cacheItem.(session)
+	if !ok {
+		return &defaultSession
+	}
+	return &session
+}
+
+// GetName returns the name registered to session object for given session ID
+func GetName(sessionID uuid.UUID) string {
+	var session = getFunc(sessionID)
+	return session.GetName()
+}
+
+// GetRequest returns the HTTP request object from session object for given session ID
+func GetRequest(sessionID uuid.UUID) *http.Request {
+	var session = getFunc(sessionID)
+	return session.GetRequest()
+}
+
+// GetResponseWriter returns the HTTP response writer object from session object for given session ID
+func GetResponseWriter(sessionID uuid.UUID) http.ResponseWriter {
+	var session = getFunc(sessionID)
+	return session.GetResponseWriter()
+}
+
+// GetRequestBody loads HTTP request body associated to session and unmarshals the content JSON to given data template
+func GetRequestBody(sessionID uuid.UUID, dataTemplate interface{}) apperrorModel.AppError {
+	var session = getFunc(sessionID)
+	return session.GetRequestBody(dataTemplate)
+}
+
+// GetRequestParameter loads HTTP request parameter associated to session for given name and unmarshals the content to given data template
+func GetRequestParameter(sessionID uuid.UUID, name string, dataTemplate interface{}) apperrorModel.AppError {
+	var session = getFunc(sessionID)
+	return session.GetRequestParameter(name, dataTemplate)
+}
+
+// GetRequestQuery loads HTTP request single query string associated to session for given name and unmarshals the content to given data template
+func GetRequestQuery(sessionID uuid.UUID, name string, dataTemplate interface{}) apperrorModel.AppError {
+	var session = getFunc(sessionID)
+	return session.GetRequestQuery(name, dataTemplate)
+}
+
+// GetRequestQueries loads HTTP request query strings associated to session for given name and unmarshals the content to given data template; the fillCallback is called when each unmarshal operation succeeds, so consumer could fill in external arrays using data template during the process
+func GetRequestQueries(sessionID uuid.UUID, name string, dataTemplate interface{}, fillCallback func()) apperrorModel.AppError {
+	var session = getFunc(sessionID)
+	return session.GetRequestQueries(name, dataTemplate, fillCallback)
+}
+
+// GetRequestHeader loads HTTP request single header string associated to session for given name and unmarshals the content to given data template
+func GetRequestHeader(sessionID uuid.UUID, name string, dataTemplate interface{}) apperrorModel.AppError {
+	var session = getFunc(sessionID)
+	return session.GetRequestHeader(name, dataTemplate)
+}
+
+// GetRequestHeaders loads HTTP request header strings associated to session for given name and unmarshals the content to given data template; the fillCallback is called when each unmarshal operation succeeds, so consumer could fill in external arrays using data template during the process
+func GetRequestHeaders(sessionID uuid.UUID, name string, dataTemplate interface{}, fillCallback func()) apperrorModel.AppError {
+	var session = getFunc(sessionID)
+	return session.GetRequestHeaders(name, dataTemplate, fillCallback)
+}
+
+// Attach attaches any value object into the given session associated to the session ID
+func Attach(sessionID uuid.UUID, name string, value interface{}) bool {
+	var session = getFunc(sessionID)
+	return session.Attach(name, value)
+}
+
+// Detach detaches any value object from the given session associated to the session ID
+func Detach(sessionID uuid.UUID, name string) bool {
+	var session = getFunc(sessionID)
+	return session.Detach(name)
+}
+
+// GetAttachment retrieves any value object from the given session associated to the session ID and unmarshals the content to given data template
+func GetAttachment(sessionID uuid.UUID, name string, dataTemplate interface{}) bool {
+	var session = getFunc(sessionID)
 	return session.GetAttachment(
 		name,
 		dataTemplate,

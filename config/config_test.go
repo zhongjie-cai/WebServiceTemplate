@@ -9,6 +9,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
+	apperrorEnum "github.com/zhongjie-cai/WebServiceTemplate/apperror/enum"
+	apperrorModel "github.com/zhongjie-cai/WebServiceTemplate/apperror/model"
 	"github.com/zhongjie-cai/WebServiceTemplate/customization"
 )
 
@@ -308,10 +310,10 @@ func TestValidateStringFunction_ForcedToDefault(t *testing.T) {
 		dummyDefaultFuncCalled++
 		return dummyDefaultFuncReturn
 	}
-	apperrorWrapSimpleErrorExpected = 1
-	apperrorWrapSimpleError = func(innerError error, messageFormat string, parameters ...interface{}) apperror.AppError {
-		apperrorWrapSimpleErrorCalled++
-		assert.NoError(t, innerError)
+	apperrorGetCustomErrorExpected = 1
+	apperrorGetCustomError = func(errorCode apperrorEnum.Code, messageFormat string, parameters ...interface{}) apperrorModel.AppError {
+		apperrorGetCustomErrorCalled++
+		assert.Equal(t, apperrorEnum.CodeGeneralFailure, errorCode)
 		assert.Equal(t, dummyMessageFormat, messageFormat)
 		assert.Equal(t, 2, len(parameters))
 		assert.Equal(t, dummyName, parameters[0])
@@ -359,10 +361,10 @@ func TestValidateStringFunction_NilStringFunc(t *testing.T) {
 		dummyDefaultFuncCalled++
 		return dummyDefaultFuncReturn
 	}
-	apperrorWrapSimpleErrorExpected = 1
-	apperrorWrapSimpleError = func(innerError error, messageFormat string, parameters ...interface{}) apperror.AppError {
-		apperrorWrapSimpleErrorCalled++
-		assert.NoError(t, innerError)
+	apperrorGetCustomErrorExpected = 1
+	apperrorGetCustomError = func(errorCode apperrorEnum.Code, messageFormat string, parameters ...interface{}) apperrorModel.AppError {
+		apperrorGetCustomErrorCalled++
+		assert.Equal(t, apperrorEnum.CodeGeneralFailure, errorCode)
 		assert.Equal(t, dummyMessageFormat, messageFormat)
 		assert.Equal(t, 2, len(parameters))
 		assert.Equal(t, dummyName, parameters[0])
@@ -422,10 +424,10 @@ func TestValidateStringFunction_DefaultStringFunc(t *testing.T) {
 		assert.Equal(t, fmt.Sprintf("%v", reflect.ValueOf(dummyDefaultFunc)), fmt.Sprintf("%v", reflect.ValueOf(right)))
 		return true
 	}
-	apperrorWrapSimpleErrorExpected = 1
-	apperrorWrapSimpleError = func(innerError error, messageFormat string, parameters ...interface{}) apperror.AppError {
-		apperrorWrapSimpleErrorCalled++
-		assert.NoError(t, innerError)
+	apperrorGetCustomErrorExpected = 1
+	apperrorGetCustomError = func(errorCode apperrorEnum.Code, messageFormat string, parameters ...interface{}) apperrorModel.AppError {
+		apperrorGetCustomErrorCalled++
+		assert.Equal(t, apperrorEnum.CodeGeneralFailure, errorCode)
 		assert.Equal(t, dummyMessageFormat, messageFormat)
 		assert.Equal(t, 2, len(parameters))
 		assert.Equal(t, dummyName, parameters[0])
@@ -485,10 +487,10 @@ func TestValidateStringFunction_EmptyStringFunc(t *testing.T) {
 		assert.Equal(t, fmt.Sprintf("%v", reflect.ValueOf(dummyDefaultFunc)), fmt.Sprintf("%v", reflect.ValueOf(right)))
 		return false
 	}
-	apperrorWrapSimpleErrorExpected = 1
-	apperrorWrapSimpleError = func(innerError error, messageFormat string, parameters ...interface{}) apperror.AppError {
-		apperrorWrapSimpleErrorCalled++
-		assert.NoError(t, innerError)
+	apperrorGetCustomErrorExpected = 1
+	apperrorGetCustomError = func(errorCode apperrorEnum.Code, messageFormat string, parameters ...interface{}) apperrorModel.AppError {
+		apperrorGetCustomErrorCalled++
+		assert.Equal(t, apperrorEnum.CodeGeneralFailure, errorCode)
 		assert.Equal(t, dummyMessageFormat, messageFormat)
 		assert.Equal(t, 2, len(parameters))
 		assert.Equal(t, dummyName, parameters[0])
@@ -592,10 +594,10 @@ func TestValidateBooleanFunction_ForcedToDefault(t *testing.T) {
 		dummyDefaultFuncCalled++
 		return dummyDefaultFuncReturn
 	}
-	apperrorWrapSimpleErrorExpected = 1
-	apperrorWrapSimpleError = func(innerError error, messageFormat string, parameters ...interface{}) apperror.AppError {
-		apperrorWrapSimpleErrorCalled++
-		assert.NoError(t, innerError)
+	apperrorGetCustomErrorExpected = 1
+	apperrorGetCustomError = func(errorCode apperrorEnum.Code, messageFormat string, parameters ...interface{}) apperrorModel.AppError {
+		apperrorGetCustomErrorCalled++
+		assert.Equal(t, apperrorEnum.CodeGeneralFailure, errorCode)
 		assert.Equal(t, dummyMessageFormat, messageFormat)
 		assert.Equal(t, 2, len(parameters))
 		assert.Equal(t, dummyName, parameters[0])
@@ -643,10 +645,10 @@ func TestValidateBooleanFunction_NilBooleanFunc(t *testing.T) {
 		dummyDefaultFuncCalled++
 		return dummyDefaultFuncReturn
 	}
-	apperrorWrapSimpleErrorExpected = 1
-	apperrorWrapSimpleError = func(innerError error, messageFormat string, parameters ...interface{}) apperror.AppError {
-		apperrorWrapSimpleErrorCalled++
-		assert.NoError(t, innerError)
+	apperrorGetCustomErrorExpected = 1
+	apperrorGetCustomError = func(errorCode apperrorEnum.Code, messageFormat string, parameters ...interface{}) apperrorModel.AppError {
+		apperrorGetCustomErrorCalled++
+		assert.Equal(t, apperrorEnum.CodeGeneralFailure, errorCode)
 		assert.Equal(t, dummyMessageFormat, messageFormat)
 		assert.Equal(t, 2, len(parameters))
 		assert.Equal(t, dummyName, parameters[0])
@@ -706,10 +708,10 @@ func TestValidateBooleanFunction_DefaultBooleanFunc(t *testing.T) {
 		assert.Equal(t, fmt.Sprintf("%v", reflect.ValueOf(dummyDefaultFunc)), fmt.Sprintf("%v", reflect.ValueOf(right)))
 		return true
 	}
-	apperrorWrapSimpleErrorExpected = 1
-	apperrorWrapSimpleError = func(innerError error, messageFormat string, parameters ...interface{}) apperror.AppError {
-		apperrorWrapSimpleErrorCalled++
-		assert.NoError(t, innerError)
+	apperrorGetCustomErrorExpected = 1
+	apperrorGetCustomError = func(errorCode apperrorEnum.Code, messageFormat string, parameters ...interface{}) apperrorModel.AppError {
+		apperrorGetCustomErrorCalled++
+		assert.Equal(t, apperrorEnum.CodeGeneralFailure, errorCode)
 		assert.Equal(t, dummyMessageFormat, messageFormat)
 		assert.Equal(t, 2, len(parameters))
 		assert.Equal(t, dummyName, parameters[0])
@@ -1014,7 +1016,7 @@ func TestInitialize(t *testing.T) {
 		errors.New("some ServeHTTPS error"),
 		errors.New("some ValidateClientCert error"),
 	}
-	var dummyBaseErrorMessage = "Unexpected errors occur during configuration initialization"
+	var dummyMessageFormat = "Unexpected errors occur during configuration initialization"
 	var dummyAppError = apperror.GetGeneralFailureError(nil)
 
 	// mock
@@ -1051,21 +1053,22 @@ func TestInitialize(t *testing.T) {
 		isCaCertificateAvailableFuncCalled++
 		return dummyIsCaCertificateAvailable
 	}
-	apperrorConsolidateAllErrorsExpected = 1
-	apperrorConsolidateAllErrors = func(baseErrorMessage string, allErrors ...error) apperror.AppError {
-		apperrorConsolidateAllErrorsCalled++
-		assert.Equal(t, dummyBaseErrorMessage, baseErrorMessage)
-		assert.Equal(t, 10, len(allErrors))
-		assert.Equal(t, expectedValidateStringFunctionFuncReturn2[0], allErrors[0])
-		assert.Equal(t, expectedValidateStringFunctionFuncReturn2[1], allErrors[1])
-		assert.Equal(t, expectedValidateStringFunctionFuncReturn2[2], allErrors[2])
-		assert.Equal(t, expectedValidateStringFunctionFuncReturn2[3], allErrors[3])
-		assert.Equal(t, expectedValidateBooleanFunctionFuncReturn2[0], allErrors[4])
-		assert.Equal(t, expectedValidateStringFunctionFuncReturn2[4], allErrors[5])
-		assert.Equal(t, expectedValidateStringFunctionFuncReturn2[5], allErrors[6])
-		assert.Equal(t, expectedValidateBooleanFunctionFuncReturn2[1], allErrors[7])
-		assert.Equal(t, expectedValidateStringFunctionFuncReturn2[6], allErrors[8])
-		assert.Equal(t, expectedValidateBooleanFunctionFuncReturn2[2], allErrors[9])
+	apperrorWrapSimpleErrorExpected = 1
+	apperrorWrapSimpleError = func(innerErrors []error, messageFormat string, parameters ...interface{}) apperrorModel.AppError {
+		apperrorWrapSimpleErrorCalled++
+		assert.Equal(t, 10, len(innerErrors))
+		assert.Equal(t, expectedValidateStringFunctionFuncReturn2[0], innerErrors[0])
+		assert.Equal(t, expectedValidateStringFunctionFuncReturn2[1], innerErrors[1])
+		assert.Equal(t, expectedValidateStringFunctionFuncReturn2[2], innerErrors[2])
+		assert.Equal(t, expectedValidateStringFunctionFuncReturn2[3], innerErrors[3])
+		assert.Equal(t, expectedValidateBooleanFunctionFuncReturn2[0], innerErrors[4])
+		assert.Equal(t, expectedValidateStringFunctionFuncReturn2[4], innerErrors[5])
+		assert.Equal(t, expectedValidateStringFunctionFuncReturn2[5], innerErrors[6])
+		assert.Equal(t, expectedValidateBooleanFunctionFuncReturn2[1], innerErrors[7])
+		assert.Equal(t, expectedValidateStringFunctionFuncReturn2[6], innerErrors[8])
+		assert.Equal(t, expectedValidateBooleanFunctionFuncReturn2[2], innerErrors[9])
+		assert.Equal(t, dummyMessageFormat, messageFormat)
+		assert.Equal(t, 0, len(parameters))
 		return dummyAppError
 	}
 

@@ -19,9 +19,8 @@ var (
 	fmtSprintf                 = fmt.Sprintf
 	timeutilGetTimeNowUTC      = timeutil.GetTimeNowUTC
 	jsonutilMarshalIgnoreError = jsonutil.MarshalIgnoreError
-	isLoggingAllowedFunc       = isLoggingAllowed
 	sessionGet                 = session.Get
-	apperrorWrapSimpleError    = apperror.WrapSimpleError
+	apperrorGetCustomError     = apperror.GetCustomError
 	defaultLoggingFunc         = defaultLogging
 	prepareLoggingFunc         = prepareLogging
 )

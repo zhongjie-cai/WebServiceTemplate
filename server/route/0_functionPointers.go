@@ -13,8 +13,8 @@ import (
 // func pointers for injection / testing: server.go
 var (
 	apperrorWrapSimpleError         = apperror.WrapSimpleError
-	apperrorConsolidateAllErrors    = apperror.ConsolidateAllErrors
 	apperrorGetNotImplementedError  = apperror.GetNotImplementedError
+	apperrorGetCustomError          = apperror.GetCustomError
 	stringsJoin                     = strings.Join
 	fmtSprintf                      = fmt.Sprintf
 	loggerAppRoot                   = logger.AppRoot

@@ -3,6 +3,8 @@ package certificate
 import (
 	"crypto/tls"
 	"crypto/x509"
+
+	apperrorEnum "github.com/zhongjie-cai/WebServiceTemplate/apperror/enum"
 )
 
 var (
@@ -20,7 +22,7 @@ func loadTLSCertificate(
 	if tlsError != nil {
 		return nil,
 			apperrorWrapSimpleError(
-				tlsError,
+				[]error{tlsError},
 				"Failed to load certificate content",
 			)
 	}
@@ -39,8 +41,8 @@ func loadX509CertPool(certBytes []byte) (*x509.CertPool, error) {
 	var appendSuccess = appendCertsFromPEMFunc(certPool, certBytes)
 	if !appendSuccess {
 		return nil,
-			apperrorWrapSimpleError(
-				nil,
+			apperrorGetCustomError(
+				apperrorEnum.CodeGeneralFailure,
 				"Failed to parse certificate bytes",
 			)
 	}
@@ -62,7 +64,7 @@ func initializeServerCert(
 	)
 	if serverCertError != nil {
 		return apperrorWrapSimpleError(
-			serverCertError,
+			[]error{serverCertError},
 			"Failed to initialize server certificate",
 		)
 	}
@@ -83,7 +85,7 @@ func initializeCaCertPool(
 	)
 	if poolError != nil {
 		return apperrorWrapSimpleError(
-			poolError,
+			[]error{poolError},
 			"Failed to initialize CA cert pool",
 		)
 	}
@@ -110,10 +112,12 @@ func Initialize(
 			caCertContent,
 		)
 	)
-	return apperrorConsolidateAllErrors(
+	return apperrorWrapSimpleError(
+		[]error{
+			serverCertError,
+			caCertPoolError,
+		},
 		"Failed to initialize certificates for application",
-		serverCertError,
-		caCertPoolError,
 	)
 }
 

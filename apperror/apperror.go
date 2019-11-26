@@ -1,24 +1,13 @@
 package apperror
 
-import "errors"
+import (
+	"github.com/zhongjie-cai/WebServiceTemplate/apperror/enum"
+	"github.com/zhongjie-cai/WebServiceTemplate/apperror/model"
+	"github.com/zhongjie-cai/WebServiceTemplate/customization"
+)
 
-// Code are codes returned by service indicating operation results; it is an integer value of the enum that corresponds to a given error
-type Code int
-
-// These are the integer values of the enum that corresponds to a given error
+// These are print formatting related constants
 const (
-	CodeGeneralFailure Code = iota
-	CodeUnauthorized
-	CodeInvalidOperation
-	CodeBadRequest
-	CodeNotFound
-	CodeCircuitBreak
-	CodeOperationLock
-	CodeAccessForbidden
-	CodeDataCorruption
-	CodeNotImplemented
-	codeMaxValue
-
 	ErrorPrintFormat   string = "(%v)%v" // (Code)Message
 	ErrorPointer       string = " -> "
 	ErrorHolderLeft    string = "[ "
@@ -27,42 +16,32 @@ const (
 	ErrorMessageIndent string = "  "
 )
 
-// String translates the enum
-func (code Code) String() string {
-	var names = [...]string{
-		"GeneralFailure",
-		"Unauthorized",
-		"InvalidOperation",
-		"BadRequest",
-		"NotFound",
-		"CircuitBreak",
-		"OperationLock",
-		"AccessForbidden",
-		"DataCorruption",
-		"NotImplemented",
-	}
-	if code < 0 || code >= codeMaxValue {
-		return "Unknown"
-	}
-	return names[code]
-}
-
-// AppError is the error wrapper interface for all WebServiceTemplate service generated errors
-type AppError interface {
-	error
-	Code() Code
-	InnerErrors() []error
-	Messages() []string
-}
-
 type appError struct {
 	error
-	code        Code
+	code        enum.Code
 	innerErrors []error
 }
 
-func (appError appError) Code() Code {
-	return appError.code
+func (appError appError) Code() string {
+	if customization.AppErrors != nil {
+		var codeNames, _ = customization.AppErrors()
+		var codeName, found = codeNames[appError.code]
+		if found {
+			return codeName
+		}
+	}
+	return appError.code.String()
+}
+
+func (appError appError) HTTPStatusCode() int {
+	if customization.AppErrors != nil {
+		var _, httpStatusCodes = customization.AppErrors()
+		var statusCode, found = httpStatusCodes[appError.code]
+		if found {
+			return statusCode
+		}
+	}
+	return appError.code.HTTPStatusCode()
 }
 
 func (appError appError) Error() string {
@@ -93,12 +72,12 @@ func (appError appError) Messages() []string {
 	var messages = []string{
 		fmtSprintf(
 			ErrorPrintFormat,
-			appError.code,
+			appError.Code(),
 			appError.error.Error(),
 		),
 	}
 	for _, innerError := range appError.innerErrors {
-		var typedError, isTyped = innerError.(AppError)
+		var typedError, isTyped = innerError.(model.AppError)
 		if isTyped {
 			var innerMessages = typedError.Messages()
 			for _, innerMessage := range innerMessages {
@@ -118,138 +97,108 @@ func (appError appError) Messages() []string {
 }
 
 // GetGeneralFailureError creates a generic error based on GeneralFailure
-func GetGeneralFailureError(innerError error) AppError {
+func GetGeneralFailureError(innerErrors ...error) model.AppError {
 	return wrapErrorFunc(
-		innerError,
-		CodeGeneralFailure,
+		innerErrors,
+		enum.CodeGeneralFailure,
 		"An error occurred during execution",
 	)
 }
 
 // GetUnauthorized creates an error related to Unauthorized
-func GetUnauthorized(innerError error) AppError {
+func GetUnauthorized(innerErrors ...error) model.AppError {
 	return wrapErrorFunc(
-		innerError,
-		CodeUnauthorized,
+		innerErrors,
+		enum.CodeUnauthorized,
 		"Access denied due to authorization error",
 	)
 }
 
 // GetInvalidOperation creates an error related to InvalidOperation
-func GetInvalidOperation(innerError error) AppError {
+func GetInvalidOperation(innerErrors ...error) model.AppError {
 	return wrapErrorFunc(
-		innerError,
-		CodeInvalidOperation,
+		innerErrors,
+		enum.CodeInvalidOperation,
 		"Operation (method) not allowed",
 	)
 }
 
 // GetBadRequestError creates an error related to BadRequest
-func GetBadRequestError(innerError error) AppError {
+func GetBadRequestError(innerErrors ...error) model.AppError {
 	return wrapErrorFunc(
-		innerError,
-		CodeBadRequest,
+		innerErrors,
+		enum.CodeBadRequest,
 		"Request URI or body is invalid",
 	)
 }
 
 // GetNotFoundError creates an error related to NotFound
-func GetNotFoundError(innerError error) AppError {
+func GetNotFoundError(innerErrors ...error) model.AppError {
 	return wrapErrorFunc(
-		innerError,
-		CodeNotFound,
+		innerErrors,
+		enum.CodeNotFound,
 		"Requested resource is not found in the storage",
 	)
 }
 
 // GetCircuitBreakError creates an error related to CircuitBreak
-func GetCircuitBreakError(innerError error) AppError {
+func GetCircuitBreakError(innerErrors ...error) model.AppError {
 	return wrapErrorFunc(
-		innerError,
-		CodeCircuitBreak,
+		innerErrors,
+		enum.CodeCircuitBreak,
 		"Operation refused due to internal circuit break on correlation ID",
 	)
 }
 
 // GetOperationLockError creates an error related to OperationLock
-func GetOperationLockError(innerError error) AppError {
+func GetOperationLockError(innerErrors ...error) model.AppError {
 	return wrapErrorFunc(
-		innerError,
-		CodeOperationLock,
+		innerErrors,
+		enum.CodeOperationLock,
 		"Operation refused due to mutex lock on correlation ID or trip ID",
 	)
 }
 
 // GetAccessForbiddenError creates an error related to AccessForbidden
-func GetAccessForbiddenError(innerError error) AppError {
+func GetAccessForbiddenError(innerErrors ...error) model.AppError {
 	return wrapErrorFunc(
-		innerError,
-		CodeAccessForbidden,
+		innerErrors,
+		enum.CodeAccessForbidden,
 		"Operation failed due to access forbidden",
 	)
 }
 
 // GetDataCorruptionError creates an error related to DataCorruption
-func GetDataCorruptionError(innerError error) AppError {
+func GetDataCorruptionError(innerErrors ...error) model.AppError {
 	return wrapErrorFunc(
-		innerError,
-		CodeDataCorruption,
+		innerErrors,
+		enum.CodeDataCorruption,
 		"Operation failed due to internal storage data corruption",
 	)
 }
 
 // GetNotImplementedError creates an error related to NotImplemented
-func GetNotImplementedError(innerError error) AppError {
+func GetNotImplementedError(innerErrors ...error) model.AppError {
 	return wrapErrorFunc(
-		innerError,
-		CodeNotImplemented,
+		innerErrors,
+		enum.CodeNotImplemented,
 		"Operation failed due to internal business logic not implemented",
 	)
 }
 
-// ConsolidateAllErrors adds up all errors in param list and generate a single error if the list is not empty
-func ConsolidateAllErrors(
-	baseErrorMessage string,
-	allErrors ...error,
-) AppError {
-	if allErrors == nil || len(allErrors) == 0 {
-		return nil
+// GetCustomError creates a customized error with given code and formatted message
+func GetCustomError(errorCode enum.Code, messageFormat string, parameters ...interface{}) model.AppError {
+	return appError{
+		fmtErrorf(messageFormat, parameters...),
+		errorCode,
+		nil,
 	}
-	var allErrorMessages []string
-	for _, err := range allErrors {
-		if err != nil {
-			var errorMessage = err.Error()
-			if errorMessage == "" {
-				allErrorMessages = append(
-					allErrorMessages,
-					"Unknown Error",
-				)
-			} else {
-				allErrorMessages = append(
-					allErrorMessages,
-					err.Error(),
-				)
-			}
-		}
-	}
-	if len(allErrorMessages) == 0 {
-		return nil
-	}
-	var consilidatedErrorMessage = stringsJoin(
-		allErrorMessages,
-		ErrorSeparator,
-	)
-	return wrapSimpleErrorFunc(
-		errors.New(consilidatedErrorMessage),
-		baseErrorMessage,
-	)
 }
 
 // WrapError wraps an inner error with given message as a new error with given error code
-func WrapError(innerError error, errorCode Code, messageFormat string, parameters ...interface{}) AppError {
-	var innerErrors []error
-	if innerError != nil {
-		innerErrors = []error{innerError}
+func WrapError(innerErrors []error, errorCode enum.Code, messageFormat string, parameters ...interface{}) model.AppError {
+	if len(innerErrors) == 0 {
+		return nil
 	}
 	return appError{
 		fmtErrorf(messageFormat, parameters...),
@@ -259,10 +208,10 @@ func WrapError(innerError error, errorCode Code, messageFormat string, parameter
 }
 
 // WrapSimpleError wraps an inner error with given message as a new general failure error
-func WrapSimpleError(innerError error, messageFormat string, parameters ...interface{}) AppError {
+func WrapSimpleError(innerErrors []error, messageFormat string, parameters ...interface{}) model.AppError {
 	return wrapErrorFunc(
-		innerError,
-		CodeGeneralFailure,
+		innerErrors,
+		enum.CodeGeneralFailure,
 		messageFormat,
 		parameters...,
 	)
@@ -271,7 +220,7 @@ func WrapSimpleError(innerError error, messageFormat string, parameters ...inter
 // GetInnermostErrors finds the innermost error wrapped within the given error
 func GetInnermostErrors(err error) []error {
 	var innermostErrors []error
-	var appError, ok = err.(AppError)
+	var appError, ok = err.(model.AppError)
 	if ok {
 		for _, innerError := range appError.InnerErrors() {
 			innermostErrors = append(

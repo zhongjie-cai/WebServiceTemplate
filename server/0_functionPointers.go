@@ -15,7 +15,6 @@ var (
 	certificateGetServerCertificate = certificate.GetServerCertificate
 	certificateGetClientCertPool    = certificate.GetClientCertPool
 	apperrorWrapSimpleError         = apperror.WrapSimpleError
-	apperrorConsolidateAllErrors    = apperror.ConsolidateAllErrors
 	registerInstantiate             = register.Instantiate
 	loggerAppRoot                   = logger.AppRoot
 	signalNotify                    = signal.Notify

@@ -8,11 +8,13 @@ import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
+	apperrorEnum "github.com/zhongjie-cai/WebServiceTemplate/apperror/enum"
+	apperrorModel "github.com/zhongjie-cai/WebServiceTemplate/apperror/model"
 	"github.com/zhongjie-cai/WebServiceTemplate/config"
 	"github.com/zhongjie-cai/WebServiceTemplate/customization"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger/loglevel"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger/logtype"
-	"github.com/zhongjie-cai/WebServiceTemplate/session"
+	sessionModel "github.com/zhongjie-cai/WebServiceTemplate/session/model"
 )
 
 func TestInitialize_NotSet(t *testing.T) {
@@ -27,10 +29,10 @@ func TestInitialize_NotSet(t *testing.T) {
 	createMock(t)
 
 	// expect
-	apperrorWrapSimpleErrorExpected = 1
-	apperrorWrapSimpleError = func(innerError error, messageFormat string, parameters ...interface{}) apperror.AppError {
-		apperrorWrapSimpleErrorCalled++
-		assert.NoError(t, innerError)
+	apperrorGetCustomErrorExpected = 1
+	apperrorGetCustomError = func(errorCode apperrorEnum.Code, messageFormat string, parameters ...interface{}) apperrorModel.AppError {
+		apperrorGetCustomErrorCalled++
+		assert.Equal(t, apperrorEnum.CodeGeneralFailure, errorCode)
 		assert.Equal(t, dummyMessageFormat, messageFormat)
 		assert.Equal(t, 0, len(parameters))
 		return dummyAppError
@@ -48,7 +50,7 @@ func TestInitialize_NotSet(t *testing.T) {
 
 func TestInitialize_Set(t *testing.T) {
 	// stub
-	customization.LoggingFunc = func(session *session.Session, logType logtype.LogType, logLevel loglevel.LogLevel, category, subcategory, description string) {
+	customization.LoggingFunc = func(session sessionModel.Session, logType logtype.LogType, logLevel loglevel.LogLevel, category, subcategory, description string) {
 	}
 
 	// mock
@@ -67,14 +69,11 @@ func TestInitialize_Set(t *testing.T) {
 func TestDefaultLogging(t *testing.T) {
 	// arrange
 	var dummySessionID = uuid.New()
-	var dummyAllowedLogType = logtype.BasicLogging
-	var dummyAllowedLogLevel = loglevel.Warn
 	var dummyName = "some Name"
-	var dummyLogSession = &session.Session{
-		ID:              dummySessionID,
-		AllowedLogType:  dummyAllowedLogType,
-		AllowedLogLevel: dummyAllowedLogLevel,
-		Name:            dummyName,
+	var dummySessionObject = &dummySession{
+		t:    t,
+		id:   &dummySessionID,
+		name: &dummyName,
 	}
 	var dummyLogType = logtype.MethodLogic
 	var dummyLogLevel = loglevel.Warn
@@ -133,7 +132,7 @@ func TestDefaultLogging(t *testing.T) {
 
 	// SUT + act
 	defaultLogging(
-		dummyLogSession,
+		dummySessionObject,
 		dummyLogType,
 		dummyLogLevel,
 		dummyCategory,
@@ -145,172 +144,13 @@ func TestDefaultLogging(t *testing.T) {
 	verifyAll(t)
 }
 
-func TestIsLoggingAllowed_NilSession(t *testing.T) {
-	// arrange
-	var dummyLogSession *session.Session
-	var dummyLogType = logtype.APIEnter
-	var dummyLogLevel = loglevel.Warn
-
-	// mock
-	createMock(t)
-
-	// SUT + act
-	var result = isLoggingAllowed(
-		dummyLogSession,
-		dummyLogType,
-		dummyLogLevel,
-	)
-
-	// assert
-	assert.False(t, result)
-
-	// verify
-	verifyAll(t)
-}
-
-func TestIsLoggingAllowed_IsLocalHost(t *testing.T) {
-	// arrange
-	var dummyLogSession = &session.Session{}
-	var dummyLogType = logtype.APIEnter
-	var dummyLogLevel = loglevel.Warn
-
-	// mock
-	createMock(t)
-
-	// expect
-	configIsLocalhostExpected = 1
-	config.IsLocalhost = func() bool {
-		configIsLocalhostCalled++
-		return true
-	}
-
-	// SUT + act
-	var result = isLoggingAllowed(
-		dummyLogSession,
-		dummyLogType,
-		dummyLogLevel,
-	)
-
-	// assert
-	assert.True(t, result)
-
-	// verify
-	verifyAll(t)
-}
-
-func TestIsLoggingAllowed_FlagNotMatch(t *testing.T) {
-	// arrange
-	var dummyAllowedLogType = logtype.GeneralTracing
-	var dummyAllowedLogLevel = loglevel.Warn
-	var dummyLogSession = &session.Session{
-		AllowedLogType:  dummyAllowedLogType,
-		AllowedLogLevel: dummyAllowedLogLevel,
-	}
-	var dummyLogType = logtype.MethodLogic
-	var dummyLogLevel = loglevel.Warn
-
-	// mock
-	createMock(t)
-
-	// expect
-	configIsLocalhostExpected = 1
-	config.IsLocalhost = func() bool {
-		configIsLocalhostCalled++
-		return false
-	}
-
-	// SUT + act
-	var result = isLoggingAllowed(
-		dummyLogSession,
-		dummyLogType,
-		dummyLogLevel,
-	)
-
-	// assert
-	assert.False(t, result)
-
-	// verify
-	verifyAll(t)
-}
-
-func TestIsLoggingAllowed_FlagMatch_LevelNotMatch(t *testing.T) {
-	// arrange
-	var dummyAllowedLogType = logtype.BasicLogging
-	var dummyAllowedLogLevel = loglevel.Warn
-	var dummyLogSession = &session.Session{
-		AllowedLogType:  dummyAllowedLogType,
-		AllowedLogLevel: dummyAllowedLogLevel,
-	}
-	var dummyLogType = logtype.MethodLogic
-	var dummyLogLevel = loglevel.Info
-
-	// mock
-	createMock(t)
-
-	// expect
-	configIsLocalhostExpected = 1
-	config.IsLocalhost = func() bool {
-		configIsLocalhostCalled++
-		return false
-	}
-
-	// SUT + act
-	var result = isLoggingAllowed(
-		dummyLogSession,
-		dummyLogType,
-		dummyLogLevel,
-	)
-
-	// assert
-	assert.False(t, result)
-
-	// verify
-	verifyAll(t)
-}
-
-func TestIsLoggingAllowed_FlagMatch_LevelMatch(t *testing.T) {
-	// arrange
-	var dummyAllowedLogType = logtype.BasicLogging
-	var dummyAllowedLogLevel = loglevel.Warn
-	var dummyLogSession = &session.Session{
-		AllowedLogType:  dummyAllowedLogType,
-		AllowedLogLevel: dummyAllowedLogLevel,
-	}
-	var dummyLogType = logtype.MethodLogic
-	var dummyLogLevel = loglevel.Warn
-
-	// mock
-	createMock(t)
-
-	// expect
-	configIsLocalhostExpected = 1
-	config.IsLocalhost = func() bool {
-		configIsLocalhostCalled++
-		return false
-	}
-
-	// SUT + act
-	var result = isLoggingAllowed(
-		dummyLogSession,
-		dummyLogType,
-		dummyLogLevel,
-	)
-
-	// assert
-	assert.True(t, result)
-
-	// verify
-	verifyAll(t)
-}
-
 func TestPrepareLogging_LoggingNotAllowed(t *testing.T) {
 	// arrange
 	var dummySessionID = uuid.New()
-	var dummyAllowedLogType = logtype.BasicLogging
-	var dummyAllowedLogLevel = loglevel.Warn
-	var dummyLogSession = &session.Session{
-		AllowedLogType:  dummyAllowedLogType,
-		AllowedLogLevel: dummyAllowedLogLevel,
+	var dummyIsLogAllowed = false
+	var dummySessionObject = &dummySession{
+		t:            t,
+		isLogAllowed: &dummyIsLogAllowed,
 	}
 	var dummyLogType = logtype.APIEnter
 	var dummyLogLevel = loglevel.Warn
@@ -323,18 +163,10 @@ func TestPrepareLogging_LoggingNotAllowed(t *testing.T) {
 
 	// expect
 	sessionGetExpected = 1
-	sessionGet = func(sessionID uuid.UUID) *session.Session {
+	sessionGet = func(sessionID uuid.UUID) sessionModel.Session {
 		sessionGetCalled++
 		assert.Equal(t, dummySessionID, sessionID)
-		return dummyLogSession
-	}
-	isLoggingAllowedFuncExpected = 1
-	isLoggingAllowedFunc = func(session *session.Session, logType logtype.LogType, logLevel loglevel.LogLevel) bool {
-		isLoggingAllowedFuncCalled++
-		assert.Equal(t, dummyLogSession, session)
-		assert.Equal(t, dummyLogType, logType)
-		assert.Equal(t, dummyLogLevel, logLevel)
-		return false
+		return dummySessionObject
 	}
 
 	// SUT + act
@@ -354,14 +186,10 @@ func TestPrepareLogging_LoggingNotAllowed(t *testing.T) {
 func TestPrepareLogging_LogAllowed_DefaultLogging(t *testing.T) {
 	// arrange
 	var dummySessionID = uuid.New()
-	var dummyAllowedLogType = logtype.BasicLogging
-	var dummyAllowedLogLevel = loglevel.Warn
-	var dummyName = "some Name"
-	var dummyLogSession = &session.Session{
-		ID:              dummySessionID,
-		AllowedLogType:  dummyAllowedLogType,
-		AllowedLogLevel: dummyAllowedLogLevel,
-		Name:            dummyName,
+	var dummyIsLogAllowed = true
+	var dummySessionObject = &dummySession{
+		t:            t,
+		isLogAllowed: &dummyIsLogAllowed,
 	}
 	var dummyLogType = logtype.MethodEnter
 	var dummyLogLevel = loglevel.Error
@@ -377,23 +205,15 @@ func TestPrepareLogging_LogAllowed_DefaultLogging(t *testing.T) {
 
 	// expect
 	sessionGetExpected = 1
-	sessionGet = func(sessionID uuid.UUID) *session.Session {
+	sessionGet = func(sessionID uuid.UUID) sessionModel.Session {
 		sessionGetCalled++
 		assert.Equal(t, dummySessionID, sessionID)
-		return dummyLogSession
-	}
-	isLoggingAllowedFuncExpected = 1
-	isLoggingAllowedFunc = func(session *session.Session, logType logtype.LogType, logLevel loglevel.LogLevel) bool {
-		isLoggingAllowedFuncCalled++
-		assert.Equal(t, dummyLogSession, session)
-		assert.Equal(t, dummyLogType, logType)
-		assert.Equal(t, dummyLogLevel, logLevel)
-		return true
+		return dummySessionObject
 	}
 	defaultLoggingFuncExpected = 1
-	defaultLoggingFunc = func(session *session.Session, logType logtype.LogType, logLevel loglevel.LogLevel, category, subcategory, description string) {
+	defaultLoggingFunc = func(session sessionModel.Session, logType logtype.LogType, logLevel loglevel.LogLevel, category, subcategory, description string) {
 		defaultLoggingFuncCalled++
-		assert.Equal(t, dummyLogSession, session)
+		assert.Equal(t, dummySessionObject, session)
 		assert.Equal(t, dummyLogType, logType)
 		assert.Equal(t, dummyLogLevel, logLevel)
 		assert.Equal(t, dummyCategory, category)
@@ -418,14 +238,10 @@ func TestPrepareLogging_LogAllowed_DefaultLogging(t *testing.T) {
 func TestPrepareLogging_LogAllowed_CustomLogging(t *testing.T) {
 	// arrange
 	var dummySessionID = uuid.New()
-	var dummyAllowedLogType = logtype.BasicLogging
-	var dummyAllowedLogLevel = loglevel.Warn
-	var dummyName = "some Name"
-	var dummyLogSession = &session.Session{
-		ID:              dummySessionID,
-		AllowedLogType:  dummyAllowedLogType,
-		AllowedLogLevel: dummyAllowedLogLevel,
-		Name:            dummyName,
+	var dummyIsLogAllowed = true
+	var dummySessionObject = &dummySession{
+		t:            t,
+		isLogAllowed: &dummyIsLogAllowed,
 	}
 	var dummyLogType = logtype.MethodEnter
 	var dummyLogLevel = loglevel.Error
@@ -440,23 +256,15 @@ func TestPrepareLogging_LogAllowed_CustomLogging(t *testing.T) {
 
 	// expect
 	sessionGetExpected = 1
-	sessionGet = func(sessionID uuid.UUID) *session.Session {
+	sessionGet = func(sessionID uuid.UUID) sessionModel.Session {
 		sessionGetCalled++
 		assert.Equal(t, dummySessionID, sessionID)
-		return dummyLogSession
-	}
-	isLoggingAllowedFuncExpected = 1
-	isLoggingAllowedFunc = func(session *session.Session, logType logtype.LogType, logLevel loglevel.LogLevel) bool {
-		isLoggingAllowedFuncCalled++
-		assert.Equal(t, dummyLogSession, session)
-		assert.Equal(t, dummyLogType, logType)
-		assert.Equal(t, dummyLogLevel, logLevel)
-		return true
+		return dummySessionObject
 	}
 	loggingFuncExpected = 1
-	customization.LoggingFunc = func(session *session.Session, logType logtype.LogType, logLevel loglevel.LogLevel, category, subcategory, description string) {
+	customization.LoggingFunc = func(session sessionModel.Session, logType logtype.LogType, logLevel loglevel.LogLevel, category, subcategory, description string) {
 		loggingFuncCalled++
-		assert.Equal(t, dummyLogSession, session)
+		assert.Equal(t, dummySessionObject, session)
 		assert.Equal(t, dummyLogType, logType)
 		assert.Equal(t, dummyCategory, category)
 		assert.Equal(t, dummySubCategory, subcategory)

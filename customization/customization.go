@@ -2,10 +2,11 @@ package customization
 
 import (
 	"github.com/google/uuid"
+	apperrorEnum "github.com/zhongjie-cai/WebServiceTemplate/apperror/enum"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger/loglevel"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger/logtype"
-	"github.com/zhongjie-cai/WebServiceTemplate/server/model"
-	"github.com/zhongjie-cai/WebServiceTemplate/session"
+	serverModel "github.com/zhongjie-cai/WebServiceTemplate/server/model"
+	sessionModel "github.com/zhongjie-cai/WebServiceTemplate/session/model"
 )
 
 // PreBootstrapFunc is to customize the pre-processing logic before bootstrapping
@@ -18,7 +19,7 @@ var PostBootstrapFunc func() error
 var AppClosingFunc func() error
 
 // LoggingFunc is to customize the logging backend for the whole application
-var LoggingFunc func(session *session.Session, logType logtype.LogType, logLevel loglevel.LogLevel, category, subcategory, description string)
+var LoggingFunc func(session sessionModel.Session, logType logtype.LogType, logLevel loglevel.LogLevel, category, subcategory, description string)
 
 // AppVersion is to customize the application version string
 var AppVersion func() string
@@ -60,13 +61,16 @@ var PostActionFunc func(sessionID uuid.UUID) error
 var CreateErrorResponseFunc func(err error) (responseMessage string, statusCode int)
 
 // Routes is to customize the routes registration
-var Routes func() []model.Route
+var Routes func() []serverModel.Route
 
 // Statics is to customize the static contents registration
-var Statics func() []model.Static
+var Statics func() []serverModel.Static
 
 // Middlewares is to customize the middlewares registration
-var Middlewares func() []model.MiddlewareFunc
+var Middlewares func() []serverModel.MiddlewareFunc
+
+// AppErrors is to customize (override) the AppErrors for their string representations and corresponding HTTP status codes
+var AppErrors func() (map[apperrorEnum.Code]string, map[apperrorEnum.Code]int)
 
 // Reset clears all customization of functions for the whole application
 func Reset() {
@@ -90,4 +94,5 @@ func Reset() {
 	Routes = nil
 	Statics = nil
 	Middlewares = nil
+	AppErrors = nil
 }

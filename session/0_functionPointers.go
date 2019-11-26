@@ -20,7 +20,7 @@ var (
 	muxVars                         = mux.Vars
 	requestGetRequestBody           = request.GetRequestBody
 	apperrorGetBadRequestError      = apperror.GetBadRequestError
-	apperrorConsolidateAllErrors    = apperror.ConsolidateAllErrors
+	apperrorWrapSimpleError         = apperror.WrapSimpleError
 	textprotoCanonicalMIMEHeaderKey = textproto.CanonicalMIMEHeaderKey
 	getFunc                         = Get
 	tryUnmarshalFunc                = tryUnmarshal

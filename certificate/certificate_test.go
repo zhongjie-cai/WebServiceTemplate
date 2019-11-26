@@ -9,6 +9,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
+	apperrorEnum "github.com/zhongjie-cai/WebServiceTemplate/apperror/enum"
+	apperrorModel "github.com/zhongjie-cai/WebServiceTemplate/apperror/model"
 )
 
 func TestLoadTLSCertificate_ErrorTLSCert(t *testing.T) {
@@ -32,9 +34,10 @@ func TestLoadTLSCertificate_ErrorTLSCert(t *testing.T) {
 		return dummyTLSCert, dummyError
 	}
 	apperrorWrapSimpleErrorExpected = 1
-	apperrorWrapSimpleError = func(innerError error, messageFormat string, parameters ...interface{}) apperror.AppError {
+	apperrorWrapSimpleError = func(innerErrors []error, messageFormat string, parameters ...interface{}) apperrorModel.AppError {
 		apperrorWrapSimpleErrorCalled++
-		assert.Equal(t, dummyError, innerError)
+		assert.Equal(t, 1, len(innerErrors))
+		assert.Equal(t, dummyError, innerErrors[0])
 		assert.Equal(t, dummyMessageFormat, messageFormat)
 		assert.Equal(t, 0, len(parameters))
 		return dummyAppError
@@ -107,10 +110,10 @@ func TestLoadX509CertPool_ParseError(t *testing.T) {
 		appendCertsFromPEMFuncCalled++
 		return appendCertsFromPEM(certPool, certBytes)
 	}
-	apperrorWrapSimpleErrorExpected = 1
-	apperrorWrapSimpleError = func(innerError error, messageFormat string, parameters ...interface{}) apperror.AppError {
-		apperrorWrapSimpleErrorCalled++
-		assert.NoError(t, innerError)
+	apperrorGetCustomErrorExpected = 1
+	apperrorGetCustomError = func(errorCode apperrorEnum.Code, messageFormat string, parameters ...interface{}) apperrorModel.AppError {
+		apperrorGetCustomErrorCalled++
+		assert.Equal(t, apperrorEnum.CodeGeneralFailure, errorCode)
 		assert.Equal(t, dummyMessageFormat, messageFormat)
 		assert.Equal(t, 0, len(parameters))
 		return dummyAppError
@@ -216,9 +219,10 @@ func TestInitializeServerCert_ServerCertError(t *testing.T) {
 		return dummyServerCert, dummyServerCertError
 	}
 	apperrorWrapSimpleErrorExpected = 1
-	apperrorWrapSimpleError = func(innerError error, messageFormat string, parameters ...interface{}) apperror.AppError {
+	apperrorWrapSimpleError = func(innerErrors []error, messageFormat string, parameters ...interface{}) apperrorModel.AppError {
 		apperrorWrapSimpleErrorCalled++
-		assert.Equal(t, dummyServerCertError, innerError)
+		assert.Equal(t, 1, len(innerErrors))
+		assert.Equal(t, dummyServerCertError, innerErrors[0])
 		assert.Equal(t, dummyMessageFormat, messageFormat)
 		assert.Equal(t, 0, len(parameters))
 		return dummyAppError
@@ -324,9 +328,10 @@ func TestInitializeCaCertPool_CaCertPoolError(t *testing.T) {
 		return dummyCaCertPool, dummyCaCertPoolError
 	}
 	apperrorWrapSimpleErrorExpected = 1
-	apperrorWrapSimpleError = func(innerError error, messageFormat string, parameters ...interface{}) apperror.AppError {
+	apperrorWrapSimpleError = func(innerErrors []error, messageFormat string, parameters ...interface{}) apperrorModel.AppError {
 		apperrorWrapSimpleErrorCalled++
-		assert.Equal(t, dummyCaCertPoolError, innerError)
+		assert.Equal(t, 1, len(innerErrors))
+		assert.Equal(t, dummyCaCertPoolError, innerErrors[0])
 		assert.Equal(t, dummyMessageFormat, messageFormat)
 		assert.Equal(t, 0, len(parameters))
 		return dummyAppError
@@ -389,7 +394,7 @@ func TestInitialize_ErrorConsolidated(t *testing.T) {
 	var dummyValidateClientCert = rand.Intn(100) < 50
 	var dummyCaCertContent = "some CA cert content"
 	var dummyCaCertPoolError = errors.New("some ca cert pool error")
-	var dummyBaseErrorMessage = "Failed to initialize certificates for application"
+	var dummyMessageFormat = "Failed to initialize certificates for application"
 	var dummyAppError = apperror.GetGeneralFailureError(nil)
 
 	// mock
@@ -411,13 +416,14 @@ func TestInitialize_ErrorConsolidated(t *testing.T) {
 		assert.Equal(t, dummyCaCertContent, caCertContent)
 		return dummyCaCertPoolError
 	}
-	apperrorConsolidateAllErrorsExpected = 1
-	apperrorConsolidateAllErrors = func(baseErrorMessage string, allErrors ...error) apperror.AppError {
-		apperrorConsolidateAllErrorsCalled++
-		assert.Equal(t, dummyBaseErrorMessage, baseErrorMessage)
-		assert.Equal(t, 2, len(allErrors))
-		assert.Equal(t, dummyServerCertError, allErrors[0])
-		assert.Equal(t, dummyCaCertPoolError, allErrors[1])
+	apperrorWrapSimpleErrorExpected = 1
+	apperrorWrapSimpleError = func(innerErrors []error, messageFormat string, parameters ...interface{}) apperrorModel.AppError {
+		apperrorWrapSimpleErrorCalled++
+		assert.Equal(t, 2, len(innerErrors))
+		assert.Equal(t, dummyServerCertError, innerErrors[0])
+		assert.Equal(t, dummyCaCertPoolError, innerErrors[1])
+		assert.Equal(t, dummyMessageFormat, messageFormat)
+		assert.Equal(t, 0, len(parameters))
 		return dummyAppError
 	}
 

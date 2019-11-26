@@ -8,222 +8,15 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/zhongjie-cai/WebServiceTemplate/apperror/enum"
+	"github.com/zhongjie-cai/WebServiceTemplate/apperror/model"
+	"github.com/zhongjie-cai/WebServiceTemplate/customization"
 )
 
-func TestCodeEnumString_UnknownNegative(t *testing.T) {
-	// arrange
-	var testCode Code
-
-	// mock
-	createMock(t)
-
-	// SUT
-	testCode = -1
-
-	// act
-	var convertedString = testCode.String()
-
-	// assert
-	assert.Equal(t, "Unknown", convertedString)
-
-	// verify
-	verifyAll(t)
-}
-
-func TestCodeEnumString_GeneralFailure(t *testing.T) {
-	// mock
-	createMock(t)
-
-	// SUT
-	var testCode = CodeGeneralFailure
-
-	// act
-	var convertedString = testCode.String()
-
-	// assert
-	assert.Equal(t, "GeneralFailure", convertedString)
-
-	// verify
-	verifyAll(t)
-}
-
-func TestCodeEnumString_Unauthorized(t *testing.T) {
-	// mock
-	createMock(t)
-
-	// SUT
-	var testCode = CodeUnauthorized
-
-	// act
-	var convertedString = testCode.String()
-
-	// assert
-	assert.Equal(t, "Unauthorized", convertedString)
-
-	// verify
-	verifyAll(t)
-}
-
-func TestCodeEnumString_InvalidOperation(t *testing.T) {
-	// mock
-	createMock(t)
-
-	// SUT
-	var testCode = CodeInvalidOperation
-
-	// act
-	var convertedString = testCode.String()
-
-	// assert
-	assert.Equal(t, "InvalidOperation", convertedString)
-
-	// verify
-	verifyAll(t)
-}
-
-func TestCodeEnumString_BadRequest(t *testing.T) {
-	// mock
-	createMock(t)
-
-	// SUT
-	var testCode = CodeBadRequest
-
-	// act
-	var convertedString = testCode.String()
-
-	// assert
-	assert.Equal(t, "BadRequest", convertedString)
-
-	// verify
-	verifyAll(t)
-}
-
-func TestCodeEnumString_NotFound(t *testing.T) {
-	// mock
-	createMock(t)
-
-	// SUT
-	var testCode = CodeNotFound
-
-	// act
-	var convertedString = testCode.String()
-
-	// assert
-	assert.Equal(t, "NotFound", convertedString)
-
-	// verify
-	verifyAll(t)
-}
-
-func TestCodeEnumString_CircuitBreak(t *testing.T) {
-	// mock
-	createMock(t)
-
-	// SUT
-	var testCode = CodeCircuitBreak
-
-	// act
-	var convertedString = testCode.String()
-
-	// assert
-	assert.Equal(t, "CircuitBreak", convertedString)
-
-	// verify
-	verifyAll(t)
-}
-
-func TestCodeEnumString_OperationLock(t *testing.T) {
-	// mock
-	createMock(t)
-
-	// SUT
-	var testCode = CodeOperationLock
-
-	// act
-	var convertedString = testCode.String()
-
-	// assert
-	assert.Equal(t, "OperationLock", convertedString)
-
-	// verify
-	verifyAll(t)
-}
-
-func TestCodeEnumString_AccessForbidden(t *testing.T) {
-	// mock
-	createMock(t)
-
-	// SUT
-	var testCode = CodeAccessForbidden
-
-	// act
-	var convertedString = testCode.String()
-
-	// assert
-	assert.Equal(t, "AccessForbidden", convertedString)
-
-	// verify
-	verifyAll(t)
-}
-
-func TestCodeEnumString_GetDataCorruption(t *testing.T) {
-	// mock
-	createMock(t)
-
-	// SUT
-	var testCode = CodeDataCorruption
-
-	// act
-	var convertedString = testCode.String()
-
-	// assert
-	assert.Equal(t, "DataCorruption", convertedString)
-
-	// verify
-	verifyAll(t)
-}
-
-func TestCodeEnumString_GetNotImplemented(t *testing.T) {
-	// mock
-	createMock(t)
-
-	// SUT
-	var testCode = CodeNotImplemented
-
-	// act
-	var convertedString = testCode.String()
-
-	// assert
-	assert.Equal(t, "NotImplemented", convertedString)
-
-	// verify
-	verifyAll(t)
-}
-
-func TestCodeEnumString_UnknownTooBig(t *testing.T) {
-	// arrange
-	var testCode Code
-
-	// mock
-	createMock(t)
-
-	// SUT
-	testCode = 999
-
-	// act
-	var convertedString = testCode.String()
-
-	// assert
-	assert.Equal(t, "Unknown", convertedString)
-
-	// verify
-	verifyAll(t)
-}
-
-func TestAppErrorGetCode(t *testing.T) {
+func TestAppErrorGetCode_NoCustomization(t *testing.T) {
 	// arrange
 	var expectedError = errors.New("dummy error")
-	var expectedCode = CodeGeneralFailure
+	var expectedCode = enum.CodeGeneralFailure
 	var expectedInnerError1 = errors.New("dummy inner error 1")
 	var expectedInnerError2 = errors.New("dummy inner error 2")
 	var expectedInnerError3 = errors.New("dummy inner error 3")
@@ -247,7 +40,210 @@ func TestAppErrorGetCode(t *testing.T) {
 	var code = appError.Code()
 
 	// assert
-	assert.Equal(t, expectedCode, code)
+	assert.Equal(t, expectedCode.String(), code)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestAppErrorGetCode_WithCustomization_NoFoundMatch(t *testing.T) {
+	// arrange
+	var expectedError = errors.New("dummy error")
+	var expectedCode = enum.CodeGeneralFailure
+	var expectedInnerError1 = errors.New("dummy inner error 1")
+	var expectedInnerError2 = errors.New("dummy inner error 2")
+	var expectedInnerError3 = errors.New("dummy inner error 3")
+	var expectedInnerErrors = []error{
+		expectedInnerError1,
+		expectedInnerError2,
+		expectedInnerError3,
+	}
+	var dummyCustomizedNameMap = map[enum.Code]string{}
+
+	// mock
+	createMock(t)
+
+	// expect
+	customizationAppErrorsExpected = 1
+	customization.AppErrors = func() (map[enum.Code]string, map[enum.Code]int) {
+		customizationAppErrorsCalled++
+		return dummyCustomizedNameMap, nil
+	}
+
+	// SUT
+	var appError = appError{
+		expectedError,
+		expectedCode,
+		expectedInnerErrors,
+	}
+
+	// act
+	var code = appError.Code()
+
+	// assert
+	assert.Equal(t, expectedCode.String(), code)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestAppErrorGetCode_WithCustomization_FoundMatch(t *testing.T) {
+	// arrange
+	var expectedError = errors.New("dummy error")
+	var expectedCode = enum.CodeGeneralFailure
+	var expectedInnerError1 = errors.New("dummy inner error 1")
+	var expectedInnerError2 = errors.New("dummy inner error 2")
+	var expectedInnerError3 = errors.New("dummy inner error 3")
+	var expectedInnerErrors = []error{
+		expectedInnerError1,
+		expectedInnerError2,
+		expectedInnerError3,
+	}
+	var dummyCodeName = "some code name"
+	var dummyCustomizedNameMap = map[enum.Code]string{
+		expectedCode: dummyCodeName,
+	}
+
+	// mock
+	createMock(t)
+
+	// expect
+	customizationAppErrorsExpected = 1
+	customization.AppErrors = func() (map[enum.Code]string, map[enum.Code]int) {
+		customizationAppErrorsCalled++
+		return dummyCustomizedNameMap, nil
+	}
+
+	// SUT
+	var appError = appError{
+		expectedError,
+		expectedCode,
+		expectedInnerErrors,
+	}
+
+	// act
+	var code = appError.Code()
+
+	// assert
+	assert.Equal(t, dummyCodeName, code)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestAppErrorGetHTTPStatusCode_NoCustomization(t *testing.T) {
+	// arrange
+	var expectedError = errors.New("dummy error")
+	var expectedCode = enum.CodeGeneralFailure
+	var expectedInnerError1 = errors.New("dummy inner error 1")
+	var expectedInnerError2 = errors.New("dummy inner error 2")
+	var expectedInnerError3 = errors.New("dummy inner error 3")
+	var expectedInnerErrors = []error{
+		expectedInnerError1,
+		expectedInnerError2,
+		expectedInnerError3,
+	}
+
+	// mock
+	createMock(t)
+
+	// SUT
+	var appError = appError{
+		expectedError,
+		expectedCode,
+		expectedInnerErrors,
+	}
+
+	// act
+	var code = appError.HTTPStatusCode()
+
+	// assert
+	assert.Equal(t, expectedCode.HTTPStatusCode(), code)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestAppErrorGetHTTPStatusCode_WithCustomization_NoFoundMatch(t *testing.T) {
+	// arrange
+	var expectedError = errors.New("dummy error")
+	var expectedCode = enum.CodeGeneralFailure
+	var expectedInnerError1 = errors.New("dummy inner error 1")
+	var expectedInnerError2 = errors.New("dummy inner error 2")
+	var expectedInnerError3 = errors.New("dummy inner error 3")
+	var expectedInnerErrors = []error{
+		expectedInnerError1,
+		expectedInnerError2,
+		expectedInnerError3,
+	}
+	var dummyCustomizedStatusMap = map[enum.Code]int{}
+
+	// mock
+	createMock(t)
+
+	// expect
+	customizationAppErrorsExpected = 1
+	customization.AppErrors = func() (map[enum.Code]string, map[enum.Code]int) {
+		customizationAppErrorsCalled++
+		return nil, dummyCustomizedStatusMap
+	}
+
+	// SUT
+	var appError = appError{
+		expectedError,
+		expectedCode,
+		expectedInnerErrors,
+	}
+
+	// act
+	var code = appError.HTTPStatusCode()
+
+	// assert
+	assert.Equal(t, expectedCode.HTTPStatusCode(), code)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestAppErrorGetHTTPStatusCode_WithCustomization_FoundMatch(t *testing.T) {
+	// arrange
+	var expectedError = errors.New("dummy error")
+	var expectedCode = enum.CodeGeneralFailure
+	var expectedInnerError1 = errors.New("dummy inner error 1")
+	var expectedInnerError2 = errors.New("dummy inner error 2")
+	var expectedInnerError3 = errors.New("dummy inner error 3")
+	var expectedInnerErrors = []error{
+		expectedInnerError1,
+		expectedInnerError2,
+		expectedInnerError3,
+	}
+	var dummyHTTPStatusCode = rand.Int()
+	var dummyCustomizedStatusMap = map[enum.Code]int{
+		expectedCode: dummyHTTPStatusCode,
+	}
+
+	// mock
+	createMock(t)
+
+	// expect
+	customizationAppErrorsExpected = 1
+	customization.AppErrors = func() (map[enum.Code]string, map[enum.Code]int) {
+		customizationAppErrorsCalled++
+		return nil, dummyCustomizedStatusMap
+	}
+
+	// SUT
+	var appError = appError{
+		expectedError,
+		expectedCode,
+		expectedInnerErrors,
+	}
+
+	// act
+	var code = appError.HTTPStatusCode()
+
+	// assert
+	assert.Equal(t, dummyHTTPStatusCode, code)
 
 	// verify
 	verifyAll(t)
@@ -257,7 +253,7 @@ func TestAppErrorGetError_NoInner(t *testing.T) {
 	// arrange
 	var dummyMessage = "dummy error"
 	var expectedError = errors.New(dummyMessage)
-	var expectedCode = CodeGeneralFailure
+	var expectedCode = enum.CodeGeneralFailure
 	var expectedMessage = "(GeneralFailure)dummy error"
 
 	// mock
@@ -295,7 +291,7 @@ func TestAppErrorGetError_NoInner(t *testing.T) {
 func TestAppErrorGetError_WithInner(t *testing.T) {
 	// arrange
 	var expectedError = errors.New("dummy error")
-	var expectedCode = CodeGeneralFailure
+	var expectedCode = enum.CodeGeneralFailure
 	var expectedInnerError1 = errors.New("dummy inner error 1")
 	var expectedInnerError2 = errors.New("dummy inner error 2")
 	var expectedInnerError3 = errors.New("dummy inner error 3")
@@ -342,7 +338,7 @@ func TestAppErrorGetInnerErrors_NoInner(t *testing.T) {
 	// arrange
 	var expectedMessage = "dummy error"
 	var expectedError = errors.New(expectedMessage)
-	var expectedCode = CodeGeneralFailure
+	var expectedCode = enum.CodeGeneralFailure
 
 	// mock
 	createMock(t)
@@ -368,7 +364,7 @@ func TestAppErrorGetInnerErrors_WithInner(t *testing.T) {
 	// arrange
 	var expectedMessage = "dummy error"
 	var expectedError = errors.New(expectedMessage)
-	var expectedCode = CodeGeneralFailure
+	var expectedCode = enum.CodeGeneralFailure
 	var expectedInnerError1 = errors.New("some inner error 1")
 	var expectedInnerError2 = errors.New("some inner error 2")
 	var expectedInnerError3 = errors.New("some inner error 3")
@@ -402,7 +398,7 @@ func TestAppErrorGetMessages_NoInner(t *testing.T) {
 	// arrange
 	var dummyMessage = "dummy error"
 	var expectedError = errors.New(dummyMessage)
-	var expectedCode = CodeGeneralFailure
+	var expectedCode = enum.CodeGeneralFailure
 	var expectedMessage = "(GeneralFailure)dummy error"
 
 	// mock
@@ -437,7 +433,7 @@ func TestAppErrorGetMessages_WithNormalInner(t *testing.T) {
 	// arrange
 	var dummyMessage = "dummy error"
 	var expectedError = errors.New(dummyMessage)
-	var expectedCode = CodeGeneralFailure
+	var expectedCode = enum.CodeGeneralFailure
 	var expectedMessage = "(GeneralFailure)dummy error"
 	var expectedInnerError1 = errors.New("dummy inner error 1")
 	var expectedInnerError2 = errors.New("dummy inner error 2")
@@ -486,14 +482,14 @@ func TestAppErrorGetMessages_WithAppErrorInner(t *testing.T) {
 	// arrange
 	var dummyMessage = "dummy error"
 	var expectedError = errors.New(dummyMessage)
-	var expectedCode = CodeGeneralFailure
+	var expectedCode = enum.CodeGeneralFailure
 	var expectedMessage = "(GeneralFailure)dummy error"
 	var dummyInnerErrorMessage = "dummy inner error"
 	var dummyInnerMostErrorMessage = "dummy inner most error"
 	var expectedInnerError1 = errors.New("dummy inner error 1")
 	var expectedInnerError2 = appError{
 		errors.New(dummyInnerErrorMessage),
-		CodeGeneralFailure,
+		enum.CodeGeneralFailure,
 		[]error{errors.New(dummyInnerMostErrorMessage)},
 	}
 	var expectedInnerError3 = errors.New("dummy inner error 3")
@@ -549,10 +545,11 @@ func TestGetGeneralFailureError(t *testing.T) {
 
 	// expect
 	wrapErrorFuncExpected = 1
-	wrapErrorFunc = func(innerError error, errorCode Code, messageFormat string, parameters ...interface{}) AppError {
+	wrapErrorFunc = func(innerErrors []error, errorCode enum.Code, messageFormat string, parameters ...interface{}) model.AppError {
 		wrapErrorFuncCalled++
-		assert.Equal(t, expectedInnerError, innerError)
-		assert.Equal(t, CodeGeneralFailure, errorCode)
+		assert.Equal(t, 1, len(innerErrors))
+		assert.Equal(t, expectedInnerError, innerErrors[0])
+		assert.Equal(t, enum.CodeGeneralFailure, errorCode)
 		assert.Equal(t, "An error occurred during execution", messageFormat)
 		assert.Equal(t, 0, len(parameters))
 		return expectedResult
@@ -578,10 +575,11 @@ func TestGetUnauthorized(t *testing.T) {
 
 	// expect
 	wrapErrorFuncExpected = 1
-	wrapErrorFunc = func(innerError error, errorCode Code, messageFormat string, parameters ...interface{}) AppError {
+	wrapErrorFunc = func(innerErrors []error, errorCode enum.Code, messageFormat string, parameters ...interface{}) model.AppError {
 		wrapErrorFuncCalled++
-		assert.Equal(t, expectedInnerError, innerError)
-		assert.Equal(t, CodeUnauthorized, errorCode)
+		assert.Equal(t, 1, len(innerErrors))
+		assert.Equal(t, expectedInnerError, innerErrors[0])
+		assert.Equal(t, enum.CodeUnauthorized, errorCode)
 		assert.Equal(t, "Access denied due to authorization error", messageFormat)
 		assert.Equal(t, 0, len(parameters))
 		return expectedResult
@@ -607,10 +605,11 @@ func TestGetInvalidOperation(t *testing.T) {
 
 	// expect
 	wrapErrorFuncExpected = 1
-	wrapErrorFunc = func(innerError error, errorCode Code, messageFormat string, parameters ...interface{}) AppError {
+	wrapErrorFunc = func(innerErrors []error, errorCode enum.Code, messageFormat string, parameters ...interface{}) model.AppError {
 		wrapErrorFuncCalled++
-		assert.Equal(t, expectedInnerError, innerError)
-		assert.Equal(t, CodeInvalidOperation, errorCode)
+		assert.Equal(t, 1, len(innerErrors))
+		assert.Equal(t, expectedInnerError, innerErrors[0])
+		assert.Equal(t, enum.CodeInvalidOperation, errorCode)
 		assert.Equal(t, "Operation (method) not allowed", messageFormat)
 		assert.Equal(t, 0, len(parameters))
 		return expectedResult
@@ -636,10 +635,11 @@ func TestGetBadRequestError(t *testing.T) {
 
 	// expect
 	wrapErrorFuncExpected = 1
-	wrapErrorFunc = func(innerError error, errorCode Code, messageFormat string, parameters ...interface{}) AppError {
+	wrapErrorFunc = func(innerErrors []error, errorCode enum.Code, messageFormat string, parameters ...interface{}) model.AppError {
 		wrapErrorFuncCalled++
-		assert.Equal(t, expectedInnerError, innerError)
-		assert.Equal(t, CodeBadRequest, errorCode)
+		assert.Equal(t, 1, len(innerErrors))
+		assert.Equal(t, expectedInnerError, innerErrors[0])
+		assert.Equal(t, enum.CodeBadRequest, errorCode)
 		assert.Equal(t, "Request URI or body is invalid", messageFormat)
 		assert.Equal(t, 0, len(parameters))
 		return expectedResult
@@ -665,10 +665,11 @@ func TestGetNotFoundError(t *testing.T) {
 
 	// expect
 	wrapErrorFuncExpected = 1
-	wrapErrorFunc = func(innerError error, errorCode Code, messageFormat string, parameters ...interface{}) AppError {
+	wrapErrorFunc = func(innerErrors []error, errorCode enum.Code, messageFormat string, parameters ...interface{}) model.AppError {
 		wrapErrorFuncCalled++
-		assert.Equal(t, expectedInnerError, innerError)
-		assert.Equal(t, CodeNotFound, errorCode)
+		assert.Equal(t, 1, len(innerErrors))
+		assert.Equal(t, expectedInnerError, innerErrors[0])
+		assert.Equal(t, enum.CodeNotFound, errorCode)
 		assert.Equal(t, "Requested resource is not found in the storage", messageFormat)
 		assert.Equal(t, 0, len(parameters))
 		return expectedResult
@@ -694,10 +695,11 @@ func TestGetCircuitBreakError(t *testing.T) {
 
 	// expect
 	wrapErrorFuncExpected = 1
-	wrapErrorFunc = func(innerError error, errorCode Code, messageFormat string, parameters ...interface{}) AppError {
+	wrapErrorFunc = func(innerErrors []error, errorCode enum.Code, messageFormat string, parameters ...interface{}) model.AppError {
 		wrapErrorFuncCalled++
-		assert.Equal(t, expectedInnerError, innerError)
-		assert.Equal(t, CodeCircuitBreak, errorCode)
+		assert.Equal(t, 1, len(innerErrors))
+		assert.Equal(t, expectedInnerError, innerErrors[0])
+		assert.Equal(t, enum.CodeCircuitBreak, errorCode)
 		assert.Equal(t, "Operation refused due to internal circuit break on correlation ID", messageFormat)
 		assert.Equal(t, 0, len(parameters))
 		return expectedResult
@@ -723,10 +725,11 @@ func TestGetOperationLockError(t *testing.T) {
 
 	// expect
 	wrapErrorFuncExpected = 1
-	wrapErrorFunc = func(innerError error, errorCode Code, messageFormat string, parameters ...interface{}) AppError {
+	wrapErrorFunc = func(innerErrors []error, errorCode enum.Code, messageFormat string, parameters ...interface{}) model.AppError {
 		wrapErrorFuncCalled++
-		assert.Equal(t, expectedInnerError, innerError)
-		assert.Equal(t, CodeOperationLock, errorCode)
+		assert.Equal(t, 1, len(innerErrors))
+		assert.Equal(t, expectedInnerError, innerErrors[0])
+		assert.Equal(t, enum.CodeOperationLock, errorCode)
 		assert.Equal(t, "Operation refused due to mutex lock on correlation ID or trip ID", messageFormat)
 		assert.Equal(t, 0, len(parameters))
 		return expectedResult
@@ -752,10 +755,11 @@ func TestGetAccessForbiddenError(t *testing.T) {
 
 	// expect
 	wrapErrorFuncExpected = 1
-	wrapErrorFunc = func(innerError error, errorCode Code, messageFormat string, parameters ...interface{}) AppError {
+	wrapErrorFunc = func(innerErrors []error, errorCode enum.Code, messageFormat string, parameters ...interface{}) model.AppError {
 		wrapErrorFuncCalled++
-		assert.Equal(t, expectedInnerError, innerError)
-		assert.Equal(t, CodeAccessForbidden, errorCode)
+		assert.Equal(t, 1, len(innerErrors))
+		assert.Equal(t, expectedInnerError, innerErrors[0])
+		assert.Equal(t, enum.CodeAccessForbidden, errorCode)
 		assert.Equal(t, "Operation failed due to access forbidden", messageFormat)
 		assert.Equal(t, 0, len(parameters))
 		return expectedResult
@@ -781,10 +785,11 @@ func TestGetDataCorruptionError(t *testing.T) {
 
 	// expect
 	wrapErrorFuncExpected = 1
-	wrapErrorFunc = func(innerError error, errorCode Code, messageFormat string, parameters ...interface{}) AppError {
+	wrapErrorFunc = func(innerErrors []error, errorCode enum.Code, messageFormat string, parameters ...interface{}) model.AppError {
 		wrapErrorFuncCalled++
-		assert.Equal(t, expectedInnerError, innerError)
-		assert.Equal(t, CodeDataCorruption, errorCode)
+		assert.Equal(t, 1, len(innerErrors))
+		assert.Equal(t, expectedInnerError, innerErrors[0])
+		assert.Equal(t, enum.CodeDataCorruption, errorCode)
 		assert.Equal(t, "Operation failed due to internal storage data corruption", messageFormat)
 		assert.Equal(t, 0, len(parameters))
 		return expectedResult
@@ -810,10 +815,11 @@ func TestGetNotImplementedError(t *testing.T) {
 
 	// expect
 	wrapErrorFuncExpected = 1
-	wrapErrorFunc = func(innerError error, errorCode Code, messageFormat string, parameters ...interface{}) AppError {
+	wrapErrorFunc = func(innerErrors []error, errorCode enum.Code, messageFormat string, parameters ...interface{}) model.AppError {
 		wrapErrorFuncCalled++
-		assert.Equal(t, expectedInnerError, innerError)
-		assert.Equal(t, CodeNotImplemented, errorCode)
+		assert.Equal(t, 1, len(innerErrors))
+		assert.Equal(t, expectedInnerError, innerErrors[0])
+		assert.Equal(t, enum.CodeNotImplemented, errorCode)
 		assert.Equal(t, "Operation failed due to internal business logic not implemented", messageFormat)
 		assert.Equal(t, 0, len(parameters))
 		return expectedResult
@@ -829,148 +835,83 @@ func TestGetNotImplementedError(t *testing.T) {
 	verifyAll(t)
 }
 
-func TestConsolidateAllErrors_NilList(t *testing.T) {
+func TestGetCustomError(t *testing.T) {
 	// arrange
-	var baseErrorMessage = "some base error message"
-
-	// mock
-	createMock(t)
-
-	// SUT + act
-	var err = ConsolidateAllErrors(baseErrorMessage, nil)
-
-	// assert
-	assert.NoError(t, err)
-
-	// verify
-	verifyAll(t)
-}
-
-func TestConsolidateAllErrors_EmptyList(t *testing.T) {
-	// arrange
-	var baseErrorMessage = "some base error message"
-	var allErrors = []error{}
-
-	// mock
-	createMock(t)
-
-	// SUT + act
-	var err = ConsolidateAllErrors(baseErrorMessage, allErrors...)
-
-	// assert
-	assert.NoError(t, err)
-
-	// verify
-	verifyAll(t)
-}
-
-func TestConsolidateAllErrors_ListOfNil(t *testing.T) {
-	// arrange
-	var baseErrorMessage = "some base error message"
-	var allErrors = []error{
-		nil,
-		nil,
-	}
-
-	// mock
-	createMock(t)
-
-	// SUT + act
-	var err = ConsolidateAllErrors(baseErrorMessage, allErrors...)
-
-	// assert
-	assert.NoError(t, err)
-
-	// verify
-	verifyAll(t)
-}
-
-func TestConsolidateAllErrors_ListOfEmptyErrors(t *testing.T) {
-	// arrange
-	var baseErrorMessage = "some base error message"
-	var allErrors = []error{
-		errors.New(""),
-		nil,
-		errors.New(""),
-	}
-	var dummyMessageFormat = "Unknown Error | Unknown Error"
-	var dummyAppError = GetGeneralFailureError(nil)
+	var dummyErrorCode = enum.Code(rand.Intn(255))
+	var dummyMessageFormat = "some message format"
+	var dummyParameter1 = "foo"
+	var dummyParameter2 = 123
+	var dummyParameter3 = errors.New("dummy")
+	var dummyErrorMessage = "some error message"
 
 	// mock
 	createMock(t)
 
 	// expect
-	stringsJoinExpected = 1
-	stringsJoin = func(a []string, sep string) string {
-		stringsJoinCalled++
-		return strings.Join(a, sep)
-	}
-	wrapSimpleErrorFuncExpected = 1
-	wrapSimpleErrorFunc = func(innerError error, messageFormat string, parameters ...interface{}) AppError {
-		wrapSimpleErrorFuncCalled++
-		assert.NotNil(t, innerError)
-		assert.Equal(t, dummyMessageFormat, innerError.Error())
-		assert.Equal(t, baseErrorMessage, messageFormat)
-		assert.Equal(t, 0, len(parameters))
-		return dummyAppError
+	fmtErrorfExpected = 1
+	fmtErrorf = func(format string, parameters ...interface{}) error {
+		fmtErrorfCalled++
+		assert.Equal(t, dummyMessageFormat, format)
+		assert.Equal(t, 3, len(parameters))
+		assert.Equal(t, dummyParameter1, parameters[0])
+		assert.Equal(t, dummyParameter2, parameters[1])
+		assert.Equal(t, dummyParameter3, parameters[2])
+		return errors.New(dummyErrorMessage)
 	}
 
 	// SUT + act
-	var err = ConsolidateAllErrors(baseErrorMessage, allErrors...)
+	var appError, ok = GetCustomError(
+		dummyErrorCode,
+		dummyMessageFormat,
+		dummyParameter1,
+		dummyParameter2,
+		dummyParameter3,
+	).(appError)
 
 	// assert
-	assert.Equal(t, dummyAppError, err)
+	assert.True(t, ok)
+	assert.Equal(t, dummyErrorMessage, appError.error.Error())
+	assert.Equal(t, dummyErrorCode, appError.code)
+	assert.Equal(t, 0, len(appError.innerErrors))
 
 	// verify
 	verifyAll(t)
 }
 
-func TestConsolidateAllErrors_ListOfValidErrors(t *testing.T) {
+func TestWrapError_Empty(t *testing.T) {
 	// arrange
-	var baseErrorMessage = "some base error message"
-	var errorMessage1 = "dummy error 1"
-	var errorMessage3 = "dummy error 3"
-	var allErrors = []error{
-		errors.New(errorMessage1),
-		nil,
-		errors.New(errorMessage3),
-	}
-	var dummyMessageFormat = errorMessage1 + " | " + errorMessage3
-	var dummyAppError = GetGeneralFailureError(nil)
+	var dummyErrorCode = enum.Code(rand.Int())
+	var dummyMessageFormat = "some message format"
+	var dummyParameter1 = "foo"
+	var dummyParameter2 = 123
+	var dummyParameter3 = errors.New("dummy")
 
 	// mock
 	createMock(t)
 
-	// expect
-	stringsJoinExpected = 1
-	stringsJoin = func(a []string, sep string) string {
-		stringsJoinCalled++
-		return strings.Join(a, sep)
-	}
-	wrapSimpleErrorFuncExpected = 1
-	wrapSimpleErrorFunc = func(innerError error, messageFormat string, parameters ...interface{}) AppError {
-		wrapSimpleErrorFuncCalled++
-		assert.NotNil(t, innerError)
-		assert.Equal(t, dummyMessageFormat, innerError.Error())
-		assert.Equal(t, baseErrorMessage, messageFormat)
-		assert.Equal(t, 0, len(parameters))
-		return dummyAppError
-	}
-
 	// SUT + act
-	var err = ConsolidateAllErrors(baseErrorMessage, allErrors...)
+	var result = WrapError(
+		nil,
+		dummyErrorCode,
+		dummyMessageFormat,
+		dummyParameter1,
+		dummyParameter2,
+		dummyParameter3,
+	)
 
 	// assert
-	assert.Equal(t, dummyAppError, err)
+	assert.Nil(t, result)
 
 	// verify
 	verifyAll(t)
 }
 
-func TestWrapError(t *testing.T) {
+func TestWrapError_NotEmpty(t *testing.T) {
 	// arrange
-	var dummyInnerError = errors.New("some random error")
-	var dummyErrorCode = Code(rand.Int())
+	var dummyInnerError1 = errors.New("some random error 1")
+	var dummyInnerError2 = errors.New("some random error 2")
+	var dummyInnerError3 = errors.New("some random error 3")
+	var dummyErrorCode = enum.Code(rand.Int())
 	var dummyMessageFormat = "some message format"
 	var dummyParameter1 = "foo"
 	var dummyParameter2 = 123
@@ -994,7 +935,11 @@ func TestWrapError(t *testing.T) {
 
 	// SUT + act
 	var appError, ok = WrapError(
-		dummyInnerError,
+		[]error{
+			dummyInnerError1,
+			dummyInnerError2,
+			dummyInnerError3,
+		},
 		dummyErrorCode,
 		dummyMessageFormat,
 		dummyParameter1,
@@ -1006,8 +951,10 @@ func TestWrapError(t *testing.T) {
 	assert.True(t, ok)
 	assert.Equal(t, dummyErrorMessage, appError.error.Error())
 	assert.Equal(t, dummyErrorCode, appError.code)
-	assert.Equal(t, 1, len(appError.innerErrors))
-	assert.Equal(t, dummyInnerError.Error(), appError.innerErrors[0].Error())
+	assert.Equal(t, 3, len(appError.innerErrors))
+	assert.Equal(t, dummyInnerError1, appError.innerErrors[0])
+	assert.Equal(t, dummyInnerError2, appError.innerErrors[1])
+	assert.Equal(t, dummyInnerError3, appError.innerErrors[2])
 
 	// verify
 	verifyAll(t)
@@ -1015,7 +962,9 @@ func TestWrapError(t *testing.T) {
 
 func TestWrapSimpleError(t *testing.T) {
 	// arrange
-	var dummyInnerError = errors.New("some random error")
+	var dummyInnerError1 = errors.New("some random error 1")
+	var dummyInnerError2 = errors.New("some random error 2")
+	var dummyInnerError3 = errors.New("some random error 3")
 	var dummyMessageFormat = "some message format"
 	var dummyParameter1 = "foo"
 	var dummyParameter2 = 123
@@ -1027,10 +976,13 @@ func TestWrapSimpleError(t *testing.T) {
 
 	// expect
 	wrapErrorFuncExpected = 1
-	wrapErrorFunc = func(innerError error, errorCode Code, messageFormat string, parameters ...interface{}) AppError {
+	wrapErrorFunc = func(innerErrors []error, errorCode enum.Code, messageFormat string, parameters ...interface{}) model.AppError {
 		wrapErrorFuncCalled++
-		assert.Equal(t, dummyInnerError, innerError)
-		assert.Equal(t, CodeGeneralFailure, errorCode)
+		assert.Equal(t, 3, len(innerErrors))
+		assert.Equal(t, dummyInnerError1, innerErrors[0])
+		assert.Equal(t, dummyInnerError2, innerErrors[1])
+		assert.Equal(t, dummyInnerError3, innerErrors[2])
+		assert.Equal(t, enum.CodeGeneralFailure, errorCode)
 		assert.Equal(t, dummyMessageFormat, messageFormat)
 		assert.Equal(t, 3, len(parameters))
 		assert.Equal(t, dummyParameter1, parameters[0])
@@ -1041,7 +993,11 @@ func TestWrapSimpleError(t *testing.T) {
 
 	// SUT + act
 	var appError = WrapSimpleError(
-		dummyInnerError,
+		[]error{
+			dummyInnerError1,
+			dummyInnerError2,
+			dummyInnerError3,
+		},
 		dummyMessageFormat,
 		dummyParameter1,
 		dummyParameter2,
@@ -1079,7 +1035,7 @@ func TestGetInnermostErrors_AppError_NoInner(t *testing.T) {
 	// arrange
 	var dummyError = appError{
 		errors.New("dummy WebServiceTemplate error"),
-		CodeGeneralFailure,
+		enum.CodeGeneralFailure,
 		nil,
 	}
 
@@ -1103,7 +1059,7 @@ func TestGetInnermostErrors_AppError_WithInner(t *testing.T) {
 	var dummyInnerError = errors.New("dummy inner error")
 	var dummyError = appError{
 		errors.New("dummy WebServiceTemplate error"),
-		CodeGeneralFailure,
+		enum.CodeGeneralFailure,
 		[]error{dummyInnerError},
 	}
 
@@ -1127,17 +1083,17 @@ func TestGetInnermostErrors_AppError_MultiLayer_NoInner(t *testing.T) {
 	// arrange
 	var dummyThirdLayerError = appError{
 		errors.New("dummy WebServiceTemplate error"),
-		CodeGeneralFailure,
+		enum.CodeGeneralFailure,
 		nil,
 	}
 	var dummySecondLayerError = appError{
 		errors.New("dummy WebServiceTemplate error"),
-		CodeGeneralFailure,
+		enum.CodeGeneralFailure,
 		[]error{dummyThirdLayerError},
 	}
 	var dummyError = appError{
 		errors.New("dummy WebServiceTemplate error"),
-		CodeGeneralFailure,
+		enum.CodeGeneralFailure,
 		[]error{dummySecondLayerError},
 	}
 
@@ -1161,17 +1117,17 @@ func TestGetInnermostErrors_AppError_MultiLayer_WithInner(t *testing.T) {
 	var dummyInnerError = errors.New("dummy inner error")
 	var dummyThirdLayerError = appError{
 		errors.New("dummy WebServiceTemplate error"),
-		CodeGeneralFailure,
+		enum.CodeGeneralFailure,
 		[]error{dummyInnerError},
 	}
 	var dummySecondLayerError = appError{
 		errors.New("dummy WebServiceTemplate error"),
-		CodeGeneralFailure,
+		enum.CodeGeneralFailure,
 		[]error{dummyThirdLayerError},
 	}
 	var dummyError = appError{
 		errors.New("dummy WebServiceTemplate error"),
-		CodeGeneralFailure,
+		enum.CodeGeneralFailure,
 		[]error{dummySecondLayerError},
 	}
 

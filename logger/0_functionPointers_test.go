@@ -2,19 +2,22 @@ package logger
 
 import (
 	"fmt"
+	"net/http"
 	"testing"
 	"time"
-
-	"github.com/zhongjie-cai/WebServiceTemplate/logger/loglevel"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
+	apperrorEnum "github.com/zhongjie-cai/WebServiceTemplate/apperror/enum"
+	apperrorModel "github.com/zhongjie-cai/WebServiceTemplate/apperror/model"
 	"github.com/zhongjie-cai/WebServiceTemplate/config"
 	"github.com/zhongjie-cai/WebServiceTemplate/customization"
 	"github.com/zhongjie-cai/WebServiceTemplate/jsonutil"
+	"github.com/zhongjie-cai/WebServiceTemplate/logger/loglevel"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger/logtype"
 	"github.com/zhongjie-cai/WebServiceTemplate/session"
+	sessionModel "github.com/zhongjie-cai/WebServiceTemplate/session/model"
 	"github.com/zhongjie-cai/WebServiceTemplate/timeutil"
 )
 
@@ -35,14 +38,10 @@ var (
 	configAppNameCalled                int
 	configAppVersionExpected           int
 	configAppVersionCalled             int
-	configIsLocalhostExpected          int
-	configIsLocalhostCalled            int
-	isLoggingAllowedFuncExpected       int
-	isLoggingAllowedFuncCalled         int
 	sessionGetExpected                 int
 	sessionGetCalled                   int
-	apperrorWrapSimpleErrorExpected    int
-	apperrorWrapSimpleErrorCalled      int
+	apperrorGetCustomErrorExpected     int
+	apperrorGetCustomErrorCalled       int
 	defaultLoggingFuncExpected         int
 	defaultLoggingFuncCalled           int
 	prepareLoggingFuncExpected         int
@@ -98,33 +97,21 @@ func createMock(t *testing.T) {
 		configAppVersionCalled++
 		return ""
 	}
-	configIsLocalhostExpected = 0
-	configIsLocalhostCalled = 0
-	config.IsLocalhost = func() bool {
-		configIsLocalhostCalled++
-		return false
-	}
-	isLoggingAllowedFuncExpected = 0
-	isLoggingAllowedFuncCalled = 0
-	isLoggingAllowedFunc = func(session *session.Session, logType logtype.LogType, logLevel loglevel.LogLevel) bool {
-		isLoggingAllowedFuncCalled++
-		return false
-	}
 	sessionGetExpected = 0
 	sessionGetCalled = 0
-	sessionGet = func(sessionID uuid.UUID) *session.Session {
+	sessionGet = func(sessionID uuid.UUID) sessionModel.Session {
 		sessionGetCalled++
 		return nil
 	}
-	apperrorWrapSimpleErrorExpected = 0
-	apperrorWrapSimpleErrorCalled = 0
-	apperrorWrapSimpleError = func(innerError error, messageFormat string, parameters ...interface{}) apperror.AppError {
-		apperrorWrapSimpleErrorCalled++
+	apperrorGetCustomErrorExpected = 0
+	apperrorGetCustomErrorCalled = 0
+	apperrorGetCustomError = func(errorCode apperrorEnum.Code, messageFormat string, parameters ...interface{}) apperrorModel.AppError {
+		apperrorGetCustomErrorCalled++
 		return nil
 	}
 	defaultLoggingFuncExpected = 0
 	defaultLoggingFuncCalled = 0
-	defaultLoggingFunc = func(session *session.Session, logType logtype.LogType, logLevel loglevel.LogLevel, category, subcategory, description string) {
+	defaultLoggingFunc = func(session sessionModel.Session, logType logtype.LogType, logLevel loglevel.LogLevel, category, subcategory, description string) {
 		defaultLoggingFuncCalled++
 	}
 	prepareLoggingFuncExpected = 0
@@ -151,18 +138,99 @@ func verifyAll(t *testing.T) {
 	assert.Equal(t, configAppNameExpected, configAppNameCalled, "Unexpected number of calls to configAppName")
 	config.AppVersion = func() string { return "" }
 	assert.Equal(t, configAppVersionExpected, configAppVersionCalled, "Unexpected number of calls to configAppVersion")
-	config.IsLocalhost = func() bool { return false }
-	assert.Equal(t, configIsLocalhostExpected, configIsLocalhostCalled, "Unexpected number of calls to configIsLocalhost")
-	isLoggingAllowedFunc = isLoggingAllowed
-	assert.Equal(t, isLoggingAllowedFuncExpected, isLoggingAllowedFuncCalled, "Unexpected number of calls to isLoggingAllowedFunc")
 	sessionGet = session.Get
 	assert.Equal(t, sessionGetExpected, sessionGetCalled, "Unexpected number of calls to sessionGet")
-	apperrorWrapSimpleError = apperror.WrapSimpleError
-	assert.Equal(t, apperrorWrapSimpleErrorExpected, apperrorWrapSimpleErrorCalled, "Unexpected number of calls to apperrorWrapSimpleError")
+	apperrorGetCustomError = apperror.GetCustomError
+	assert.Equal(t, apperrorGetCustomErrorExpected, apperrorGetCustomErrorCalled, "Unexpected number of calls to apperrorGetCustomError")
 	defaultLoggingFunc = defaultLogging
 	assert.Equal(t, defaultLoggingFuncExpected, defaultLoggingFuncCalled, "Unexpected number of calls to defaultLoggingFunc")
 	prepareLoggingFunc = prepareLogging
 	assert.Equal(t, prepareLoggingFuncExpected, prepareLoggingFuncCalled, "Unexpected number of calls to prepareLoggingFunc")
-
 	customization.LoggingFunc = nil
+}
+
+// mock structs
+type dummySession struct {
+	t            *testing.T
+	id           *uuid.UUID
+	name         *string
+	isLogAllowed *bool
+}
+
+func (session *dummySession) GetID() uuid.UUID {
+	if session.id == nil {
+		assert.Fail(session.t, "Unexpected call to GetID")
+		return uuid.Nil
+	}
+	return *session.id
+}
+
+func (session *dummySession) GetName() string {
+	if session.name == nil {
+		assert.Fail(session.t, "Unexpected call to GetName")
+		return ""
+	}
+	return *session.name
+}
+
+func (session *dummySession) GetRequest() *http.Request {
+	assert.Fail(session.t, "Unexpected call to GetRequest")
+	return nil
+}
+
+func (session *dummySession) GetResponseWriter() http.ResponseWriter {
+	assert.Fail(session.t, "Unexpected call to GetResponseWriter")
+	return nil
+}
+
+func (session *dummySession) GetRequestBody(dataTemplate interface{}) apperrorModel.AppError {
+	assert.Fail(session.t, "Unexpected call to GetRequestBody")
+	return nil
+}
+
+func (session *dummySession) GetRequestParameter(name string, dataTemplate interface{}) apperrorModel.AppError {
+	assert.Fail(session.t, "Unexpected call to GetRequestParameter")
+	return nil
+}
+
+func (session *dummySession) GetRequestQuery(name string, dataTemplate interface{}) apperrorModel.AppError {
+	assert.Fail(session.t, "Unexpected call to GetRequestQuery")
+	return nil
+}
+
+func (session *dummySession) GetRequestQueries(name string, dataTemplate interface{}, fillCallback func()) apperrorModel.AppError {
+	assert.Fail(session.t, "Unexpected call to GetRequestQueries")
+	return nil
+}
+
+func (session *dummySession) GetRequestHeader(name string, dataTemplate interface{}) apperrorModel.AppError {
+	assert.Fail(session.t, "Unexpected call to GetRequestHeader")
+	return nil
+}
+
+func (session *dummySession) GetRequestHeaders(name string, dataTemplate interface{}, fillCallback func()) apperrorModel.AppError {
+	assert.Fail(session.t, "Unexpected call to GetRequestHeaders")
+	return nil
+}
+
+func (session *dummySession) Attach(name string, value interface{}) bool {
+	assert.Fail(session.t, "Unexpected call to Attach")
+	return false
+}
+
+func (session *dummySession) Detach(name string) bool {
+	assert.Fail(session.t, "Unexpected call to Detach")
+	return false
+}
+
+func (session *dummySession) GetAttachment(name string, dataTemplate interface{}) bool {
+	assert.Fail(session.t, "Unexpected call to GetAttachment")
+	return false
+}
+
+func (session *dummySession) IsLogAllowed(logType logtype.LogType, logLevel loglevel.LogLevel) bool {
+	if session.isLogAllowed == nil {
+		assert.Fail(session.t, "Unexpected call to IsLogAllowed")
+	}
+	return *session.isLogAllowed
 }

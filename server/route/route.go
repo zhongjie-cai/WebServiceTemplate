@@ -3,10 +3,10 @@ package route
 import (
 	"net/http"
 
-	"github.com/zhongjie-cai/WebServiceTemplate/server/model"
-
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
+	apperrorEnum "github.com/zhongjie-cai/WebServiceTemplate/apperror/enum"
+	"github.com/zhongjie-cai/WebServiceTemplate/server/model"
 )
 
 const (
@@ -55,13 +55,13 @@ func printRegisteredRouteDetails(
 		queriesRegexps                  = getQueriesRegexpFunc(route)
 		methods                         = getMethodsFunc(route)
 	)
-	var consolidatedError = apperrorConsolidateAllErrors(
-		fmtSprintf(
-			"Failed to register service route for name [%v]",
-			name,
-		),
-		pathTemplateError,
-		pathRegexpError,
+	var consolidatedError = apperrorWrapSimpleError(
+		[]error{
+			pathTemplateError,
+			pathRegexpError,
+		},
+		"Failed to register service route for name [%v]",
+		name,
 	)
 	if consolidatedError != nil {
 		return consolidatedError
@@ -87,7 +87,9 @@ func WalkRegisteredRoutes(router *mux.Router) error {
 	)
 	if walkError != nil {
 		return apperrorWrapSimpleError(
-			walkError,
+			[]error{
+				walkError,
+			},
 			"Failed to walk through registered routes",
 		)
 	}
@@ -154,7 +156,7 @@ func AddMiddleware(
 }
 
 func defaultActionFunc(sessionID uuid.UUID) (interface{}, error) {
-	return nil, apperrorGetNotImplementedError(nil)
+	return nil, apperrorGetNotImplementedError()
 }
 
 func getActionByName(name string) model.ActionFunc {
@@ -171,8 +173,8 @@ func GetRouteInfo(httpRequest *http.Request) (string, model.ActionFunc, error) {
 	if route == nil {
 		return "",
 			nil,
-			apperrorWrapSimpleError(
-				nil,
+			apperrorGetCustomError(
+				apperrorEnum.CodeGeneralFailure,
 				"Failed to retrieve route info for request - no route found",
 			)
 	}

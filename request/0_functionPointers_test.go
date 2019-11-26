@@ -9,27 +9,29 @@ import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
+	apperrorEnum "github.com/zhongjie-cai/WebServiceTemplate/apperror/enum"
+	apperrorModel "github.com/zhongjie-cai/WebServiceTemplate/apperror/model"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger/loglevel"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger/logtype"
 )
 
 var (
-	uuidParseExpected               int
-	uuidParseCalled                 int
-	uuidNewExpected                 int
-	uuidNewCalled                   int
-	logtypeFromStringExpected       int
-	logtypeFromStringCalled         int
-	loglevelFromStringExpected      int
-	loglevelFromStringCalled        int
-	apperrorWrapSimpleErrorExpected int
-	apperrorWrapSimpleErrorCalled   int
-	ioutilReadAllExpected           int
-	ioutilReadAllCalled             int
-	ioutilNopCloserExpected         int
-	ioutilNopCloserCalled           int
-	bytesNewBufferExpected          int
-	bytesNewBufferCalled            int
+	uuidParseExpected              int
+	uuidParseCalled                int
+	uuidNewExpected                int
+	uuidNewCalled                  int
+	logtypeFromStringExpected      int
+	logtypeFromStringCalled        int
+	loglevelFromStringExpected     int
+	loglevelFromStringCalled       int
+	apperrorGetCustomErrorExpected int
+	apperrorGetCustomErrorCalled   int
+	ioutilReadAllExpected          int
+	ioutilReadAllCalled            int
+	ioutilNopCloserExpected        int
+	ioutilNopCloserCalled          int
+	bytesNewBufferExpected         int
+	bytesNewBufferCalled           int
 )
 
 func createMock(t *testing.T) {
@@ -57,10 +59,10 @@ func createMock(t *testing.T) {
 		loglevelFromStringCalled++
 		return 0
 	}
-	apperrorWrapSimpleErrorExpected = 0
-	apperrorWrapSimpleErrorCalled = 0
-	apperrorWrapSimpleError = func(innerError error, messageFormat string, parameters ...interface{}) apperror.AppError {
-		apperrorWrapSimpleErrorCalled++
+	apperrorGetCustomErrorExpected = 0
+	apperrorGetCustomErrorCalled = 0
+	apperrorGetCustomError = func(errorCode apperrorEnum.Code, messageFormat string, parameters ...interface{}) apperrorModel.AppError {
+		apperrorGetCustomErrorCalled++
 		return nil
 	}
 	ioutilReadAllExpected = 0
@@ -92,8 +94,8 @@ func verifyAll(t *testing.T) {
 	assert.Equal(t, logtypeFromStringExpected, logtypeFromStringCalled, "Unexpected number of calls to logtypeFromString")
 	loglevelFromString = loglevel.FromString
 	assert.Equal(t, loglevelFromStringExpected, loglevelFromStringCalled, "Unexpected number of calls to loglevelFromString")
-	apperrorWrapSimpleError = apperror.WrapSimpleError
-	assert.Equal(t, apperrorWrapSimpleErrorExpected, apperrorWrapSimpleErrorCalled, "Unexpected number of calls to apperrorWrapSimpleError")
+	apperrorGetCustomError = apperror.GetCustomError
+	assert.Equal(t, apperrorGetCustomErrorExpected, apperrorGetCustomErrorCalled, "Unexpected number of calls to apperrorGetCustomError")
 	ioutilReadAll = ioutil.ReadAll
 	assert.Equal(t, ioutilReadAllExpected, ioutilReadAllCalled, "Unexpected number of calls to ioutilReadAll")
 	ioutilNopCloser = ioutil.NopCloser

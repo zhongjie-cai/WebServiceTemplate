@@ -104,10 +104,12 @@ func runServer(
 		server,
 	)
 
-	return apperrorConsolidateAllErrors(
+	return apperrorWrapSimpleError(
+		[]error{
+			hostError,
+			shutdownError,
+		},
 		"One or more errors have occurred during server hosting",
-		hostError,
-		shutdownError,
 	)
 }
 
@@ -120,7 +122,7 @@ func Host(
 	var router, routerError = registerInstantiate()
 	if routerError != nil {
 		return apperrorWrapSimpleError(
-			routerError,
+			[]error{routerError},
 			"Failed to host entries on port %v",
 			appPort,
 		)
@@ -141,7 +143,7 @@ func Host(
 	)
 	if hostError != nil {
 		return apperrorWrapSimpleError(
-			hostError,
+			[]error{hostError},
 			"Failed to run server on port %v",
 			appPort,
 		)

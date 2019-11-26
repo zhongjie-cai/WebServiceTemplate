@@ -12,8 +12,8 @@ import (
 var (
 	timeutilGetTimeNowUTC            = timeutil.GetTimeNowUTC
 	timeutilFormatDateTime           = timeutil.FormatDateTime
+	apperrorGetCustomError           = apperror.GetCustomError
 	apperrorWrapSimpleError          = apperror.WrapSimpleError
-	apperrorConsolidateAllErrors     = apperror.ConsolidateAllErrors
 	reflectValueOf                   = reflect.ValueOf
 	fmtSprintf                       = fmt.Sprintf
 	functionPointerEqualsFunc        = functionPointerEquals

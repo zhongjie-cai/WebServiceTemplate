@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/google/uuid"
-	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
+	apperrorModel "github.com/zhongjie-cai/WebServiceTemplate/apperror/model"
 	"github.com/zhongjie-cai/WebServiceTemplate/customization"
 )
 
@@ -15,42 +15,12 @@ const (
 
 // errorResponseModel defines the response object that is written back to consumer of the API
 type errorResponseModel struct {
-	Code     int      `json:"code"`
-	Type     string   `json:"type"`
+	Code     string   `json:"code"`
 	Messages []string `json:"messages"`
 }
 
 // overrideResponse defines a dummy response returned by override to suppress logging
 type overrideResponse struct{}
-
-func getStatusCode(appError apperror.AppError) int {
-	var statusCode int
-	switch appError.Code() {
-	case apperror.CodeGeneralFailure:
-		statusCode = http.StatusInternalServerError
-	case apperror.CodeUnauthorized:
-		statusCode = http.StatusUnauthorized
-	case apperror.CodeInvalidOperation:
-		statusCode = http.StatusMethodNotAllowed
-	case apperror.CodeBadRequest:
-		statusCode = http.StatusBadRequest
-	case apperror.CodeNotFound:
-		statusCode = http.StatusNotFound
-	case apperror.CodeCircuitBreak:
-		statusCode = http.StatusForbidden
-	case apperror.CodeOperationLock:
-		statusCode = http.StatusLocked
-	case apperror.CodeAccessForbidden:
-		statusCode = http.StatusForbidden
-	case apperror.CodeDataCorruption:
-		statusCode = http.StatusConflict
-	case apperror.CodeNotImplemented:
-		statusCode = http.StatusNotImplemented
-	default:
-		statusCode = http.StatusInternalServerError
-	}
-	return statusCode
-}
 
 func createOkResponse(
 	responseContent interface{},
@@ -67,8 +37,8 @@ func createOkResponse(
 
 func getAppError(
 	err error,
-) apperror.AppError {
-	var appError, isAppError = err.(apperror.AppError)
+) apperrorModel.AppError {
+	var appError, isAppError = err.(apperrorModel.AppError)
 	if isAppError {
 		return appError
 	}
@@ -78,13 +48,12 @@ func getAppError(
 }
 
 func generateErrorResponse(
-	appError apperror.AppError,
+	appError apperrorModel.AppError,
 ) errorResponseModel {
 	var code = appError.Code()
 	var messages = appError.Messages()
 	var response = errorResponseModel{
-		Code:     int(code),
-		Type:     code.String(),
+		Code:     code,
 		Messages: messages,
 	}
 	return response
@@ -96,7 +65,7 @@ func createErrorResponse(
 	var appError = getAppErrorFunc(err)
 	var response = generateErrorResponseFunc(appError)
 	var responseMessage = jsonutilMarshalIgnoreError(response)
-	var statusCode = getStatusCodeFunc(appError)
+	var statusCode = appError.HTTPStatusCode()
 	return responseMessage, statusCode
 }
 

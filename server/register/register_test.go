@@ -10,9 +10,9 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
-
 	"github.com/stretchr/testify/assert"
 	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
+	apperrorModel "github.com/zhongjie-cai/WebServiceTemplate/apperror/model"
 	"github.com/zhongjie-cai/WebServiceTemplate/customization"
 	"github.com/zhongjie-cai/WebServiceTemplate/server/model"
 )
@@ -639,9 +639,10 @@ func TestInstantiate_RouterError(t *testing.T) {
 		return dummyRouteError
 	}
 	apperrorWrapSimpleErrorExpected = 1
-	apperrorWrapSimpleError = func(innerError error, messageFormat string, parameters ...interface{}) apperror.AppError {
+	apperrorWrapSimpleError = func(innerErrors []error, messageFormat string, parameters ...interface{}) apperrorModel.AppError {
 		apperrorWrapSimpleErrorCalled++
-		assert.Equal(t, dummyRouteError, innerError)
+		assert.Equal(t, 1, len(innerErrors))
+		assert.Equal(t, dummyRouteError, innerErrors[0])
 		assert.Equal(t, dummyMessageFormat, messageFormat)
 		assert.Equal(t, 0, len(parameters))
 		return dummyAppError

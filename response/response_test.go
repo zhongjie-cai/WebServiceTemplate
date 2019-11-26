@@ -12,272 +12,10 @@ import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
+	apperrorEnum "github.com/zhongjie-cai/WebServiceTemplate/apperror/enum"
+	apperrorModel "github.com/zhongjie-cai/WebServiceTemplate/apperror/model"
 	"github.com/zhongjie-cai/WebServiceTemplate/customization"
 )
-
-func TestGetStatusCode_GeneralFailure(t *testing.T) {
-	// arrange
-	var dummyCode = apperror.CodeGeneralFailure
-	var dummyAppError = dummyAppError{
-		t,
-		&dummyCode,
-		nil,
-	}
-
-	// mock
-	createMock(t)
-
-	// SUT + act
-	var result = getStatusCode(
-		dummyAppError,
-	)
-
-	// assert
-	assert.Equal(t, http.StatusInternalServerError, result)
-
-	// verify
-	verifyAll(t)
-}
-
-func TestGetStatusCode_Unauthorized(t *testing.T) {
-	// arrange
-	var dummyCode = apperror.CodeUnauthorized
-	var dummyAppError = dummyAppError{
-		t,
-		&dummyCode,
-		nil,
-	}
-
-	// mock
-	createMock(t)
-
-	// SUT + act
-	var result = getStatusCode(
-		dummyAppError,
-	)
-
-	// assert
-	assert.Equal(t, http.StatusUnauthorized, result)
-
-	// verify
-	verifyAll(t)
-}
-
-func TestGetStatusCode_InvalidOperation(t *testing.T) {
-	// arrange
-	var dummyCode = apperror.CodeInvalidOperation
-	var dummyAppError = dummyAppError{
-		t,
-		&dummyCode,
-		nil,
-	}
-
-	// mock
-	createMock(t)
-
-	// SUT + act
-	var result = getStatusCode(
-		dummyAppError,
-	)
-
-	// assert
-	assert.Equal(t, http.StatusMethodNotAllowed, result)
-
-	// verify
-	verifyAll(t)
-}
-
-func TestGetStatusCode_BadRequest(t *testing.T) {
-	// arrange
-	var dummyCode = apperror.CodeBadRequest
-	var dummyAppError = dummyAppError{
-		t,
-		&dummyCode,
-		nil,
-	}
-
-	// mock
-	createMock(t)
-
-	// SUT + act
-	var result = getStatusCode(
-		dummyAppError,
-	)
-
-	// assert
-	assert.Equal(t, http.StatusBadRequest, result)
-
-	// verify
-	verifyAll(t)
-}
-
-func TestGetStatusCode_NotFound(t *testing.T) {
-	// arrange
-	var dummyCode = apperror.CodeNotFound
-	var dummyAppError = dummyAppError{
-		t,
-		&dummyCode,
-		nil,
-	}
-
-	// mock
-	createMock(t)
-
-	// SUT + act
-	var result = getStatusCode(
-		dummyAppError,
-	)
-
-	// assert
-	assert.Equal(t, http.StatusNotFound, result)
-
-	// verify
-	verifyAll(t)
-}
-
-func TestGetStatusCode_CircuitBreak(t *testing.T) {
-	// arrange
-	var dummyCode = apperror.CodeCircuitBreak
-	var dummyAppError = dummyAppError{
-		t,
-		&dummyCode,
-		nil,
-	}
-
-	// mock
-	createMock(t)
-
-	// SUT + act
-	var result = getStatusCode(
-		dummyAppError,
-	)
-
-	// assert
-	assert.Equal(t, http.StatusForbidden, result)
-
-	// verify
-	verifyAll(t)
-}
-
-func TestGetStatusCode_OperationLock(t *testing.T) {
-	// arrange
-	var dummyCode = apperror.CodeOperationLock
-	var dummyAppError = dummyAppError{
-		t,
-		&dummyCode,
-		nil,
-	}
-
-	// mock
-	createMock(t)
-
-	// SUT + act
-	var result = getStatusCode(
-		dummyAppError,
-	)
-
-	// assert
-	assert.Equal(t, http.StatusLocked, result)
-
-	// verify
-	verifyAll(t)
-}
-
-func TestGetStatusCode_AccessForbidden(t *testing.T) {
-	// arrange
-	var dummyCode = apperror.CodeAccessForbidden
-	var dummyAppError = dummyAppError{
-		t,
-		&dummyCode,
-		nil,
-	}
-
-	// mock
-	createMock(t)
-
-	// SUT + act
-	var result = getStatusCode(
-		dummyAppError,
-	)
-
-	// assert
-	assert.Equal(t, http.StatusForbidden, result)
-
-	// verify
-	verifyAll(t)
-}
-
-func TestGetStatusCode_DataCorruption(t *testing.T) {
-	// arrange
-	var dummyCode = apperror.CodeDataCorruption
-	var dummyAppError = dummyAppError{
-		t,
-		&dummyCode,
-		nil,
-	}
-
-	// mock
-	createMock(t)
-
-	// SUT + act
-	var result = getStatusCode(
-		dummyAppError,
-	)
-
-	// assert
-	assert.Equal(t, http.StatusConflict, result)
-
-	// verify
-	verifyAll(t)
-}
-
-func TestGetStatusCode_NotImplemented(t *testing.T) {
-	// arrange
-	var dummyCode = apperror.CodeNotImplemented
-	var dummyAppError = dummyAppError{
-		t,
-		&dummyCode,
-		nil,
-	}
-
-	// mock
-	createMock(t)
-
-	// SUT + act
-	var result = getStatusCode(
-		dummyAppError,
-	)
-
-	// assert
-	assert.Equal(t, http.StatusNotImplemented, result)
-
-	// verify
-	verifyAll(t)
-}
-
-func TestGetStatusCode_OtherCode(t *testing.T) {
-	// arrange
-	var dummyCode = apperror.Code(rand.Intn(math.MaxInt8) + 999)
-	var dummyAppError = dummyAppError{
-		t,
-		&dummyCode,
-		nil,
-	}
-
-	// mock
-	createMock(t)
-
-	// SUT + act
-	var result = getStatusCode(
-		dummyAppError,
-	)
-
-	// assert
-	assert.Equal(t, http.StatusInternalServerError, result)
-
-	// verify
-	verifyAll(t)
-}
 
 func TestCreateOkResponse_EmptyContent(t *testing.T) {
 	// arrange
@@ -406,9 +144,10 @@ func TestGetAppError_IsNotAppError(t *testing.T) {
 
 	// expect
 	apperrorGetGeneralFailureErrorExpected = 1
-	apperrorGetGeneralFailureError = func(innerError error) apperror.AppError {
+	apperrorGetGeneralFailureError = func(innerErrors ...error) apperrorModel.AppError {
 		apperrorGetGeneralFailureErrorCalled++
-		assert.Equal(t, dummyError, innerError)
+		assert.Equal(t, 1, len(innerErrors))
+		assert.Equal(t, dummyError, innerErrors[0])
 		return dummyAppError
 	}
 
@@ -427,12 +166,12 @@ func TestGetAppError_IsNotAppError(t *testing.T) {
 func TestGenerateErrorResponse(t *testing.T) {
 	// arrange
 	var codeInteger = rand.Intn(math.MaxInt8)
-	var expectedCode = apperror.Code(codeInteger)
-	var expectedType = expectedCode.String()
+	var expectedCode = apperrorEnum.Code(codeInteger).String()
 	var expectedMessages = []string{"some", "message", "array"}
 	var dummyAppError = dummyAppError{
 		t,
 		&expectedCode,
+		nil,
 		&expectedMessages,
 	}
 
@@ -445,8 +184,7 @@ func TestGenerateErrorResponse(t *testing.T) {
 	)
 
 	// assert
-	assert.Equal(t, codeInteger, result.Code)
-	assert.Equal(t, expectedType, result.Type)
+	assert.Equal(t, expectedCode, result.Code)
 	assert.Equal(t, expectedMessages, result.Messages)
 
 	// verify
@@ -456,31 +194,31 @@ func TestGenerateErrorResponse(t *testing.T) {
 func TestCreateErrorResponse(t *testing.T) {
 	// arrange
 	var dummyError = errors.New("some error")
+	var dummyHTTPStatusCode = rand.Intn(1000)
 	var dummyAppError = dummyAppError{
 		t,
 		nil,
+		&dummyHTTPStatusCode,
 		nil,
 	}
 	var dummyErrorResponseModel = errorResponseModel{
-		Code:     rand.Int(),
-		Type:     "some type",
+		Code:     "some type",
 		Messages: []string{"some", "message", "array"},
 	}
 	var dummyResponseMessage = "some response message"
-	var dummyStatusCode = rand.Int()
 
 	// mock
 	createMock(t)
 
 	// expect
 	getAppErrorFuncExpected = 1
-	getAppErrorFunc = func(err error) apperror.AppError {
+	getAppErrorFunc = func(err error) apperrorModel.AppError {
 		getAppErrorFuncCalled++
 		assert.Equal(t, dummyError, err)
 		return dummyAppError
 	}
 	generateErrorResponseFuncExpected = 1
-	generateErrorResponseFunc = func(appError apperror.AppError) errorResponseModel {
+	generateErrorResponseFunc = func(appError apperrorModel.AppError) errorResponseModel {
 		generateErrorResponseFuncCalled++
 		assert.Equal(t, dummyAppError, appError)
 		return dummyErrorResponseModel
@@ -491,12 +229,6 @@ func TestCreateErrorResponse(t *testing.T) {
 		assert.Equal(t, dummyErrorResponseModel, v)
 		return dummyResponseMessage
 	}
-	getStatusCodeFuncExpected = 1
-	getStatusCodeFunc = func(appError apperror.AppError) int {
-		getStatusCodeFuncCalled++
-		assert.Equal(t, dummyAppError, appError)
-		return dummyStatusCode
-	}
 
 	// SUT + act
 	var result, code = createErrorResponse(
@@ -505,7 +237,7 @@ func TestCreateErrorResponse(t *testing.T) {
 
 	// assert
 	assert.Equal(t, dummyResponseMessage, result)
-	assert.Equal(t, dummyStatusCode, code)
+	assert.Equal(t, dummyHTTPStatusCode, code)
 
 	// verify
 	verifyAll(t)
@@ -634,7 +366,7 @@ func TestConstructResponse_Error_NoCustomization(t *testing.T) {
 func TestConstructResponse_NoError(t *testing.T) {
 	// arrange
 	var dummyResponseObject = "some response content"
-	var dummyResponseError apperror.AppError
+	var dummyResponseError apperrorModel.AppError
 	var dummyResponseMessage = "some response message"
 	var dummyStatusCode = rand.Int()
 

@@ -5,8 +5,8 @@ import (
 	"math"
 	"net/http"
 
+	apperrorEnum "github.com/zhongjie-cai/WebServiceTemplate/apperror/enum"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger/loglevel"
-
 	"github.com/zhongjie-cai/WebServiceTemplate/logger/logtype"
 )
 
@@ -55,8 +55,8 @@ func GetClientCertificates(httpRequest *http.Request) ([]*x509.Certificate, erro
 	if httpRequest == nil ||
 		httpRequest.TLS == nil {
 		return nil,
-			apperrorWrapSimpleError(
-				nil,
+			apperrorGetCustomError(
+				apperrorEnum.CodeGeneralFailure,
 				"Invalid request or insecure communication channel",
 			)
 	}

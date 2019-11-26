@@ -12,6 +12,8 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
 	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
+	apperrorEnum "github.com/zhongjie-cai/WebServiceTemplate/apperror/enum"
+	apperrorModel "github.com/zhongjie-cai/WebServiceTemplate/apperror/model"
 	"github.com/zhongjie-cai/WebServiceTemplate/server/model"
 )
 
@@ -360,7 +362,6 @@ func TestPrintRegisteredRouteDetails_ErrorConsolidated(t *testing.T) {
 	var dummyPathTemplateError = errors.New("some path template error")
 	var dummyPathRegexpError = errors.New("some path regexp error")
 	var dummyMessageFormat = "Failed to register service route for name [%v]"
-	var dummyBaseErrorMessage = "Failed to register service route for name [" + dummyName + "]"
 	var dummyAppError = apperror.GetGeneralFailureError(nil)
 
 	// mock
@@ -403,21 +404,15 @@ func TestPrintRegisteredRouteDetails_ErrorConsolidated(t *testing.T) {
 		assert.Equal(t, dummyRoute, route)
 		return dummyMethods
 	}
-	fmtSprintfExpected = 1
-	fmtSprintf = func(format string, a ...interface{}) string {
-		fmtSprintfCalled++
-		assert.Equal(t, dummyMessageFormat, format)
-		assert.Equal(t, 1, len(a))
-		assert.Equal(t, dummyName, a[0])
-		return dummyBaseErrorMessage
-	}
-	apperrorConsolidateAllErrorsExpected = 1
-	apperrorConsolidateAllErrors = func(baseErrorMessage string, allErrors ...error) apperror.AppError {
-		apperrorConsolidateAllErrorsCalled++
-		assert.Equal(t, dummyBaseErrorMessage, baseErrorMessage)
-		assert.Equal(t, 2, len(allErrors))
-		assert.Equal(t, dummyPathTemplateError, allErrors[0])
-		assert.Equal(t, dummyPathRegexpError, allErrors[1])
+	apperrorWrapSimpleErrorExpected = 1
+	apperrorWrapSimpleError = func(innerErrors []error, messageFormat string, parameters ...interface{}) apperrorModel.AppError {
+		apperrorWrapSimpleErrorCalled++
+		assert.Equal(t, 2, len(innerErrors))
+		assert.Equal(t, dummyPathTemplateError, innerErrors[0])
+		assert.Equal(t, dummyPathRegexpError, innerErrors[1])
+		assert.Equal(t, dummyMessageFormat, messageFormat)
+		assert.Equal(t, 1, len(parameters))
+		assert.Equal(t, dummyName, parameters[0])
 		return dummyAppError
 	}
 
@@ -449,7 +444,6 @@ func TestPrintRegisteredRouteDetails_Success(t *testing.T) {
 	var dummyPathTemplateError error
 	var dummyPathRegexpError error
 	var dummyMessageFormat = "Failed to register service route for name [%v]"
-	var dummyBaseErrorMessage = "Failed to register service route for name [" + dummyName + "]"
 	var dummyLoggerMessageFormat = "Route registered for name [%v]\nPath template:%v\nPath regexp:%v\nQueries templates:%v\nQueries regexps:%v\nMethods:%v"
 
 	// mock
@@ -492,21 +486,15 @@ func TestPrintRegisteredRouteDetails_Success(t *testing.T) {
 		assert.Equal(t, dummyRoute, route)
 		return dummyMethods
 	}
-	fmtSprintfExpected = 1
-	fmtSprintf = func(format string, a ...interface{}) string {
-		fmtSprintfCalled++
-		assert.Equal(t, dummyMessageFormat, format)
-		assert.Equal(t, 1, len(a))
-		assert.Equal(t, dummyName, a[0])
-		return dummyBaseErrorMessage
-	}
-	apperrorConsolidateAllErrorsExpected = 1
-	apperrorConsolidateAllErrors = func(baseErrorMessage string, allErrors ...error) apperror.AppError {
-		apperrorConsolidateAllErrorsCalled++
-		assert.Equal(t, dummyBaseErrorMessage, baseErrorMessage)
-		assert.Equal(t, 2, len(allErrors))
-		assert.Equal(t, dummyPathTemplateError, allErrors[0])
-		assert.Equal(t, dummyPathRegexpError, allErrors[1])
+	apperrorWrapSimpleErrorExpected = 1
+	apperrorWrapSimpleError = func(innerErrors []error, messageFormat string, parameters ...interface{}) apperrorModel.AppError {
+		apperrorWrapSimpleErrorCalled++
+		assert.Equal(t, 2, len(innerErrors))
+		assert.Equal(t, dummyPathTemplateError, innerErrors[0])
+		assert.Equal(t, dummyPathRegexpError, innerErrors[1])
+		assert.Equal(t, dummyMessageFormat, messageFormat)
+		assert.Equal(t, 1, len(parameters))
+		assert.Equal(t, dummyName, parameters[0])
 		return nil
 	}
 	loggerAppRootExpected = 1
@@ -558,9 +546,10 @@ func TestWalkRegisteredRoutes_Error(t *testing.T) {
 		return dummyError
 	}
 	apperrorWrapSimpleErrorExpected = 1
-	apperrorWrapSimpleError = func(innerError error, messageFormat string, parameters ...interface{}) apperror.AppError {
+	apperrorWrapSimpleError = func(innerErrors []error, messageFormat string, parameters ...interface{}) apperrorModel.AppError {
 		apperrorWrapSimpleErrorCalled++
-		assert.Equal(t, dummyError, innerError)
+		assert.Equal(t, 1, len(innerErrors))
+		assert.Equal(t, dummyError, innerErrors[0])
 		assert.Equal(t, dummyMessageFormat, messageFormat)
 		assert.Equal(t, 0, len(parameters))
 		return dummyAppError
@@ -764,9 +753,9 @@ func TestDefaultActionFunc(t *testing.T) {
 
 	// expect
 	apperrorGetNotImplementedErrorExpected = 1
-	apperrorGetNotImplementedError = func(innerError error) apperror.AppError {
+	apperrorGetNotImplementedError = func(innerErrors ...error) apperrorModel.AppError {
 		apperrorGetNotImplementedErrorCalled++
-		assert.NoError(t, innerError)
+		assert.Equal(t, 0, len(innerErrors))
 		return dummyAppError
 	}
 
@@ -863,10 +852,10 @@ func TestGetRouteInfo_NilRoute(t *testing.T) {
 		assert.Equal(t, dummyHTTPRequest, httpRequest)
 		return dummyRoute
 	}
-	apperrorWrapSimpleErrorExpected = 1
-	apperrorWrapSimpleError = func(innerError error, messageFormat string, parameters ...interface{}) apperror.AppError {
-		apperrorWrapSimpleErrorCalled++
-		assert.NoError(t, innerError)
+	apperrorGetCustomErrorExpected = 1
+	apperrorGetCustomError = func(errorCode apperrorEnum.Code, messageFormat string, parameters ...interface{}) apperrorModel.AppError {
+		apperrorGetCustomErrorCalled++
+		assert.Equal(t, apperrorEnum.CodeGeneralFailure, errorCode)
 		assert.Equal(t, dummyMessageFormat, messageFormat)
 		assert.Equal(t, 0, len(parameters))
 		return dummyAppError

@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
+	apperrorModel "github.com/zhongjie-cai/WebServiceTemplate/apperror/model"
 	"github.com/zhongjie-cai/WebServiceTemplate/customization"
 	"github.com/zhongjie-cai/WebServiceTemplate/jsonutil"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger"
@@ -29,8 +30,6 @@ var (
 	sessionGetRequestCalled                      int
 	sessionGetResponseWriterExpected             int
 	sessionGetResponseWriterCalled               int
-	getStatusCodeFuncExpected                    int
-	getStatusCodeFuncCalled                      int
 	writeResponseFuncExpected                    int
 	writeResponseFuncCalled                      int
 	getAppErrorFuncExpected                      int
@@ -62,7 +61,7 @@ func createMock(t *testing.T) {
 	}
 	apperrorGetGeneralFailureErrorExpected = 0
 	apperrorGetGeneralFailureErrorCalled = 0
-	apperrorGetGeneralFailureError = func(innerError error) apperror.AppError {
+	apperrorGetGeneralFailureError = func(innerErrors ...error) apperrorModel.AppError {
 		apperrorGetGeneralFailureErrorCalled++
 		return nil
 	}
@@ -88,12 +87,6 @@ func createMock(t *testing.T) {
 		sessionGetResponseWriterCalled++
 		return nil
 	}
-	getStatusCodeFuncExpected = 0
-	getStatusCodeFuncCalled = 0
-	getStatusCodeFunc = func(appError apperror.AppError) int {
-		getStatusCodeFuncCalled++
-		return 0
-	}
 	writeResponseFuncExpected = 0
 	writeResponseFuncCalled = 0
 	writeResponseFunc = func(sessionID uuid.UUID, responseWriter http.ResponseWriter, statusCode int, responseMessage string) {
@@ -101,13 +94,13 @@ func createMock(t *testing.T) {
 	}
 	getAppErrorFuncExpected = 0
 	getAppErrorFuncCalled = 0
-	getAppErrorFunc = func(err error) apperror.AppError {
+	getAppErrorFunc = func(err error) apperrorModel.AppError {
 		getAppErrorFuncCalled++
 		return nil
 	}
 	generateErrorResponseFuncExpected = 0
 	generateErrorResponseFuncCalled = 0
-	generateErrorResponseFunc = func(appError apperror.AppError) errorResponseModel {
+	generateErrorResponseFunc = func(appError apperrorModel.AppError) errorResponseModel {
 		generateErrorResponseFuncCalled++
 		return errorResponseModel{}
 	}
@@ -149,8 +142,6 @@ func verifyAll(t *testing.T) {
 	assert.Equal(t, sessionGetRequestExpected, sessionGetRequestCalled, "Unexpected number of calls to sessionGetRequest")
 	sessionGetResponseWriter = session.GetResponseWriter
 	assert.Equal(t, sessionGetResponseWriterExpected, sessionGetResponseWriterCalled, "Unexpected number of calls to sessionGetResponseWriter")
-	getStatusCodeFunc = getStatusCode
-	assert.Equal(t, getStatusCodeFuncExpected, getStatusCodeFuncCalled, "Unexpected number of calls to getStatusCodeFunc")
 	writeResponseFunc = writeResponse
 	assert.Equal(t, writeResponseFuncExpected, writeResponseFuncCalled, "Unexpected number of calls to writeResponseFunc")
 	getAppErrorFunc = getAppError
@@ -201,17 +192,26 @@ func (drw *dummyResponseWriter) Write(bytes []byte) (int, error) {
 }
 
 type dummyAppError struct {
-	t                *testing.T
-	expectedCode     *apperror.Code
-	expectedMessages *[]string
+	t                  *testing.T
+	expectedCode       *string
+	expectedHTTPStatus *int
+	expectedMessages   *[]string
 }
 
-func (dae dummyAppError) Code() apperror.Code {
+func (dae dummyAppError) Code() string {
 	if dae.expectedCode == nil {
 		assert.Fail(dae.t, "Unexpected number of calls to Code")
-		return apperror.Code(-1)
+		return "Unknown"
 	}
 	return *dae.expectedCode
+}
+
+func (dae dummyAppError) HTTPStatusCode() int {
+	if dae.expectedHTTPStatus == nil {
+		assert.Fail(dae.t, "Unexpected number of calls to HTTPStatusCode")
+		return -1
+	}
+	return *dae.expectedHTTPStatus
 }
 
 func (dae dummyAppError) Error() string {

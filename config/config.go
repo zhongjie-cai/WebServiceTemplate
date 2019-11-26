@@ -1,6 +1,9 @@
 package config
 
-import "github.com/zhongjie-cai/WebServiceTemplate/customization"
+import (
+	apperrorEnum "github.com/zhongjie-cai/WebServiceTemplate/apperror/enum"
+	"github.com/zhongjie-cai/WebServiceTemplate/customization"
+)
 
 // AppVersion returns the version information of the application
 var AppVersion = defaultAppVersion
@@ -86,8 +89,8 @@ func validateStringFunction(
 ) (func() string, error) {
 	if forceToDefault {
 		return defaultFunc,
-			apperrorWrapSimpleError(
-				nil,
+			apperrorGetCustomError(
+				apperrorEnum.CodeGeneralFailure,
 				"customization.%v function is forced to default [%v] due to forceToDefault flag set",
 				name,
 				defaultFunc(),
@@ -97,8 +100,8 @@ func validateStringFunction(
 		functionPointerEqualsFunc(stringFunc, defaultFunc) ||
 		len(stringFunc()) == 0 {
 		return defaultFunc,
-			apperrorWrapSimpleError(
-				nil,
+			apperrorGetCustomError(
+				apperrorEnum.CodeGeneralFailure,
 				"customization.%v function is not configured or is empty; fallback to default [%v]",
 				name,
 				defaultFunc(),
@@ -115,8 +118,8 @@ func validateBooleanFunction(
 ) (func() bool, error) {
 	if forceToDefault {
 		return defaultFunc,
-			apperrorWrapSimpleError(
-				nil,
+			apperrorGetCustomError(
+				apperrorEnum.CodeGeneralFailure,
 				"customization.%v function is forced to default [%v] due to forceToDefault flag set",
 				name,
 				defaultFunc(),
@@ -125,8 +128,8 @@ func validateBooleanFunction(
 	if booleanFunc == nil ||
 		functionPointerEqualsFunc(booleanFunc, defaultFunc) {
 		return defaultFunc,
-			apperrorWrapSimpleError(
-				nil,
+			apperrorGetCustomError(
+				apperrorEnum.CodeGeneralFailure,
 				"customization.%v function is not configured; fallback to default [%v].",
 				name,
 				defaultFunc(),
@@ -218,17 +221,19 @@ func Initialize() error {
 		defaultValidateClientCert,
 		!isCaCertificateAvailableFunc(),
 	)
-	return apperrorConsolidateAllErrors(
+	return apperrorWrapSimpleError(
+		[]error{
+			appVersionError,
+			appPortError,
+			appNameError,
+			appPathError,
+			isLocalhostError,
+			serverCertContentError,
+			serverKeyContentError,
+			serveHTTPSError,
+			caCertContentError,
+			validateClientCertError,
+		},
 		"Unexpected errors occur during configuration initialization",
-		appVersionError,
-		appPortError,
-		appNameError,
-		appPathError,
-		isLocalhostError,
-		serverCertContentError,
-		serverKeyContentError,
-		serveHTTPSError,
-		caCertContentError,
-		validateClientCertError,
 	)
 }

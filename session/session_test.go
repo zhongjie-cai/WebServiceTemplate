@@ -10,39 +10,16 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/zhongjie-cai/WebServiceTemplate/logger/loglevel"
-
 	"github.com/google/uuid"
 	"github.com/patrickmn/go-cache"
 	"github.com/stretchr/testify/assert"
 	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
+	apperrorModel "github.com/zhongjie-cai/WebServiceTemplate/apperror/model"
+	"github.com/zhongjie-cai/WebServiceTemplate/config"
+	"github.com/zhongjie-cai/WebServiceTemplate/logger/loglevel"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger/logtype"
+	"github.com/zhongjie-cai/WebServiceTemplate/session/model"
 )
-
-func TestNilResponseWriter(t *testing.T) {
-	// arrange
-	var dummyBody = []byte("some body")
-	var dummyStatus = rand.Int()
-
-	// mock
-	createMock(t)
-
-	// SUT
-	var nilResponseWriter = &nilResponseWriter{}
-
-	// act
-	var header = nilResponseWriter.Header()
-	var result, err = nilResponseWriter.Write(dummyBody)
-	nilResponseWriter.WriteHeader(dummyStatus)
-
-	// assert
-	assert.Empty(t, header)
-	assert.Zero(t, result)
-	assert.NoError(t, err)
-
-	// verify
-	verifyAll(t)
-}
 
 func TestInit_AllValuesSet(t *testing.T) {
 	// arrange
@@ -110,7 +87,7 @@ func TestRegister(t *testing.T) {
 
 	// act
 	var cacheItem, cacheOK = sessionCache.Get(dummySessionID.String())
-	var session, typeOK = cacheItem.(*Session)
+	var session, typeOK = cacheItem.(session)
 
 	// assert
 	assert.Equal(t, dummySessionID, result)
@@ -163,7 +140,7 @@ func TestGet_CacheNotLoaded(t *testing.T) {
 	var session = Get(dummySessionID)
 
 	// assert
-	assert.Equal(t, defaultSession, session)
+	assert.Equal(t, &defaultSession, session)
 
 	// verify
 	verifyAll(t)
@@ -184,7 +161,7 @@ func TestGet_CacheItemInvalid(t *testing.T) {
 	var session = Get(dummySessionID)
 
 	// assert
-	assert.Equal(t, defaultSession, session)
+	assert.Equal(t, &defaultSession, session)
 
 	// verify
 	verifyAll(t)
@@ -194,13 +171,13 @@ func TestGet_CacheItemInvalid(t *testing.T) {
 func TestGet_CacheItemValid(t *testing.T) {
 	// arrange
 	var dummySessionID = uuid.New()
-	var expectedSession = &Session{
+	var expectedSession = &session{
 		Name:           "dummy name",
 		AllowedLogType: logtype.BasicLogging,
 	}
 
 	// stub
-	sessionCache.SetDefault(dummySessionID.String(), expectedSession)
+	sessionCache.SetDefault(dummySessionID.String(), *expectedSession)
 
 	// mock
 	createMock(t)
@@ -216,17 +193,56 @@ func TestGet_CacheItemValid(t *testing.T) {
 	sessionCache.Delete(dummySessionID.String())
 }
 
+func TestGetID_NilSessionObject(t *testing.T) {
+	// mock
+	createMock(t)
+
+	// SUT
+	var dummySessionObject *session
+
+	// act
+	var result = dummySessionObject.GetID()
+
+	// assert
+	assert.Zero(t, result)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestGetID_ValidSessionObject(t *testing.T) {
+	// arrange
+	var dummySessionID = uuid.New()
+
+	// mock
+	createMock(t)
+
+	// SUT
+	var dummySessionObject = &session{
+		ID: dummySessionID,
+	}
+
+	// act
+	var result = dummySessionObject.GetID()
+
+	// assert
+	assert.Equal(t, dummySessionID, result)
+
+	// verify
+	verifyAll(t)
+}
+
 func TestGetName_NilSessionObject(t *testing.T) {
 	// arrange
 	var dummySessionID = uuid.New()
-	var dummySessionObject *Session
+	var dummySessionObject *session
 
 	// mock
 	createMock(t)
 
 	// expect
 	getFuncExpected = 1
-	getFunc = func(sessionID uuid.UUID) *Session {
+	getFunc = func(sessionID uuid.UUID) model.Session {
 		getFuncCalled++
 		assert.Equal(t, dummySessionID, sessionID)
 		return dummySessionObject
@@ -248,7 +264,7 @@ func TestGetName_ValidSessionObject(t *testing.T) {
 	// arrange
 	var dummySessionID = uuid.New()
 	var dummyName = "some name"
-	var dummySessionObject = &Session{
+	var dummySessionObject = &session{
 		Name: dummyName,
 	}
 
@@ -257,7 +273,7 @@ func TestGetName_ValidSessionObject(t *testing.T) {
 
 	// expect
 	getFuncExpected = 1
-	getFunc = func(sessionID uuid.UUID) *Session {
+	getFunc = func(sessionID uuid.UUID) model.Session {
 		getFuncCalled++
 		assert.Equal(t, dummySessionID, sessionID)
 		return dummySessionObject
@@ -278,14 +294,14 @@ func TestGetName_ValidSessionObject(t *testing.T) {
 func TestGetRequest_NilSessionObject(t *testing.T) {
 	// arrange
 	var dummySessionID = uuid.New()
-	var dummySessionObject *Session
+	var dummySessionObject *session
 
 	// mock
 	createMock(t)
 
 	// expect
 	getFuncExpected = 1
-	getFunc = func(sessionID uuid.UUID) *Session {
+	getFunc = func(sessionID uuid.UUID) model.Session {
 		getFuncCalled++
 		assert.Equal(t, dummySessionID, sessionID)
 		return dummySessionObject
@@ -307,7 +323,7 @@ func TestGetRequest_ValidSessionObject(t *testing.T) {
 	// arrange
 	var dummySessionID = uuid.New()
 	var dummyHTTPRequest, _ = http.NewRequest("FOO", "bar", nil)
-	var dummySessionObject = &Session{
+	var dummySessionObject = &session{
 		Request: dummyHTTPRequest,
 	}
 
@@ -316,7 +332,7 @@ func TestGetRequest_ValidSessionObject(t *testing.T) {
 
 	// expect
 	getFuncExpected = 1
-	getFunc = func(sessionID uuid.UUID) *Session {
+	getFunc = func(sessionID uuid.UUID) model.Session {
 		getFuncCalled++
 		assert.Equal(t, dummySessionID, sessionID)
 		return dummySessionObject
@@ -337,14 +353,14 @@ func TestGetRequest_ValidSessionObject(t *testing.T) {
 func TestGetResponseWriter_NilSessionObject(t *testing.T) {
 	// arrange
 	var dummySessionID = uuid.New()
-	var dummySessionObject *Session
+	var dummySessionObject *session
 
 	// mock
 	createMock(t)
 
 	// expect
 	getFuncExpected = 1
-	getFunc = func(sessionID uuid.UUID) *Session {
+	getFunc = func(sessionID uuid.UUID) model.Session {
 		getFuncCalled++
 		assert.Equal(t, dummySessionID, sessionID)
 		return dummySessionObject
@@ -366,7 +382,7 @@ func TestGetResponseWriter_ValidSessionObject(t *testing.T) {
 	// arrange
 	var dummySessionID = uuid.New()
 	var dummyResponseWriter = dummyResponseWriter{}
-	var dummySessionObject = &Session{
+	var dummySessionObject = &session{
 		ResponseWriter: &dummyResponseWriter,
 	}
 
@@ -375,7 +391,7 @@ func TestGetResponseWriter_ValidSessionObject(t *testing.T) {
 
 	// expect
 	getFuncExpected = 1
-	getFunc = func(sessionID uuid.UUID) *Session {
+	getFunc = func(sessionID uuid.UUID) model.Session {
 		getFuncCalled++
 		assert.Equal(t, dummySessionID, sessionID)
 		return dummySessionObject
@@ -587,9 +603,10 @@ func TestTryUnmarshal_Failure(t *testing.T) {
 		return dummyError
 	}
 	apperrorGetBadRequestErrorExpected = 1
-	apperrorGetBadRequestError = func(innerError error) apperror.AppError {
+	apperrorGetBadRequestError = func(innerErrors ...error) apperrorModel.AppError {
 		apperrorGetBadRequestErrorCalled++
-		assert.Equal(t, dummyError, innerError)
+		assert.Equal(t, 1, len(innerErrors))
+		assert.Equal(t, dummyError, innerErrors[0])
 		return dummyAppError
 	}
 
@@ -613,6 +630,9 @@ func TestGetRequestBody_EmptyBody(t *testing.T) {
 	var dummyDataTemplate int
 	var dummyHTTPRequest = &http.Request{}
 	var dummyRequestBody string
+	var dummySessionObject = &session{
+		Request: dummyHTTPRequest,
+	}
 	var dummyError = errors.New("some error")
 	var dummyAppError = apperror.GetGeneralFailureError(nil)
 
@@ -620,11 +640,11 @@ func TestGetRequestBody_EmptyBody(t *testing.T) {
 	createMock(t)
 
 	// expect
-	getRequestFuncExpected = 1
-	getRequestFunc = func(sessionID uuid.UUID) *http.Request {
-		getRequestFuncCalled++
+	getFuncExpected = 1
+	getFunc = func(sessionID uuid.UUID) model.Session {
+		getFuncCalled++
 		assert.Equal(t, dummySessionID, sessionID)
-		return dummyHTTPRequest
+		return dummySessionObject
 	}
 	requestGetRequestBodyExpected = 1
 	requestGetRequestBody = func(httpRequest *http.Request) string {
@@ -640,9 +660,10 @@ func TestGetRequestBody_EmptyBody(t *testing.T) {
 		return dummyError
 	}
 	apperrorGetBadRequestErrorExpected = 1
-	apperrorGetBadRequestError = func(innerError error) apperror.AppError {
+	apperrorGetBadRequestError = func(innerErrors ...error) apperrorModel.AppError {
 		apperrorGetBadRequestErrorCalled++
-		assert.Equal(t, dummyError, innerError)
+		assert.Equal(t, 1, len(innerErrors))
+		assert.Equal(t, dummyError, innerErrors[0])
 		return dummyAppError
 	}
 
@@ -666,6 +687,9 @@ func TestGetRequestBody_ValidBody(t *testing.T) {
 	var dummyDataTemplate int
 	var dummyHTTPRequest = &http.Request{}
 	var dummyRequestBody = "some request body"
+	var dummySessionObject = &session{
+		Request: dummyHTTPRequest,
+	}
 	var dummyAppError = apperror.GetGeneralFailureError(nil)
 	var dummyResult = rand.Int()
 
@@ -673,11 +697,11 @@ func TestGetRequestBody_ValidBody(t *testing.T) {
 	createMock(t)
 
 	// expect
-	getRequestFuncExpected = 1
-	getRequestFunc = func(sessionID uuid.UUID) *http.Request {
-		getRequestFuncCalled++
+	getFuncExpected = 1
+	getFunc = func(sessionID uuid.UUID) model.Session {
+		getFuncCalled++
 		assert.Equal(t, dummySessionID, sessionID)
-		return dummyHTTPRequest
+		return dummySessionObject
 	}
 	requestGetRequestBodyExpected = 1
 	requestGetRequestBody = func(httpRequest *http.Request) string {
@@ -686,7 +710,7 @@ func TestGetRequestBody_ValidBody(t *testing.T) {
 		return dummyRequestBody
 	}
 	tryUnmarshalFuncExpected = 1
-	tryUnmarshalFunc = func(value string, dataTemplate interface{}) apperror.AppError {
+	tryUnmarshalFunc = func(value string, dataTemplate interface{}) apperrorModel.AppError {
 		tryUnmarshalFuncCalled++
 		assert.Equal(t, dummyRequestBody, value)
 		*(dataTemplate.(*int)) = dummyResult
@@ -717,6 +741,9 @@ func TestGetRequestParameter_ValueNotFound(t *testing.T) {
 		"foo":  "bar",
 		"test": "123",
 	}
+	var dummySessionObject = &session{
+		Request: dummyHTTPRequest,
+	}
 	var dummyError = errors.New("some error")
 	var dummyAppError = apperror.GetGeneralFailureError(nil)
 
@@ -724,11 +751,11 @@ func TestGetRequestParameter_ValueNotFound(t *testing.T) {
 	createMock(t)
 
 	// expect
-	getRequestFuncExpected = 1
-	getRequestFunc = func(sessionID uuid.UUID) *http.Request {
-		getRequestFuncCalled++
+	getFuncExpected = 1
+	getFunc = func(sessionID uuid.UUID) model.Session {
+		getFuncCalled++
 		assert.Equal(t, dummySessionID, sessionID)
-		return dummyHTTPRequest
+		return dummySessionObject
 	}
 	muxVarsExpected = 1
 	muxVars = func(r *http.Request) map[string]string {
@@ -745,9 +772,10 @@ func TestGetRequestParameter_ValueNotFound(t *testing.T) {
 		return dummyError
 	}
 	apperrorGetBadRequestErrorExpected = 1
-	apperrorGetBadRequestError = func(innerError error) apperror.AppError {
+	apperrorGetBadRequestError = func(innerErrors ...error) apperrorModel.AppError {
 		apperrorGetBadRequestErrorCalled++
-		assert.Equal(t, dummyError, innerError)
+		assert.Equal(t, 1, len(innerErrors))
+		assert.Equal(t, dummyError, innerErrors[0])
 		return dummyAppError
 	}
 
@@ -777,6 +805,9 @@ func TestGetRequestParameter_HappyPath(t *testing.T) {
 		"test":    "123",
 		dummyName: dummyValue,
 	}
+	var dummySessionObject = &session{
+		Request: dummyHTTPRequest,
+	}
 	var dummyAppError = apperror.GetGeneralFailureError(nil)
 	var dummyResult = rand.Int()
 
@@ -784,11 +815,11 @@ func TestGetRequestParameter_HappyPath(t *testing.T) {
 	createMock(t)
 
 	// expect
-	getRequestFuncExpected = 1
-	getRequestFunc = func(sessionID uuid.UUID) *http.Request {
-		getRequestFuncCalled++
+	getFuncExpected = 1
+	getFunc = func(sessionID uuid.UUID) model.Session {
+		getFuncCalled++
 		assert.Equal(t, dummySessionID, sessionID)
-		return dummyHTTPRequest
+		return dummySessionObject
 	}
 	muxVarsExpected = 1
 	muxVars = func(r *http.Request) map[string]string {
@@ -797,7 +828,7 @@ func TestGetRequestParameter_HappyPath(t *testing.T) {
 		return dummyParameters
 	}
 	tryUnmarshalFuncExpected = 1
-	tryUnmarshalFunc = func(value string, dataTemplate interface{}) apperror.AppError {
+	tryUnmarshalFunc = func(value string, dataTemplate interface{}) apperrorModel.AppError {
 		tryUnmarshalFuncCalled++
 		assert.Equal(t, dummyValue, value)
 		*(dataTemplate.(*int)) = dummyResult
@@ -821,28 +852,22 @@ func TestGetRequestParameter_HappyPath(t *testing.T) {
 
 func TestGetAllQueries_NotFound(t *testing.T) {
 	// arrange
-	var dummySessionID = uuid.New()
 	var dummyName = "some name"
 	var dummyHTTPRequest = &http.Request{
 		URL: &url.URL{
 			RawQuery: "test=me&test=you",
 		},
 	}
+	var dummySessionObject = &session{
+		Request: dummyHTTPRequest,
+	}
 
 	// mock
 	createMock(t)
 
-	// expect
-	getRequestFuncExpected = 1
-	getRequestFunc = func(sessionID uuid.UUID) *http.Request {
-		getRequestFuncCalled++
-		assert.Equal(t, dummySessionID, sessionID)
-		return dummyHTTPRequest
-	}
-
 	// SUT + act
 	var result = getAllQueries(
-		dummySessionID,
+		dummySessionObject,
 		dummyName,
 	)
 
@@ -855,28 +880,22 @@ func TestGetAllQueries_NotFound(t *testing.T) {
 
 func TestGetAllQueries_HappyPath(t *testing.T) {
 	// arrange
-	var dummySessionID = uuid.New()
 	var dummyName = "some name"
 	var dummyHTTPRequest = &http.Request{
 		URL: &url.URL{
 			RawQuery: dummyName + "=me&" + dummyName + "=you",
 		},
 	}
+	var dummySessionObject = &session{
+		Request: dummyHTTPRequest,
+	}
 
 	// mock
 	createMock(t)
 
-	// expect
-	getRequestFuncExpected = 1
-	getRequestFunc = func(sessionID uuid.UUID) *http.Request {
-		getRequestFuncCalled++
-		assert.Equal(t, dummySessionID, sessionID)
-		return dummyHTTPRequest
-	}
-
 	// SUT + act
 	var result = getAllQueries(
-		dummySessionID,
+		dummySessionObject,
 		dummyName,
 	)
 
@@ -892,6 +911,9 @@ func TestGetAllQueries_HappyPath(t *testing.T) {
 func TestGetRequestQuery_EmptyList(t *testing.T) {
 	// arrange
 	var dummySessionID = uuid.New()
+	var dummySessionObject = &session{
+		ID: dummySessionID,
+	}
 	var dummyName = "some name"
 	var dummyDataTemplate int
 	var dummyQueries []string
@@ -902,10 +924,16 @@ func TestGetRequestQuery_EmptyList(t *testing.T) {
 	createMock(t)
 
 	// expect
-	getAllQueriesFuncExpected = 1
-	getAllQueriesFunc = func(sessionID uuid.UUID, name string) []string {
-		getAllQueriesFuncCalled++
+	getFuncExpected = 1
+	getFunc = func(sessionID uuid.UUID) model.Session {
+		getFuncCalled++
 		assert.Equal(t, dummySessionID, sessionID)
+		return dummySessionObject
+	}
+	getAllQueriesFuncExpected = 1
+	getAllQueriesFunc = func(session *session, name string) []string {
+		getAllQueriesFuncCalled++
+		assert.Equal(t, dummySessionObject, session)
 		assert.Equal(t, dummyName, name)
 		return dummyQueries
 	}
@@ -918,9 +946,10 @@ func TestGetRequestQuery_EmptyList(t *testing.T) {
 		return dummyError
 	}
 	apperrorGetBadRequestErrorExpected = 1
-	apperrorGetBadRequestError = func(innerError error) apperror.AppError {
+	apperrorGetBadRequestError = func(innerErrors ...error) apperrorModel.AppError {
 		apperrorGetBadRequestErrorCalled++
-		assert.Equal(t, dummyError, innerError)
+		assert.Equal(t, 1, len(innerErrors))
+		assert.Equal(t, dummyError, innerErrors[0])
 		return dummyAppError
 	}
 
@@ -942,6 +971,9 @@ func TestGetRequestQuery_EmptyList(t *testing.T) {
 func TestGetRequestQuery_HappyPath(t *testing.T) {
 	// arrange
 	var dummySessionID = uuid.New()
+	var dummySessionObject = &session{
+		ID: dummySessionID,
+	}
 	var dummyName = "some name"
 	var dummyDataTemplate int
 	var dummyQueries = []string{
@@ -956,15 +988,21 @@ func TestGetRequestQuery_HappyPath(t *testing.T) {
 	createMock(t)
 
 	// expect
-	getAllQueriesFuncExpected = 1
-	getAllQueriesFunc = func(sessionID uuid.UUID, name string) []string {
-		getAllQueriesFuncCalled++
+	getFuncExpected = 1
+	getFunc = func(sessionID uuid.UUID) model.Session {
+		getFuncCalled++
 		assert.Equal(t, dummySessionID, sessionID)
+		return dummySessionObject
+	}
+	getAllQueriesFuncExpected = 1
+	getAllQueriesFunc = func(session *session, name string) []string {
+		getAllQueriesFuncCalled++
+		assert.Equal(t, dummySessionObject, session)
 		assert.Equal(t, dummyName, name)
 		return dummyQueries
 	}
 	tryUnmarshalFuncExpected = 1
-	tryUnmarshalFunc = func(value string, dataTemplate interface{}) apperror.AppError {
+	tryUnmarshalFunc = func(value string, dataTemplate interface{}) apperrorModel.AppError {
 		tryUnmarshalFuncCalled++
 		assert.Equal(t, dummyQueries[0], value)
 		*(dataTemplate.(*int)) = dummyResult
@@ -989,6 +1027,9 @@ func TestGetRequestQuery_HappyPath(t *testing.T) {
 func TestGetRequestQueries_EmptyList(t *testing.T) {
 	// arrange
 	var dummySessionID = uuid.New()
+	var dummySessionObject = &session{
+		ID: dummySessionID,
+	}
 	var dummyName = "some name"
 	var dummyDataTemplate int
 	var dummyQueries []string
@@ -1001,10 +1042,16 @@ func TestGetRequestQueries_EmptyList(t *testing.T) {
 	createMock(t)
 
 	// expect
-	getAllQueriesFuncExpected = 1
-	getAllQueriesFunc = func(sessionID uuid.UUID, name string) []string {
-		getAllQueriesFuncCalled++
+	getFuncExpected = 1
+	getFunc = func(sessionID uuid.UUID) model.Session {
+		getFuncCalled++
 		assert.Equal(t, dummySessionID, sessionID)
+		return dummySessionObject
+	}
+	getAllQueriesFuncExpected = 1
+	getAllQueriesFunc = func(session *session, name string) []string {
+		getAllQueriesFuncCalled++
+		assert.Equal(t, dummySessionObject, session)
 		assert.Equal(t, dummyName, name)
 		return dummyQueries
 	}
@@ -1012,11 +1059,12 @@ func TestGetRequestQueries_EmptyList(t *testing.T) {
 	dummyFillCallback = func() {
 		dummyFillCallbackCalled++
 	}
-	apperrorConsolidateAllErrorsExpected = 1
-	apperrorConsolidateAllErrors = func(baseErrorMessage string, allErrors ...error) apperror.AppError {
-		apperrorConsolidateAllErrorsCalled++
-		assert.Equal(t, "Failed to get request query strings", baseErrorMessage)
-		assert.Equal(t, 0, len(allErrors))
+	apperrorWrapSimpleErrorExpected = 1
+	apperrorWrapSimpleError = func(innerErrors []error, messageFormat string, parameters ...interface{}) apperrorModel.AppError {
+		apperrorWrapSimpleErrorCalled++
+		assert.Equal(t, 0, len(innerErrors))
+		assert.Equal(t, "Failed to get request query strings", messageFormat)
+		assert.Equal(t, 0, len(parameters))
 		return dummyError
 	}
 
@@ -1040,6 +1088,9 @@ func TestGetRequestQueries_EmptyList(t *testing.T) {
 func TestGetRequestQueries_HappyPath(t *testing.T) {
 	// arrange
 	var dummySessionID = uuid.New()
+	var dummySessionObject = &session{
+		ID: dummySessionID,
+	}
 	var dummyName = "some name"
 	var dummyDataTemplate int
 	var dummyQueries = []string{
@@ -1050,7 +1101,7 @@ func TestGetRequestQueries_HappyPath(t *testing.T) {
 	var dummyFillCallbackExpected int
 	var dummyFillCallbackCalled int
 	var dummyFillCallback func()
-	var unmarshalErrors = []apperror.AppError{
+	var unmarshalErrors = []apperrorModel.AppError{
 		nil,
 		apperror.GetGeneralFailureError(nil),
 		nil,
@@ -1062,15 +1113,21 @@ func TestGetRequestQueries_HappyPath(t *testing.T) {
 	createMock(t)
 
 	// expect
-	getAllQueriesFuncExpected = 1
-	getAllQueriesFunc = func(sessionID uuid.UUID, name string) []string {
-		getAllQueriesFuncCalled++
+	getFuncExpected = 1
+	getFunc = func(sessionID uuid.UUID) model.Session {
+		getFuncCalled++
 		assert.Equal(t, dummySessionID, sessionID)
+		return dummySessionObject
+	}
+	getAllQueriesFuncExpected = 1
+	getAllQueriesFunc = func(session *session, name string) []string {
+		getAllQueriesFuncCalled++
+		assert.Equal(t, dummySessionObject, session)
 		assert.Equal(t, dummyName, name)
 		return dummyQueries
 	}
 	tryUnmarshalFuncExpected = 3
-	tryUnmarshalFunc = func(value string, dataTemplate interface{}) apperror.AppError {
+	tryUnmarshalFunc = func(value string, dataTemplate interface{}) apperrorModel.AppError {
 		tryUnmarshalFuncCalled++
 		assert.Equal(t, dummyQueries[tryUnmarshalFuncCalled-1], value)
 		*(dataTemplate.(*int)) = dummyResult
@@ -1080,12 +1137,13 @@ func TestGetRequestQueries_HappyPath(t *testing.T) {
 	dummyFillCallback = func() {
 		dummyFillCallbackCalled++
 	}
-	apperrorConsolidateAllErrorsExpected = 1
-	apperrorConsolidateAllErrors = func(baseErrorMessage string, allErrors ...error) apperror.AppError {
-		apperrorConsolidateAllErrorsCalled++
-		assert.Equal(t, "Failed to get request query strings", baseErrorMessage)
-		assert.Equal(t, 1, len(allErrors))
-		assert.Equal(t, unmarshalErrors[1], allErrors[0])
+	apperrorWrapSimpleErrorExpected = 1
+	apperrorWrapSimpleError = func(innerErrors []error, messageFormat string, parameters ...interface{}) apperrorModel.AppError {
+		apperrorWrapSimpleErrorCalled++
+		assert.Equal(t, 1, len(innerErrors))
+		assert.Equal(t, unmarshalErrors[1], innerErrors[0])
+		assert.Equal(t, "Failed to get request query strings", messageFormat)
+		assert.Equal(t, 0, len(parameters))
 		return dummyAppError
 	}
 
@@ -1108,11 +1166,13 @@ func TestGetRequestQueries_HappyPath(t *testing.T) {
 
 func TestGetAllHeaders_NotFound(t *testing.T) {
 	// arrange
-	var dummySessionID = uuid.New()
 	var dummyName = "some name"
 	var dummyCanonicalName = "some conanical name"
 	var dummyHTTPRequest = &http.Request{
 		Header: http.Header{},
+	}
+	var dummySessionObject = &session{
+		Request: dummyHTTPRequest,
 	}
 
 	// stub
@@ -1123,12 +1183,6 @@ func TestGetAllHeaders_NotFound(t *testing.T) {
 	createMock(t)
 
 	// expect
-	getRequestFuncExpected = 1
-	getRequestFunc = func(sessionID uuid.UUID) *http.Request {
-		getRequestFuncCalled++
-		assert.Equal(t, dummySessionID, sessionID)
-		return dummyHTTPRequest
-	}
 	textprotoCanonicalMIMEHeaderKeyExpected = 1
 	textprotoCanonicalMIMEHeaderKey = func(s string) string {
 		textprotoCanonicalMIMEHeaderKeyCalled++
@@ -1138,7 +1192,7 @@ func TestGetAllHeaders_NotFound(t *testing.T) {
 
 	// SUT + act
 	var result = getAllHeaders(
-		dummySessionID,
+		dummySessionObject,
 		dummyName,
 	)
 
@@ -1151,11 +1205,13 @@ func TestGetAllHeaders_NotFound(t *testing.T) {
 
 func TestGetAllHeaders_HappyPath(t *testing.T) {
 	// arrange
-	var dummySessionID = uuid.New()
 	var dummyName = "some name"
 	var dummyCanonicalName = "some conanical name"
 	var dummyHTTPRequest = &http.Request{
 		Header: http.Header{},
+	}
+	var dummySessionObject = &session{
+		Request: dummyHTTPRequest,
 	}
 
 	// stub
@@ -1166,12 +1222,6 @@ func TestGetAllHeaders_HappyPath(t *testing.T) {
 	createMock(t)
 
 	// expect
-	getRequestFuncExpected = 1
-	getRequestFunc = func(sessionID uuid.UUID) *http.Request {
-		getRequestFuncCalled++
-		assert.Equal(t, dummySessionID, sessionID)
-		return dummyHTTPRequest
-	}
 	textprotoCanonicalMIMEHeaderKeyExpected = 1
 	textprotoCanonicalMIMEHeaderKey = func(s string) string {
 		textprotoCanonicalMIMEHeaderKeyCalled++
@@ -1181,7 +1231,7 @@ func TestGetAllHeaders_HappyPath(t *testing.T) {
 
 	// SUT + act
 	var result = getAllHeaders(
-		dummySessionID,
+		dummySessionObject,
 		dummyName,
 	)
 
@@ -1197,6 +1247,9 @@ func TestGetAllHeaders_HappyPath(t *testing.T) {
 func TestGetRequestHeader_EmptyList(t *testing.T) {
 	// arrange
 	var dummySessionID = uuid.New()
+	var dummySessionObject = &session{
+		ID: dummySessionID,
+	}
 	var dummyName = "some name"
 	var dummyDataTemplate int
 	var dummyHeaders []string
@@ -1207,10 +1260,16 @@ func TestGetRequestHeader_EmptyList(t *testing.T) {
 	createMock(t)
 
 	// expect
-	getAllHeadersFuncExpected = 1
-	getAllHeadersFunc = func(sessionID uuid.UUID, name string) []string {
-		getAllHeadersFuncCalled++
+	getFuncExpected = 1
+	getFunc = func(sessionID uuid.UUID) model.Session {
+		getFuncCalled++
 		assert.Equal(t, dummySessionID, sessionID)
+		return dummySessionObject
+	}
+	getAllHeadersFuncExpected = 1
+	getAllHeadersFunc = func(session *session, name string) []string {
+		getAllHeadersFuncCalled++
+		assert.Equal(t, dummySessionObject, session)
 		assert.Equal(t, dummyName, name)
 		return dummyHeaders
 	}
@@ -1223,9 +1282,10 @@ func TestGetRequestHeader_EmptyList(t *testing.T) {
 		return dummyError
 	}
 	apperrorGetBadRequestErrorExpected = 1
-	apperrorGetBadRequestError = func(innerError error) apperror.AppError {
+	apperrorGetBadRequestError = func(innerErrors ...error) apperrorModel.AppError {
 		apperrorGetBadRequestErrorCalled++
-		assert.Equal(t, dummyError, innerError)
+		assert.Equal(t, 1, len(innerErrors))
+		assert.Equal(t, dummyError, innerErrors[0])
 		return dummyAppError
 	}
 
@@ -1247,6 +1307,9 @@ func TestGetRequestHeader_EmptyList(t *testing.T) {
 func TestGetRequestHeader_HappyPath(t *testing.T) {
 	// arrange
 	var dummySessionID = uuid.New()
+	var dummySessionObject = &session{
+		ID: dummySessionID,
+	}
 	var dummyName = "some name"
 	var dummyDataTemplate int
 	var dummyHeaders = []string{
@@ -1261,15 +1324,21 @@ func TestGetRequestHeader_HappyPath(t *testing.T) {
 	createMock(t)
 
 	// expect
-	getAllHeadersFuncExpected = 1
-	getAllHeadersFunc = func(sessionID uuid.UUID, name string) []string {
-		getAllHeadersFuncCalled++
+	getFuncExpected = 1
+	getFunc = func(sessionID uuid.UUID) model.Session {
+		getFuncCalled++
 		assert.Equal(t, dummySessionID, sessionID)
+		return dummySessionObject
+	}
+	getAllHeadersFuncExpected = 1
+	getAllHeadersFunc = func(session *session, name string) []string {
+		getAllHeadersFuncCalled++
+		assert.Equal(t, dummySessionObject, session)
 		assert.Equal(t, dummyName, name)
 		return dummyHeaders
 	}
 	tryUnmarshalFuncExpected = 1
-	tryUnmarshalFunc = func(value string, dataTemplate interface{}) apperror.AppError {
+	tryUnmarshalFunc = func(value string, dataTemplate interface{}) apperrorModel.AppError {
 		tryUnmarshalFuncCalled++
 		assert.Equal(t, dummyHeaders[0], value)
 		*(dataTemplate.(*int)) = dummyResult
@@ -1294,6 +1363,9 @@ func TestGetRequestHeader_HappyPath(t *testing.T) {
 func TestGetRequestHeaders_EmptyList(t *testing.T) {
 	// arrange
 	var dummySessionID = uuid.New()
+	var dummySessionObject = &session{
+		ID: dummySessionID,
+	}
 	var dummyName = "some name"
 	var dummyDataTemplate int
 	var dummyHeaders []string
@@ -1306,10 +1378,16 @@ func TestGetRequestHeaders_EmptyList(t *testing.T) {
 	createMock(t)
 
 	// expect
-	getAllHeadersFuncExpected = 1
-	getAllHeadersFunc = func(sessionID uuid.UUID, name string) []string {
-		getAllHeadersFuncCalled++
+	getFuncExpected = 1
+	getFunc = func(sessionID uuid.UUID) model.Session {
+		getFuncCalled++
 		assert.Equal(t, dummySessionID, sessionID)
+		return dummySessionObject
+	}
+	getAllHeadersFuncExpected = 1
+	getAllHeadersFunc = func(session *session, name string) []string {
+		getAllHeadersFuncCalled++
+		assert.Equal(t, dummySessionObject, session)
 		assert.Equal(t, dummyName, name)
 		return dummyHeaders
 	}
@@ -1317,11 +1395,12 @@ func TestGetRequestHeaders_EmptyList(t *testing.T) {
 	dummyFillCallback = func() {
 		dummyFillCallbackCalled++
 	}
-	apperrorConsolidateAllErrorsExpected = 1
-	apperrorConsolidateAllErrors = func(baseErrorMessage string, allErrors ...error) apperror.AppError {
-		apperrorConsolidateAllErrorsCalled++
-		assert.Equal(t, "Failed to get request header strings", baseErrorMessage)
-		assert.Equal(t, 0, len(allErrors))
+	apperrorWrapSimpleErrorExpected = 1
+	apperrorWrapSimpleError = func(innerErrors []error, messageFormat string, parameters ...interface{}) apperrorModel.AppError {
+		apperrorWrapSimpleErrorCalled++
+		assert.Equal(t, 0, len(innerErrors))
+		assert.Equal(t, "Failed to get request header strings", messageFormat)
+		assert.Equal(t, 0, len(parameters))
 		return dummyError
 	}
 
@@ -1345,6 +1424,9 @@ func TestGetRequestHeaders_EmptyList(t *testing.T) {
 func TestGetRequestHeaders_HappyPath(t *testing.T) {
 	// arrange
 	var dummySessionID = uuid.New()
+	var dummySessionObject = &session{
+		ID: dummySessionID,
+	}
 	var dummyName = "some name"
 	var dummyDataTemplate int
 	var dummyHeaders = []string{
@@ -1355,7 +1437,7 @@ func TestGetRequestHeaders_HappyPath(t *testing.T) {
 	var dummyFillCallbackExpected int
 	var dummyFillCallbackCalled int
 	var dummyFillCallback func()
-	var unmarshalErrors = []apperror.AppError{
+	var unmarshalErrors = []apperrorModel.AppError{
 		nil,
 		apperror.GetGeneralFailureError(nil),
 		nil,
@@ -1367,15 +1449,21 @@ func TestGetRequestHeaders_HappyPath(t *testing.T) {
 	createMock(t)
 
 	// expect
-	getAllHeadersFuncExpected = 1
-	getAllHeadersFunc = func(sessionID uuid.UUID, name string) []string {
-		getAllHeadersFuncCalled++
+	getFuncExpected = 1
+	getFunc = func(sessionID uuid.UUID) model.Session {
+		getFuncCalled++
 		assert.Equal(t, dummySessionID, sessionID)
+		return dummySessionObject
+	}
+	getAllHeadersFuncExpected = 1
+	getAllHeadersFunc = func(session *session, name string) []string {
+		getAllHeadersFuncCalled++
+		assert.Equal(t, dummySessionObject, session)
 		assert.Equal(t, dummyName, name)
 		return dummyHeaders
 	}
 	tryUnmarshalFuncExpected = 3
-	tryUnmarshalFunc = func(value string, dataTemplate interface{}) apperror.AppError {
+	tryUnmarshalFunc = func(value string, dataTemplate interface{}) apperrorModel.AppError {
 		tryUnmarshalFuncCalled++
 		assert.Equal(t, dummyHeaders[tryUnmarshalFuncCalled-1], value)
 		*(dataTemplate.(*int)) = dummyResult
@@ -1385,12 +1473,13 @@ func TestGetRequestHeaders_HappyPath(t *testing.T) {
 	dummyFillCallback = func() {
 		dummyFillCallbackCalled++
 	}
-	apperrorConsolidateAllErrorsExpected = 1
-	apperrorConsolidateAllErrors = func(baseErrorMessage string, allErrors ...error) apperror.AppError {
-		apperrorConsolidateAllErrorsCalled++
-		assert.Equal(t, "Failed to get request header strings", baseErrorMessage)
-		assert.Equal(t, 1, len(allErrors))
-		assert.Equal(t, unmarshalErrors[1], allErrors[0])
+	apperrorWrapSimpleErrorExpected = 1
+	apperrorWrapSimpleError = func(innerErrors []error, messageFormat string, parameters ...interface{}) apperrorModel.AppError {
+		apperrorWrapSimpleErrorCalled++
+		assert.Equal(t, 1, len(innerErrors))
+		assert.Equal(t, unmarshalErrors[1], innerErrors[0])
+		assert.Equal(t, "Failed to get request header strings", messageFormat)
+		assert.Equal(t, 0, len(parameters))
 		return dummyAppError
 	}
 
@@ -1411,7 +1500,7 @@ func TestGetRequestHeaders_HappyPath(t *testing.T) {
 	assert.Equal(t, dummyFillCallbackExpected, dummyFillCallbackCalled, "Unexpected number of calls to dummyFillCallback")
 }
 
-func TestAttach_NoSession(t *testing.T) {
+func TestAttach_NilSessionObject(t *testing.T) {
 	// arrange
 	var dummySessionID = uuid.New()
 	var dummyName = "some name"
@@ -1420,14 +1509,14 @@ func TestAttach_NoSession(t *testing.T) {
 		Foo:  "bar",
 		Test: rand.Intn(100),
 	}
-	var dummySessionObject *Session
+	var dummySessionObject *session
 
 	// mock
 	createMock(t)
 
 	// expect
 	getFuncExpected = 1
-	getFunc = func(sessionID uuid.UUID) *Session {
+	getFunc = func(sessionID uuid.UUID) model.Session {
 		getFuncCalled++
 		assert.Equal(t, dummySessionID, sessionID)
 		return dummySessionObject
@@ -1447,7 +1536,7 @@ func TestAttach_NoSession(t *testing.T) {
 	verifyAll(t)
 }
 
-func TestAttach_HasSession_NoAttachment(t *testing.T) {
+func TestAttach_NoAttachment(t *testing.T) {
 	// arrange
 	var dummySessionID = uuid.New()
 	var dummyName = "some name"
@@ -1456,14 +1545,16 @@ func TestAttach_HasSession_NoAttachment(t *testing.T) {
 		Foo:  "bar",
 		Test: rand.Intn(100),
 	}
-	var dummySessionObject = &Session{}
+	var dummySessionObject = &session{
+		attachment: nil,
+	}
 
 	// mock
 	createMock(t)
 
 	// expect
 	getFuncExpected = 1
-	getFunc = func(sessionID uuid.UUID) *Session {
+	getFunc = func(sessionID uuid.UUID) model.Session {
 		getFuncCalled++
 		assert.Equal(t, dummySessionID, sessionID)
 		return dummySessionObject
@@ -1484,7 +1575,7 @@ func TestAttach_HasSession_NoAttachment(t *testing.T) {
 	verifyAll(t)
 }
 
-func TestAttach_HasSession_WithAttachment(t *testing.T) {
+func TestAttach_WithAttachment(t *testing.T) {
 	// arrange
 	var dummySessionID = uuid.New()
 	var dummyName = "some name"
@@ -1493,7 +1584,7 @@ func TestAttach_HasSession_WithAttachment(t *testing.T) {
 		Foo:  "bar",
 		Test: rand.Intn(100),
 	}
-	var dummySessionObject = &Session{
+	var dummySessionObject = &session{
 		attachment: map[string]interface{}{
 			dummyName: "some value",
 		},
@@ -1504,7 +1595,7 @@ func TestAttach_HasSession_WithAttachment(t *testing.T) {
 
 	// expect
 	getFuncExpected = 1
-	getFunc = func(sessionID uuid.UUID) *Session {
+	getFunc = func(sessionID uuid.UUID) model.Session {
 		getFuncCalled++
 		assert.Equal(t, dummySessionID, sessionID)
 		return dummySessionObject
@@ -1525,18 +1616,18 @@ func TestAttach_HasSession_WithAttachment(t *testing.T) {
 	verifyAll(t)
 }
 
-func TestDetach_NoSession(t *testing.T) {
+func TestDetach_NilSessionObject(t *testing.T) {
 	// arrange
 	var dummySessionID = uuid.New()
 	var dummyName = "some name"
-	var dummySessionObject *Session
+	var dummySessionObject *session
 
 	// mock
 	createMock(t)
 
 	// expect
 	getFuncExpected = 1
-	getFunc = func(sessionID uuid.UUID) *Session {
+	getFunc = func(sessionID uuid.UUID) model.Session {
 		getFuncCalled++
 		assert.Equal(t, dummySessionID, sessionID)
 		return dummySessionObject
@@ -1555,18 +1646,18 @@ func TestDetach_NoSession(t *testing.T) {
 	verifyAll(t)
 }
 
-func TestDetach_HasSession_NoAttachment(t *testing.T) {
+func TestDetach_NoAttachment(t *testing.T) {
 	// arrange
 	var dummySessionID = uuid.New()
 	var dummyName = "some name"
-	var dummySessionObject = &Session{}
+	var dummySessionObject = &session{}
 
 	// mock
 	createMock(t)
 
 	// expect
 	getFuncExpected = 1
-	getFunc = func(sessionID uuid.UUID) *Session {
+	getFunc = func(sessionID uuid.UUID) model.Session {
 		getFuncCalled++
 		assert.Equal(t, dummySessionID, sessionID)
 		return dummySessionObject
@@ -1587,11 +1678,11 @@ func TestDetach_HasSession_NoAttachment(t *testing.T) {
 	verifyAll(t)
 }
 
-func TestDetach_HasSession_WithAttachment(t *testing.T) {
+func TestDetach_WithAttachment(t *testing.T) {
 	// arrange
 	var dummySessionID = uuid.New()
 	var dummyName = "some name"
-	var dummySessionObject = &Session{
+	var dummySessionObject = &session{
 		attachment: map[string]interface{}{
 			dummyName: "some value",
 		},
@@ -1602,7 +1693,7 @@ func TestDetach_HasSession_WithAttachment(t *testing.T) {
 
 	// expect
 	getFuncExpected = 1
-	getFunc = func(sessionID uuid.UUID) *Session {
+	getFunc = func(sessionID uuid.UUID) model.Session {
 		getFuncCalled++
 		assert.Equal(t, dummySessionID, sessionID)
 		return dummySessionObject
@@ -1627,15 +1718,15 @@ func TestGetAttachment_NoSession(t *testing.T) {
 	// arrange
 	var dummySessionID = uuid.New()
 	var dummyName = "some name"
-	var dummySessionObject *Session
 	var dummyDataTemplate dummyAttachment
+	var dummySessionObject *session
 
 	// mock
 	createMock(t)
 
 	// expect
 	getFuncExpected = 1
-	getFunc = func(sessionID uuid.UUID) *Session {
+	getFunc = func(sessionID uuid.UUID) model.Session {
 		getFuncCalled++
 		assert.Equal(t, dummySessionID, sessionID)
 		return dummySessionObject
@@ -1660,7 +1751,7 @@ func TestGetAttachment_NoAttachment(t *testing.T) {
 	// arrange
 	var dummySessionID = uuid.New()
 	var dummyName = "some name"
-	var dummySessionObject = &Session{}
+	var dummySessionObject = &session{}
 	var dummyDataTemplate dummyAttachment
 
 	// mock
@@ -1668,7 +1759,7 @@ func TestGetAttachment_NoAttachment(t *testing.T) {
 
 	// expect
 	getFuncExpected = 1
-	getFunc = func(sessionID uuid.UUID) *Session {
+	getFunc = func(sessionID uuid.UUID) model.Session {
 		getFuncCalled++
 		assert.Equal(t, dummySessionID, sessionID)
 		return dummySessionObject
@@ -1698,7 +1789,7 @@ func TestGetAttachment_MarshalError(t *testing.T) {
 		Test: rand.Intn(100),
 		ID:   uuid.New(),
 	}
-	var dummySessionObject = &Session{
+	var dummySessionObject = &session{
 		attachment: map[string]interface{}{
 			dummyName: dummyValue,
 		},
@@ -1710,7 +1801,7 @@ func TestGetAttachment_MarshalError(t *testing.T) {
 
 	// expect
 	getFuncExpected = 1
-	getFunc = func(sessionID uuid.UUID) *Session {
+	getFunc = func(sessionID uuid.UUID) model.Session {
 		getFuncCalled++
 		assert.Equal(t, dummySessionID, sessionID)
 		return dummySessionObject
@@ -1746,7 +1837,7 @@ func TestGetAttachment_UnmarshalError(t *testing.T) {
 		Test: rand.Intn(100),
 		ID:   uuid.New(),
 	}
-	var dummySessionObject = &Session{
+	var dummySessionObject = &session{
 		attachment: map[string]interface{}{
 			dummyName: dummyValue,
 		},
@@ -1758,7 +1849,7 @@ func TestGetAttachment_UnmarshalError(t *testing.T) {
 
 	// expect
 	getFuncExpected = 1
-	getFunc = func(sessionID uuid.UUID) *Session {
+	getFunc = func(sessionID uuid.UUID) model.Session {
 		getFuncCalled++
 		assert.Equal(t, dummySessionID, sessionID)
 		return dummySessionObject
@@ -1799,7 +1890,7 @@ func TestGetAttachment_Success(t *testing.T) {
 		Test: rand.Intn(100),
 		ID:   uuid.New(),
 	}
-	var dummySessionObject = &Session{
+	var dummySessionObject = &session{
 		attachment: map[string]interface{}{
 			dummyName: dummyValue,
 		},
@@ -1811,7 +1902,7 @@ func TestGetAttachment_Success(t *testing.T) {
 
 	// expect
 	getFuncExpected = 1
-	getFunc = func(sessionID uuid.UUID) *Session {
+	getFunc = func(sessionID uuid.UUID) model.Session {
 		getFuncCalled++
 		assert.Equal(t, dummySessionID, sessionID)
 		return dummySessionObject
@@ -1838,6 +1929,169 @@ func TestGetAttachment_Success(t *testing.T) {
 	// assert
 	assert.True(t, result)
 	assert.Equal(t, dummyValue, dummyDataTemplate)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestIsLoggingAllowed_NilSession(t *testing.T) {
+	// arrange
+	var dummyLogType = logtype.APIEnter
+	var dummyLogLevel = loglevel.Warn
+
+	// mock
+	createMock(t)
+
+	// SUT
+	var dummySessionObject *session
+
+	// act
+	var result = dummySessionObject.IsLogAllowed(
+		dummyLogType,
+		dummyLogLevel,
+	)
+
+	// assert
+	assert.False(t, result)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestIsLoggingAllowed_IsLocalHost(t *testing.T) {
+	// arrange
+	var dummyLogType = logtype.APIEnter
+	var dummyLogLevel = loglevel.Warn
+
+	// mock
+	createMock(t)
+
+	// expect
+	configIsLocalhostExpected = 1
+	config.IsLocalhost = func() bool {
+		configIsLocalhostCalled++
+		return true
+	}
+
+	// SUT
+	var dummySessionObject = &session{}
+
+	// act
+	var result = dummySessionObject.IsLogAllowed(
+		dummyLogType,
+		dummyLogLevel,
+	)
+
+	// assert
+	assert.True(t, result)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestIsLoggingAllowed_FlagNotMatch(t *testing.T) {
+	// arrange
+	var dummyAllowedLogType = logtype.GeneralTracing
+	var dummyAllowedLogLevel = loglevel.Warn
+	var dummyLogType = logtype.MethodLogic
+	var dummyLogLevel = loglevel.Warn
+
+	// mock
+	createMock(t)
+
+	// expect
+	configIsLocalhostExpected = 1
+	config.IsLocalhost = func() bool {
+		configIsLocalhostCalled++
+		return false
+	}
+
+	// SUT
+	var dummySessionObject = &session{
+		AllowedLogType:  dummyAllowedLogType,
+		AllowedLogLevel: dummyAllowedLogLevel,
+	}
+
+	// act
+	var result = dummySessionObject.IsLogAllowed(
+		dummyLogType,
+		dummyLogLevel,
+	)
+
+	// assert
+	assert.False(t, result)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestIsLoggingAllowed_FlagMatch_LevelNotMatch(t *testing.T) {
+	// arrange
+	var dummyAllowedLogType = logtype.BasicLogging
+	var dummyAllowedLogLevel = loglevel.Warn
+	var dummyLogType = logtype.MethodLogic
+	var dummyLogLevel = loglevel.Info
+
+	// mock
+	createMock(t)
+
+	// expect
+	configIsLocalhostExpected = 1
+	config.IsLocalhost = func() bool {
+		configIsLocalhostCalled++
+		return false
+	}
+
+	// SUT
+	var dummySessionObject = &session{
+		AllowedLogType:  dummyAllowedLogType,
+		AllowedLogLevel: dummyAllowedLogLevel,
+	}
+
+	// act
+	var result = dummySessionObject.IsLogAllowed(
+		dummyLogType,
+		dummyLogLevel,
+	)
+
+	// assert
+	assert.False(t, result)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestIsLoggingAllowed_FlagMatch_LevelMatch(t *testing.T) {
+	// arrange
+	var dummyAllowedLogType = logtype.BasicLogging
+	var dummyAllowedLogLevel = loglevel.Warn
+	var dummyLogType = logtype.MethodLogic
+	var dummyLogLevel = loglevel.Warn
+
+	// mock
+	createMock(t)
+
+	// expect
+	configIsLocalhostExpected = 1
+	config.IsLocalhost = func() bool {
+		configIsLocalhostCalled++
+		return false
+	}
+
+	// SUT
+	var dummySessionObject = &session{
+		AllowedLogType:  dummyAllowedLogType,
+		AllowedLogLevel: dummyAllowedLogLevel,
+	}
+
+	// act
+	var result = dummySessionObject.IsLogAllowed(
+		dummyLogType,
+		dummyLogLevel,
+	)
+
+	// assert
+	assert.True(t, result)
 
 	// verify
 	verifyAll(t)

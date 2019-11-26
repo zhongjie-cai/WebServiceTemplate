@@ -4,12 +4,11 @@ import (
 	"net/http"
 	"runtime/debug"
 
-	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
-
 	"github.com/google/uuid"
+	apperrorModel "github.com/zhongjie-cai/WebServiceTemplate/apperror/model"
 )
 
-func getRecoverError(recoverResult interface{}) apperror.AppError {
+func getRecoverError(recoverResult interface{}) apperrorModel.AppError {
 	var err, ok = recoverResult.(error)
 	if !ok {
 		err = fmtErrorf("%v", recoverResult)

@@ -13,6 +13,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
 	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
+	apperrorModel "github.com/zhongjie-cai/WebServiceTemplate/apperror/model"
 	"github.com/zhongjie-cai/WebServiceTemplate/certificate"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger"
 	"github.com/zhongjie-cai/WebServiceTemplate/server/register"
@@ -25,8 +26,6 @@ var (
 	certificateGetClientCertPoolCalled      int
 	apperrorWrapSimpleErrorExpected         int
 	apperrorWrapSimpleErrorCalled           int
-	apperrorConsolidateAllErrorsExpected    int
-	apperrorConsolidateAllErrorsCalled      int
 	registerInstantiateExpected             int
 	registerInstantiateCalled               int
 	loggerAppRootExpected                   int
@@ -62,14 +61,8 @@ func createMock(t *testing.T) {
 	}
 	apperrorWrapSimpleErrorExpected = 0
 	apperrorWrapSimpleErrorCalled = 0
-	apperrorWrapSimpleError = func(innerError error, messageFormat string, parameters ...interface{}) apperror.AppError {
+	apperrorWrapSimpleError = func(innerErrors []error, messageFormat string, parameters ...interface{}) apperrorModel.AppError {
 		apperrorWrapSimpleErrorCalled++
-		return nil
-	}
-	apperrorConsolidateAllErrorsExpected = 0
-	apperrorConsolidateAllErrorsCalled = 0
-	apperrorConsolidateAllErrors = func(baseErrorMessage string, allErrors ...error) apperror.AppError {
-		apperrorConsolidateAllErrorsCalled++
 		return nil
 	}
 	registerInstantiateExpected = 0
@@ -133,8 +126,6 @@ func verifyAll(t *testing.T) {
 	assert.Equal(t, certificateGetClientCertPoolExpected, certificateGetClientCertPoolCalled, "Unexpected number of calls to certificateGetClientCertPool")
 	apperrorWrapSimpleError = apperror.WrapSimpleError
 	assert.Equal(t, apperrorWrapSimpleErrorExpected, apperrorWrapSimpleErrorCalled, "Unexpected number of calls to apperrorWrapSimpleError")
-	apperrorConsolidateAllErrors = apperror.ConsolidateAllErrors
-	assert.Equal(t, apperrorConsolidateAllErrorsExpected, apperrorConsolidateAllErrorsCalled, "Unexpected number of calls to apperrorConsolidateAllErrors")
 	registerInstantiate = register.Instantiate
 	assert.Equal(t, registerInstantiateExpected, registerInstantiateCalled, "Unexpected number of calls to registerInstantiate")
 	loggerAppRoot = logger.AppRoot

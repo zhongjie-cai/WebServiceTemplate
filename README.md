@@ -20,14 +20,13 @@ import (
 	"net/http"
 
 	"github.com/google/uuid"
-	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
 	"github.com/zhongjie-cai/WebServiceTemplate/application"
 	"github.com/zhongjie-cai/WebServiceTemplate/customization"
-	"github.com/zhongjie-cai/WebServiceTemplate/logger/logtype"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger/loglevel"
+	"github.com/zhongjie-cai/WebServiceTemplate/logger/logtype"
 	"github.com/zhongjie-cai/WebServiceTemplate/response"
-	"github.com/zhongjie-cai/WebServiceTemplate/server/model"
-	"github.com/zhongjie-cai/WebServiceTemplate/session"
+	serverModel "github.com/zhongjie-cai/WebServiceTemplate/server/model"
+	sessionModel "github.com/zhongjie-cai/WebServiceTemplate/session/model"
 )
 
 // This is a sample of how to setup application for running the server
@@ -41,32 +40,32 @@ func main() {
 	customization.AppVersion = func() string {
 		return "1.2.3"
 	}
-	customization.LoggingFunc = func(session *session.Session, logType logtype.LogType, logLevel loglevel.LogLevel, category, subcategory, description string) {
+	customization.LoggingFunc = func(session sessionModel.Session, logType logtype.LogType, logLevel loglevel.LogLevel, category, subcategory, description string) {
 		fmt.Printf("<%v|%v> %v\n", category, subcategory, description)
 	}
-	customization.Middlewares = func() []model.MiddlewareFunc {
-		return []model.MiddlewareFunc{
+	customization.Middlewares = func() []serverModel.MiddlewareFunc {
+		return []serverModel.MiddlewareFunc{
 			loggingRequestURIMiddleware,
 		}
 	}
-	customization.Statics = func() []model.Static {
-		return []model.Static{
-			model.Static{
+	customization.Statics = func() []serverModel.Static {
+		return []serverModel.Static{
+			serverModel.Static{
 				Name:       "SwaggerUI",
 				PathPrefix: "/docs/",
 				Handler:    swaggerHandler(),
 			},
 		}
 	}
-	customization.Routes = func() []model.Route {
-		return []model.Route{
-			model.Route{
+	customization.Routes = func() []serverModel.Route {
+		return []serverModel.Route{
+			serverModel.Route{
 				Endpoint:   "Health",
 				Method:     http.MethodGet,
 				Path:       "/health",
 				ActionFunc: getHealth,
 			},
-			model.Route{
+			serverModel.Route{
 				Endpoint:   "SwaggerRedirect",
 				Method:     http.MethodGet,
 				Path:       "/docs",
@@ -80,14 +79,14 @@ func main() {
 // getHealth is an example of how a normal HTTP handling method is written with this template library
 func getHealth(
 	sessionID uuid.UUID,
-) (interface{}, apperror.AppError) {
+) (interface{}, error) {
 	return "some version number", nil
 }
 
 // swaggerRedirect is an example of how a special HTTP handling method, which overrides the default library behavior, is written with this template library
 func swaggerRedirect(
 	sessionID uuid.UUID,
-) (interface{}, apperror.AppError) {
+) (interface{}, error) {
 	return response.Override(
 		sessionID,
 		func(

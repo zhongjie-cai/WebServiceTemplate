@@ -14,6 +14,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
 	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
+	apperrorModel "github.com/zhongjie-cai/WebServiceTemplate/apperror/model"
 )
 
 func TestCreateServer_NoHTTPS(t *testing.T) {
@@ -278,13 +279,14 @@ func TestRunServer_HappyPath(t *testing.T) {
 		assert.Equal(t, dummyServer, server)
 		return dummyShutDownError
 	}
-	apperrorConsolidateAllErrorsExpected = 1
-	apperrorConsolidateAllErrors = func(baseErrorMessage string, allErrors ...error) apperror.AppError {
-		apperrorConsolidateAllErrorsCalled++
-		assert.Equal(t, dummyMessageFormat, baseErrorMessage)
-		assert.Equal(t, 2, len(allErrors))
-		assert.Equal(t, dummyHostError, allErrors[0])
-		assert.Equal(t, dummyShutDownError, allErrors[1])
+	apperrorWrapSimpleErrorExpected = 1
+	apperrorWrapSimpleError = func(innerErrors []error, messageFormat string, parameters ...interface{}) apperrorModel.AppError {
+		apperrorWrapSimpleErrorCalled++
+		assert.Equal(t, 2, len(innerErrors))
+		assert.Equal(t, dummyHostError, innerErrors[0])
+		assert.Equal(t, dummyShutDownError, innerErrors[1])
+		assert.Equal(t, dummyMessageFormat, messageFormat)
+		assert.Equal(t, 0, len(parameters))
 		return dummyAppError
 	}
 
@@ -324,9 +326,10 @@ func TestHost_ErrorRegisterRoutes(t *testing.T) {
 		return dummyRouter, dummyError
 	}
 	apperrorWrapSimpleErrorExpected = 1
-	apperrorWrapSimpleError = func(innerError error, messageFormat string, parameters ...interface{}) apperror.AppError {
+	apperrorWrapSimpleError = func(innerErrors []error, messageFormat string, parameters ...interface{}) apperrorModel.AppError {
 		apperrorWrapSimpleErrorCalled++
-		assert.Equal(t, dummyError, innerError)
+		assert.Equal(t, 1, len(innerErrors))
+		assert.Equal(t, dummyError, innerErrors[0])
 		assert.Equal(t, dummyMessageFormat, messageFormat)
 		assert.Equal(t, 1, len(parameters))
 		assert.Equal(t, dummyAppPort, parameters[0])
@@ -387,9 +390,10 @@ func TestHost_ErrorRunServer(t *testing.T) {
 		return dummyError
 	}
 	apperrorWrapSimpleErrorExpected = 1
-	apperrorWrapSimpleError = func(innerError error, messageFormat string, parameters ...interface{}) apperror.AppError {
+	apperrorWrapSimpleError = func(innerErrors []error, messageFormat string, parameters ...interface{}) apperrorModel.AppError {
 		apperrorWrapSimpleErrorCalled++
-		assert.Equal(t, dummyError, innerError)
+		assert.Equal(t, 1, len(innerErrors))
+		assert.Equal(t, dummyError, innerErrors[0])
 		assert.Equal(t, dummyMessageFormat, messageFormat)
 		assert.Equal(t, 1, len(parameters))
 		assert.Equal(t, dummyAppPort, parameters[0])

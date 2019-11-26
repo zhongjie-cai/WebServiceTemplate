@@ -4,11 +4,12 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	apperrorEnum "github.com/zhongjie-cai/WebServiceTemplate/apperror/enum"
 	"github.com/zhongjie-cai/WebServiceTemplate/config"
 	"github.com/zhongjie-cai/WebServiceTemplate/customization"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger/loglevel"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger/logtype"
-	"github.com/zhongjie-cai/WebServiceTemplate/session"
+	sessionModel "github.com/zhongjie-cai/WebServiceTemplate/session/model"
 )
 
 type logEntry struct {
@@ -27,8 +28,8 @@ type logEntry struct {
 // Initialize initiates and checks all application logging related function injections
 func Initialize() error {
 	if customization.LoggingFunc == nil {
-		return apperrorWrapSimpleError(
-			nil,
+		return apperrorGetCustomError(
+			apperrorEnum.CodeGeneralFailure,
 			"customization.LoggingFunc is not configured; fallback to default logging function.",
 		)
 	}
@@ -36,7 +37,7 @@ func Initialize() error {
 }
 
 func defaultLogging(
-	session *session.Session,
+	session sessionModel.Session,
 	logType logtype.LogType,
 	logLevel loglevel.LogLevel,
 	category,
@@ -48,8 +49,8 @@ func defaultLogging(
 			Application: config.AppName(),
 			Version:     config.AppVersion(),
 			Timestamp:   timeutilGetTimeNowUTC(),
-			Session:     session.ID,
-			Name:        session.Name,
+			Session:     session.GetID(),
+			Name:        session.GetName(),
 			Type:        logType,
 			Level:       logLevel,
 			Category:    category,
@@ -60,25 +61,6 @@ func defaultLogging(
 	fmtPrintln(
 		logEntryString,
 	)
-}
-
-func isLoggingAllowed(
-	session *session.Session,
-	logType logtype.LogType,
-	logLevel loglevel.LogLevel,
-) bool {
-	if session == nil {
-		return false
-	}
-	if !config.IsLocalhost() {
-		if !session.AllowedLogType.HasFlag(logType) {
-			return false
-		}
-		if session.AllowedLogLevel > logLevel {
-			return false
-		}
-	}
-	return true
 }
 
 func prepareLogging(
@@ -92,7 +74,7 @@ func prepareLogging(
 	var session = sessionGet(
 		sessionID,
 	)
-	if !isLoggingAllowedFunc(session, logType, logLevel) {
+	if !session.IsLogAllowed(logType, logLevel) {
 		return
 	}
 	if customization.LoggingFunc == nil {

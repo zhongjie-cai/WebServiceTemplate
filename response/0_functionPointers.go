@@ -18,7 +18,6 @@ var (
 	loggerAPIExit                  = logger.APIExit
 	sessionGetRequest              = session.GetRequest
 	sessionGetResponseWriter       = session.GetResponseWriter
-	getStatusCodeFunc              = getStatusCode
 	writeResponseFunc              = writeResponse
 	getAppErrorFunc                = getAppError
 	generateErrorResponseFunc      = generateErrorResponse
