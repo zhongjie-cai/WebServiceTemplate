@@ -40,11 +40,11 @@ func TestGetAllowedLogType_NilHTTPRequest(t *testing.T) {
 
 func TestGetAllowedLogType_NoMatchingHeaderFound(t *testing.T) {
 	// arrange
-	var dummyHTTPRequest, _ = http.NewRequest(
-		http.MethodGet,
-		"http://localhost/",
-		nil,
-	)
+	var dummyHTTPRequest = &http.Request{
+		Method:     http.MethodGet,
+		RequestURI: "http://localhost/",
+		Header:     map[string][]string{},
+	}
 
 	// stub
 	dummyHTTPRequest.Header.Add("foo", "bar")
@@ -66,11 +66,11 @@ func TestGetAllowedLogType_NoMatchingHeaderFound(t *testing.T) {
 
 func TestGetAllowedLogType_MatchingHeaderEmpty(t *testing.T) {
 	// arrange
-	var dummyHTTPRequest, _ = http.NewRequest(
-		http.MethodGet,
-		"http://localhost/",
-		nil,
-	)
+	var dummyHTTPRequest = &http.Request{
+		Method:     http.MethodGet,
+		RequestURI: "http://localhost/",
+		Header:     map[string][]string{},
+	}
 
 	// stub
 	dummyHTTPRequest.Header.Add("Foo", "bar")
@@ -93,11 +93,11 @@ func TestGetAllowedLogType_MatchingHeaderEmpty(t *testing.T) {
 
 func TestGetAllowedLogType_MatchingHeaderInvalid(t *testing.T) {
 	// arrange
-	var dummyHTTPRequest, _ = http.NewRequest(
-		http.MethodGet,
-		"http://localhost/",
-		nil,
-	)
+	var dummyHTTPRequest = &http.Request{
+		Method:     http.MethodGet,
+		RequestURI: "http://localhost/",
+		Header:     map[string][]string{},
+	}
 
 	// stub
 	dummyHTTPRequest.Header.Add("Foo", "bar")
@@ -133,11 +133,11 @@ func TestGetAllowedLogType_MatchingHeaderInvalid(t *testing.T) {
 
 func TestGetAllowedLogType_MatchingHeaderValid(t *testing.T) {
 	// arrange
-	var dummyHTTPRequest, _ = http.NewRequest(
-		http.MethodGet,
-		"http://localhost/",
-		nil,
-	)
+	var dummyHTTPRequest = &http.Request{
+		Method:     http.MethodGet,
+		RequestURI: "http://localhost/",
+		Header:     map[string][]string{},
+	}
 
 	// stub
 	dummyHTTPRequest.Header.Add("Foo", "bar")
@@ -194,11 +194,11 @@ func TestGetAllowedLogLevel_NilHTTPRequest(t *testing.T) {
 
 func TestGetAllowedLogLevel_NoMatchingHeaderFound(t *testing.T) {
 	// arrange
-	var dummyHTTPRequest, _ = http.NewRequest(
-		http.MethodGet,
-		"http://localhost/",
-		nil,
-	)
+	var dummyHTTPRequest = &http.Request{
+		Method:     http.MethodGet,
+		RequestURI: "http://localhost/",
+		Header:     map[string][]string{},
+	}
 
 	// stub
 	dummyHTTPRequest.Header.Add("foo", "bar")
@@ -220,11 +220,11 @@ func TestGetAllowedLogLevel_NoMatchingHeaderFound(t *testing.T) {
 
 func TestGetAllowedLogLevel_MatchingHeaderEmpty(t *testing.T) {
 	// arrange
-	var dummyHTTPRequest, _ = http.NewRequest(
-		http.MethodGet,
-		"http://localhost/",
-		nil,
-	)
+	var dummyHTTPRequest = &http.Request{
+		Method:     http.MethodGet,
+		RequestURI: "http://localhost/",
+		Header:     map[string][]string{},
+	}
 
 	// stub
 	dummyHTTPRequest.Header.Add("Foo", "bar")
@@ -247,11 +247,11 @@ func TestGetAllowedLogLevel_MatchingHeaderEmpty(t *testing.T) {
 
 func TestGetAllowedLogLevel_MatchingHeader(t *testing.T) {
 	// arrange
-	var dummyHTTPRequest, _ = http.NewRequest(
-		http.MethodGet,
-		"http://localhost/",
-		nil,
-	)
+	var dummyHTTPRequest = &http.Request{
+		Method:     http.MethodGet,
+		RequestURI: "http://localhost/",
+		Header:     map[string][]string{},
+	}
 
 	// stub
 	dummyHTTPRequest.Header.Add("Foo", "bar")
@@ -291,7 +291,7 @@ func TestGetClientCertificates_RequestNil(t *testing.T) {
 	// arrange
 	var dummyHTTPRequest *http.Request
 	var dummyMessageFormat = "Invalid request or insecure communication channel"
-	var dummySyncError = apperror.GetGeneralFailureError(nil)
+	var dummySyncError = apperror.GetCustomError(0, "")
 
 	// mock
 	createMock(t)
@@ -323,7 +323,7 @@ func TestGetClientCertificates_TLSNil(t *testing.T) {
 	// arrange
 	var dummyHTTPRequest = &http.Request{}
 	var dummyMessageFormat = "Invalid request or insecure communication channel"
-	var dummySyncError = apperror.GetGeneralFailureError(nil)
+	var dummySyncError = apperror.GetCustomError(0, "")
 
 	// mock
 	createMock(t)
@@ -379,11 +379,11 @@ func TestGetClientCertificates_Success(t *testing.T) {
 
 func TestGetRequestBody_NilBody(t *testing.T) {
 	// arrange
-	var dummyHTTPRequest, _ = http.NewRequest(
-		http.MethodGet,
-		"http://127.0.0.1",
-		nil,
-	)
+	var dummyHTTPRequest = &http.Request{
+		Method:     http.MethodGet,
+		RequestURI: "http://localhost/",
+		Header:     map[string][]string{},
+	}
 
 	// mock
 	createMock(t)
@@ -403,11 +403,12 @@ func TestGetRequestBody_NilBody(t *testing.T) {
 func TestGetRequestBody_ErrorBody(t *testing.T) {
 	// arrange
 	var bodyContent = "some body content"
-	var dummyHTTPRequest, _ = http.NewRequest(
-		http.MethodGet,
-		"http://localhost/featuretoggle",
-		strings.NewReader(bodyContent),
-	)
+	var dummyHTTPRequest = &http.Request{
+		Method:     http.MethodGet,
+		RequestURI: "http://localhost/",
+		Header:     map[string][]string{},
+		Body:       ioutil.NopCloser(strings.NewReader(bodyContent)),
+	}
 	var dummyError = errors.New("some error message")
 
 	// mock
@@ -436,11 +437,12 @@ func TestGetRequestBody_ErrorBody(t *testing.T) {
 func TestGetRequestBody_Success(t *testing.T) {
 	// arrange
 	var bodyContent = "some body content"
-	var dummyHTTPRequest, _ = http.NewRequest(
-		http.MethodGet,
-		"http://localhost/featuretoggle",
-		strings.NewReader(bodyContent),
-	)
+	var dummyHTTPRequest = &http.Request{
+		Method:     http.MethodGet,
+		RequestURI: "http://localhost/",
+		Header:     map[string][]string{},
+		Body:       ioutil.NopCloser(strings.NewReader(bodyContent)),
+	}
 	var dummyBuffer = &bytes.Buffer{}
 	var dummyReadCloser = ioutil.NopCloser(nil)
 

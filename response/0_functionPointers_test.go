@@ -198,7 +198,7 @@ type dummyAppError struct {
 	expectedMessages   *[]string
 }
 
-func (dae dummyAppError) Code() string {
+func (dae *dummyAppError) Code() string {
 	if dae.expectedCode == nil {
 		assert.Fail(dae.t, "Unexpected number of calls to Code")
 		return "Unknown"
@@ -206,7 +206,7 @@ func (dae dummyAppError) Code() string {
 	return *dae.expectedCode
 }
 
-func (dae dummyAppError) HTTPStatusCode() int {
+func (dae *dummyAppError) HTTPStatusCode() int {
 	if dae.expectedHTTPStatus == nil {
 		assert.Fail(dae.t, "Unexpected number of calls to HTTPStatusCode")
 		return -1
@@ -214,20 +214,24 @@ func (dae dummyAppError) HTTPStatusCode() int {
 	return *dae.expectedHTTPStatus
 }
 
-func (dae dummyAppError) Error() string {
+func (dae *dummyAppError) Error() string {
 	assert.Fail(dae.t, "Unexpected number of calls to Error")
 	return ""
 }
 
-func (dae dummyAppError) InnerErrors() []error {
+func (dae *dummyAppError) InnerErrors() []error {
 	assert.Fail(dae.t, "Unexpected number of calls to InnerErrors")
 	return nil
 }
 
-func (dae dummyAppError) Messages() []string {
+func (dae *dummyAppError) Messages() []string {
 	if dae.expectedMessages == nil {
 		assert.Fail(dae.t, "Unexpected number of calls to Messages")
 		return nil
 	}
 	return *dae.expectedMessages
+}
+
+func (dae *dummyAppError) Append(innerErrors ...error) {
+	assert.Fail(dae.t, "Unexpected number of calls to Append")
 }

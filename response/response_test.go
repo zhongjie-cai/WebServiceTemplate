@@ -117,7 +117,7 @@ func TestCreateOkResponse_ValidContent(t *testing.T) {
 
 func TestGetAppError_IsAppError(t *testing.T) {
 	// arrange
-	var dummyError = apperror.GetGeneralFailureError(nil)
+	var dummyError = apperror.GetCustomError(0, "")
 
 	// mock
 	createMock(t)
@@ -137,7 +137,7 @@ func TestGetAppError_IsAppError(t *testing.T) {
 func TestGetAppError_IsNotAppError(t *testing.T) {
 	// arrange
 	var dummyError = errors.New("some error")
-	var dummyAppError = apperror.GetGeneralFailureError(nil)
+	var dummyAppError = apperror.GetCustomError(0, "")
 
 	// mock
 	createMock(t)
@@ -168,7 +168,7 @@ func TestGenerateErrorResponse(t *testing.T) {
 	var codeInteger = rand.Intn(math.MaxInt8)
 	var expectedCode = apperrorEnum.Code(codeInteger).String()
 	var expectedMessages = []string{"some", "message", "array"}
-	var dummyAppError = dummyAppError{
+	var dummyAppError = &dummyAppError{
 		t,
 		&expectedCode,
 		nil,
@@ -195,7 +195,7 @@ func TestCreateErrorResponse(t *testing.T) {
 	// arrange
 	var dummyError = errors.New("some error")
 	var dummyHTTPStatusCode = rand.Intn(1000)
-	var dummyAppError = dummyAppError{
+	var dummyAppError = &dummyAppError{
 		t,
 		nil,
 		&dummyHTTPStatusCode,
@@ -501,7 +501,11 @@ func TestWrite_Overrided(t *testing.T) {
 func TestOverride(t *testing.T) {
 	// arrange
 	var dummySessionID = uuid.New()
-	var dummyHTTPRequest, _ = http.NewRequest(http.MethodGet, "http://localhost", nil)
+	var dummyHTTPRequest = &http.Request{
+		Method:     http.MethodGet,
+		RequestURI: "http://localhost/",
+		Header:     map[string][]string{},
+	}
 	var dummyResponseWriter = &dummyResponseWriter{
 		t,
 		nil,

@@ -362,7 +362,7 @@ func TestPrintRegisteredRouteDetails_ErrorConsolidated(t *testing.T) {
 	var dummyPathTemplateError = errors.New("some path template error")
 	var dummyPathRegexpError = errors.New("some path regexp error")
 	var dummyMessageFormat = "Failed to register service route for name [%v]"
-	var dummyAppError = apperror.GetGeneralFailureError(nil)
+	var dummyAppError = apperror.GetCustomError(0, "")
 
 	// mock
 	createMock(t)
@@ -531,7 +531,7 @@ func TestWalkRegisteredRoutes_Error(t *testing.T) {
 	var dummyRouter = &mux.Router{}
 	var dummyError = errors.New("some error")
 	var dummyMessageFormat = "Failed to walk through registered routes"
-	var dummyAppError = apperror.GetGeneralFailureError(nil)
+	var dummyAppError = apperror.GetCustomError(0, "")
 
 	// stub
 	dummyRouter.HandleFunc("/", func(http.ResponseWriter, *http.Request) {})
@@ -643,11 +643,11 @@ func TestHandleFunc(t *testing.T) {
 	var dummyPath = "/foo/{bar}"
 	var dummyQueries = []string{"test", "{test}"}
 	var dummyResponseWriter = &dummyResponseWriter{t}
-	var dummyHTTPRequest, _ = http.NewRequest(
-		http.MethodGet,
-		"http://localhost",
-		nil,
-	)
+	var dummyHTTPRequest = &http.Request{
+		Method:     http.MethodGet,
+		RequestURI: "http://localhost/",
+		Header:     map[string][]string{},
+	}
 	var dummyQueriesTemplates = []string{"test={test}"}
 
 	// stub
@@ -746,7 +746,7 @@ func TestAddMiddleware(t *testing.T) {
 func TestDefaultActionFunc(t *testing.T) {
 	// arrange
 	var dummySessionID = uuid.New()
-	var dummyAppError = apperror.GetGeneralFailureError(nil)
+	var dummyAppError = apperror.GetCustomError(0, "")
 
 	// mock
 	createMock(t)
@@ -833,14 +833,14 @@ func TestGetActionByName_Found(t *testing.T) {
 
 func TestGetRouteInfo_NilRoute(t *testing.T) {
 	// arrange
-	var dummyHTTPRequest, _ = http.NewRequest(
-		http.MethodGet,
-		"http://localhost",
-		nil,
-	)
+	var dummyHTTPRequest = &http.Request{
+		Method:     http.MethodGet,
+		RequestURI: "http://localhost/",
+		Header:     map[string][]string{},
+	}
 	var dummyRoute *mux.Route
 	var dummyMessageFormat = "Failed to retrieve route info for request - no route found"
-	var dummyAppError = apperror.GetGeneralFailureError(nil)
+	var dummyAppError = apperror.GetCustomError(0, "")
 
 	// mock
 	createMock(t)
@@ -877,11 +877,11 @@ func TestGetRouteInfo_NilRoute(t *testing.T) {
 
 func TestGetRouteInfo_ValidRoute(t *testing.T) {
 	// arrange
-	var dummyHTTPRequest, _ = http.NewRequest(
-		http.MethodGet,
-		"http://localhost",
-		nil,
-	)
+	var dummyHTTPRequest = &http.Request{
+		Method:     http.MethodGet,
+		RequestURI: "http://localhost/",
+		Header:     map[string][]string{},
+	}
 	var dummyRoute = &mux.Route{}
 	var dummyName = "some name"
 	var dummyActionExpected = 0

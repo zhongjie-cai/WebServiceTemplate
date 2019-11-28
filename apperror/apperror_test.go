@@ -31,7 +31,7 @@ func TestAppErrorGetCode_NoCustomization(t *testing.T) {
 	createMock(t)
 
 	// SUT
-	var appError = appError{
+	var appError = &appError{
 		expectedError,
 		expectedCode,
 		expectedInnerErrors,
@@ -72,7 +72,7 @@ func TestAppErrorGetCode_WithCustomization_NoFoundMatch(t *testing.T) {
 	}
 
 	// SUT
-	var appError = appError{
+	var appError = &appError{
 		expectedError,
 		expectedCode,
 		expectedInnerErrors,
@@ -116,7 +116,7 @@ func TestAppErrorGetCode_WithCustomization_FoundMatch(t *testing.T) {
 	}
 
 	// SUT
-	var appError = appError{
+	var appError = &appError{
 		expectedError,
 		expectedCode,
 		expectedInnerErrors,
@@ -149,7 +149,7 @@ func TestAppErrorGetHTTPStatusCode_NoCustomization(t *testing.T) {
 	createMock(t)
 
 	// SUT
-	var appError = appError{
+	var appError = &appError{
 		expectedError,
 		expectedCode,
 		expectedInnerErrors,
@@ -190,7 +190,7 @@ func TestAppErrorGetHTTPStatusCode_WithCustomization_NoFoundMatch(t *testing.T) 
 	}
 
 	// SUT
-	var appError = appError{
+	var appError = &appError{
 		expectedError,
 		expectedCode,
 		expectedInnerErrors,
@@ -234,7 +234,7 @@ func TestAppErrorGetHTTPStatusCode_WithCustomization_FoundMatch(t *testing.T) {
 	}
 
 	// SUT
-	var appError = appError{
+	var appError = &appError{
 		expectedError,
 		expectedCode,
 		expectedInnerErrors,
@@ -273,7 +273,7 @@ func TestAppErrorGetError_NoInner(t *testing.T) {
 	}
 
 	// SUT
-	var appError = appError{
+	var appError = &appError{
 		expectedError,
 		expectedCode,
 		nil,
@@ -319,7 +319,7 @@ func TestAppErrorGetError_WithInner(t *testing.T) {
 	}
 
 	// SUT
-	var appError = appError{
+	var appError = &appError{
 		expectedError,
 		expectedCode,
 		expectedInnerErrors,
@@ -345,7 +345,7 @@ func TestAppErrorGetInnerErrors_NoInner(t *testing.T) {
 	createMock(t)
 
 	// SUT
-	var appError = appError{
+	var appError = &appError{
 		expectedError,
 		expectedCode,
 		nil,
@@ -379,7 +379,7 @@ func TestAppErrorGetInnerErrors_WithInner(t *testing.T) {
 	createMock(t)
 
 	// SUT
-	var appError = appError{
+	var appError = &appError{
 		expectedError,
 		expectedCode,
 		expectedInnerErrors,
@@ -413,7 +413,7 @@ func TestAppErrorGetMessages_NoInner(t *testing.T) {
 	}
 
 	// SUT
-	var appError = appError{
+	var appError = &appError{
 		expectedError,
 		expectedCode,
 		nil,
@@ -459,7 +459,7 @@ func TestAppErrorGetMessages_WithNormalInner(t *testing.T) {
 	}
 
 	// SUT
-	var appError = appError{
+	var appError = &appError{
 		expectedError,
 		expectedCode,
 		expectedInnerErrors,
@@ -488,7 +488,7 @@ func TestAppErrorGetMessages_WithAppErrorInner(t *testing.T) {
 	var dummyInnerErrorMessage = "dummy inner error"
 	var dummyInnerMostErrorMessage = "dummy inner most error"
 	var expectedInnerError1 = errors.New("dummy inner error 1")
-	var expectedInnerError2 = appError{
+	var expectedInnerError2 = &appError{
 		errors.New(dummyInnerErrorMessage),
 		enum.CodeGeneralFailure,
 		[]error{errors.New(dummyInnerMostErrorMessage)},
@@ -515,7 +515,7 @@ func TestAppErrorGetMessages_WithAppErrorInner(t *testing.T) {
 	}
 
 	// SUT
-	var appError = appError{
+	var appError = &appError{
 		expectedError,
 		expectedCode,
 		expectedInnerErrors,
@@ -531,6 +531,133 @@ func TestAppErrorGetMessages_WithAppErrorInner(t *testing.T) {
 	assert.Equal(t, expectedInnerMessage2, messages[2])
 	assert.Equal(t, expectedInnerMostMessage, messages[3])
 	assert.Equal(t, expectedInnerMessage3, messages[4])
+
+	// verify
+	verifyAll(t)
+}
+
+func TestAppErrorAppend_NoInnerError(t *testing.T) {
+	// arrange
+	var dummyMessage = "dummy error"
+	var expectedError = errors.New(dummyMessage)
+	var expectedCode = enum.CodeGeneralFailure
+	var dummyInnerErrorMessage = "dummy inner error"
+	var dummyInnerMostErrorMessage = "dummy inner most error"
+	var expectedInnerError1 = errors.New("dummy inner error 1")
+	var expectedInnerError2 = &appError{
+		errors.New(dummyInnerErrorMessage),
+		enum.CodeGeneralFailure,
+		[]error{errors.New(dummyInnerMostErrorMessage)},
+	}
+	var expectedInnerError3 = errors.New("dummy inner error 3")
+	var expectedInnerErrors = []error{
+		expectedInnerError1,
+		expectedInnerError2,
+		expectedInnerError3,
+	}
+	var dummyInnerErrors = []error{
+		nil,
+		nil,
+		nil,
+	}
+	var cleanedInnerErrors = []error{}
+
+	// mock
+	createMock(t)
+
+	// expect
+	cleanupInnerErrorsFuncExpected = 1
+	cleanupInnerErrorsFunc = func(innerErrors []error) []error {
+		cleanupInnerErrorsFuncCalled++
+		assert.Equal(t, dummyInnerErrors, innerErrors)
+		return cleanedInnerErrors
+	}
+
+	// SUT
+	var appError = &appError{
+		expectedError,
+		expectedCode,
+		expectedInnerErrors,
+	}
+
+	// act
+	appError.Append(
+		dummyInnerErrors...,
+	)
+
+	// assert
+	assert.Equal(t, expectedInnerErrors, appError.innerErrors)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestAppErrorAppend_HasInnerError(t *testing.T) {
+	// arrange
+	var dummyMessage = "dummy error"
+	var expectedError = errors.New(dummyMessage)
+	var expectedCode = enum.CodeGeneralFailure
+	var dummyInnerErrorMessage = "dummy inner error"
+	var dummyInnerMostErrorMessage = "dummy inner most error"
+	var expectedInnerError1 = errors.New("dummy inner error 1")
+	var expectedInnerError2 = &appError{
+		errors.New(dummyInnerErrorMessage),
+		enum.CodeGeneralFailure,
+		[]error{errors.New(dummyInnerMostErrorMessage)},
+	}
+	var expectedInnerError3 = errors.New("dummy inner error 3")
+	var expectedInnerErrors = []error{
+		expectedInnerError1,
+		expectedInnerError2,
+		expectedInnerError3,
+	}
+	var dummyInnerError1 = errors.New("some random error 1")
+	var dummyInnerError2 = errors.New("some random error 2")
+	var dummyInnerError3 = errors.New("some random error 3")
+	var dummyInnerErrors = []error{
+		dummyInnerError1,
+		nil,
+		dummyInnerError2,
+		nil,
+		dummyInnerError3,
+	}
+	var cleanedInnerErrors = []error{
+		dummyInnerError1,
+		dummyInnerError2,
+		dummyInnerError3,
+	}
+
+	// mock
+	createMock(t)
+
+	// expect
+	cleanupInnerErrorsFuncExpected = 1
+	cleanupInnerErrorsFunc = func(innerErrors []error) []error {
+		cleanupInnerErrorsFuncCalled++
+		assert.Equal(t, dummyInnerErrors, innerErrors)
+		return cleanedInnerErrors
+	}
+
+	// SUT
+	var appError = &appError{
+		expectedError,
+		expectedCode,
+		expectedInnerErrors,
+	}
+
+	// act
+	appError.Append(
+		dummyInnerErrors...,
+	)
+
+	// assert
+	assert.Equal(t, 6, len(appError.innerErrors))
+	assert.Equal(t, expectedInnerErrors[0], appError.innerErrors[0])
+	assert.Equal(t, expectedInnerErrors[1], appError.innerErrors[1])
+	assert.Equal(t, expectedInnerErrors[2], appError.innerErrors[2])
+	assert.Equal(t, dummyInnerError1, appError.innerErrors[3])
+	assert.Equal(t, dummyInnerError2, appError.innerErrors[4])
+	assert.Equal(t, dummyInnerError3, appError.innerErrors[5])
 
 	// verify
 	verifyAll(t)
@@ -573,7 +700,7 @@ func TestInitialize_WithCustomization(t *testing.T) {
 	var dummyError2 = errors.New("some error 2")
 	var dummyError3 = errors.New("some error 3")
 	var dummyError4 = errors.New("some error 4")
-	var dummyFinalError = appError{}
+	var dummyFinalError = &appError{}
 
 	// mock
 	createMock(t)
@@ -632,7 +759,7 @@ func TestInitialize_WithCustomization(t *testing.T) {
 func TestGetGeneralFailureError(t *testing.T) {
 	// arrange
 	var expectedInnerError = errors.New("dummy inner error")
-	var expectedResult = appError{}
+	var expectedResult = &appError{}
 
 	// mock
 	createMock(t)
@@ -662,7 +789,7 @@ func TestGetGeneralFailureError(t *testing.T) {
 func TestGetUnauthorized(t *testing.T) {
 	// arrange
 	var expectedInnerError = errors.New("dummy inner error")
-	var expectedResult = appError{}
+	var expectedResult = &appError{}
 
 	// mock
 	createMock(t)
@@ -692,7 +819,7 @@ func TestGetUnauthorized(t *testing.T) {
 func TestGetInvalidOperation(t *testing.T) {
 	// arrange
 	var expectedInnerError = errors.New("dummy inner error")
-	var expectedResult = appError{}
+	var expectedResult = &appError{}
 
 	// mock
 	createMock(t)
@@ -722,7 +849,7 @@ func TestGetInvalidOperation(t *testing.T) {
 func TestGetBadRequestError(t *testing.T) {
 	// arrange
 	var expectedInnerError = errors.New("dummy inner error")
-	var expectedResult = appError{}
+	var expectedResult = &appError{}
 
 	// mock
 	createMock(t)
@@ -752,7 +879,7 @@ func TestGetBadRequestError(t *testing.T) {
 func TestGetNotFoundError(t *testing.T) {
 	// arrange
 	var expectedInnerError = errors.New("dummy inner error")
-	var expectedResult = appError{}
+	var expectedResult = &appError{}
 
 	// mock
 	createMock(t)
@@ -782,7 +909,7 @@ func TestGetNotFoundError(t *testing.T) {
 func TestGetCircuitBreakError(t *testing.T) {
 	// arrange
 	var expectedInnerError = errors.New("dummy inner error")
-	var expectedResult = appError{}
+	var expectedResult = &appError{}
 
 	// mock
 	createMock(t)
@@ -812,7 +939,7 @@ func TestGetCircuitBreakError(t *testing.T) {
 func TestGetOperationLockError(t *testing.T) {
 	// arrange
 	var expectedInnerError = errors.New("dummy inner error")
-	var expectedResult = appError{}
+	var expectedResult = &appError{}
 
 	// mock
 	createMock(t)
@@ -842,7 +969,7 @@ func TestGetOperationLockError(t *testing.T) {
 func TestGetAccessForbiddenError(t *testing.T) {
 	// arrange
 	var expectedInnerError = errors.New("dummy inner error")
-	var expectedResult = appError{}
+	var expectedResult = &appError{}
 
 	// mock
 	createMock(t)
@@ -872,7 +999,7 @@ func TestGetAccessForbiddenError(t *testing.T) {
 func TestGetDataCorruptionError(t *testing.T) {
 	// arrange
 	var expectedInnerError = errors.New("dummy inner error")
-	var expectedResult = appError{}
+	var expectedResult = &appError{}
 
 	// mock
 	createMock(t)
@@ -902,7 +1029,7 @@ func TestGetDataCorruptionError(t *testing.T) {
 func TestGetNotImplementedError(t *testing.T) {
 	// arrange
 	var expectedInnerError = errors.New("dummy inner error")
-	var expectedResult = appError{}
+	var expectedResult = &appError{}
 
 	// mock
 	createMock(t)
@@ -960,7 +1087,7 @@ func TestGetCustomError(t *testing.T) {
 		dummyParameter1,
 		dummyParameter2,
 		dummyParameter3,
-	).(appError)
+	).(*appError)
 
 	// assert
 	assert.True(t, ok)
@@ -1161,7 +1288,7 @@ func TestWrapError_NotEmpty(t *testing.T) {
 		dummyParameter1,
 		dummyParameter2,
 		dummyParameter3,
-	).(appError)
+	).(*appError)
 
 	// assert
 	assert.True(t, ok)
@@ -1185,7 +1312,7 @@ func TestWrapSimpleError(t *testing.T) {
 	var dummyParameter1 = "foo"
 	var dummyParameter2 = 123
 	var dummyParameter3 = errors.New("dummy")
-	var expectedResult = appError{}
+	var expectedResult = &appError{}
 
 	// mock
 	createMock(t)
@@ -1249,7 +1376,7 @@ func TestGetInnermostErrors_NonAppError(t *testing.T) {
 
 func TestGetInnermostErrors_AppError_NoInner(t *testing.T) {
 	// arrange
-	var dummyError = appError{
+	var dummyError = &appError{
 		errors.New("dummy WebServiceTemplate error"),
 		enum.CodeGeneralFailure,
 		nil,
@@ -1273,7 +1400,7 @@ func TestGetInnermostErrors_AppError_NoInner(t *testing.T) {
 func TestGetInnermostErrors_AppError_WithInner(t *testing.T) {
 	// arrange
 	var dummyInnerError = errors.New("dummy inner error")
-	var dummyError = appError{
+	var dummyError = &appError{
 		errors.New("dummy WebServiceTemplate error"),
 		enum.CodeGeneralFailure,
 		[]error{dummyInnerError},
@@ -1297,17 +1424,17 @@ func TestGetInnermostErrors_AppError_WithInner(t *testing.T) {
 
 func TestGetInnermostErrors_AppError_MultiLayer_NoInner(t *testing.T) {
 	// arrange
-	var dummyThirdLayerError = appError{
+	var dummyThirdLayerError = &appError{
 		errors.New("dummy WebServiceTemplate error"),
 		enum.CodeGeneralFailure,
 		nil,
 	}
-	var dummySecondLayerError = appError{
+	var dummySecondLayerError = &appError{
 		errors.New("dummy WebServiceTemplate error"),
 		enum.CodeGeneralFailure,
 		[]error{dummyThirdLayerError},
 	}
-	var dummyError = appError{
+	var dummyError = &appError{
 		errors.New("dummy WebServiceTemplate error"),
 		enum.CodeGeneralFailure,
 		[]error{dummySecondLayerError},
@@ -1331,17 +1458,17 @@ func TestGetInnermostErrors_AppError_MultiLayer_NoInner(t *testing.T) {
 func TestGetInnermostErrors_AppError_MultiLayer_WithInner(t *testing.T) {
 	// arrange
 	var dummyInnerError = errors.New("dummy inner error")
-	var dummyThirdLayerError = appError{
+	var dummyThirdLayerError = &appError{
 		errors.New("dummy WebServiceTemplate error"),
 		enum.CodeGeneralFailure,
 		[]error{dummyInnerError},
 	}
-	var dummySecondLayerError = appError{
+	var dummySecondLayerError = &appError{
 		errors.New("dummy WebServiceTemplate error"),
 		enum.CodeGeneralFailure,
 		[]error{dummyThirdLayerError},
 	}
-	var dummyError = appError{
+	var dummyError = &appError{
 		errors.New("dummy WebServiceTemplate error"),
 		enum.CodeGeneralFailure,
 		[]error{dummySecondLayerError},

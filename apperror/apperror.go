@@ -22,7 +22,7 @@ type appError struct {
 	innerErrors []error
 }
 
-func (appError appError) Code() string {
+func (appError *appError) Code() string {
 	if customization.AppErrors != nil {
 		var codeNames, _ = customization.AppErrors()
 		var codeName, found = codeNames[appError.code]
@@ -33,7 +33,7 @@ func (appError appError) Code() string {
 	return appError.code.String()
 }
 
-func (appError appError) HTTPStatusCode() int {
+func (appError *appError) HTTPStatusCode() int {
 	if customization.AppErrors != nil {
 		var _, httpStatusCodes = customization.AppErrors()
 		var statusCode, found = httpStatusCodes[appError.code]
@@ -44,7 +44,7 @@ func (appError appError) HTTPStatusCode() int {
 	return appError.code.HTTPStatusCode()
 }
 
-func (appError appError) Error() string {
+func (appError *appError) Error() string {
 	var fullMessage = fmtSprintf(
 		ErrorPrintFormat,
 		appError.code,
@@ -64,11 +64,11 @@ func (appError appError) Error() string {
 	return fullMessage
 }
 
-func (appError appError) InnerErrors() []error {
+func (appError *appError) InnerErrors() []error {
 	return appError.innerErrors
 }
 
-func (appError appError) Messages() []string {
+func (appError *appError) Messages() []string {
 	var messages = []string{
 		fmtSprintf(
 			ErrorPrintFormat,
@@ -94,6 +94,17 @@ func (appError appError) Messages() []string {
 		}
 	}
 	return messages
+}
+
+func (appError *appError) Append(innerErrors ...error) {
+	var cleanedInnerErrors = cleanupInnerErrorsFunc(innerErrors)
+	if len(cleanedInnerErrors) == 0 {
+		return
+	}
+	appError.innerErrors = append(
+		appError.innerErrors,
+		cleanedInnerErrors...,
+	)
 }
 
 // Initialize checks and validates the customization of AppErrors from consumer code
@@ -225,7 +236,7 @@ func GetNotImplementedError(innerErrors ...error) model.AppError {
 
 // GetCustomError creates a customized error with given code and formatted message
 func GetCustomError(errorCode enum.Code, messageFormat string, parameters ...interface{}) model.AppError {
-	return appError{
+	return &appError{
 		fmtErrorf(messageFormat, parameters...),
 		errorCode,
 		nil,
@@ -253,7 +264,7 @@ func WrapError(innerErrors []error, errorCode enum.Code, messageFormat string, p
 	if len(cleanedInnerErrors) == 0 {
 		return nil
 	}
-	return appError{
+	return &appError{
 		fmtErrorf(messageFormat, parameters...),
 		errorCode,
 		cleanedInnerErrors,

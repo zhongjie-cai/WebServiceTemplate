@@ -294,7 +294,7 @@ func TestValidateStringFunction_ForcedToDefault(t *testing.T) {
 	var dummyDefaultFuncReturn = "some default func return"
 	var dummyForceToDefault = true
 	var dummyMessageFormat = "customization.%v function is forced to default [%v] due to forceToDefault flag set"
-	var dummyAppError = apperror.GetGeneralFailureError(nil)
+	var dummyAppError = apperror.GetCustomError(0, "")
 
 	// mock
 	createMock(t)
@@ -350,7 +350,7 @@ func TestValidateStringFunction_NilStringFunc(t *testing.T) {
 	var dummyDefaultFuncReturn = "some default func return"
 	var dummyForceToDefault = false
 	var dummyMessageFormat = "customization.%v function is not configured or is empty; fallback to default [%v]"
-	var dummyAppError = apperror.GetGeneralFailureError(nil)
+	var dummyAppError = apperror.GetCustomError(0, "")
 
 	// mock
 	createMock(t)
@@ -401,7 +401,7 @@ func TestValidateStringFunction_DefaultStringFunc(t *testing.T) {
 	var dummyDefaultFuncReturn = "some default func return"
 	var dummyForceToDefault = false
 	var dummyMessageFormat = "customization.%v function is not configured or is empty; fallback to default [%v]"
-	var dummyAppError = apperror.GetGeneralFailureError(nil)
+	var dummyAppError = apperror.GetCustomError(0, "")
 
 	// mock
 	createMock(t)
@@ -464,7 +464,7 @@ func TestValidateStringFunction_EmptyStringFunc(t *testing.T) {
 	var dummyDefaultFuncReturn = "some default func return"
 	var dummyForceToDefault = false
 	var dummyMessageFormat = "customization.%v function is not configured or is empty; fallback to default [%v]"
-	var dummyAppError = apperror.GetGeneralFailureError(nil)
+	var dummyAppError = apperror.GetCustomError(0, "")
 
 	// mock
 	createMock(t)
@@ -578,7 +578,7 @@ func TestValidateBooleanFunction_ForcedToDefault(t *testing.T) {
 	var dummyDefaultFuncReturn = rand.Intn(100) < 50
 	var dummyForceToDefault = true
 	var dummyMessageFormat = "customization.%v function is forced to default [%v] due to forceToDefault flag set"
-	var dummyAppError = apperror.GetGeneralFailureError(nil)
+	var dummyAppError = apperror.GetCustomError(0, "")
 
 	// mock
 	createMock(t)
@@ -634,7 +634,7 @@ func TestValidateBooleanFunction_NilBooleanFunc(t *testing.T) {
 	var dummyDefaultFuncReturn = rand.Intn(100) < 50
 	var dummyForceToDefault = false
 	var dummyMessageFormat = "customization.%v function is not configured; fallback to default [%v]."
-	var dummyAppError = apperror.GetGeneralFailureError(nil)
+	var dummyAppError = apperror.GetCustomError(0, "")
 
 	// mock
 	createMock(t)
@@ -685,7 +685,7 @@ func TestValidateBooleanFunction_DefaultBooleanFunc(t *testing.T) {
 	var dummyDefaultFuncReturn = rand.Intn(100) < 50
 	var dummyForceToDefault = false
 	var dummyMessageFormat = "customization.%v function is not configured; fallback to default [%v]."
-	var dummyAppError = apperror.GetGeneralFailureError(nil)
+	var dummyAppError = apperror.GetCustomError(0, "")
 
 	// mock
 	createMock(t)
@@ -1017,7 +1017,7 @@ func TestInitialize(t *testing.T) {
 		errors.New("some ValidateClientCert error"),
 	}
 	var dummyMessageFormat = "Unexpected errors occur during configuration initialization"
-	var dummyAppError = apperror.GetGeneralFailureError(nil)
+	var dummyAppError = apperror.GetCustomError(0, "")
 
 	// mock
 	createMock(t)

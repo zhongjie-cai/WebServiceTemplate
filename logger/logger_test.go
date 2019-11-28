@@ -20,7 +20,7 @@ import (
 func TestInitialize_NotSet(t *testing.T) {
 	// arrange
 	var dummyMessageFormat = "customization.LoggingFunc is not configured; fallback to default logging function."
-	var dummyAppError = apperror.GetGeneralFailureError(nil)
+	var dummyAppError = apperror.GetCustomError(0, "")
 
 	// stub
 	customization.LoggingFunc = nil

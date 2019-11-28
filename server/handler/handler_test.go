@@ -77,11 +77,11 @@ func TestExecuteCustomizedFunction_WithCustomization(t *testing.T) {
 
 func TestHandleInSession_RouteError(t *testing.T) {
 	// arrange
-	var dummyHTTPRequest, _ = http.NewRequest(
-		http.MethodGet,
-		"http://localhost",
-		nil,
-	)
+	var dummyHTTPRequest = &http.Request{
+		Method:     http.MethodGet,
+		RequestURI: "http://localhost/",
+		Header:     map[string][]string{},
+	}
 	var dummyResponseWriter = &dummyResponseWriter{t}
 	var dummyEndpoint = "some endpoint"
 	var dummySessionID = uuid.New()
@@ -94,7 +94,7 @@ func TestHandleInSession_RouteError(t *testing.T) {
 	var dummyAllowedLogType = logtype.LogType(rand.Intn(256))
 	var dummyAllowedLogLevel = loglevel.LogLevel(rand.Intn(256))
 	var dummyRouteError = errors.New("some route error")
-	var dummyResponseError = apperror.GetGeneralFailureError(nil)
+	var dummyResponseError = apperror.GetCustomError(0, "")
 
 	// mock
 	createMock(t)
@@ -187,11 +187,11 @@ func TestHandleInSession_RouteError(t *testing.T) {
 
 func TestHandleInSession_PreActionError(t *testing.T) {
 	// arrange
-	var dummyHTTPRequest, _ = http.NewRequest(
-		http.MethodGet,
-		"http://localhost",
-		nil,
-	)
+	var dummyHTTPRequest = &http.Request{
+		Method:     http.MethodGet,
+		RequestURI: "http://localhost/",
+		Header:     map[string][]string{},
+	}
 	var dummyResponseWriter = &dummyResponseWriter{t}
 	var dummyEndpoint = "some endpoint"
 	var dummySessionID = uuid.New()
@@ -295,11 +295,11 @@ func TestHandleInSession_PreActionError(t *testing.T) {
 
 func TestHandleInSession_PostActionError_WithResponseError(t *testing.T) {
 	// arrange
-	var dummyHTTPRequest, _ = http.NewRequest(
-		http.MethodGet,
-		"http://localhost",
-		nil,
-	)
+	var dummyHTTPRequest = &http.Request{
+		Method:     http.MethodGet,
+		RequestURI: "http://localhost/",
+		Header:     map[string][]string{},
+	}
 	var dummyResponseWriter = &dummyResponseWriter{t}
 	var dummyEndpoint = "some endpoint"
 	var dummySessionID = uuid.New()
@@ -309,7 +309,7 @@ func TestHandleInSession_PostActionError_WithResponseError(t *testing.T) {
 	var dummyAllowedLogType = logtype.LogType(rand.Intn(256))
 	var dummyAllowedLogLevel = loglevel.LogLevel(rand.Intn(256))
 	var dummyResponseObject = "some response object"
-	var dummyResponseError = apperror.GetGeneralFailureError(nil)
+	var dummyResponseError = apperror.GetCustomError(0, "")
 	var dummyPostActionError = errors.New("some post-action error")
 
 	// mock
@@ -424,11 +424,11 @@ func TestHandleInSession_PostActionError_WithResponseError(t *testing.T) {
 
 func TestHandleInSession_PostActionError_NoResponseError(t *testing.T) {
 	// arrange
-	var dummyHTTPRequest, _ = http.NewRequest(
-		http.MethodGet,
-		"http://localhost",
-		nil,
-	)
+	var dummyHTTPRequest = &http.Request{
+		Method:     http.MethodGet,
+		RequestURI: "http://localhost/",
+		Header:     map[string][]string{},
+	}
 	var dummyResponseWriter = &dummyResponseWriter{t}
 	var dummyEndpoint = "some endpoint"
 	var dummySessionID = uuid.New()
@@ -546,11 +546,11 @@ func TestHandleInSession_PostActionError_NoResponseError(t *testing.T) {
 
 func TestHandleInSession_Success(t *testing.T) {
 	// arrange
-	var dummyHTTPRequest, _ = http.NewRequest(
-		http.MethodGet,
-		"http://localhost",
-		nil,
-	)
+	var dummyHTTPRequest = &http.Request{
+		Method:     http.MethodGet,
+		RequestURI: "http://localhost/",
+		Header:     map[string][]string{},
+	}
 	var dummyResponseWriter = &dummyResponseWriter{t}
 	var dummyEndpoint = "some endpoint"
 	var dummySessionID = uuid.New()
@@ -560,7 +560,7 @@ func TestHandleInSession_Success(t *testing.T) {
 	var dummyAllowedLogType = logtype.LogType(rand.Intn(256))
 	var dummyAllowedLogLevel = loglevel.LogLevel(rand.Intn(256))
 	var dummyResponseObject = "some response object"
-	var dummyResponseError = apperror.GetGeneralFailureError(nil)
+	var dummyResponseError = apperror.GetCustomError(0, "")
 
 	// mock
 	createMock(t)

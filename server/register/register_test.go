@@ -606,7 +606,7 @@ func TestInstantiate_RouterError(t *testing.T) {
 	var dummyRouter = &mux.Router{}
 	var dummyRouteError = errors.New("some route error")
 	var dummyMessageFormat = "Failed to instantiate routes"
-	var dummyAppError = apperror.GetGeneralFailureError(nil)
+	var dummyAppError = apperror.GetCustomError(0, "")
 
 	// mock
 	createMock(t)

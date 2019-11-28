@@ -322,7 +322,11 @@ func TestGetRequest_NilSessionObject(t *testing.T) {
 func TestGetRequest_ValidSessionObject(t *testing.T) {
 	// arrange
 	var dummySessionID = uuid.New()
-	var dummyHTTPRequest, _ = http.NewRequest("FOO", "bar", nil)
+	var dummyHTTPRequest = &http.Request{
+		Method:     http.MethodGet,
+		RequestURI: "http://localhost/",
+		Header:     map[string][]string{},
+	}
 	var dummySessionObject = &session{
 		Request: dummyHTTPRequest,
 	}
@@ -578,7 +582,7 @@ func TestTryUnmarshal_Failure(t *testing.T) {
 	var dummyValue = "some value"
 	var dummyDataTemplate uuid.UUID
 	var dummyError = errors.New("some error")
-	var dummyAppError = apperror.GetGeneralFailureError(nil)
+	var dummyAppError = apperror.GetCustomError(0, "")
 
 	// mock
 	createMock(t)
@@ -634,7 +638,7 @@ func TestGetRequestBody_EmptyBody(t *testing.T) {
 		Request: dummyHTTPRequest,
 	}
 	var dummyError = errors.New("some error")
-	var dummyAppError = apperror.GetGeneralFailureError(nil)
+	var dummyAppError = apperror.GetCustomError(0, "")
 
 	// mock
 	createMock(t)
@@ -690,7 +694,7 @@ func TestGetRequestBody_ValidBody(t *testing.T) {
 	var dummySessionObject = &session{
 		Request: dummyHTTPRequest,
 	}
-	var dummyAppError = apperror.GetGeneralFailureError(nil)
+	var dummyAppError = apperror.GetCustomError(0, "")
 	var dummyResult = rand.Int()
 
 	// mock
@@ -745,7 +749,7 @@ func TestGetRequestParameter_ValueNotFound(t *testing.T) {
 		Request: dummyHTTPRequest,
 	}
 	var dummyError = errors.New("some error")
-	var dummyAppError = apperror.GetGeneralFailureError(nil)
+	var dummyAppError = apperror.GetCustomError(0, "")
 
 	// mock
 	createMock(t)
@@ -808,7 +812,7 @@ func TestGetRequestParameter_HappyPath(t *testing.T) {
 	var dummySessionObject = &session{
 		Request: dummyHTTPRequest,
 	}
-	var dummyAppError = apperror.GetGeneralFailureError(nil)
+	var dummyAppError = apperror.GetCustomError(0, "")
 	var dummyResult = rand.Int()
 
 	// mock
@@ -918,7 +922,7 @@ func TestGetRequestQuery_EmptyList(t *testing.T) {
 	var dummyDataTemplate int
 	var dummyQueries []string
 	var dummyError = errors.New("some error")
-	var dummyAppError = apperror.GetGeneralFailureError(nil)
+	var dummyAppError = apperror.GetCustomError(0, "")
 
 	// mock
 	createMock(t)
@@ -981,7 +985,7 @@ func TestGetRequestQuery_HappyPath(t *testing.T) {
 		"some query string 2",
 		"some query string 3",
 	}
-	var dummyAppError = apperror.GetGeneralFailureError(nil)
+	var dummyAppError = apperror.GetCustomError(0, "")
 	var dummyResult = rand.Int()
 
 	// mock
@@ -1036,7 +1040,7 @@ func TestGetRequestQueries_EmptyList(t *testing.T) {
 	var dummyFillCallbackExpected int
 	var dummyFillCallbackCalled int
 	var dummyFillCallback func()
-	var dummyError = apperror.GetGeneralFailureError(nil)
+	var dummyError = apperror.GetCustomError(0, "")
 
 	// mock
 	createMock(t)
@@ -1103,10 +1107,10 @@ func TestGetRequestQueries_HappyPath(t *testing.T) {
 	var dummyFillCallback func()
 	var unmarshalErrors = []apperrorModel.AppError{
 		nil,
-		apperror.GetGeneralFailureError(nil),
+		apperror.GetCustomError(0, ""),
 		nil,
 	}
-	var dummyAppError = apperror.GetGeneralFailureError(nil)
+	var dummyAppError = apperror.GetCustomError(0, "")
 	var dummyResult = rand.Int()
 
 	// mock
@@ -1254,7 +1258,7 @@ func TestGetRequestHeader_EmptyList(t *testing.T) {
 	var dummyDataTemplate int
 	var dummyHeaders []string
 	var dummyError = errors.New("some error")
-	var dummyAppError = apperror.GetGeneralFailureError(nil)
+	var dummyAppError = apperror.GetCustomError(0, "")
 
 	// mock
 	createMock(t)
@@ -1317,7 +1321,7 @@ func TestGetRequestHeader_HappyPath(t *testing.T) {
 		"some header string 2",
 		"some header string 3",
 	}
-	var dummyAppError = apperror.GetGeneralFailureError(nil)
+	var dummyAppError = apperror.GetCustomError(0, "")
 	var dummyResult = rand.Int()
 
 	// mock
@@ -1372,7 +1376,7 @@ func TestGetRequestHeaders_EmptyList(t *testing.T) {
 	var dummyFillCallbackExpected int
 	var dummyFillCallbackCalled int
 	var dummyFillCallback func()
-	var dummyError = apperror.GetGeneralFailureError(nil)
+	var dummyError = apperror.GetCustomError(0, "")
 
 	// mock
 	createMock(t)
@@ -1439,10 +1443,10 @@ func TestGetRequestHeaders_HappyPath(t *testing.T) {
 	var dummyFillCallback func()
 	var unmarshalErrors = []apperrorModel.AppError{
 		nil,
-		apperror.GetGeneralFailureError(nil),
+		apperror.GetCustomError(0, ""),
 		nil,
 	}
-	var dummyAppError = apperror.GetGeneralFailureError(nil)
+	var dummyAppError = apperror.GetCustomError(0, "")
 	var dummyResult = rand.Int()
 
 	// mock

@@ -7,4 +7,5 @@ type AppError interface {
 	HTTPStatusCode() int
 	InnerErrors() []error
 	Messages() []string
+	Append(innerErrors ...error)
 }
