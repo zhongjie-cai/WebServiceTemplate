@@ -17,7 +17,7 @@ const (
 type errorResponseModel struct {
 	Code      string            `json:"code"`
 	Messages  []string          `json:"messages"`
-	ExtraData map[string]string `json:"extraData"`
+	ExtraData map[string]string `json:"extraData,omitempty"`
 }
 
 // overrideResponse defines a dummy response returned by override to suppress logging
