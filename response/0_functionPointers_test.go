@@ -196,6 +196,7 @@ type dummyAppError struct {
 	expectedCode       *string
 	expectedHTTPStatus *int
 	expectedMessages   *[]string
+	expectedExtraData  *map[string]string
 }
 
 func (dae *dummyAppError) Code() string {
@@ -232,6 +233,18 @@ func (dae *dummyAppError) Messages() []string {
 	return *dae.expectedMessages
 }
 
+func (dae *dummyAppError) ExtraData() map[string]string {
+	if dae.expectedExtraData == nil {
+		assert.Fail(dae.t, "Unexpected number of calls to ExtraData")
+		return nil
+	}
+	return *dae.expectedExtraData
+}
+
 func (dae *dummyAppError) Append(innerErrors ...error) {
 	assert.Fail(dae.t, "Unexpected number of calls to Append")
+}
+
+func (dae *dummyAppError) Attach(name string, value interface{}) {
+	assert.Fail(dae.t, "Unexpected number of calls to Attach")
 }

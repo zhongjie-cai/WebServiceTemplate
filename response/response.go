@@ -15,8 +15,9 @@ const (
 
 // errorResponseModel defines the response object that is written back to consumer of the API
 type errorResponseModel struct {
-	Code     string   `json:"code"`
-	Messages []string `json:"messages"`
+	Code      string            `json:"code"`
+	Messages  []string          `json:"messages"`
+	ExtraData map[string]string `json:"extraData"`
 }
 
 // overrideResponse defines a dummy response returned by override to suppress logging
@@ -52,9 +53,11 @@ func generateErrorResponse(
 ) errorResponseModel {
 	var code = appError.Code()
 	var messages = appError.Messages()
+	var extraData = appError.ExtraData()
 	var response = errorResponseModel{
-		Code:     code,
-		Messages: messages,
+		Code:      code,
+		Messages:  messages,
+		ExtraData: extraData,
 	}
 	return response
 }

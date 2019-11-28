@@ -20,6 +20,7 @@ type appError struct {
 	error
 	code        enum.Code
 	innerErrors []error
+	extraData   map[string]interface{}
 }
 
 func (appError *appError) Code() string {
@@ -96,6 +97,15 @@ func (appError *appError) Messages() []string {
 	return messages
 }
 
+func (appError *appError) ExtraData() map[string]string {
+	var result = map[string]string{}
+	for name, value := range appError.extraData {
+		var data = jsonutilMarshalIgnoreError(value)
+		result[name] = data
+	}
+	return result
+}
+
 func (appError *appError) Append(innerErrors ...error) {
 	var cleanedInnerErrors = cleanupInnerErrorsFunc(innerErrors)
 	if len(cleanedInnerErrors) == 0 {
@@ -105,6 +115,13 @@ func (appError *appError) Append(innerErrors ...error) {
 		appError.innerErrors,
 		cleanedInnerErrors...,
 	)
+}
+
+func (appError *appError) Attach(name string, value interface{}) {
+	if appError.extraData == nil {
+		appError.extraData = map[string]interface{}{}
+	}
+	appError.extraData[name] = value
 }
 
 // Initialize checks and validates the customization of AppErrors from consumer code
@@ -240,6 +257,7 @@ func GetCustomError(errorCode enum.Code, messageFormat string, parameters ...int
 		fmtErrorf(messageFormat, parameters...),
 		errorCode,
 		nil,
+		nil,
 	}
 }
 
@@ -268,6 +286,7 @@ func WrapError(innerErrors []error, errorCode enum.Code, messageFormat string, p
 		fmtErrorf(messageFormat, parameters...),
 		errorCode,
 		cleanedInnerErrors,
+		nil,
 	}
 }
 

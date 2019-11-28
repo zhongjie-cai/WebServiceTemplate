@@ -15,7 +15,7 @@ import (
 
 var (
 	sessionCache          = cache.New(15*time.Minute, 30*time.Minute)
-	defaultRequest, _     = http.NewRequest("", "", nil)
+	defaultRequest        = &http.Request{}
 	defaultResponseWriter = &nilResponseWriter{}
 	defaultName           = "AppRoot"
 	defaultSession        = session{

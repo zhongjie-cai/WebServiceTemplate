@@ -168,11 +168,13 @@ func TestGenerateErrorResponse(t *testing.T) {
 	var codeInteger = rand.Intn(math.MaxInt8)
 	var expectedCode = apperrorEnum.Code(codeInteger).String()
 	var expectedMessages = []string{"some", "message", "array"}
+	var expectedExtraData = map[string]string{"foo": "bar", "test": "me"}
 	var dummyAppError = &dummyAppError{
 		t,
 		&expectedCode,
 		nil,
 		&expectedMessages,
+		&expectedExtraData,
 	}
 
 	// mock
@@ -186,6 +188,7 @@ func TestGenerateErrorResponse(t *testing.T) {
 	// assert
 	assert.Equal(t, expectedCode, result.Code)
 	assert.Equal(t, expectedMessages, result.Messages)
+	assert.Equal(t, expectedExtraData, result.ExtraData)
 
 	// verify
 	verifyAll(t)
@@ -200,10 +203,12 @@ func TestCreateErrorResponse(t *testing.T) {
 		nil,
 		&dummyHTTPStatusCode,
 		nil,
+		nil,
 	}
 	var dummyErrorResponseModel = errorResponseModel{
-		Code:     "some type",
-		Messages: []string{"some", "message", "array"},
+		Code:      "some type",
+		Messages:  []string{"some", "message", "array"},
+		ExtraData: map[string]string{"foo": "bar", "test": "me"},
 	}
 	var dummyResponseMessage = "some response message"
 

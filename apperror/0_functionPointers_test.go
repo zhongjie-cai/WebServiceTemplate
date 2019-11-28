@@ -9,23 +9,26 @@ import (
 	"github.com/zhongjie-cai/WebServiceTemplate/apperror/enum"
 	"github.com/zhongjie-cai/WebServiceTemplate/apperror/model"
 	"github.com/zhongjie-cai/WebServiceTemplate/customization"
+	"github.com/zhongjie-cai/WebServiceTemplate/jsonutil"
 )
 
 var (
-	fmtSprintfExpected             int
-	fmtSprintfCalled               int
-	fmtErrorfExpected              int
-	fmtErrorfCalled                int
-	stringsJoinExpected            int
-	stringsJoinCalled              int
-	cleanupInnerErrorsFuncExpected int
-	cleanupInnerErrorsFuncCalled   int
-	wrapErrorFuncExpected          int
-	wrapErrorFuncCalled            int
-	wrapSimpleErrorFuncExpected    int
-	wrapSimpleErrorFuncCalled      int
-	customizationAppErrorsExpected int
-	customizationAppErrorsCalled   int
+	fmtSprintfExpected                 int
+	fmtSprintfCalled                   int
+	fmtErrorfExpected                  int
+	fmtErrorfCalled                    int
+	stringsJoinExpected                int
+	stringsJoinCalled                  int
+	jsonutilMarshalIgnoreErrorExpected int
+	jsonutilMarshalIgnoreErrorCalled   int
+	cleanupInnerErrorsFuncExpected     int
+	cleanupInnerErrorsFuncCalled       int
+	wrapErrorFuncExpected              int
+	wrapErrorFuncCalled                int
+	wrapSimpleErrorFuncExpected        int
+	wrapSimpleErrorFuncCalled          int
+	customizationAppErrorsExpected     int
+	customizationAppErrorsCalled       int
 )
 
 func createMock(t *testing.T) {
@@ -45,6 +48,12 @@ func createMock(t *testing.T) {
 	stringsJoinCalled = 0
 	stringsJoin = func(a []string, sep string) string {
 		stringsJoinCalled++
+		return ""
+	}
+	jsonutilMarshalIgnoreErrorExpected = 0
+	jsonutilMarshalIgnoreErrorCalled = 0
+	jsonutilMarshalIgnoreError = func(v interface{}) string {
+		jsonutilMarshalIgnoreErrorCalled++
 		return ""
 	}
 	cleanupInnerErrorsFuncExpected = 0
@@ -77,6 +86,8 @@ func verifyAll(t *testing.T) {
 	assert.Equal(t, fmtErrorfExpected, fmtErrorfCalled, "Unexpected number of calls to fmtErrorf")
 	stringsJoin = strings.Join
 	assert.Equal(t, stringsJoinExpected, stringsJoinCalled, "Unexpected number of calls to stringsJoin")
+	jsonutilMarshalIgnoreError = jsonutil.MarshalIgnoreError
+	assert.Equal(t, jsonutilMarshalIgnoreErrorExpected, jsonutilMarshalIgnoreErrorCalled, "Unexpected number of calls to jsonutilMarshalIgnoreError")
 	cleanupInnerErrorsFunc = cleanupInnerErrors
 	assert.Equal(t, cleanupInnerErrorsFuncExpected, cleanupInnerErrorsFuncCalled, "Unexpected number of calls to cleanupInnerErrorsFunc")
 	wrapErrorFunc = WrapError
