@@ -3,6 +3,7 @@ package apperror
 import (
 	"errors"
 	"fmt"
+	"math"
 	"math/rand"
 	"strings"
 	"testing"
@@ -535,6 +536,99 @@ func TestAppErrorGetMessages_WithAppErrorInner(t *testing.T) {
 	verifyAll(t)
 }
 
+func TestInitialize_NoCustomization(t *testing.T) {
+	// mock
+	createMock(t)
+
+	// expect
+	customization.AppErrors = nil
+
+	// SUT + act
+	var err = Initialize()
+
+	// assert
+	assert.NoError(t, err)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestInitialize_WithCustomization(t *testing.T) {
+	// arrange
+	var dummyCodeNames = map[enum.Code]string{
+		0:                          "some code 0",
+		enum.CodeReservedCount - 1: "some code before reserved count",
+		enum.CodeReservedCount:     "some code at reserved count",
+		enum.CodeReservedCount + 1: "some code after reserved count",
+		math.MaxInt32:              "some code max int",
+	}
+	var dummyHTTPStatusCodes = map[enum.Code]int{
+		0:                          0,
+		enum.CodeReservedCount - 1: 100,
+		enum.CodeReservedCount:     200,
+		enum.CodeReservedCount + 1: 300,
+		math.MaxInt32:              400,
+	}
+	var dummyError1 = errors.New("some error 1")
+	var dummyError2 = errors.New("some error 2")
+	var dummyError3 = errors.New("some error 3")
+	var dummyError4 = errors.New("some error 4")
+	var dummyFinalError = appError{}
+
+	// mock
+	createMock(t)
+
+	// expect
+	customizationAppErrorsExpected = 1
+	customization.AppErrors = func() (map[enum.Code]string, map[enum.Code]int) {
+		customizationAppErrorsCalled++
+		return dummyCodeNames, dummyHTTPStatusCodes
+	}
+	fmtErrorfExpected = 4
+	fmtErrorf = func(format string, a ...interface{}) error {
+		fmtErrorfCalled++
+		if dummyCodeNames[0] == a[1] {
+			assert.Equal(t, "AppError code [%v] configured for code name [%v] is conflicting with reserved error codes", format)
+			assert.Equal(t, enum.Code(0), a[0])
+			return dummyError1
+		} else if dummyCodeNames[enum.CodeReservedCount-1] == a[1] {
+			assert.Equal(t, "AppError code [%v] configured for code name [%v] is conflicting with reserved error codes", format)
+			assert.Equal(t, enum.CodeReservedCount-1, a[0])
+			return dummyError2
+		} else if dummyHTTPStatusCodes[0] == a[1] {
+			assert.Equal(t, "AppError code [%v] configured for HTTP status code [%v] is conflicting with reserved error codes", format)
+			assert.Equal(t, enum.Code(0), a[0])
+			return dummyError3
+		} else if dummyHTTPStatusCodes[enum.CodeReservedCount-1] == a[1] {
+			assert.Equal(t, "AppError code [%v] configured for HTTP status code [%v] is conflicting with reserved error codes", format)
+			assert.Equal(t, enum.CodeReservedCount-1, a[0])
+			return dummyError4
+		}
+		return nil
+	}
+	wrapSimpleErrorFuncExpected = 1
+	wrapSimpleErrorFunc = func(innerErrors []error, messageFormat string, parameters ...interface{}) model.AppError {
+		wrapSimpleErrorFuncCalled++
+		assert.Equal(t, 4, len(innerErrors))
+		assert.Contains(t, innerErrors, dummyError1)
+		assert.Contains(t, innerErrors, dummyError2)
+		assert.Contains(t, innerErrors, dummyError3)
+		assert.Contains(t, innerErrors, dummyError4)
+		assert.Equal(t, "Failed to initialize AppError customization", messageFormat)
+		assert.Equal(t, 0, len(parameters))
+		return dummyFinalError
+	}
+
+	// SUT + act
+	var err = Initialize()
+
+	// assert
+	assert.Equal(t, dummyFinalError, err)
+
+	// verify
+	verifyAll(t)
+}
+
 func TestGetGeneralFailureError(t *testing.T) {
 	// arrange
 	var expectedInnerError = errors.New("dummy inner error")
@@ -878,20 +972,126 @@ func TestGetCustomError(t *testing.T) {
 	verifyAll(t)
 }
 
-func TestWrapError_Empty(t *testing.T) {
+func TestCleanupInnerErrors_NilInnerErrors(t *testing.T) {
 	// arrange
-	var dummyErrorCode = enum.Code(rand.Int())
-	var dummyMessageFormat = "some message format"
-	var dummyParameter1 = "foo"
-	var dummyParameter2 = 123
-	var dummyParameter3 = errors.New("dummy")
+	var dummyInnerErrors []error
 
 	// mock
 	createMock(t)
 
 	// SUT + act
-	var result = WrapError(
+	var result = cleanupInnerErrors(
+		dummyInnerErrors,
+	)
+
+	// assert
+	assert.Empty(t, result)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestCleanupInnerErrors_EmptyInnerErrors(t *testing.T) {
+	// arrange
+	var dummyInnerErrors = []error{}
+
+	// mock
+	createMock(t)
+
+	// SUT + act
+	var result = cleanupInnerErrors(
+		dummyInnerErrors,
+	)
+
+	// assert
+	assert.Empty(t, result)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestCleanupInnerErrors_NoValidInnerErrors(t *testing.T) {
+	// arrange
+	var dummyInnerErrors = []error{
 		nil,
+		nil,
+		nil,
+	}
+
+	// mock
+	createMock(t)
+
+	// SUT + act
+	var result = cleanupInnerErrors(
+		dummyInnerErrors,
+	)
+
+	// assert
+	assert.Empty(t, result)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestCleanupInnerErrors_HasValidInnerErrors(t *testing.T) {
+	// arrange
+	var dummyInnerError1 = errors.New("some random error 1")
+	var dummyInnerError2 = errors.New("some random error 2")
+	var dummyInnerError3 = errors.New("some random error 3")
+	var dummyInnerErrors = []error{
+		dummyInnerError1,
+		nil,
+		dummyInnerError2,
+		nil,
+		dummyInnerError3,
+	}
+
+	// mock
+	createMock(t)
+
+	// SUT + act
+	var result = cleanupInnerErrors(
+		dummyInnerErrors,
+	)
+
+	// assert
+	assert.Equal(t, 3, len(result))
+	assert.Equal(t, dummyInnerError1, result[0])
+	assert.Equal(t, dummyInnerError2, result[1])
+	assert.Equal(t, dummyInnerError3, result[2])
+
+	// verify
+	verifyAll(t)
+}
+
+func TestWrapError_Empty(t *testing.T) {
+	// arrange
+	var dummyInnerErrors = []error{
+		nil,
+		nil,
+		nil,
+	}
+	var dummyErrorCode = enum.Code(rand.Int())
+	var dummyMessageFormat = "some message format"
+	var dummyParameter1 = "foo"
+	var dummyParameter2 = 123
+	var dummyParameter3 = errors.New("dummy")
+	var cleanedInnerErrors = []error{}
+
+	// mock
+	createMock(t)
+
+	// expect
+	cleanupInnerErrorsFuncExpected = 1
+	cleanupInnerErrorsFunc = func(innerErrors []error) []error {
+		cleanupInnerErrorsFuncCalled++
+		assert.Equal(t, dummyInnerErrors, innerErrors)
+		return cleanedInnerErrors
+	}
+
+	// SUT + act
+	var result = WrapError(
+		dummyInnerErrors,
 		dummyErrorCode,
 		dummyMessageFormat,
 		dummyParameter1,
@@ -911,15 +1111,35 @@ func TestWrapError_NotEmpty(t *testing.T) {
 	var dummyInnerError1 = errors.New("some random error 1")
 	var dummyInnerError2 = errors.New("some random error 2")
 	var dummyInnerError3 = errors.New("some random error 3")
+	var dummyInnerErrors = []error{
+		dummyInnerError1,
+		nil,
+		dummyInnerError2,
+		nil,
+		dummyInnerError3,
+	}
 	var dummyErrorCode = enum.Code(rand.Int())
 	var dummyMessageFormat = "some message format"
 	var dummyParameter1 = "foo"
 	var dummyParameter2 = 123
 	var dummyParameter3 = errors.New("dummy")
 	var dummyErrorMessage = "some error message"
+	var cleanedInnerErrors = []error{
+		dummyInnerError1,
+		dummyInnerError2,
+		dummyInnerError3,
+	}
 
 	// mock
 	createMock(t)
+
+	// expect
+	cleanupInnerErrorsFuncExpected = 1
+	cleanupInnerErrorsFunc = func(innerErrors []error) []error {
+		cleanupInnerErrorsFuncCalled++
+		assert.Equal(t, dummyInnerErrors, innerErrors)
+		return cleanedInnerErrors
+	}
 
 	// expect
 	fmtErrorfExpected = 1
@@ -935,11 +1155,7 @@ func TestWrapError_NotEmpty(t *testing.T) {
 
 	// SUT + act
 	var appError, ok = WrapError(
-		[]error{
-			dummyInnerError1,
-			dummyInnerError2,
-			dummyInnerError3,
-		},
+		dummyInnerErrors,
 		dummyErrorCode,
 		dummyMessageFormat,
 		dummyParameter1,

@@ -96,6 +96,43 @@ func (appError appError) Messages() []string {
 	return messages
 }
 
+// Initialize checks and validates the customization of AppErrors from consumer code
+func Initialize() error {
+	if customization.AppErrors == nil {
+		return nil
+	}
+	var innerErrors = []error{}
+	var codeNames, httpStatusCodes = customization.AppErrors()
+	for code, codeName := range codeNames {
+		if code < enum.CodeReservedCount {
+			innerErrors = append(
+				innerErrors,
+				fmtErrorf(
+					"AppError code [%v] configured for code name [%v] is conflicting with reserved error codes",
+					code,
+					codeName,
+				),
+			)
+		}
+	}
+	for code, httpStatusCode := range httpStatusCodes {
+		if code < enum.CodeReservedCount {
+			innerErrors = append(
+				innerErrors,
+				fmtErrorf(
+					"AppError code [%v] configured for HTTP status code [%v] is conflicting with reserved error codes",
+					code,
+					httpStatusCode,
+				),
+			)
+		}
+	}
+	return wrapSimpleErrorFunc(
+		innerErrors,
+		"Failed to initialize AppError customization",
+	)
+}
+
 // GetGeneralFailureError creates a generic error based on GeneralFailure
 func GetGeneralFailureError(innerErrors ...error) model.AppError {
 	return wrapErrorFunc(
@@ -195,15 +232,31 @@ func GetCustomError(errorCode enum.Code, messageFormat string, parameters ...int
 	}
 }
 
+func cleanupInnerErrors(innerErrors []error) []error {
+	var cleanedInnerErrors = []error{}
+	for _, innerError := range innerErrors {
+		if innerError != nil {
+			cleanedInnerErrors = append(
+				cleanedInnerErrors,
+				innerError,
+			)
+		}
+	}
+	return cleanedInnerErrors
+}
+
 // WrapError wraps an inner error with given message as a new error with given error code
 func WrapError(innerErrors []error, errorCode enum.Code, messageFormat string, parameters ...interface{}) model.AppError {
-	if len(innerErrors) == 0 {
+	var cleanedInnerErrors = cleanupInnerErrorsFunc(
+		innerErrors,
+	)
+	if len(cleanedInnerErrors) == 0 {
 		return nil
 	}
 	return appError{
 		fmtErrorf(messageFormat, parameters...),
 		errorCode,
-		innerErrors,
+		cleanedInnerErrors,
 	}
 }
 

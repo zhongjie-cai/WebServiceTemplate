@@ -17,7 +17,7 @@ const (
 	CodeAccessForbidden
 	CodeDataCorruption
 	CodeNotImplemented
-	codeMaxValue
+	CodeReservedCount
 )
 
 // String translates the enum
@@ -34,7 +34,7 @@ func (code Code) String() string {
 		"DataCorruption",
 		"NotImplemented",
 	}
-	if code < 0 || code >= codeMaxValue {
+	if code < 0 || code >= CodeReservedCount {
 		return "Unknown"
 	}
 	return names[code]

@@ -112,7 +112,7 @@ func TestDoPreBootstraping_PreBoostrapFuncSuccess(t *testing.T) {
 	assert.Equal(t, preBootstrapFuncExpected, preBootstrapFuncCalled, "Unexpected number of calls to PreBootstrapFunc")
 }
 
-func TestBootstrapApplication_WithError(t *testing.T) {
+func TestBootstrapApplication_CertError(t *testing.T) {
 	// arrange
 	var dummyLoggerError = errors.New("some logger error")
 	var dummyConfigError = errors.New("some config error")
@@ -202,6 +202,101 @@ func TestBootstrapApplication_WithError(t *testing.T) {
 	verifyAll(t)
 }
 
+func TestBootstrapApplication_AppError(t *testing.T) {
+	// arrange
+	var dummyLoggerError = errors.New("some logger error")
+	var dummyConfigError = errors.New("some config error")
+	var dummyServeHTTPS = rand.Intn(100) < 50
+	var dummyServerCertContent = "some server cert content"
+	var dummyServerKeyContent = "some server key content"
+	var dummyValidateClientCert = rand.Intn(100) < 50
+	var dummyCaCertContent = "some CA cert content"
+	var dummyAppError = errors.New("some cert error")
+
+	// mock
+	createMock(t)
+
+	// expect
+	loggerInitializeExpected = 1
+	loggerInitialize = func() error {
+		loggerInitializeCalled++
+		return dummyLoggerError
+	}
+	configInitializeExpected = 1
+	configInitialize = func() error {
+		configInitializeCalled++
+		return dummyConfigError
+	}
+	configServeHTTPSExpected = 1
+	config.ServeHTTPS = func() bool {
+		configServeHTTPSCalled++
+		return dummyServeHTTPS
+	}
+	configServerCertContentExpected = 1
+	config.ServerCertContent = func() string {
+		configServerCertContentCalled++
+		return dummyServerCertContent
+	}
+	configServerKeyContentExpected = 1
+	config.ServerKeyContent = func() string {
+		configServerKeyContentCalled++
+		return dummyServerKeyContent
+	}
+	configValidateClientCertExpected = 1
+	config.ValidateClientCert = func() bool {
+		configValidateClientCertCalled++
+		return dummyValidateClientCert
+	}
+	configCaCertContentExpected = 1
+	config.CaCertContent = func() string {
+		configCaCertContentCalled++
+		return dummyCaCertContent
+	}
+	certificateInitializeExpected = 1
+	certificateInitialize = func(serveHTTPS bool, serverCertContent string, serverKeyContent string, validateClientCert bool, caCertContent string) error {
+		certificateInitializeCalled++
+		assert.Equal(t, dummyServeHTTPS, serveHTTPS)
+		assert.Equal(t, dummyServerCertContent, serverCertContent)
+		assert.Equal(t, dummyServerKeyContent, serverKeyContent)
+		assert.Equal(t, dummyValidateClientCert, validateClientCert)
+		assert.Equal(t, dummyCaCertContent, caCertContent)
+		return nil
+	}
+	apperrorInitializeExpected = 1
+	apperrorInitialize = func() error {
+		apperrorInitializeCalled++
+		return dummyAppError
+	}
+	loggerAppRootExpected = 3
+	loggerAppRoot = func(category string, subcategory string, messageFormat string, parameters ...interface{}) {
+		loggerAppRootCalled++
+		assert.Equal(t, "application", category)
+		assert.Equal(t, "bootstrapApplication", subcategory)
+		if loggerAppRootCalled == 1 {
+			assert.Equal(t, "Application logger not initialized cleanly. Potential error: %v", messageFormat)
+			assert.Equal(t, 1, len(parameters))
+			assert.Equal(t, dummyLoggerError, parameters[0])
+		} else if loggerAppRootCalled == 2 {
+			assert.Equal(t, "Application configuration not initialized cleanly. Potential error: %v", messageFormat)
+			assert.Equal(t, 1, len(parameters))
+			assert.Equal(t, dummyConfigError, parameters[0])
+		} else if loggerAppRootCalled == 3 {
+			assert.Equal(t, "Failed to bootstrap server application. Error: %v", messageFormat)
+			assert.Equal(t, 1, len(parameters))
+			assert.Equal(t, dummyAppError, parameters[0])
+		}
+	}
+
+	// SUT + act
+	var result = bootstrapApplication()
+
+	// assert
+	assert.False(t, result)
+
+	// verify
+	verifyAll(t)
+}
+
 func TestBootstrapApplication_NoError(t *testing.T) {
 	// arrange
 	var dummyServeHTTPS = rand.Intn(100) < 50
@@ -257,6 +352,11 @@ func TestBootstrapApplication_NoError(t *testing.T) {
 		assert.Equal(t, dummyServerKeyContent, serverKeyContent)
 		assert.Equal(t, dummyValidateClientCert, validateClientCert)
 		assert.Equal(t, dummyCaCertContent, caCertContent)
+		return nil
+	}
+	apperrorInitializeExpected = 1
+	apperrorInitialize = func() error {
+		apperrorInitializeCalled++
 		return nil
 	}
 	loggerAppRootExpected = 1

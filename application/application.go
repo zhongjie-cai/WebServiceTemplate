@@ -67,6 +67,16 @@ func bootstrapApplication() bool {
 		)
 		return false
 	}
+	var apperrorError = apperrorInitialize()
+	if apperrorError != nil {
+		loggerAppRoot(
+			"application",
+			"bootstrapApplication",
+			"Failed to bootstrap server application. Error: %v",
+			apperrorError,
+		)
+		return false
+	}
 	loggerAppRoot(
 		"application",
 		"bootstrapApplication",

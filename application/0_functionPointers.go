@@ -1,6 +1,7 @@
 package application
 
 import (
+	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
 	"github.com/zhongjie-cai/WebServiceTemplate/certificate"
 	"github.com/zhongjie-cai/WebServiceTemplate/config"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger"
@@ -11,6 +12,7 @@ import (
 var (
 	configInitialize          = config.Initialize
 	certificateInitialize     = certificate.Initialize
+	apperrorInitialize        = apperror.Initialize
 	loggerInitialize          = logger.Initialize
 	loggerAppRoot             = logger.AppRoot
 	serverHost                = server.Host

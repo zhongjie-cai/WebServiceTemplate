@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
 	"github.com/zhongjie-cai/WebServiceTemplate/certificate"
 	"github.com/zhongjie-cai/WebServiceTemplate/config"
 	"github.com/zhongjie-cai/WebServiceTemplate/customization"
@@ -30,6 +31,8 @@ var (
 	configCaCertContentCalled         int
 	certificateInitializeExpected     int
 	certificateInitializeCalled       int
+	apperrorInitializeExpected        int
+	apperrorInitializeCalled          int
 	loggerInitializeExpected          int
 	loggerInitializeCalled            int
 	loggerAppRootExpected             int
@@ -103,6 +106,12 @@ func createMock(t *testing.T) {
 		certificateInitializeCalled++
 		return nil
 	}
+	apperrorInitializeExpected = 0
+	apperrorInitializeCalled = 0
+	apperrorInitialize = func() error {
+		apperrorInitializeCalled++
+		return nil
+	}
 	loggerInitializeExpected = 0
 	loggerInitializeCalled = 0
 	loggerInitialize = func() error {
@@ -169,6 +178,8 @@ func verifyAll(t *testing.T) {
 	assert.Equal(t, configCaCertContentExpected, configCaCertContentCalled, "Unexpected number of calls to configCaCertContent")
 	certificateInitialize = certificate.Initialize
 	assert.Equal(t, certificateInitializeExpected, certificateInitializeCalled, "Unexpected number of calls to certificateInitialize")
+	apperrorInitialize = apperror.Initialize
+	assert.Equal(t, apperrorInitializeExpected, apperrorInitializeCalled, "Unexpected number of calls to apperrorInitialize")
 	loggerInitialize = logger.Initialize
 	assert.Equal(t, loggerInitializeExpected, loggerInitializeCalled, "Unexpected number of calls to loggerInitialize")
 	loggerAppRoot = logger.AppRoot

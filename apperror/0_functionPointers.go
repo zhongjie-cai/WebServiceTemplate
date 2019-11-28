@@ -7,9 +7,10 @@ import (
 
 // func pointers for injection / testing: apperror.go
 var (
-	fmtSprintf          = fmt.Sprintf
-	fmtErrorf           = fmt.Errorf
-	stringsJoin         = strings.Join
-	wrapErrorFunc       = WrapError
-	wrapSimpleErrorFunc = WrapSimpleError
+	fmtSprintf             = fmt.Sprintf
+	fmtErrorf              = fmt.Errorf
+	stringsJoin            = strings.Join
+	cleanupInnerErrorsFunc = cleanupInnerErrors
+	wrapErrorFunc          = WrapError
+	wrapSimpleErrorFunc    = WrapSimpleError
 )

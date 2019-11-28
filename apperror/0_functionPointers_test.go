@@ -18,6 +18,8 @@ var (
 	fmtErrorfCalled                int
 	stringsJoinExpected            int
 	stringsJoinCalled              int
+	cleanupInnerErrorsFuncExpected int
+	cleanupInnerErrorsFuncCalled   int
 	wrapErrorFuncExpected          int
 	wrapErrorFuncCalled            int
 	wrapSimpleErrorFuncExpected    int
@@ -45,6 +47,12 @@ func createMock(t *testing.T) {
 		stringsJoinCalled++
 		return ""
 	}
+	cleanupInnerErrorsFuncExpected = 0
+	cleanupInnerErrorsFuncCalled = 0
+	cleanupInnerErrorsFunc = func(innerErrors []error) []error {
+		cleanupInnerErrorsFuncCalled++
+		return nil
+	}
 	wrapErrorFuncExpected = 0
 	wrapErrorFuncCalled = 0
 	wrapErrorFunc = func(innerErrors []error, errorCode enum.Code, messageFormat string, parameters ...interface{}) model.AppError {
@@ -69,6 +77,8 @@ func verifyAll(t *testing.T) {
 	assert.Equal(t, fmtErrorfExpected, fmtErrorfCalled, "Unexpected number of calls to fmtErrorf")
 	stringsJoin = strings.Join
 	assert.Equal(t, stringsJoinExpected, stringsJoinCalled, "Unexpected number of calls to stringsJoin")
+	cleanupInnerErrorsFunc = cleanupInnerErrors
+	assert.Equal(t, cleanupInnerErrorsFuncExpected, cleanupInnerErrorsFuncCalled, "Unexpected number of calls to cleanupInnerErrorsFunc")
 	wrapErrorFunc = WrapError
 	assert.Equal(t, wrapErrorFuncExpected, wrapErrorFuncCalled, "Unexpected number of calls to wrapErrorFunc")
 	wrapSimpleErrorFunc = WrapSimpleError

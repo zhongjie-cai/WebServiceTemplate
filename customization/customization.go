@@ -69,7 +69,7 @@ var Statics func() []serverModel.Static
 // Middlewares is to customize the middlewares registration
 var Middlewares func() []serverModel.MiddlewareFunc
 
-// AppErrors is to customize (override) the AppErrors for their string representations and corresponding HTTP status codes
+// AppErrors is to customize (override) the AppErrors for their string representations and corresponding HTTP status codes; customized enum must be after apperrorEnum.CodeReservedCount
 var AppErrors func() (map[apperrorEnum.Code]string, map[apperrorEnum.Code]int)
 
 // Reset clears all customization of functions for the whole application

@@ -394,7 +394,7 @@ func TestCodeEnumHTTPStatusCode_OtherCode(t *testing.T) {
 	createMock(t)
 
 	// SUT
-	var dummyCode = Code(rand.Intn(math.MaxInt8) + int(codeMaxValue))
+	var dummyCode = Code(rand.Intn(math.MaxInt8) + int(CodeReservedCount))
 
 	// act
 	var result = dummyCode.HTTPStatusCode()
