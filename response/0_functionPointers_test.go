@@ -12,7 +12,10 @@ import (
 	"github.com/zhongjie-cai/WebServiceTemplate/customization"
 	"github.com/zhongjie-cai/WebServiceTemplate/jsonutil"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger"
+	"github.com/zhongjie-cai/WebServiceTemplate/logger/loglevel"
+	"github.com/zhongjie-cai/WebServiceTemplate/logger/logtype"
 	"github.com/zhongjie-cai/WebServiceTemplate/session"
+	sessionModel "github.com/zhongjie-cai/WebServiceTemplate/session/model"
 )
 
 var (
@@ -24,8 +27,6 @@ var (
 	apperrorGetGeneralFailureErrorCalled         int
 	loggerAPIResponseExpected                    int
 	loggerAPIResponseCalled                      int
-	loggerAPIExitExpected                        int
-	loggerAPIExitCalled                          int
 	sessionGetRequestExpected                    int
 	sessionGetRequestCalled                      int
 	sessionGetResponseWriterExpected             int
@@ -67,13 +68,8 @@ func createMock(t *testing.T) {
 	}
 	loggerAPIResponseExpected = 0
 	loggerAPIResponseCalled = 0
-	loggerAPIResponse = func(sessionID uuid.UUID, category string, subcategory string, messageFormat string, parameters ...interface{}) {
+	loggerAPIResponse = func(session sessionModel.Session, category string, subcategory string, messageFormat string, parameters ...interface{}) {
 		loggerAPIResponseCalled++
-	}
-	loggerAPIExitExpected = 0
-	loggerAPIExitCalled = 0
-	loggerAPIExit = func(sessionID uuid.UUID, category string, subcategory string, messageFormat string, parameters ...interface{}) {
-		loggerAPIExitCalled++
 	}
 	sessionGetRequestExpected = 0
 	sessionGetRequestCalled = 0
@@ -89,7 +85,7 @@ func createMock(t *testing.T) {
 	}
 	writeResponseFuncExpected = 0
 	writeResponseFuncCalled = 0
-	writeResponseFunc = func(sessionID uuid.UUID, responseWriter http.ResponseWriter, statusCode int, responseMessage string) {
+	writeResponseFunc = func(session sessionModel.Session, statusCode int, responseMessage string) {
 		writeResponseFuncCalled++
 	}
 	getAppErrorFuncExpected = 0
@@ -136,8 +132,6 @@ func verifyAll(t *testing.T) {
 	assert.Equal(t, apperrorGetGeneralFailureErrorExpected, apperrorGetGeneralFailureErrorCalled, "Unexpected number of calls to apperrorGetGeneralFailureError")
 	loggerAPIResponse = logger.APIResponse
 	assert.Equal(t, loggerAPIResponseExpected, loggerAPIResponseCalled, "Unexpected number of calls to loggerAPIResponse")
-	loggerAPIExit = logger.APIExit
-	assert.Equal(t, loggerAPIExitExpected, loggerAPIExitCalled, "Unexpected number of calls to loggerAPIExit")
 	sessionGetRequest = session.GetRequest
 	assert.Equal(t, sessionGetRequestExpected, sessionGetRequestCalled, "Unexpected number of calls to sessionGetRequest")
 	sessionGetResponseWriter = session.GetResponseWriter
@@ -247,4 +241,82 @@ func (dae *dummyAppError) Append(innerErrors ...error) {
 
 func (dae *dummyAppError) Attach(name string, value interface{}) {
 	assert.Fail(dae.t, "Unexpected number of calls to Attach")
+}
+
+type dummySession struct {
+	t              *testing.T
+	responseWriter *dummyResponseWriter
+}
+
+func (session *dummySession) GetID() uuid.UUID {
+	assert.Fail(session.t, "Unexpected call to GetID")
+	return uuid.Nil
+}
+
+func (session *dummySession) GetName() string {
+	assert.Fail(session.t, "Unexpected call to GetName")
+	return ""
+}
+
+func (session *dummySession) GetRequest() *http.Request {
+	assert.Fail(session.t, "Unexpected call to GetRequest")
+	return nil
+}
+
+func (session *dummySession) GetResponseWriter() http.ResponseWriter {
+	if session.responseWriter == nil {
+		assert.Fail(session.t, "Unexpected call to GetResponseWriter")
+		return nil
+	}
+	return session.responseWriter
+}
+
+func (session *dummySession) GetRequestBody(dataTemplate interface{}) apperrorModel.AppError {
+	assert.Fail(session.t, "Unexpected call to GetRequestBody")
+	return nil
+}
+
+func (session *dummySession) GetRequestParameter(name string, dataTemplate interface{}) apperrorModel.AppError {
+	assert.Fail(session.t, "Unexpected call to GetRequestParameter")
+	return nil
+}
+
+func (session *dummySession) GetRequestQuery(name string, dataTemplate interface{}) apperrorModel.AppError {
+	assert.Fail(session.t, "Unexpected call to GetRequestQuery")
+	return nil
+}
+
+func (session *dummySession) GetRequestQueries(name string, dataTemplate interface{}, fillCallback func()) apperrorModel.AppError {
+	assert.Fail(session.t, "Unexpected call to GetRequestQueries")
+	return nil
+}
+
+func (session *dummySession) GetRequestHeader(name string, dataTemplate interface{}) apperrorModel.AppError {
+	assert.Fail(session.t, "Unexpected call to GetRequestHeader")
+	return nil
+}
+
+func (session *dummySession) GetRequestHeaders(name string, dataTemplate interface{}, fillCallback func()) apperrorModel.AppError {
+	assert.Fail(session.t, "Unexpected call to GetRequestHeaders")
+	return nil
+}
+
+func (session *dummySession) Attach(name string, value interface{}) bool {
+	assert.Fail(session.t, "Unexpected call to Attach")
+	return false
+}
+
+func (session *dummySession) Detach(name string) bool {
+	assert.Fail(session.t, "Unexpected call to Detach")
+	return false
+}
+
+func (session *dummySession) GetAttachment(name string, dataTemplate interface{}) bool {
+	assert.Fail(session.t, "Unexpected call to GetAttachment")
+	return false
+}
+
+func (session *dummySession) IsLoggingAllowed(logType logtype.LogType, logLevel loglevel.LogLevel) bool {
+	assert.Fail(session.t, "Unexpected call to IsLoggingAllowed")
+	return false
 }

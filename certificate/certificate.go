@@ -126,7 +126,7 @@ func GetServerCertificate() *tls.Certificate {
 	return serverCertificate
 }
 
-// GetClientCertPool returns the client cert pool (CA root) loaded from local storage
-func GetClientCertPool() *x509.CertPool {
+// GetCaCertPool returns the client cert pool (CA root) loaded from local storage
+func GetCaCertPool() *x509.CertPool {
 	return caCertPool
 }

@@ -33,7 +33,6 @@ func doPreBootstraping() bool {
 }
 
 func bootstrapApplication() bool {
-	sessionInit()
 	var loggerError = loggerInitialize()
 	if loggerError != nil {
 		loggerAppRoot(

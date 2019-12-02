@@ -4,10 +4,10 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
 	apperrorModel "github.com/zhongjie-cai/WebServiceTemplate/apperror/model"
+	sessionModel "github.com/zhongjie-cai/WebServiceTemplate/session/model"
 )
 
 func TestGetRecoverError_Error(t *testing.T) {
@@ -90,13 +90,11 @@ func TestGetDebugStack(t *testing.T) {
 
 func TestHandlePanic(t *testing.T) {
 	// arrange
-	var dummyEndpointName = "some endpoint name"
-	var dummySessionID = uuid.New()
+	var dummySessionObject = &dummySession{}
 	var dummyError = errors.New("some error")
 	var dummyRecoverResult = dummyError.(interface{})
 	var dummyAppError = apperror.GetGeneralFailureError(dummyError)
 	var dummyDebugStack = "some debug stack"
-	var dummyResponseWriter = &dummyPanicResponseWriter{t}
 
 	// mock
 	createMock(t)
@@ -109,9 +107,9 @@ func TestHandlePanic(t *testing.T) {
 		return dummyAppError
 	}
 	responseWriteExpected = 1
-	responseWrite = func(sessionID uuid.UUID, responseObject interface{}, responseError error) {
+	responseWrite = func(session sessionModel.Session, responseObject interface{}, responseError error) {
 		responseWriteCalled++
-		assert.Equal(t, dummySessionID, sessionID)
+		assert.Equal(t, dummySessionObject, session)
 		assert.Nil(t, responseObject)
 		assert.Equal(t, dummyAppError, responseError)
 	}
@@ -133,10 +131,8 @@ func TestHandlePanic(t *testing.T) {
 
 	// SUT + act
 	Handle(
-		dummyEndpointName,
-		dummySessionID,
+		dummySessionObject,
 		dummyRecoverResult,
-		dummyResponseWriter,
 	)
 
 	// verify

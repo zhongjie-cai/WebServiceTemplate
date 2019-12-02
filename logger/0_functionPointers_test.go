@@ -16,7 +16,6 @@ import (
 	"github.com/zhongjie-cai/WebServiceTemplate/jsonutil"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger/loglevel"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger/logtype"
-	"github.com/zhongjie-cai/WebServiceTemplate/session"
 	sessionModel "github.com/zhongjie-cai/WebServiceTemplate/session/model"
 	"github.com/zhongjie-cai/WebServiceTemplate/timeutil"
 )
@@ -38,8 +37,6 @@ var (
 	configAppNameCalled                int
 	configAppVersionExpected           int
 	configAppVersionCalled             int
-	sessionGetExpected                 int
-	sessionGetCalled                   int
 	apperrorGetCustomErrorExpected     int
 	apperrorGetCustomErrorCalled       int
 	defaultLoggingFuncExpected         int
@@ -97,12 +94,6 @@ func createMock(t *testing.T) {
 		configAppVersionCalled++
 		return ""
 	}
-	sessionGetExpected = 0
-	sessionGetCalled = 0
-	sessionGet = func(sessionID uuid.UUID) sessionModel.Session {
-		sessionGetCalled++
-		return nil
-	}
 	apperrorGetCustomErrorExpected = 0
 	apperrorGetCustomErrorCalled = 0
 	apperrorGetCustomError = func(errorCode apperrorEnum.Code, messageFormat string, parameters ...interface{}) apperrorModel.AppError {
@@ -116,7 +107,7 @@ func createMock(t *testing.T) {
 	}
 	prepareLoggingFuncExpected = 0
 	prepareLoggingFuncCalled = 0
-	prepareLoggingFunc = func(sessionID uuid.UUID, logType logtype.LogType, logLevel loglevel.LogLevel, category, subcategory, description string) {
+	prepareLoggingFunc = func(session sessionModel.Session, logType logtype.LogType, logLevel loglevel.LogLevel, category, subcategory, description string) {
 		prepareLoggingFuncCalled++
 	}
 }
@@ -138,8 +129,6 @@ func verifyAll(t *testing.T) {
 	assert.Equal(t, configAppNameExpected, configAppNameCalled, "Unexpected number of calls to configAppName")
 	config.AppVersion = func() string { return "" }
 	assert.Equal(t, configAppVersionExpected, configAppVersionCalled, "Unexpected number of calls to configAppVersion")
-	sessionGet = session.Get
-	assert.Equal(t, sessionGetExpected, sessionGetCalled, "Unexpected number of calls to sessionGet")
 	apperrorGetCustomError = apperror.GetCustomError
 	assert.Equal(t, apperrorGetCustomErrorExpected, apperrorGetCustomErrorCalled, "Unexpected number of calls to apperrorGetCustomError")
 	defaultLoggingFunc = defaultLogging
@@ -228,9 +217,9 @@ func (session *dummySession) GetAttachment(name string, dataTemplate interface{}
 	return false
 }
 
-func (session *dummySession) IsLogAllowed(logType logtype.LogType, logLevel loglevel.LogLevel) bool {
+func (session *dummySession) IsLoggingAllowed(logType logtype.LogType, logLevel loglevel.LogLevel) bool {
 	if session.isLogAllowed == nil {
-		assert.Fail(session.t, "Unexpected call to IsLogAllowed")
+		assert.Fail(session.t, "Unexpected call to IsLoggingAllowed")
 	}
 	return *session.isLogAllowed
 }

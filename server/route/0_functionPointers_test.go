@@ -6,14 +6,12 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
 	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
 	apperrorEnum "github.com/zhongjie-cai/WebServiceTemplate/apperror/enum"
 	apperrorModel "github.com/zhongjie-cai/WebServiceTemplate/apperror/model"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger"
-	"github.com/zhongjie-cai/WebServiceTemplate/response"
 	"github.com/zhongjie-cai/WebServiceTemplate/server/model"
 )
 
@@ -34,8 +32,6 @@ var (
 	muxNewRouterCalled                      int
 	muxCurrentRouteExpected                 int
 	muxCurrentRouteCalled                   int
-	responseWriteExpected                   int
-	responseWriteCalled                     int
 	getNameFuncExpected                     int
 	getNameFuncCalled                       int
 	getPathTemplateFuncExpected             int
@@ -101,11 +97,6 @@ func createMock(t *testing.T) {
 	muxCurrentRoute = func(httpRequest *http.Request) *mux.Route {
 		muxCurrentRouteCalled++
 		return nil
-	}
-	responseWriteExpected = 0
-	responseWriteCalled = 0
-	responseWrite = func(sessionID uuid.UUID, responseObject interface{}, responseError error) {
-		responseWriteCalled++
 	}
 	getNameFuncExpected = 0
 	getNameFuncCalled = 0
@@ -174,8 +165,6 @@ func verifyAll(t *testing.T) {
 	assert.Equal(t, muxNewRouterExpected, muxNewRouterCalled, "Unexpected number of calls to muxNewRouter")
 	muxCurrentRoute = mux.CurrentRoute
 	assert.Equal(t, muxCurrentRouteExpected, muxCurrentRouteCalled, "Unexpected number of calls to muxCurrentRoute")
-	responseWrite = response.Write
-	assert.Equal(t, responseWriteExpected, responseWriteCalled, "Unexpected number of calls to responseWrite")
 	getPathTemplateFunc = getPathTemplate
 	assert.Equal(t, getPathTemplateFuncExpected, getPathTemplateFuncCalled, "Unexpected number of calls to getPathTemplateFunc")
 	getNameFunc = getName
@@ -195,24 +184,6 @@ func verifyAll(t *testing.T) {
 }
 
 // mock structs
-type dummyResponseWriter struct {
-	t *testing.T
-}
-
-func (drw *dummyResponseWriter) Header() http.Header {
-	assert.Fail(drw.t, "Unexpected number of calls to ResponseWrite.Header")
-	return nil
-}
-
-func (drw *dummyResponseWriter) Write([]byte) (int, error) {
-	assert.Fail(drw.t, "Unexpected number of calls to ResponseWrite.Write")
-	return 0, nil
-}
-
-func (drw *dummyResponseWriter) WriteHeader(statusCode int) {
-	assert.Fail(drw.t, "Unexpected number of calls to ResponseWrite.WriteHeader")
-}
-
 type dummyHandler struct {
 	t *testing.T
 }

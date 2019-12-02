@@ -7,6 +7,7 @@ import (
 	"math/rand"
 	"net/http"
 	"net/url"
+	"runtime"
 	"strconv"
 	"testing"
 
@@ -19,27 +20,8 @@ import (
 	"github.com/zhongjie-cai/WebServiceTemplate/logger/loglevel"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger/logtype"
 	"github.com/zhongjie-cai/WebServiceTemplate/session/model"
+	sessionModel "github.com/zhongjie-cai/WebServiceTemplate/session/model"
 )
-
-func TestInit_AllValuesSet(t *testing.T) {
-	// mock
-	createMock(t)
-
-	// SUT + act
-	Init()
-	var result, found = sessionCache.Get(uuid.Nil.String())
-
-	// assert
-	assert.True(t, found)
-	assert.Equal(t, defaultSession, result)
-	assert.Zero(t, defaultSession.ID)
-	assert.Equal(t, defaultName, defaultSession.Name)
-	assert.Equal(t, logtype.BasicLogging, defaultSession.AllowedLogType)
-	assert.Equal(t, loglevel.Debug, defaultSession.AllowedLogLevel)
-
-	// verify
-	verifyAll(t)
-}
 
 func TestRegister(t *testing.T) {
 	// arrange
@@ -74,10 +56,10 @@ func TestRegister(t *testing.T) {
 
 	// act
 	var cacheItem, cacheOK = sessionCache.Get(dummySessionID.String())
-	var session, typeOK = cacheItem.(session)
+	var session, typeOK = cacheItem.(*session)
 
 	// assert
-	assert.Equal(t, dummySessionID, result)
+	assert.Equal(t, dummySessionID, result.GetID())
 	assert.True(t, cacheOK)
 	assert.True(t, typeOK)
 	assert.Equal(t, dummySessionID, session.ID)
@@ -95,6 +77,9 @@ func TestRegister(t *testing.T) {
 func TestUnregister(t *testing.T) {
 	// arrange
 	var dummySessionID = uuid.New()
+	var dummySessionObject = &session{
+		ID: dummySessionID,
+	}
 
 	// stub
 	sessionCache.Set(dummySessionID.String(), 123, cache.NoExpiration)
@@ -103,7 +88,7 @@ func TestUnregister(t *testing.T) {
 	createMock(t)
 
 	// SUT
-	Unregister(dummySessionID)
+	Unregister(dummySessionObject)
 
 	// act
 	var _, cacheOK = sessionCache.Get(dummySessionID.String())
@@ -127,7 +112,7 @@ func TestGet_CacheNotLoaded(t *testing.T) {
 	var session = Get(dummySessionID)
 
 	// assert
-	assert.Equal(t, &defaultSession, session)
+	assert.Equal(t, defaultSession, session)
 
 	// verify
 	verifyAll(t)
@@ -148,7 +133,7 @@ func TestGet_CacheItemInvalid(t *testing.T) {
 	var session = Get(dummySessionID)
 
 	// assert
-	assert.Equal(t, &defaultSession, session)
+	assert.Equal(t, defaultSession, session)
 
 	// verify
 	verifyAll(t)
@@ -164,7 +149,7 @@ func TestGet_CacheItemValid(t *testing.T) {
 	}
 
 	// stub
-	sessionCache.SetDefault(dummySessionID.String(), *expectedSession)
+	sessionCache.SetDefault(dummySessionID.String(), expectedSession)
 
 	// mock
 	createMock(t)
@@ -700,6 +685,15 @@ func TestGetRequestBody_ValidBody(t *testing.T) {
 		assert.Equal(t, dummyHTTPRequest, httpRequest)
 		return dummyRequestBody
 	}
+	loggerAPIRequestExpected = 1
+	loggerAPIRequest = func(session sessionModel.Session, category string, subcategory string, messageFormat string, parameters ...interface{}) {
+		loggerAPIRequestCalled++
+		assert.Equal(t, dummySessionObject, session)
+		assert.Equal(t, "Body", category)
+		assert.Zero(t, subcategory)
+		assert.Equal(t, dummyRequestBody, messageFormat)
+		assert.Equal(t, 0, len(parameters))
+	}
 	tryUnmarshalFuncExpected = 1
 	tryUnmarshalFunc = func(value string, dataTemplate interface{}) apperrorModel.AppError {
 		tryUnmarshalFuncCalled++
@@ -817,6 +811,15 @@ func TestGetRequestParameter_HappyPath(t *testing.T) {
 		muxVarsCalled++
 		assert.Equal(t, dummyHTTPRequest, r)
 		return dummyParameters
+	}
+	loggerAPIRequestExpected = 1
+	loggerAPIRequest = func(session sessionModel.Session, category string, subcategory string, messageFormat string, parameters ...interface{}) {
+		loggerAPIRequestCalled++
+		assert.Equal(t, dummySessionObject, session)
+		assert.Equal(t, "Parameter", category)
+		assert.Equal(t, dummyName, subcategory)
+		assert.Equal(t, dummyValue, messageFormat)
+		assert.Equal(t, 0, len(parameters))
 	}
 	tryUnmarshalFuncExpected = 1
 	tryUnmarshalFunc = func(value string, dataTemplate interface{}) apperrorModel.AppError {
@@ -992,6 +995,15 @@ func TestGetRequestQuery_HappyPath(t *testing.T) {
 		assert.Equal(t, dummyName, name)
 		return dummyQueries
 	}
+	loggerAPIRequestExpected = 1
+	loggerAPIRequest = func(session sessionModel.Session, category string, subcategory string, messageFormat string, parameters ...interface{}) {
+		loggerAPIRequestCalled++
+		assert.Equal(t, dummySessionObject, session)
+		assert.Equal(t, "Query", category)
+		assert.Equal(t, dummyName, subcategory)
+		assert.Equal(t, dummyQueries[0], messageFormat)
+		assert.Equal(t, 0, len(parameters))
+	}
 	tryUnmarshalFuncExpected = 1
 	tryUnmarshalFunc = func(value string, dataTemplate interface{}) apperrorModel.AppError {
 		tryUnmarshalFuncCalled++
@@ -1116,6 +1128,15 @@ func TestGetRequestQueries_HappyPath(t *testing.T) {
 		assert.Equal(t, dummySessionObject, session)
 		assert.Equal(t, dummyName, name)
 		return dummyQueries
+	}
+	loggerAPIRequestExpected = 3
+	loggerAPIRequest = func(session sessionModel.Session, category string, subcategory string, messageFormat string, parameters ...interface{}) {
+		loggerAPIRequestCalled++
+		assert.Equal(t, dummySessionObject, session)
+		assert.Equal(t, "Query", category)
+		assert.Equal(t, dummyName, subcategory)
+		assert.Contains(t, dummyQueries, messageFormat)
+		assert.Equal(t, 0, len(parameters))
 	}
 	tryUnmarshalFuncExpected = 3
 	tryUnmarshalFunc = func(value string, dataTemplate interface{}) apperrorModel.AppError {
@@ -1328,6 +1349,15 @@ func TestGetRequestHeader_HappyPath(t *testing.T) {
 		assert.Equal(t, dummyName, name)
 		return dummyHeaders
 	}
+	loggerAPIRequestExpected = 1
+	loggerAPIRequest = func(session sessionModel.Session, category string, subcategory string, messageFormat string, parameters ...interface{}) {
+		loggerAPIRequestCalled++
+		assert.Equal(t, dummySessionObject, session)
+		assert.Equal(t, "Header", category)
+		assert.Equal(t, dummyName, subcategory)
+		assert.Contains(t, dummyHeaders, messageFormat)
+		assert.Equal(t, 0, len(parameters))
+	}
 	tryUnmarshalFuncExpected = 1
 	tryUnmarshalFunc = func(value string, dataTemplate interface{}) apperrorModel.AppError {
 		tryUnmarshalFuncCalled++
@@ -1452,6 +1482,15 @@ func TestGetRequestHeaders_HappyPath(t *testing.T) {
 		assert.Equal(t, dummySessionObject, session)
 		assert.Equal(t, dummyName, name)
 		return dummyHeaders
+	}
+	loggerAPIRequestExpected = 3
+	loggerAPIRequest = func(session sessionModel.Session, category string, subcategory string, messageFormat string, parameters ...interface{}) {
+		loggerAPIRequestCalled++
+		assert.Equal(t, dummySessionObject, session)
+		assert.Equal(t, "Header", category)
+		assert.Equal(t, dummyName, subcategory)
+		assert.Contains(t, dummyHeaders, messageFormat)
+		assert.Equal(t, 0, len(parameters))
 	}
 	tryUnmarshalFuncExpected = 3
 	tryUnmarshalFunc = func(value string, dataTemplate interface{}) apperrorModel.AppError {
@@ -1925,25 +1964,111 @@ func TestGetAttachment_Success(t *testing.T) {
 	verifyAll(t)
 }
 
-func TestIsLoggingAllowed_NilSession(t *testing.T) {
+func TestIsLoggingTypeMatch_NilSession(t *testing.T) {
 	// arrange
-	var dummyLogType = logtype.APIEnter
-	var dummyLogLevel = loglevel.Warn
+	var dummySessionObject *session
+	var dummyAllowedLogType = logtype.LogType(rand.Int())
+	var dummyLogType = logtype.LogType(rand.Int())
+	var expectedResult = dummyAllowedLogType.HasFlag(dummyLogType)
 
 	// mock
 	createMock(t)
 
-	// SUT
-	var dummySessionObject *session
+	// expect
+	configDefaultAllowedLogTypeExpected = 1
+	config.DefaultAllowedLogType = func() logtype.LogType {
+		configDefaultAllowedLogTypeCalled++
+		return dummyAllowedLogType
+	}
 
-	// act
-	var result = dummySessionObject.IsLogAllowed(
+	// SUT + act
+	var result = isLoggingTypeMatch(
+		dummySessionObject,
 		dummyLogType,
+	)
+
+	// assert
+	assert.Equal(t, expectedResult, result)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestIsLoggingTypeMatch_ValidSession(t *testing.T) {
+	// arrange
+	var dummyAllowedLogType = logtype.LogType(rand.Int())
+	var dummySessionObject = &session{
+		AllowedLogType: dummyAllowedLogType,
+	}
+	var dummyLogType = logtype.LogType(rand.Int())
+	var expectedResult = dummyAllowedLogType.HasFlag(dummyLogType)
+
+	// mock
+	createMock(t)
+
+	// SUT + act
+	var result = isLoggingTypeMatch(
+		dummySessionObject,
+		dummyLogType,
+	)
+
+	// assert
+	assert.Equal(t, expectedResult, result)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestIsLoggingLevelMatch_NilSession(t *testing.T) {
+	// arrange
+	var dummySessionObject *session
+	var dummyAllowedLogLevel = loglevel.LogLevel(rand.Int())
+	var dummyLogLevel = loglevel.LogLevel(rand.Int())
+	var expectedResult = dummyAllowedLogLevel <= dummyLogLevel
+
+	// mock
+	createMock(t)
+
+	// expect
+	configDefaultAllowedLogLevelExpected = 1
+	config.DefaultAllowedLogLevel = func() loglevel.LogLevel {
+		configDefaultAllowedLogLevelCalled++
+		return dummyAllowedLogLevel
+	}
+
+	// SUT + act
+	var result = isLoggingLevelMatch(
+		dummySessionObject,
 		dummyLogLevel,
 	)
 
 	// assert
-	assert.False(t, result)
+	assert.Equal(t, expectedResult, result)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestIsLoggingLevelMatch_ValidSession(t *testing.T) {
+	// arrange
+	var dummyAllowedLogLevel = loglevel.LogLevel(rand.Int())
+	var dummySessionObject = &session{
+		AllowedLogLevel: dummyAllowedLogLevel,
+	}
+	var dummyLogLevel = loglevel.LogLevel(rand.Int())
+	var expectedResult = dummyAllowedLogLevel <= dummyLogLevel
+
+	// mock
+	createMock(t)
+
+	// SUT + act
+	var result = isLoggingLevelMatch(
+		dummySessionObject,
+		dummyLogLevel,
+	)
+
+	// assert
+	assert.Equal(t, expectedResult, result)
 
 	// verify
 	verifyAll(t)
@@ -1951,8 +2076,8 @@ func TestIsLoggingAllowed_NilSession(t *testing.T) {
 
 func TestIsLoggingAllowed_IsLocalHost(t *testing.T) {
 	// arrange
-	var dummyLogType = logtype.APIEnter
-	var dummyLogLevel = loglevel.Warn
+	var dummyLogType = logtype.LogType(rand.Int())
+	var dummyLogLevel = loglevel.LogLevel(rand.Int())
 
 	// mock
 	createMock(t)
@@ -1968,7 +2093,7 @@ func TestIsLoggingAllowed_IsLocalHost(t *testing.T) {
 	var dummySessionObject = &session{}
 
 	// act
-	var result = dummySessionObject.IsLogAllowed(
+	var result = dummySessionObject.IsLoggingAllowed(
 		dummyLogType,
 		dummyLogLevel,
 	)
@@ -1980,12 +2105,15 @@ func TestIsLoggingAllowed_IsLocalHost(t *testing.T) {
 	verifyAll(t)
 }
 
-func TestIsLoggingAllowed_FlagNotMatch(t *testing.T) {
+func TestIsLoggingAllowed_LoggingTypeNotMatch(t *testing.T) {
 	// arrange
-	var dummyAllowedLogType = logtype.GeneralTracing
-	var dummyAllowedLogLevel = loglevel.Warn
-	var dummyLogType = logtype.MethodEnter
-	var dummyLogLevel = loglevel.Warn
+	var dummyLogType = logtype.LogType(rand.Int())
+	var dummyLogLevel = loglevel.LogLevel(rand.Int())
+	var dummyLoggingTypeMatched = false
+	var dummyLoggingLevelMatched = rand.Intn(100) < 50
+
+	// SUT
+	var dummySessionObject = &session{}
 
 	// mock
 	createMock(t)
@@ -1996,15 +2124,23 @@ func TestIsLoggingAllowed_FlagNotMatch(t *testing.T) {
 		configIsLocalhostCalled++
 		return false
 	}
-
-	// SUT
-	var dummySessionObject = &session{
-		AllowedLogType:  dummyAllowedLogType,
-		AllowedLogLevel: dummyAllowedLogLevel,
+	isLoggingTypeMatchFuncExpected = 1
+	isLoggingTypeMatchFunc = func(session *session, logType logtype.LogType) bool {
+		isLoggingTypeMatchFuncCalled++
+		assert.Equal(t, dummySessionObject, session)
+		assert.Equal(t, dummyLogType, logType)
+		return dummyLoggingTypeMatched
+	}
+	isLoggingLevelMatchFuncExpected = 1
+	isLoggingLevelMatchFunc = func(session *session, logLevel loglevel.LogLevel) bool {
+		isLoggingLevelMatchFuncCalled++
+		assert.Equal(t, dummySessionObject, session)
+		assert.Equal(t, dummyLogLevel, logLevel)
+		return dummyLoggingLevelMatched
 	}
 
 	// act
-	var result = dummySessionObject.IsLogAllowed(
+	var result = dummySessionObject.IsLoggingAllowed(
 		dummyLogType,
 		dummyLogLevel,
 	)
@@ -2016,12 +2152,15 @@ func TestIsLoggingAllowed_FlagNotMatch(t *testing.T) {
 	verifyAll(t)
 }
 
-func TestIsLoggingAllowed_FlagMatch_LevelNotMatch(t *testing.T) {
+func TestIsLoggingAllowed_LoggingLevelNotMatch_NotMethodLogic(t *testing.T) {
 	// arrange
-	var dummyAllowedLogType = logtype.BasicLogging
-	var dummyAllowedLogLevel = loglevel.Warn
-	var dummyLogType = logtype.MethodLogic
-	var dummyLogLevel = loglevel.Info
+	var dummyLogType = logtype.LogType(rand.Int()) ^ logtype.MethodLogic
+	var dummyLogLevel = loglevel.LogLevel(rand.Int())
+	var dummyLoggingTypeMatched = true
+	var dummyLoggingLevelMatched = false
+
+	// SUT
+	var dummySessionObject = &session{}
 
 	// mock
 	createMock(t)
@@ -2032,57 +2171,398 @@ func TestIsLoggingAllowed_FlagMatch_LevelNotMatch(t *testing.T) {
 		configIsLocalhostCalled++
 		return false
 	}
-
-	// SUT
-	var dummySessionObject = &session{
-		AllowedLogType:  dummyAllowedLogType,
-		AllowedLogLevel: dummyAllowedLogLevel,
+	isLoggingTypeMatchFuncExpected = 1
+	isLoggingTypeMatchFunc = func(session *session, logType logtype.LogType) bool {
+		isLoggingTypeMatchFuncCalled++
+		assert.Equal(t, dummySessionObject, session)
+		assert.Equal(t, dummyLogType, logType)
+		return dummyLoggingTypeMatched
+	}
+	isLoggingLevelMatchFuncExpected = 1
+	isLoggingLevelMatchFunc = func(session *session, logLevel loglevel.LogLevel) bool {
+		isLoggingLevelMatchFuncCalled++
+		assert.Equal(t, dummySessionObject, session)
+		assert.Equal(t, dummyLogLevel, logLevel)
+		return dummyLoggingLevelMatched
 	}
 
 	// act
-	var result = dummySessionObject.IsLogAllowed(
-		dummyLogType,
-		dummyLogLevel,
-	)
-
-	// assert
-	assert.False(t, result)
-
-	// verify
-	verifyAll(t)
-}
-
-func TestIsLoggingAllowed_FlagMatch_LevelMatch(t *testing.T) {
-	// arrange
-	var dummyAllowedLogType = logtype.BasicLogging
-	var dummyAllowedLogLevel = loglevel.Warn
-	var dummyLogType = logtype.MethodLogic
-	var dummyLogLevel = loglevel.Warn
-
-	// mock
-	createMock(t)
-
-	// expect
-	configIsLocalhostExpected = 1
-	config.IsLocalhost = func() bool {
-		configIsLocalhostCalled++
-		return false
-	}
-
-	// SUT
-	var dummySessionObject = &session{
-		AllowedLogType:  dummyAllowedLogType,
-		AllowedLogLevel: dummyAllowedLogLevel,
-	}
-
-	// act
-	var result = dummySessionObject.IsLogAllowed(
+	var result = dummySessionObject.IsLoggingAllowed(
 		dummyLogType,
 		dummyLogLevel,
 	)
 
 	// assert
 	assert.True(t, result)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestIsLoggingAllowed_LoggingLevelNotMatch_IsMethodLogic(t *testing.T) {
+	// arrange
+	var dummyLogType = logtype.MethodLogic
+	var dummyLogLevel = loglevel.LogLevel(rand.Int())
+	var dummyLoggingTypeMatched = true
+	var dummyLoggingLevelMatched = false
+
+	// SUT
+	var dummySessionObject = &session{}
+
+	// mock
+	createMock(t)
+
+	// expect
+	configIsLocalhostExpected = 1
+	config.IsLocalhost = func() bool {
+		configIsLocalhostCalled++
+		return false
+	}
+	isLoggingTypeMatchFuncExpected = 1
+	isLoggingTypeMatchFunc = func(session *session, logType logtype.LogType) bool {
+		isLoggingTypeMatchFuncCalled++
+		assert.Equal(t, dummySessionObject, session)
+		assert.Equal(t, dummyLogType, logType)
+		return dummyLoggingTypeMatched
+	}
+	isLoggingLevelMatchFuncExpected = 1
+	isLoggingLevelMatchFunc = func(session *session, logLevel loglevel.LogLevel) bool {
+		isLoggingLevelMatchFuncCalled++
+		assert.Equal(t, dummySessionObject, session)
+		assert.Equal(t, dummyLogLevel, logLevel)
+		return dummyLoggingLevelMatched
+	}
+
+	// act
+	var result = dummySessionObject.IsLoggingAllowed(
+		dummyLogType,
+		dummyLogLevel,
+	)
+
+	// assert
+	assert.False(t, result)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestGetMethodName_UnknownCaller(t *testing.T) {
+	// arrange
+	var dummyPC = uintptr(rand.Int())
+	var dummyFile = "some file"
+	var dummyLine = rand.Int()
+	var dummyOK = false
+
+	// mock
+	createMock(t)
+
+	// expect
+	runtimeCallerExpected = 1
+	runtimeCaller = func(skip int) (pc uintptr, file string, line int, ok bool) {
+		runtimeCallerCalled++
+		assert.Equal(t, 3, skip)
+		return dummyPC, dummyFile, dummyLine, dummyOK
+	}
+
+	// SUT + act
+	var result = getMethodName()
+
+	// assert
+	assert.Equal(t, "?", result)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestGetMethodName_HappyPath(t *testing.T) {
+	// mock
+	createMock(t)
+
+	// expect
+	runtimeCallerExpected = 1
+	runtimeCaller = func(skip int) (pc uintptr, file string, line int, ok bool) {
+		runtimeCallerCalled++
+		assert.Equal(t, 3, skip)
+		return runtime.Caller(2)
+	}
+	runtimeFuncForPCExpected = 1
+	runtimeFuncForPC = func(pc uintptr) *runtime.Func {
+		runtimeFuncForPCCalled++
+		assert.NotZero(t, pc)
+		return runtime.FuncForPC(pc)
+	}
+
+	// SUT + act
+	var result = getMethodName()
+
+	// assert
+	assert.Contains(t, result, "TestGetMethodName_HappyPath")
+
+	// verify
+	verifyAll(t)
+}
+
+func TestLogMethodEnter(t *testing.T) {
+	// arrange
+	var dummySessionID = uuid.New()
+	var dummySessionObject = &session{
+		ID: dummySessionID,
+	}
+	var dummyMethodName = "some method name"
+
+	// mock
+	createMock(t)
+
+	// expect
+	getFuncExpected = 1
+	getFunc = func(sessionID uuid.UUID) model.Session {
+		getFuncCalled++
+		assert.Equal(t, dummySessionID, sessionID)
+		return dummySessionObject
+	}
+	getMethodNameFuncExpected = 1
+	getMethodNameFunc = func() string {
+		getMethodNameFuncCalled++
+		return dummyMethodName
+	}
+	loggerMethodEnterExpected = 1
+	loggerMethodEnter = func(session sessionModel.Session, category string, subcategory string, messageFormat string, parameters ...interface{}) {
+		loggerMethodEnterCalled++
+		assert.Equal(t, dummySessionObject, session)
+		assert.Equal(t, dummyMethodName, category)
+		assert.Zero(t, subcategory)
+		assert.Zero(t, messageFormat)
+		assert.Empty(t, parameters)
+	}
+
+	// SUT + act
+	LogMethodEnter(
+		dummySessionID,
+	)
+
+	// assert
+
+	// verify
+	verifyAll(t)
+}
+
+func TestLogMethodParameter(t *testing.T) {
+	// arrange
+	var dummySessionID = uuid.New()
+	var dummySessionObject = &session{
+		ID: dummySessionID,
+	}
+	var dummyParameter1 = "foo"
+	var dummyParameter2 = rand.Int()
+	var dummyParameter3 = errors.New("test")
+	var dummyParameters = []interface{}{
+		dummyParameter1,
+		dummyParameter2,
+		dummyParameter3,
+	}
+	var dummyMethodName = "some method name"
+
+	// mock
+	createMock(t)
+
+	// expect
+	getFuncExpected = 1
+	getFunc = func(sessionID uuid.UUID) model.Session {
+		getFuncCalled++
+		assert.Equal(t, dummySessionID, sessionID)
+		return dummySessionObject
+	}
+	getMethodNameFuncExpected = 1
+	getMethodNameFunc = func() string {
+		getMethodNameFuncCalled++
+		return dummyMethodName
+	}
+	strconvItoaExpected = 3
+	strconvItoa = func(i int) string {
+		strconvItoaCalled++
+		return strconv.Itoa(i)
+	}
+	loggerMethodParameterExpected = 3
+	loggerMethodParameter = func(session sessionModel.Session, category string, subcategory string, messageFormat string, parameters ...interface{}) {
+		loggerMethodParameterCalled++
+		assert.Equal(t, dummySessionObject, session)
+		assert.Equal(t, dummyMethodName, category)
+		assert.Equal(t, strconv.Itoa(loggerMethodParameterCalled-1), subcategory)
+		assert.Equal(t, "%v", messageFormat)
+		assert.Equal(t, 1, len(parameters))
+		assert.Equal(t, dummyParameters[loggerMethodParameterCalled-1], parameters[0])
+	}
+
+	// SUT + act
+	LogMethodParameter(
+		dummySessionID,
+		dummyParameter1,
+		dummyParameter2,
+		dummyParameter3,
+	)
+
+	// assert
+
+	// verify
+	verifyAll(t)
+}
+
+func TestLogMethodLogic(t *testing.T) {
+	// arrange
+	var dummySessionID = uuid.New()
+	var dummySessionObject = &session{
+		ID: dummySessionID,
+	}
+	var dummyLogLevel = loglevel.LogLevel(rand.Int())
+	var dummyCategory = "some category"
+	var dummySubcategory = "some subcategory"
+	var dummyMessageFormat = "some message format"
+	var dummyParameter1 = "foo"
+	var dummyParameter2 = rand.Int()
+	var dummyParameter3 = errors.New("test")
+
+	// mock
+	createMock(t)
+
+	// expect
+	getFuncExpected = 1
+	getFunc = func(sessionID uuid.UUID) model.Session {
+		getFuncCalled++
+		assert.Equal(t, dummySessionID, sessionID)
+		return dummySessionObject
+	}
+	loggerMethodLogicExpected = 1
+	loggerMethodLogic = func(session sessionModel.Session, logLevel loglevel.LogLevel, category string, subcategory string, messageFormat string, parameters ...interface{}) {
+		loggerMethodLogicCalled++
+		assert.Equal(t, dummySessionObject, session)
+		assert.Equal(t, dummyLogLevel, logLevel)
+		assert.Equal(t, dummyCategory, category)
+		assert.Equal(t, dummySubcategory, subcategory)
+		assert.Equal(t, dummyMessageFormat, messageFormat)
+		assert.Equal(t, 3, len(parameters))
+		assert.Equal(t, dummyParameter1, parameters[0])
+		assert.Equal(t, dummyParameter2, parameters[1])
+		assert.Equal(t, dummyParameter3, parameters[2])
+	}
+
+	// SUT + act
+	LogMethodLogic(
+		dummySessionID,
+		dummyLogLevel,
+		dummyCategory,
+		dummySubcategory,
+		dummyMessageFormat,
+		dummyParameter1,
+		dummyParameter2,
+		dummyParameter3,
+	)
+
+	// assert
+
+	// verify
+	verifyAll(t)
+}
+
+func TestLogMethodReturn(t *testing.T) {
+	// arrange
+	var dummySessionID = uuid.New()
+	var dummySessionObject = &session{
+		ID: dummySessionID,
+	}
+	var dummyReturn1 = "foo"
+	var dummyReturn2 = rand.Int()
+	var dummyReturn3 = errors.New("test")
+	var dummyReturns = []interface{}{
+		dummyReturn1,
+		dummyReturn2,
+		dummyReturn3,
+	}
+	var dummyMethodName = "some method name"
+
+	// mock
+	createMock(t)
+
+	// expect
+	getFuncExpected = 1
+	getFunc = func(sessionID uuid.UUID) model.Session {
+		getFuncCalled++
+		assert.Equal(t, dummySessionID, sessionID)
+		return dummySessionObject
+	}
+	getMethodNameFuncExpected = 1
+	getMethodNameFunc = func() string {
+		getMethodNameFuncCalled++
+		return dummyMethodName
+	}
+	strconvItoaExpected = 3
+	strconvItoa = func(i int) string {
+		strconvItoaCalled++
+		return strconv.Itoa(i)
+	}
+	loggerMethodReturnExpected = 3
+	loggerMethodReturn = func(session sessionModel.Session, category string, subcategory string, messageFormat string, parameters ...interface{}) {
+		loggerMethodReturnCalled++
+		assert.Equal(t, dummySessionObject, session)
+		assert.Equal(t, dummyMethodName, category)
+		assert.Equal(t, strconv.Itoa(loggerMethodReturnCalled-1), subcategory)
+		assert.Equal(t, "%v", messageFormat)
+		assert.Equal(t, 1, len(parameters))
+		assert.Equal(t, dummyReturns[loggerMethodReturnCalled-1], parameters[0])
+	}
+
+	// SUT + act
+	LogMethodReturn(
+		dummySessionID,
+		dummyReturn1,
+		dummyReturn2,
+		dummyReturn3,
+	)
+
+	// assert
+
+	// verify
+	verifyAll(t)
+}
+
+func TestLogMethodExit(t *testing.T) {
+	// arrange
+	var dummySessionID = uuid.New()
+	var dummySessionObject = &session{
+		ID: dummySessionID,
+	}
+	var dummyMethodName = "some method name"
+
+	// mock
+	createMock(t)
+
+	// expect
+	getFuncExpected = 1
+	getFunc = func(sessionID uuid.UUID) model.Session {
+		getFuncCalled++
+		assert.Equal(t, dummySessionID, sessionID)
+		return dummySessionObject
+	}
+	getMethodNameFuncExpected = 1
+	getMethodNameFunc = func() string {
+		getMethodNameFuncCalled++
+		return dummyMethodName
+	}
+	loggerMethodExitExpected = 1
+	loggerMethodExit = func(session sessionModel.Session, category string, subcategory string, messageFormat string, parameters ...interface{}) {
+		loggerMethodExitCalled++
+		assert.Equal(t, dummySessionObject, session)
+		assert.Equal(t, dummyMethodName, category)
+		assert.Zero(t, subcategory)
+		assert.Zero(t, messageFormat)
+		assert.Empty(t, parameters)
+	}
+
+	// SUT + act
+	LogMethodExit(
+		dummySessionID,
+	)
+
+	// assert
 
 	// verify
 	verifyAll(t)

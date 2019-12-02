@@ -30,7 +30,7 @@ func createServer(
 			*serverCert,
 		}
 		if validateClientCert {
-			var clientCertPool = certificateGetClientCertPool()
+			var clientCertPool = certificateGetCaCertPool()
 			tlsConfig.ClientAuth = tls.RequireAndVerifyClientCert
 			tlsConfig.ClientCAs = clientCertPool
 		}

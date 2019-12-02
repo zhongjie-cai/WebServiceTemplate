@@ -22,8 +22,8 @@ import (
 var (
 	certificateGetServerCertificateExpected int
 	certificateGetServerCertificateCalled   int
-	certificateGetClientCertPoolExpected    int
-	certificateGetClientCertPoolCalled      int
+	certificateGetCaCertPoolExpected    int
+	certificateGetCaCertPoolCalled      int
 	apperrorWrapSimpleErrorExpected         int
 	apperrorWrapSimpleErrorCalled           int
 	registerInstantiateExpected             int
@@ -53,10 +53,10 @@ func createMock(t *testing.T) {
 		certificateGetServerCertificateCalled++
 		return nil
 	}
-	certificateGetClientCertPoolExpected = 0
-	certificateGetClientCertPoolCalled = 0
-	certificateGetClientCertPool = func() *x509.CertPool {
-		certificateGetClientCertPoolCalled++
+	certificateGetCaCertPoolExpected = 0
+	certificateGetCaCertPoolCalled = 0
+	certificateGetCaCertPool = func() *x509.CertPool {
+		certificateGetCaCertPoolCalled++
 		return nil
 	}
 	apperrorWrapSimpleErrorExpected = 0
@@ -122,8 +122,8 @@ func createMock(t *testing.T) {
 func verifyAll(t *testing.T) {
 	certificateGetServerCertificate = certificate.GetServerCertificate
 	assert.Equal(t, certificateGetServerCertificateExpected, certificateGetServerCertificateCalled, "Unexpected number of calls to certificateGetServerCertificate")
-	certificateGetClientCertPool = certificate.GetClientCertPool
-	assert.Equal(t, certificateGetClientCertPoolExpected, certificateGetClientCertPoolCalled, "Unexpected number of calls to certificateGetClientCertPool")
+	certificateGetCaCertPool = certificate.GetCaCertPool
+	assert.Equal(t, certificateGetCaCertPoolExpected, certificateGetCaCertPoolCalled, "Unexpected number of calls to certificateGetCaCertPool")
 	apperrorWrapSimpleError = apperror.WrapSimpleError
 	assert.Equal(t, apperrorWrapSimpleErrorExpected, apperrorWrapSimpleErrorCalled, "Unexpected number of calls to apperrorWrapSimpleError")
 	registerInstantiate = register.Instantiate

@@ -1,11 +1,10 @@
 package panic
 
 import (
-	"net/http"
 	"runtime/debug"
 
-	"github.com/google/uuid"
 	apperrorModel "github.com/zhongjie-cai/WebServiceTemplate/apperror/model"
+	sessionModel "github.com/zhongjie-cai/WebServiceTemplate/session/model"
 )
 
 func getRecoverError(recoverResult interface{}) apperrorModel.AppError {
@@ -21,13 +20,13 @@ func getDebugStack() string {
 }
 
 // Handle prevents the application from halting when service handler panics unexpectedly
-func Handle(endpointName string, sessionID uuid.UUID, recoverResult interface{}, responseWriter http.ResponseWriter) {
+func Handle(session sessionModel.Session, recoverResult interface{}) {
 	if recoverResult != nil {
 		var appError = getRecoverErrorFunc(
 			recoverResult,
 		)
 		responseWrite(
-			sessionID,
+			session,
 			nil,
 			appError,
 		)

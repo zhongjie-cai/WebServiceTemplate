@@ -15,6 +15,7 @@ import (
 	apperrorEnum "github.com/zhongjie-cai/WebServiceTemplate/apperror/enum"
 	apperrorModel "github.com/zhongjie-cai/WebServiceTemplate/apperror/model"
 	"github.com/zhongjie-cai/WebServiceTemplate/customization"
+	sessionModel "github.com/zhongjie-cai/WebServiceTemplate/session/model"
 )
 
 func TestCreateOkResponse_EmptyContent(t *testing.T) {
@@ -250,7 +251,6 @@ func TestCreateErrorResponse(t *testing.T) {
 
 func TestWriteResponse(t *testing.T) {
 	// arrange
-	var dummySessionID = uuid.New()
 	var dummyHeader = make(http.Header)
 	var dummyStatusCode = rand.Int()
 	var dummyStatusCodeString = strconv.Itoa(dummyStatusCode)
@@ -261,6 +261,10 @@ func TestWriteResponse(t *testing.T) {
 		&dummyHeader,
 		&dummyStatusCode,
 		&dummyResponseBytes,
+	}
+	var dummySessionObject = &dummySession{
+		t,
+		dummyResponseWriter,
 	}
 
 	// mock
@@ -273,29 +277,18 @@ func TestWriteResponse(t *testing.T) {
 		return strconv.Itoa(i)
 	}
 	loggerAPIResponseExpected = 1
-	loggerAPIResponse = func(sessionID uuid.UUID, category string, subcategory string, messageFormat string, parameters ...interface{}) {
+	loggerAPIResponse = func(session sessionModel.Session, category string, subcategory string, messageFormat string, parameters ...interface{}) {
 		loggerAPIResponseCalled++
-		assert.Equal(t, dummySessionID, sessionID)
-		assert.Equal(t, "response", category)
-		assert.Equal(t, dummyStatusCodeString, subcategory)
+		assert.Equal(t, dummySessionObject, session)
+		assert.Equal(t, dummyStatusCodeString, category)
+		assert.Zero(t, subcategory)
 		assert.Equal(t, dummyResponseMessage, messageFormat)
 		assert.Equal(t, 0, len(parameters))
-	}
-	loggerAPIExitExpected = 1
-	loggerAPIExit = func(sessionID uuid.UUID, category string, subcategory string, messageFormat string, parameters ...interface{}) {
-		loggerAPIExitCalled++
-		assert.Equal(t, dummySessionID, sessionID)
-		assert.Equal(t, "response", category)
-		assert.Equal(t, "Write", subcategory)
-		assert.Equal(t, "%v", messageFormat)
-		assert.Equal(t, 1, len(parameters))
-		assert.Equal(t, dummyStatusCode, parameters[0])
 	}
 
 	// SUT + act
 	writeResponse(
-		dummySessionID,
-		dummyResponseWriter,
+		dummySessionObject,
 		dummyStatusCode,
 		dummyResponseMessage,
 	)
@@ -402,13 +395,10 @@ func TestConstructResponse_NoError(t *testing.T) {
 
 func TestWrite_NotOverrided(t *testing.T) {
 	// arrange
-	var dummySessionID = uuid.New()
 	var dummyResponseObject = "some response content"
 	var dummyResponseError = errors.New("some response error")
-	var dummyResponseWriter = &dummyResponseWriter{
+	var dummySessionObject = &dummySession{
 		t,
-		nil,
-		nil,
 		nil,
 	}
 	var dummyResponseMessage = "some response message"
@@ -418,12 +408,6 @@ func TestWrite_NotOverrided(t *testing.T) {
 	createMock(t)
 
 	// expect
-	sessionGetResponseWriterExpected = 1
-	sessionGetResponseWriter = func(sessionID uuid.UUID) http.ResponseWriter {
-		sessionGetResponseWriterCalled++
-		assert.Equal(t, dummySessionID, sessionID)
-		return dummyResponseWriter
-	}
 	constructResponseFuncExpected = 1
 	constructResponseFunc = func(responseObject interface{}, responseError error) (string, int) {
 		constructResponseFuncCalled++
@@ -432,17 +416,16 @@ func TestWrite_NotOverrided(t *testing.T) {
 		return dummyResponseMessage, dummyStatusCode
 	}
 	writeResponseFuncExpected = 1
-	writeResponseFunc = func(sessionID uuid.UUID, responseWriter http.ResponseWriter, statusCode int, responseMessage string) {
+	writeResponseFunc = func(session sessionModel.Session, statusCode int, responseMessage string) {
 		writeResponseFuncCalled++
-		assert.Equal(t, dummySessionID, sessionID)
-		assert.Equal(t, dummyResponseWriter, responseWriter)
+		assert.Equal(t, dummySessionObject, session)
 		assert.Equal(t, dummyStatusCode, statusCode)
 		assert.Equal(t, dummyResponseMessage, responseMessage)
 	}
 
 	// SUT + act
 	Write(
-		dummySessionID,
+		dummySessionObject,
 		dummyResponseObject,
 		dummyResponseError,
 	)
@@ -453,13 +436,10 @@ func TestWrite_NotOverrided(t *testing.T) {
 
 func TestWrite_Overrided(t *testing.T) {
 	// arrange
-	var dummySessionID = uuid.New()
 	var dummyResponseObject = overrideResponse{}
 	var dummyResponseError = errors.New("some response error")
-	var dummyResponseWriter = &dummyResponseWriter{
+	var dummySessionObject = &dummySession{
 		t,
-		nil,
-		nil,
 		nil,
 	}
 	var dummyResponseMessage = "some response message"
@@ -469,12 +449,6 @@ func TestWrite_Overrided(t *testing.T) {
 	createMock(t)
 
 	// expect
-	sessionGetResponseWriterExpected = 1
-	sessionGetResponseWriter = func(sessionID uuid.UUID) http.ResponseWriter {
-		sessionGetResponseWriterCalled++
-		assert.Equal(t, dummySessionID, sessionID)
-		return dummyResponseWriter
-	}
 	constructResponseFuncExpected = 1
 	constructResponseFunc = func(responseObject interface{}, responseError error) (string, int) {
 		constructResponseFuncCalled++
@@ -482,19 +456,10 @@ func TestWrite_Overrided(t *testing.T) {
 		assert.Equal(t, dummyResponseError, responseError)
 		return dummyResponseMessage, dummyStatusCode
 	}
-	loggerAPIExitExpected = 1
-	loggerAPIExit = func(sessionID uuid.UUID, category string, subcategory string, messageFormat string, parameters ...interface{}) {
-		loggerAPIExitCalled++
-		assert.Equal(t, dummySessionID, sessionID)
-		assert.Equal(t, "response", category)
-		assert.Equal(t, "Write", subcategory)
-		assert.Equal(t, "Overrided", messageFormat)
-		assert.Equal(t, 0, len(parameters))
-	}
 
 	// SUT + act
 	Write(
-		dummySessionID,
+		dummySessionObject,
 		dummyResponseObject,
 		dummyResponseError,
 	)

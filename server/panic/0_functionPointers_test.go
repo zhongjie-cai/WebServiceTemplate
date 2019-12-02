@@ -10,7 +10,10 @@ import (
 	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
 	apperrorModel "github.com/zhongjie-cai/WebServiceTemplate/apperror/model"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger"
+	"github.com/zhongjie-cai/WebServiceTemplate/logger/loglevel"
+	"github.com/zhongjie-cai/WebServiceTemplate/logger/logtype"
 	"github.com/zhongjie-cai/WebServiceTemplate/response"
+	sessionModel "github.com/zhongjie-cai/WebServiceTemplate/session/model"
 )
 
 var (
@@ -48,7 +51,7 @@ func createMock(t *testing.T) {
 	}
 	responseWriteExpected = 0
 	responseWriteCalled = 0
-	responseWrite = func(sessionID uuid.UUID, responseObject interface{}, responseError error) {
+	responseWrite = func(session sessionModel.Session, responseObject interface{}, responseError error) {
 		responseWriteCalled++
 	}
 	apperrorGetGeneralFailureErrorExpected = 0
@@ -81,20 +84,76 @@ func verifyAll(t *testing.T) {
 }
 
 // mock structs
-type dummyPanicResponseWriter struct {
+type dummySession struct {
 	t *testing.T
 }
 
-func (drw *dummyPanicResponseWriter) Header() http.Header {
-	assert.Fail(drw.t, "Unexpected number of calls to ResponseWrite.Header")
+func (session *dummySession) GetID() uuid.UUID {
+	assert.Fail(session.t, "Unexpected call to GetID")
+	return uuid.Nil
+}
+
+func (session *dummySession) GetName() string {
+	assert.Fail(session.t, "Unexpected call to GetName")
+	return ""
+}
+
+func (session *dummySession) GetRequest() *http.Request {
+	assert.Fail(session.t, "Unexpected call to GetRequest")
 	return nil
 }
 
-func (drw *dummyPanicResponseWriter) Write([]byte) (int, error) {
-	assert.Fail(drw.t, "Unexpected number of calls to ResponseWrite.Write")
-	return 0, nil
+func (session *dummySession) GetResponseWriter() http.ResponseWriter {
+	assert.Fail(session.t, "Unexpected call to GetResponseWriter")
+	return nil
 }
 
-func (drw *dummyPanicResponseWriter) WriteHeader(statusCode int) {
-	assert.Fail(drw.t, "Unexpected number of calls to ResponseWrite.WriteHeader")
+func (session *dummySession) GetRequestBody(dataTemplate interface{}) apperrorModel.AppError {
+	assert.Fail(session.t, "Unexpected call to GetRequestBody")
+	return nil
+}
+
+func (session *dummySession) GetRequestParameter(name string, dataTemplate interface{}) apperrorModel.AppError {
+	assert.Fail(session.t, "Unexpected call to GetRequestParameter")
+	return nil
+}
+
+func (session *dummySession) GetRequestQuery(name string, dataTemplate interface{}) apperrorModel.AppError {
+	assert.Fail(session.t, "Unexpected call to GetRequestQuery")
+	return nil
+}
+
+func (session *dummySession) GetRequestQueries(name string, dataTemplate interface{}, fillCallback func()) apperrorModel.AppError {
+	assert.Fail(session.t, "Unexpected call to GetRequestQueries")
+	return nil
+}
+
+func (session *dummySession) GetRequestHeader(name string, dataTemplate interface{}) apperrorModel.AppError {
+	assert.Fail(session.t, "Unexpected call to GetRequestHeader")
+	return nil
+}
+
+func (session *dummySession) GetRequestHeaders(name string, dataTemplate interface{}, fillCallback func()) apperrorModel.AppError {
+	assert.Fail(session.t, "Unexpected call to GetRequestHeaders")
+	return nil
+}
+
+func (session *dummySession) Attach(name string, value interface{}) bool {
+	assert.Fail(session.t, "Unexpected call to Attach")
+	return false
+}
+
+func (session *dummySession) Detach(name string) bool {
+	assert.Fail(session.t, "Unexpected call to Detach")
+	return false
+}
+
+func (session *dummySession) GetAttachment(name string, dataTemplate interface{}) bool {
+	assert.Fail(session.t, "Unexpected call to GetAttachment")
+	return false
+}
+
+func (session *dummySession) IsLoggingAllowed(logType logtype.LogType, logLevel loglevel.LogLevel) bool {
+	assert.Fail(session.t, "Unexpected call to IsLoggingAllowed")
+	return false
 }

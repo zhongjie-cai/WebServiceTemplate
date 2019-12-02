@@ -16,6 +16,7 @@ import (
 	"github.com/zhongjie-cai/WebServiceTemplate/logger/loglevel"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger/logtype"
 	"github.com/zhongjie-cai/WebServiceTemplate/server/model"
+	sessionModel "github.com/zhongjie-cai/WebServiceTemplate/session/model"
 )
 
 func TestExecuteCustomizedFunction_NoCustomization(t *testing.T) {
@@ -85,6 +86,10 @@ func TestHandleInSession_RouteError(t *testing.T) {
 	var dummyResponseWriter = &dummyResponseWriter{t}
 	var dummyEndpoint = "some endpoint"
 	var dummySessionID = uuid.New()
+	var dummySessionObject = &dummySession{
+		t,
+		&dummySessionID,
+	}
 	var dummyActionExpected = 0
 	var dummyActionCalled = 0
 	var dummyAction = func(sessionID uuid.UUID) (interface{}, error) {
@@ -119,22 +124,22 @@ func TestHandleInSession_RouteError(t *testing.T) {
 		return dummyAllowedLogLevel
 	}
 	sessionRegisterExpected = 1
-	sessionRegister = func(endpoint string, allowedLogType logtype.LogType, allowedLogLevel loglevel.LogLevel, httpRequest *http.Request, responseWriter http.ResponseWriter) uuid.UUID {
+	sessionRegister = func(name string, allowedLogType logtype.LogType, allowedLogLevel loglevel.LogLevel, httpRequest *http.Request, responseWriter http.ResponseWriter) sessionModel.Session {
 		sessionRegisterCalled++
-		assert.Equal(t, dummyEndpoint, endpoint)
+		assert.Equal(t, dummyEndpoint, name)
 		assert.Equal(t, dummyAllowedLogType, allowedLogType)
 		assert.Equal(t, dummyAllowedLogLevel, allowedLogLevel)
 		assert.Equal(t, dummyHTTPRequest, httpRequest)
 		assert.Equal(t, dummyResponseWriter, responseWriter)
-		return dummySessionID
+		return dummySessionObject
 	}
 	loggerAPIEnterExpected = 1
-	loggerAPIEnter = func(sessionID uuid.UUID, category string, subcategory string, messageFormat string, parameters ...interface{}) {
+	loggerAPIEnter = func(session sessionModel.Session, category string, subcategory string, messageFormat string, parameters ...interface{}) {
 		loggerAPIEnterCalled++
-		assert.Equal(t, dummySessionID, sessionID)
-		assert.Equal(t, "handler", category)
+		assert.Equal(t, dummySessionObject, session)
+		assert.Equal(t, dummyHTTPRequest.Method, category)
 		assert.Equal(t, dummyEndpoint, subcategory)
-		assert.Equal(t, dummyHTTPRequest.Method, messageFormat)
+		assert.Zero(t, messageFormat)
 		assert.Equal(t, 0, len(parameters))
 	}
 	apperrorGetInvalidOperationExpected = 1
@@ -145,33 +150,31 @@ func TestHandleInSession_RouteError(t *testing.T) {
 		return dummyResponseError
 	}
 	responseWriteExpected = 1
-	responseWrite = func(sessionID uuid.UUID, responseObject interface{}, responseError error) {
+	responseWrite = func(session sessionModel.Session, responseObject interface{}, responseError error) {
 		responseWriteCalled++
-		assert.Equal(t, dummySessionID, sessionID)
+		assert.Equal(t, dummySessionObject, session)
 		assert.Nil(t, responseObject)
 		assert.Equal(t, dummyResponseError, responseError)
 	}
 	loggerAPIExitExpected = 1
-	loggerAPIExit = func(sessionID uuid.UUID, category string, subcategory string, messageFormat string, parameters ...interface{}) {
+	loggerAPIExit = func(session sessionModel.Session, category string, subcategory string, messageFormat string, parameters ...interface{}) {
 		loggerAPIExitCalled++
-		assert.Equal(t, dummySessionID, sessionID)
-		assert.Equal(t, "handler", category)
+		assert.Equal(t, dummySessionObject, session)
+		assert.Equal(t, dummyHTTPRequest.Method, category)
 		assert.Equal(t, dummyEndpoint, subcategory)
-		assert.Equal(t, dummyHTTPRequest.Method, messageFormat)
+		assert.Zero(t, messageFormat)
 		assert.Equal(t, 0, len(parameters))
 	}
 	panicHandleExpected = 1
-	panicHandle = func(endpointName string, sessionID uuid.UUID, recoverResult interface{}, w http.ResponseWriter) {
+	panicHandle = func(session sessionModel.Session, recoverResult interface{}) {
 		panicHandleCalled++
-		assert.Equal(t, dummyEndpoint, endpointName)
-		assert.Equal(t, dummySessionID, sessionID)
+		assert.Equal(t, dummySessionObject, session)
 		assert.Equal(t, recover(), recoverResult)
-		assert.Equal(t, dummyResponseWriter, w)
 	}
 	sessionUnregisterExpected = 1
-	sessionUnregister = func(sessionID uuid.UUID) {
+	sessionUnregister = func(session sessionModel.Session) {
 		sessionUnregisterCalled++
-		assert.Equal(t, dummySessionID, sessionID)
+		assert.Equal(t, dummySessionObject, session)
 	}
 
 	// SUT + act
@@ -195,6 +198,10 @@ func TestHandleInSession_PreActionError(t *testing.T) {
 	var dummyResponseWriter = &dummyResponseWriter{t}
 	var dummyEndpoint = "some endpoint"
 	var dummySessionID = uuid.New()
+	var dummySessionObject = &dummySession{
+		t,
+		&dummySessionID,
+	}
 	var dummyAction func(uuid.UUID) (interface{}, error)
 	var dummyActionExpected int
 	var dummyActionCalled int
@@ -225,22 +232,22 @@ func TestHandleInSession_PreActionError(t *testing.T) {
 		return dummyAllowedLogLevel
 	}
 	sessionRegisterExpected = 1
-	sessionRegister = func(endpoint string, allowedLogType logtype.LogType, allowedLogLevel loglevel.LogLevel, httpRequest *http.Request, responseWriter http.ResponseWriter) uuid.UUID {
+	sessionRegister = func(endpoint string, allowedLogType logtype.LogType, allowedLogLevel loglevel.LogLevel, httpRequest *http.Request, responseWriter http.ResponseWriter) sessionModel.Session {
 		sessionRegisterCalled++
 		assert.Equal(t, dummyEndpoint, endpoint)
 		assert.Equal(t, dummyAllowedLogType, allowedLogType)
 		assert.Equal(t, dummyAllowedLogLevel, allowedLogLevel)
 		assert.Equal(t, dummyHTTPRequest, httpRequest)
 		assert.Equal(t, dummyResponseWriter, responseWriter)
-		return dummySessionID
+		return dummySessionObject
 	}
 	loggerAPIEnterExpected = 1
-	loggerAPIEnter = func(sessionID uuid.UUID, category string, subcategory string, messageFormat string, parameters ...interface{}) {
+	loggerAPIEnter = func(session sessionModel.Session, category string, subcategory string, messageFormat string, parameters ...interface{}) {
 		loggerAPIEnterCalled++
-		assert.Equal(t, dummySessionID, sessionID)
-		assert.Equal(t, "handler", category)
+		assert.Equal(t, dummySessionObject, session)
+		assert.Equal(t, dummyHTTPRequest.Method, category)
 		assert.Equal(t, dummyEndpoint, subcategory)
-		assert.Equal(t, dummyHTTPRequest.Method, messageFormat)
+		assert.Zero(t, messageFormat)
 		assert.Equal(t, 0, len(parameters))
 	}
 	executeCustomizedFunctionFuncExpected = 1
@@ -253,33 +260,31 @@ func TestHandleInSession_PreActionError(t *testing.T) {
 		return dummyPreActionError
 	}
 	responseWriteExpected = 1
-	responseWrite = func(sessionID uuid.UUID, responseObject interface{}, responseError error) {
+	responseWrite = func(session sessionModel.Session, responseObject interface{}, responseError error) {
 		responseWriteCalled++
-		assert.Equal(t, dummySessionID, sessionID)
+		assert.Equal(t, dummySessionObject, session)
 		assert.Nil(t, responseObject)
 		assert.Equal(t, dummyPreActionError, responseError)
 	}
 	loggerAPIExitExpected = 1
-	loggerAPIExit = func(sessionID uuid.UUID, category string, subcategory string, messageFormat string, parameters ...interface{}) {
+	loggerAPIExit = func(session sessionModel.Session, category string, subcategory string, messageFormat string, parameters ...interface{}) {
 		loggerAPIExitCalled++
-		assert.Equal(t, dummySessionID, sessionID)
-		assert.Equal(t, "handler", category)
+		assert.Equal(t, dummySessionObject, session)
+		assert.Equal(t, dummyHTTPRequest.Method, category)
 		assert.Equal(t, dummyEndpoint, subcategory)
-		assert.Equal(t, dummyHTTPRequest.Method, messageFormat)
+		assert.Zero(t, messageFormat)
 		assert.Equal(t, 0, len(parameters))
 	}
 	panicHandleExpected = 1
-	panicHandle = func(endpointName string, sessionID uuid.UUID, recoverResult interface{}, w http.ResponseWriter) {
+	panicHandle = func(session sessionModel.Session, recoverResult interface{}) {
 		panicHandleCalled++
-		assert.Equal(t, dummyEndpoint, endpointName)
-		assert.Equal(t, dummySessionID, sessionID)
+		assert.Equal(t, dummySessionObject, session)
 		assert.Equal(t, recover(), recoverResult)
-		assert.Equal(t, dummyResponseWriter, w)
 	}
 	sessionUnregisterExpected = 1
-	sessionUnregister = func(sessionID uuid.UUID) {
+	sessionUnregister = func(session sessionModel.Session) {
 		sessionUnregisterCalled++
-		assert.Equal(t, dummySessionID, sessionID)
+		assert.Equal(t, dummySessionObject, session)
 	}
 
 	// SUT + act
@@ -303,6 +308,10 @@ func TestHandleInSession_PostActionError_WithResponseError(t *testing.T) {
 	var dummyResponseWriter = &dummyResponseWriter{t}
 	var dummyEndpoint = "some endpoint"
 	var dummySessionID = uuid.New()
+	var dummySessionObject = &dummySession{
+		t,
+		&dummySessionID,
+	}
 	var dummyAction func(uuid.UUID) (interface{}, error)
 	var dummyActionExpected int
 	var dummyActionCalled int
@@ -335,22 +344,22 @@ func TestHandleInSession_PostActionError_WithResponseError(t *testing.T) {
 		return dummyAllowedLogLevel
 	}
 	sessionRegisterExpected = 1
-	sessionRegister = func(endpoint string, allowedLogType logtype.LogType, allowedLogLevel loglevel.LogLevel, httpRequest *http.Request, responseWriter http.ResponseWriter) uuid.UUID {
+	sessionRegister = func(endpoint string, allowedLogType logtype.LogType, allowedLogLevel loglevel.LogLevel, httpRequest *http.Request, responseWriter http.ResponseWriter) sessionModel.Session {
 		sessionRegisterCalled++
 		assert.Equal(t, dummyEndpoint, endpoint)
 		assert.Equal(t, dummyAllowedLogType, allowedLogType)
 		assert.Equal(t, dummyAllowedLogLevel, allowedLogLevel)
 		assert.Equal(t, dummyHTTPRequest, httpRequest)
 		assert.Equal(t, dummyResponseWriter, responseWriter)
-		return dummySessionID
+		return dummySessionObject
 	}
 	loggerAPIEnterExpected = 1
-	loggerAPIEnter = func(sessionID uuid.UUID, category string, subcategory string, messageFormat string, parameters ...interface{}) {
+	loggerAPIEnter = func(session sessionModel.Session, category string, subcategory string, messageFormat string, parameters ...interface{}) {
 		loggerAPIEnterCalled++
-		assert.Equal(t, dummySessionID, sessionID)
-		assert.Equal(t, "handler", category)
+		assert.Equal(t, dummySessionObject, session)
+		assert.Equal(t, dummyHTTPRequest.Method, category)
 		assert.Equal(t, dummyEndpoint, subcategory)
-		assert.Equal(t, dummyHTTPRequest.Method, messageFormat)
+		assert.Zero(t, messageFormat)
 		assert.Equal(t, 0, len(parameters))
 	}
 	executeCustomizedFunctionFuncExpected = 2
@@ -376,39 +385,37 @@ func TestHandleInSession_PostActionError_WithResponseError(t *testing.T) {
 		return dummyResponseObject, dummyResponseError
 	}
 	responseWriteExpected = 1
-	responseWrite = func(sessionID uuid.UUID, responseObject interface{}, responseError error) {
+	responseWrite = func(session sessionModel.Session, responseObject interface{}, responseError error) {
 		responseWriteCalled++
-		assert.Equal(t, dummySessionID, sessionID)
+		assert.Equal(t, dummySessionObject, session)
 		assert.Nil(t, responseObject)
 		assert.Equal(t, dummyResponseError, responseError)
 	}
 	loggerAPIExitExpected = 2
-	loggerAPIExit = func(sessionID uuid.UUID, category string, subcategory string, messageFormat string, parameters ...interface{}) {
+	loggerAPIExit = func(session sessionModel.Session, category string, subcategory string, messageFormat string, parameters ...interface{}) {
 		loggerAPIExitCalled++
-		assert.Equal(t, dummySessionID, sessionID)
-		assert.Equal(t, "handler", category)
+		assert.Equal(t, dummySessionObject, session)
+		assert.Equal(t, dummyHTTPRequest.Method, category)
 		assert.Equal(t, dummyEndpoint, subcategory)
 		if loggerAPIExitCalled == 1 {
 			assert.Equal(t, "Post-action error: %v", messageFormat)
 			assert.Equal(t, 1, len(parameters))
 			assert.Equal(t, dummyPostActionError, parameters[0])
 		} else if loggerAPIExitCalled == 2 {
-			assert.Equal(t, dummyHTTPRequest.Method, messageFormat)
+			assert.Zero(t, messageFormat)
 			assert.Equal(t, 0, len(parameters))
 		}
 	}
 	panicHandleExpected = 1
-	panicHandle = func(endpointName string, sessionID uuid.UUID, recoverResult interface{}, w http.ResponseWriter) {
+	panicHandle = func(session sessionModel.Session, recoverResult interface{}) {
 		panicHandleCalled++
-		assert.Equal(t, dummyEndpoint, endpointName)
-		assert.Equal(t, dummySessionID, sessionID)
+		assert.Equal(t, dummySessionObject, session)
 		assert.Equal(t, recover(), recoverResult)
-		assert.Equal(t, dummyResponseWriter, w)
 	}
 	sessionUnregisterExpected = 1
-	sessionUnregister = func(sessionID uuid.UUID) {
+	sessionUnregister = func(session sessionModel.Session) {
 		sessionUnregisterCalled++
-		assert.Equal(t, dummySessionID, sessionID)
+		assert.Equal(t, dummySessionObject, session)
 	}
 
 	// SUT + act
@@ -432,6 +439,10 @@ func TestHandleInSession_PostActionError_NoResponseError(t *testing.T) {
 	var dummyResponseWriter = &dummyResponseWriter{t}
 	var dummyEndpoint = "some endpoint"
 	var dummySessionID = uuid.New()
+	var dummySessionObject = &dummySession{
+		t,
+		&dummySessionID,
+	}
 	var dummyAction func(uuid.UUID) (interface{}, error)
 	var dummyActionExpected int
 	var dummyActionCalled int
@@ -463,22 +474,22 @@ func TestHandleInSession_PostActionError_NoResponseError(t *testing.T) {
 		return dummyAllowedLogLevel
 	}
 	sessionRegisterExpected = 1
-	sessionRegister = func(endpoint string, allowedLogType logtype.LogType, allowedLogLevel loglevel.LogLevel, httpRequest *http.Request, responseWriter http.ResponseWriter) uuid.UUID {
+	sessionRegister = func(endpoint string, allowedLogType logtype.LogType, allowedLogLevel loglevel.LogLevel, httpRequest *http.Request, responseWriter http.ResponseWriter) sessionModel.Session {
 		sessionRegisterCalled++
 		assert.Equal(t, dummyEndpoint, endpoint)
 		assert.Equal(t, dummyAllowedLogType, allowedLogType)
 		assert.Equal(t, dummyAllowedLogLevel, allowedLogLevel)
 		assert.Equal(t, dummyHTTPRequest, httpRequest)
 		assert.Equal(t, dummyResponseWriter, responseWriter)
-		return dummySessionID
+		return dummySessionObject
 	}
 	loggerAPIEnterExpected = 1
-	loggerAPIEnter = func(sessionID uuid.UUID, category string, subcategory string, messageFormat string, parameters ...interface{}) {
+	loggerAPIEnter = func(session sessionModel.Session, category string, subcategory string, messageFormat string, parameters ...interface{}) {
 		loggerAPIEnterCalled++
-		assert.Equal(t, dummySessionID, sessionID)
-		assert.Equal(t, "handler", category)
+		assert.Equal(t, dummySessionObject, session)
+		assert.Equal(t, dummyHTTPRequest.Method, category)
 		assert.Equal(t, dummyEndpoint, subcategory)
-		assert.Equal(t, dummyHTTPRequest.Method, messageFormat)
+		assert.Zero(t, messageFormat)
 		assert.Equal(t, 0, len(parameters))
 	}
 	executeCustomizedFunctionFuncExpected = 2
@@ -504,33 +515,31 @@ func TestHandleInSession_PostActionError_NoResponseError(t *testing.T) {
 		return dummyResponseObject, nil
 	}
 	responseWriteExpected = 1
-	responseWrite = func(sessionID uuid.UUID, responseObject interface{}, responseError error) {
+	responseWrite = func(session sessionModel.Session, responseObject interface{}, responseError error) {
 		responseWriteCalled++
-		assert.Equal(t, dummySessionID, sessionID)
+		assert.Equal(t, dummySessionObject, session)
 		assert.Nil(t, responseObject)
 		assert.Equal(t, dummyPostActionError, responseError)
 	}
 	loggerAPIExitExpected = 1
-	loggerAPIExit = func(sessionID uuid.UUID, category string, subcategory string, messageFormat string, parameters ...interface{}) {
+	loggerAPIExit = func(session sessionModel.Session, category string, subcategory string, messageFormat string, parameters ...interface{}) {
 		loggerAPIExitCalled++
-		assert.Equal(t, dummySessionID, sessionID)
-		assert.Equal(t, "handler", category)
+		assert.Equal(t, dummySessionObject, session)
+		assert.Equal(t, dummyHTTPRequest.Method, category)
 		assert.Equal(t, dummyEndpoint, subcategory)
-		assert.Equal(t, dummyHTTPRequest.Method, messageFormat)
+		assert.Zero(t, messageFormat)
 		assert.Equal(t, 0, len(parameters))
 	}
 	panicHandleExpected = 1
-	panicHandle = func(endpointName string, sessionID uuid.UUID, recoverResult interface{}, w http.ResponseWriter) {
+	panicHandle = func(session sessionModel.Session, recoverResult interface{}) {
 		panicHandleCalled++
-		assert.Equal(t, dummyEndpoint, endpointName)
-		assert.Equal(t, dummySessionID, sessionID)
+		assert.Equal(t, dummySessionObject, session)
 		assert.Equal(t, recover(), recoverResult)
-		assert.Equal(t, dummyResponseWriter, w)
 	}
 	sessionUnregisterExpected = 1
-	sessionUnregister = func(sessionID uuid.UUID) {
+	sessionUnregister = func(session sessionModel.Session) {
 		sessionUnregisterCalled++
-		assert.Equal(t, dummySessionID, sessionID)
+		assert.Equal(t, dummySessionObject, session)
 	}
 
 	// SUT + act
@@ -554,6 +563,10 @@ func TestHandleInSession_Success(t *testing.T) {
 	var dummyResponseWriter = &dummyResponseWriter{t}
 	var dummyEndpoint = "some endpoint"
 	var dummySessionID = uuid.New()
+	var dummySessionObject = &dummySession{
+		t,
+		&dummySessionID,
+	}
 	var dummyAction func(uuid.UUID) (interface{}, error)
 	var dummyActionExpected int
 	var dummyActionCalled int
@@ -585,22 +598,22 @@ func TestHandleInSession_Success(t *testing.T) {
 		return dummyAllowedLogLevel
 	}
 	sessionRegisterExpected = 1
-	sessionRegister = func(endpoint string, allowedLogType logtype.LogType, allowedLogLevel loglevel.LogLevel, httpRequest *http.Request, responseWriter http.ResponseWriter) uuid.UUID {
+	sessionRegister = func(endpoint string, allowedLogType logtype.LogType, allowedLogLevel loglevel.LogLevel, httpRequest *http.Request, responseWriter http.ResponseWriter) sessionModel.Session {
 		sessionRegisterCalled++
 		assert.Equal(t, dummyEndpoint, endpoint)
 		assert.Equal(t, dummyAllowedLogType, allowedLogType)
 		assert.Equal(t, dummyAllowedLogLevel, allowedLogLevel)
 		assert.Equal(t, dummyHTTPRequest, httpRequest)
 		assert.Equal(t, dummyResponseWriter, responseWriter)
-		return dummySessionID
+		return dummySessionObject
 	}
 	loggerAPIEnterExpected = 1
-	loggerAPIEnter = func(sessionID uuid.UUID, category string, subcategory string, messageFormat string, parameters ...interface{}) {
+	loggerAPIEnter = func(session sessionModel.Session, category string, subcategory string, messageFormat string, parameters ...interface{}) {
 		loggerAPIEnterCalled++
-		assert.Equal(t, dummySessionID, sessionID)
-		assert.Equal(t, "handler", category)
+		assert.Equal(t, dummySessionObject, session)
+		assert.Equal(t, dummyHTTPRequest.Method, category)
 		assert.Equal(t, dummyEndpoint, subcategory)
-		assert.Equal(t, dummyHTTPRequest.Method, messageFormat)
+		assert.Zero(t, messageFormat)
 		assert.Equal(t, 0, len(parameters))
 	}
 	executeCustomizedFunctionFuncExpected = 2
@@ -624,33 +637,31 @@ func TestHandleInSession_Success(t *testing.T) {
 		return dummyResponseObject, dummyResponseError
 	}
 	responseWriteExpected = 1
-	responseWrite = func(sessionID uuid.UUID, responseObject interface{}, responseError error) {
+	responseWrite = func(session sessionModel.Session, responseObject interface{}, responseError error) {
 		responseWriteCalled++
-		assert.Equal(t, dummySessionID, sessionID)
+		assert.Equal(t, dummySessionObject, session)
 		assert.Equal(t, dummyResponseObject, responseObject)
 		assert.Equal(t, dummyResponseError, responseError)
 	}
 	loggerAPIExitExpected = 1
-	loggerAPIExit = func(sessionID uuid.UUID, category string, subcategory string, messageFormat string, parameters ...interface{}) {
+	loggerAPIExit = func(session sessionModel.Session, category string, subcategory string, messageFormat string, parameters ...interface{}) {
 		loggerAPIExitCalled++
-		assert.Equal(t, dummySessionID, sessionID)
-		assert.Equal(t, "handler", category)
+		assert.Equal(t, dummySessionObject, session)
+		assert.Equal(t, dummyHTTPRequest.Method, category)
 		assert.Equal(t, dummyEndpoint, subcategory)
-		assert.Equal(t, dummyHTTPRequest.Method, messageFormat)
+		assert.Zero(t, messageFormat)
 		assert.Equal(t, 0, len(parameters))
 	}
 	panicHandleExpected = 1
-	panicHandle = func(endpointName string, sessionID uuid.UUID, recoverResult interface{}, w http.ResponseWriter) {
+	panicHandle = func(session sessionModel.Session, recoverResult interface{}) {
 		panicHandleCalled++
-		assert.Equal(t, dummyEndpoint, endpointName)
-		assert.Equal(t, dummySessionID, sessionID)
+		assert.Equal(t, dummySessionObject, session)
 		assert.Equal(t, recover(), recoverResult)
-		assert.Equal(t, dummyResponseWriter, w)
 	}
 	sessionUnregisterExpected = 1
-	sessionUnregister = func(sessionID uuid.UUID) {
+	sessionUnregister = func(session sessionModel.Session) {
 		sessionUnregisterCalled++
-		assert.Equal(t, dummySessionID, sessionID)
+		assert.Equal(t, dummySessionObject, session)
 	}
 
 	// SUT + act

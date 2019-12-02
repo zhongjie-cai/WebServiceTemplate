@@ -642,16 +642,10 @@ func TestHandleFunc(t *testing.T) {
 	var dummyName = "some name"
 	var dummyPath = "/foo/{bar}"
 	var dummyQueries = []string{"test", "{test}"}
-	var dummyResponseWriter = &dummyResponseWriter{t}
-	var dummyHTTPRequest = &http.Request{
-		Method:     http.MethodGet,
-		RequestURI: "http://localhost/",
-		Header:     map[string][]string{},
-	}
 	var dummyQueriesTemplates = []string{"test={test}"}
 
 	// stub
-	var dummyHandlerFuncExpected = 1
+	var dummyHandlerFuncExpected = 0
 	var dummyHandlerFuncCalled = 0
 	var dummyHandlerFunc = func(http.ResponseWriter, *http.Request) {
 		dummyHandlerFuncCalled++
@@ -699,7 +693,6 @@ func TestHandleFunc(t *testing.T) {
 	var methods, _ = route.GetMethods()
 	var pathTemplate, _ = route.GetPathTemplate()
 	var queriesTemplate, _ = route.GetQueriesTemplates()
-	route.GetHandler().ServeHTTP(dummyResponseWriter, dummyHTTPRequest)
 
 	// assert
 	assert.Equal(t, dummyName, name)

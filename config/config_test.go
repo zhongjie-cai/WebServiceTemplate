@@ -12,6 +12,8 @@ import (
 	apperrorEnum "github.com/zhongjie-cai/WebServiceTemplate/apperror/enum"
 	apperrorModel "github.com/zhongjie-cai/WebServiceTemplate/apperror/model"
 	"github.com/zhongjie-cai/WebServiceTemplate/customization"
+	"github.com/zhongjie-cai/WebServiceTemplate/logger/loglevel"
+	"github.com/zhongjie-cai/WebServiceTemplate/logger/logtype"
 )
 
 func TestDefaultAppVersion(t *testing.T) {
@@ -176,6 +178,40 @@ func TestDefaultCaCertContent(t *testing.T) {
 
 	// SUT + act
 	var result = defaultCaCertContent()
+
+	// assert
+	assert.Equal(t, expectedResult, result)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestDefaultAllowedLogType(t *testing.T) {
+	// arrange
+	var expectedResult = logtype.BasicLogging
+
+	// mock
+	createMock(t)
+
+	// SUT + act
+	var result = defaultAllowedLogType()
+
+	// assert
+	assert.Equal(t, expectedResult, result)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestDefaultAllowedLogLevel(t *testing.T) {
+	// arrange
+	var expectedResult = loglevel.Warn
+
+	// mock
+	createMock(t)
+
+	// SUT + act
+	var result = defaultAllowedLogLevel()
 
 	// assert
 	assert.Equal(t, expectedResult, result)
@@ -788,6 +824,170 @@ func TestValidateBooleanFunction_ValidBooleanFunc(t *testing.T) {
 	assert.Equal(t, dummyDefaultFuncExpected, dummyDefaultFuncCalled, "Unexpected number of calls to dummyDefaultFunc")
 }
 
+func TestValidateDefaultAllowedLogType_NilFunc(t *testing.T) {
+	// arrange
+	var dummyCustomizedFuncExpected int
+	var dummyCustomizedFuncCalled int
+	var dummyCustomizedFunc func() logtype.LogType
+	var dummyDefaultFuncExpected int
+	var dummyDefaultFuncCalled int
+	var dummyDefaultFuncReturn = logtype.LogType(rand.Intn(255))
+	var dummyMessageFormat = "customization.DefaultAllowedLogType function is not configured; fallback to default [%v]."
+	var dummyAppError = apperror.GetCustomError(0, "")
+
+	// mock
+	createMock(t)
+
+	// expect
+	dummyDefaultFuncExpected = 1
+	var dummyDefaultFunc = func() logtype.LogType {
+		dummyDefaultFuncCalled++
+		return dummyDefaultFuncReturn
+	}
+	apperrorGetCustomErrorExpected = 1
+	apperrorGetCustomError = func(errorCode apperrorEnum.Code, messageFormat string, parameters ...interface{}) apperrorModel.AppError {
+		apperrorGetCustomErrorCalled++
+		assert.Equal(t, apperrorEnum.CodeGeneralFailure, errorCode)
+		assert.Equal(t, dummyMessageFormat, messageFormat)
+		assert.Equal(t, 1, len(parameters))
+		assert.Equal(t, dummyDefaultFuncReturn, parameters[0])
+		return dummyAppError
+	}
+
+	// SUT + act
+	var result, err = validateDefaultAllowedLogType(
+		dummyCustomizedFunc,
+		dummyDefaultFunc,
+	)
+
+	// assert
+	assert.Equal(t, fmt.Sprintf("%v", reflect.ValueOf(dummyDefaultFunc)), fmt.Sprintf("%v", reflect.ValueOf(result)))
+	assert.Equal(t, dummyAppError, err)
+
+	// verify
+	verifyAll(t)
+	assert.Equal(t, dummyCustomizedFuncExpected, dummyCustomizedFuncCalled, "Unexpected number of calls to dummyCustomizedFunc")
+	assert.Equal(t, dummyDefaultFuncExpected, dummyDefaultFuncCalled, "Unexpected number of calls to dummyDefaultFunc")
+}
+
+func TestValidateDefaultAllowedLogType_ValidFunc(t *testing.T) {
+	// arrange
+	var dummyCustomizedFuncExpected int
+	var dummyCustomizedFuncCalled int
+	var dummyCustomizedFuncReturn = logtype.LogType(rand.Intn(255))
+	var dummyCustomizedFunc = func() logtype.LogType {
+		dummyCustomizedFuncCalled++
+		return dummyCustomizedFuncReturn
+	}
+	var dummyDefaultFuncExpected int
+	var dummyDefaultFuncCalled int
+	var dummyDefaultFuncReturn = logtype.LogType(rand.Intn(255))
+	var dummyDefaultFunc = func() logtype.LogType {
+		dummyDefaultFuncCalled++
+		return dummyDefaultFuncReturn
+	}
+
+	// mock
+	createMock(t)
+
+	// SUT + act
+	var result, err = validateDefaultAllowedLogType(
+		dummyCustomizedFunc,
+		dummyDefaultFunc,
+	)
+
+	// assert
+	assert.Equal(t, fmt.Sprintf("%v", reflect.ValueOf(dummyCustomizedFunc)), fmt.Sprintf("%v", reflect.ValueOf(result)))
+	assert.NoError(t, err)
+
+	// verify
+	verifyAll(t)
+	assert.Equal(t, dummyCustomizedFuncExpected, dummyCustomizedFuncCalled, "Unexpected number of calls to dummyCustomizedFunc")
+	assert.Equal(t, dummyDefaultFuncExpected, dummyDefaultFuncCalled, "Unexpected number of calls to dummyDefaultFunc")
+}
+
+func TestValidateDefaultAllowedLogLevel_NilFunc(t *testing.T) {
+	// arrange
+	var dummyCustomizedFuncExpected int
+	var dummyCustomizedFuncCalled int
+	var dummyCustomizedFunc func() loglevel.LogLevel
+	var dummyDefaultFuncExpected int
+	var dummyDefaultFuncCalled int
+	var dummyDefaultFuncReturn = loglevel.LogLevel(rand.Intn(255))
+	var dummyMessageFormat = "customization.DefaultAllowedLogLevel function is not configured; fallback to default [%v]."
+	var dummyAppError = apperror.GetCustomError(0, "")
+
+	// mock
+	createMock(t)
+
+	// expect
+	dummyDefaultFuncExpected = 1
+	var dummyDefaultFunc = func() loglevel.LogLevel {
+		dummyDefaultFuncCalled++
+		return dummyDefaultFuncReturn
+	}
+	apperrorGetCustomErrorExpected = 1
+	apperrorGetCustomError = func(errorCode apperrorEnum.Code, messageFormat string, parameters ...interface{}) apperrorModel.AppError {
+		apperrorGetCustomErrorCalled++
+		assert.Equal(t, apperrorEnum.CodeGeneralFailure, errorCode)
+		assert.Equal(t, dummyMessageFormat, messageFormat)
+		assert.Equal(t, 1, len(parameters))
+		assert.Equal(t, dummyDefaultFuncReturn, parameters[0])
+		return dummyAppError
+	}
+
+	// SUT + act
+	var result, err = validateDefaultAllowedLogLevel(
+		dummyCustomizedFunc,
+		dummyDefaultFunc,
+	)
+
+	// assert
+	assert.Equal(t, fmt.Sprintf("%v", reflect.ValueOf(dummyDefaultFunc)), fmt.Sprintf("%v", reflect.ValueOf(result)))
+	assert.Equal(t, dummyAppError, err)
+
+	// verify
+	verifyAll(t)
+	assert.Equal(t, dummyCustomizedFuncExpected, dummyCustomizedFuncCalled, "Unexpected number of calls to dummyCustomizedFunc")
+	assert.Equal(t, dummyDefaultFuncExpected, dummyDefaultFuncCalled, "Unexpected number of calls to dummyDefaultFunc")
+}
+
+func TestValidateDefaultAllowedLogLevel_ValidFunc(t *testing.T) {
+	// arrange
+	var dummyCustomizedFuncExpected int
+	var dummyCustomizedFuncCalled int
+	var dummyCustomizedFuncReturn = loglevel.LogLevel(rand.Intn(255))
+	var dummyCustomizedFunc = func() loglevel.LogLevel {
+		dummyCustomizedFuncCalled++
+		return dummyCustomizedFuncReturn
+	}
+	var dummyDefaultFuncExpected int
+	var dummyDefaultFuncCalled int
+	var dummyDefaultFuncReturn = loglevel.LogLevel(rand.Intn(255))
+	var dummyDefaultFunc = func() loglevel.LogLevel {
+		dummyDefaultFuncCalled++
+		return dummyDefaultFuncReturn
+	}
+
+	// mock
+	createMock(t)
+
+	// SUT + act
+	var result, err = validateDefaultAllowedLogLevel(
+		dummyCustomizedFunc,
+		dummyDefaultFunc,
+	)
+
+	// assert
+	assert.Equal(t, fmt.Sprintf("%v", reflect.ValueOf(dummyCustomizedFunc)), fmt.Sprintf("%v", reflect.ValueOf(result)))
+	assert.NoError(t, err)
+
+	// verify
+	verifyAll(t)
+	assert.Equal(t, dummyCustomizedFuncExpected, dummyCustomizedFuncCalled, "Unexpected number of calls to dummyCustomizedFunc")
+	assert.Equal(t, dummyDefaultFuncExpected, dummyDefaultFuncCalled, "Unexpected number of calls to dummyDefaultFunc")
+}
+
 func TestIsServerCertificateAvailable_CertEmpty(t *testing.T) {
 	// arrange
 	var serverCertContentExpected int
@@ -1016,6 +1216,8 @@ func TestInitialize(t *testing.T) {
 		errors.New("some ServeHTTPS error"),
 		errors.New("some ValidateClientCert error"),
 	}
+	var expectedDefaultAllowedLogTypeError = errors.New("some default allowed log type error")
+	var expectedDefaultAllowedLogLevelError = errors.New("some default allowed log level error")
 	var dummyMessageFormat = "Unexpected errors occur during configuration initialization"
 	var dummyAppError = apperror.GetCustomError(0, "")
 
@@ -1053,10 +1255,24 @@ func TestInitialize(t *testing.T) {
 		isCaCertificateAvailableFuncCalled++
 		return dummyIsCaCertificateAvailable
 	}
+	validateDefaultAllowedLogTypeFuncExpected = 1
+	validateDefaultAllowedLogTypeFunc = func(customizedFunc func() logtype.LogType, defaultFunc func() logtype.LogType) (func() logtype.LogType, error) {
+		validateDefaultAllowedLogTypeFuncCalled++
+		assert.Equal(t, fmt.Sprintf("%v", reflect.ValueOf(customization.DefaultAllowedLogType)), fmt.Sprintf("%v", reflect.ValueOf(customizedFunc)))
+		assert.Equal(t, fmt.Sprintf("%v", reflect.ValueOf(defaultAllowedLogType)), fmt.Sprintf("%v", reflect.ValueOf(defaultFunc)))
+		return defaultAllowedLogType, expectedDefaultAllowedLogTypeError
+	}
+	validateDefaultAllowedLogLevelFuncExpected = 1
+	validateDefaultAllowedLogLevelFunc = func(customizedFunc func() loglevel.LogLevel, defaultFunc func() loglevel.LogLevel) (func() loglevel.LogLevel, error) {
+		validateDefaultAllowedLogLevelFuncCalled++
+		assert.Equal(t, fmt.Sprintf("%v", reflect.ValueOf(customization.DefaultAllowedLogLevel)), fmt.Sprintf("%v", reflect.ValueOf(customizedFunc)))
+		assert.Equal(t, fmt.Sprintf("%v", reflect.ValueOf(defaultAllowedLogLevel)), fmt.Sprintf("%v", reflect.ValueOf(defaultFunc)))
+		return defaultAllowedLogLevel, expectedDefaultAllowedLogLevelError
+	}
 	apperrorWrapSimpleErrorExpected = 1
 	apperrorWrapSimpleError = func(innerErrors []error, messageFormat string, parameters ...interface{}) apperrorModel.AppError {
 		apperrorWrapSimpleErrorCalled++
-		assert.Equal(t, 10, len(innerErrors))
+		assert.Equal(t, 12, len(innerErrors))
 		assert.Equal(t, expectedValidateStringFunctionFuncReturn2[0], innerErrors[0])
 		assert.Equal(t, expectedValidateStringFunctionFuncReturn2[1], innerErrors[1])
 		assert.Equal(t, expectedValidateStringFunctionFuncReturn2[2], innerErrors[2])
@@ -1067,6 +1283,8 @@ func TestInitialize(t *testing.T) {
 		assert.Equal(t, expectedValidateBooleanFunctionFuncReturn2[1], innerErrors[7])
 		assert.Equal(t, expectedValidateStringFunctionFuncReturn2[6], innerErrors[8])
 		assert.Equal(t, expectedValidateBooleanFunctionFuncReturn2[2], innerErrors[9])
+		assert.Equal(t, expectedDefaultAllowedLogTypeError, innerErrors[10])
+		assert.Equal(t, expectedDefaultAllowedLogLevelError, innerErrors[11])
 		assert.Equal(t, dummyMessageFormat, messageFormat)
 		assert.Equal(t, 0, len(parameters))
 		return dummyAppError

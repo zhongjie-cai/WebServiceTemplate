@@ -3,6 +3,8 @@ package config
 import (
 	apperrorEnum "github.com/zhongjie-cai/WebServiceTemplate/apperror/enum"
 	"github.com/zhongjie-cai/WebServiceTemplate/customization"
+	"github.com/zhongjie-cai/WebServiceTemplate/logger/loglevel"
+	"github.com/zhongjie-cai/WebServiceTemplate/logger/logtype"
 )
 
 // AppVersion returns the version information of the application
@@ -34,6 +36,12 @@ var ValidateClientCert = defaultValidateClientCert
 
 // CaCertContent returns the CA certificate cert content of the application
 var CaCertContent = defaultCaCertContent
+
+// DefaultAllowedLogType returns the default allowed log type of the application
+var DefaultAllowedLogType = defaultAllowedLogType
+
+// DefaultAllowedLogLevel returns the default allowed log level of the application
+var DefaultAllowedLogLevel = defaultAllowedLogLevel
 
 func defaultAppVersion() string {
 	return "0.0.0.0"
@@ -73,6 +81,14 @@ func defaultValidateClientCert() bool {
 
 func defaultCaCertContent() string {
 	return ""
+}
+
+func defaultAllowedLogType() logtype.LogType {
+	return logtype.BasicLogging
+}
+
+func defaultAllowedLogLevel() loglevel.LogLevel {
+	return loglevel.Warn
 }
 
 func functionPointerEquals(left, right interface{}) bool {
@@ -138,6 +154,36 @@ func validateBooleanFunction(
 	return booleanFunc, nil
 }
 
+func validateDefaultAllowedLogType(
+	customizedFunc func() logtype.LogType,
+	defaultFunc func() logtype.LogType,
+) (func() logtype.LogType, error) {
+	if customizedFunc == nil {
+		return defaultFunc,
+			apperrorGetCustomError(
+				apperrorEnum.CodeGeneralFailure,
+				"customization.DefaultAllowedLogType function is not configured; fallback to default [%v].",
+				defaultFunc(),
+			)
+	}
+	return customizedFunc, nil
+}
+
+func validateDefaultAllowedLogLevel(
+	customizedFunc func() loglevel.LogLevel,
+	defaultFunc func() loglevel.LogLevel,
+) (func() loglevel.LogLevel, error) {
+	if customizedFunc == nil {
+		return defaultFunc,
+			apperrorGetCustomError(
+				apperrorEnum.CodeGeneralFailure,
+				"customization.DefaultAllowedLogLevel function is not configured; fallback to default [%v].",
+				defaultFunc(),
+			)
+	}
+	return customizedFunc, nil
+}
+
 func isServerCertificateAvailable() bool {
 	return len(ServerCertContent()) != 0 && len(ServerKeyContent()) != 0
 }
@@ -150,16 +196,18 @@ func isCaCertificateAvailable() bool {
 func Initialize() error {
 	const noForceToDefault = false
 	var (
-		appVersionError         error
-		appPortError            error
-		appNameError            error
-		appPathError            error
-		isLocalhostError        error
-		serveHTTPSError         error
-		serverCertContentError  error
-		serverKeyContentError   error
-		validateClientCertError error
-		caCertContentError      error
+		appVersionError             error
+		appPortError                error
+		appNameError                error
+		appPathError                error
+		isLocalhostError            error
+		serveHTTPSError             error
+		serverCertContentError      error
+		serverKeyContentError       error
+		validateClientCertError     error
+		caCertContentError          error
+		defaultAllowedLogTypeError  error
+		defaultAllowedLogLevelError error
 	)
 	AppVersion, appVersionError = validateStringFunctionFunc(
 		customization.AppVersion,
@@ -221,6 +269,14 @@ func Initialize() error {
 		defaultValidateClientCert,
 		!isCaCertificateAvailableFunc(),
 	)
+	DefaultAllowedLogType, defaultAllowedLogTypeError = validateDefaultAllowedLogTypeFunc(
+		customization.DefaultAllowedLogType,
+		defaultAllowedLogType,
+	)
+	DefaultAllowedLogLevel, defaultAllowedLogLevelError = validateDefaultAllowedLogLevelFunc(
+		customization.DefaultAllowedLogLevel,
+		defaultAllowedLogLevel,
+	)
 	return apperrorWrapSimpleError(
 		[]error{
 			appVersionError,
@@ -233,6 +289,8 @@ func Initialize() error {
 			serveHTTPSError,
 			caCertContentError,
 			validateClientCertError,
+			defaultAllowedLogTypeError,
+			defaultAllowedLogLevelError,
 		},
 		"Unexpected errors occur during configuration initialization",
 	)

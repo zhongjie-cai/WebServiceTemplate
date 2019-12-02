@@ -11,27 +11,31 @@ import (
 	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
 	apperrorEnum "github.com/zhongjie-cai/WebServiceTemplate/apperror/enum"
 	apperrorModel "github.com/zhongjie-cai/WebServiceTemplate/apperror/model"
-	"github.com/zhongjie-cai/WebServiceTemplate/logger/loglevel"
-	"github.com/zhongjie-cai/WebServiceTemplate/logger/logtype"
+	"github.com/zhongjie-cai/WebServiceTemplate/config"
+	"github.com/zhongjie-cai/WebServiceTemplate/customization"
 )
 
 var (
-	uuidParseExpected              int
-	uuidParseCalled                int
-	uuidNewExpected                int
-	uuidNewCalled                  int
-	logtypeFromStringExpected      int
-	logtypeFromStringCalled        int
-	loglevelFromStringExpected     int
-	loglevelFromStringCalled       int
-	apperrorGetCustomErrorExpected int
-	apperrorGetCustomErrorCalled   int
-	ioutilReadAllExpected          int
-	ioutilReadAllCalled            int
-	ioutilNopCloserExpected        int
-	ioutilNopCloserCalled          int
-	bytesNewBufferExpected         int
-	bytesNewBufferCalled           int
+	uuidParseExpected                           int
+	uuidParseCalled                             int
+	uuidNewExpected                             int
+	uuidNewCalled                               int
+	configDefaultAllowedLogTypeExpected         int
+	configDefaultAllowedLogTypeCalled           int
+	configDefaultAllowedLogLevelExpected        int
+	configDefaultAllowedLogLevelCalled          int
+	customizationSessionAllowedLogTypeExpected  int
+	customizationSessionAllowedLogTypeCalled    int
+	customizationSessionAllowedLogLevelExpected int
+	customizationSessionAllowedLogLevelCalled   int
+	apperrorGetCustomErrorExpected              int
+	apperrorGetCustomErrorCalled                int
+	ioutilReadAllExpected                       int
+	ioutilReadAllCalled                         int
+	ioutilNopCloserExpected                     int
+	ioutilNopCloserCalled                       int
+	bytesNewBufferExpected                      int
+	bytesNewBufferCalled                        int
 )
 
 func createMock(t *testing.T) {
@@ -47,18 +51,18 @@ func createMock(t *testing.T) {
 		uuidNewCalled++
 		return uuid.Nil
 	}
-	logtypeFromStringExpected = 0
-	logtypeFromStringCalled = 0
-	logtypeFromString = func(value string) logtype.LogType {
-		logtypeFromStringCalled++
-		return 0
-	}
-	loglevelFromStringExpected = 0
-	loglevelFromStringCalled = 0
-	loglevelFromString = func(value string) loglevel.LogLevel {
-		loglevelFromStringCalled++
-		return 0
-	}
+	configDefaultAllowedLogTypeExpected = 0
+	configDefaultAllowedLogTypeCalled = 0
+	config.DefaultAllowedLogType = nil
+	configDefaultAllowedLogLevelExpected = 0
+	configDefaultAllowedLogLevelCalled = 0
+	config.DefaultAllowedLogLevel = nil
+	customizationSessionAllowedLogTypeExpected = 0
+	customizationSessionAllowedLogTypeCalled = 0
+	customization.SessionAllowedLogType = nil
+	customizationSessionAllowedLogLevelExpected = 0
+	customizationSessionAllowedLogLevelCalled = 0
+	customization.SessionAllowedLogLevel = nil
 	apperrorGetCustomErrorExpected = 0
 	apperrorGetCustomErrorCalled = 0
 	apperrorGetCustomError = func(errorCode apperrorEnum.Code, messageFormat string, parameters ...interface{}) apperrorModel.AppError {
@@ -90,10 +94,14 @@ func verifyAll(t *testing.T) {
 	assert.Equal(t, uuidParseExpected, uuidParseCalled, "Unexpected number of calls to uuidParse")
 	uuidNew = uuid.New
 	assert.Equal(t, uuidNewExpected, uuidNewCalled, "Unexpected number of calls to uuidNew")
-	logtypeFromString = logtype.FromString
-	assert.Equal(t, logtypeFromStringExpected, logtypeFromStringCalled, "Unexpected number of calls to logtypeFromString")
-	loglevelFromString = loglevel.FromString
-	assert.Equal(t, loglevelFromStringExpected, loglevelFromStringCalled, "Unexpected number of calls to loglevelFromString")
+	config.DefaultAllowedLogType = nil
+	assert.Equal(t, configDefaultAllowedLogTypeExpected, configDefaultAllowedLogTypeCalled, "Unexpected number of calls to configDefaultAllowedLogType")
+	config.DefaultAllowedLogLevel = nil
+	assert.Equal(t, configDefaultAllowedLogLevelExpected, configDefaultAllowedLogLevelCalled, "Unexpected number of calls to configDefaultAllowedLogLevel")
+	customization.SessionAllowedLogType = nil
+	assert.Equal(t, customizationSessionAllowedLogTypeExpected, customizationSessionAllowedLogTypeCalled, "Unexpected number of calls to customizationSessionAllowedLogType")
+	customization.SessionAllowedLogLevel = nil
+	assert.Equal(t, customizationSessionAllowedLogLevelExpected, customizationSessionAllowedLogLevelCalled, "Unexpected number of calls to customizationSessionAllowedLogLevel")
 	apperrorGetCustomError = apperror.GetCustomError
 	assert.Equal(t, apperrorGetCustomErrorExpected, apperrorGetCustomErrorCalled, "Unexpected number of calls to apperrorGetCustomError")
 	ioutilReadAll = ioutil.ReadAll

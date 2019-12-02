@@ -2,52 +2,31 @@ package request
 
 import (
 	"crypto/x509"
-	"math"
 	"net/http"
 
 	apperrorEnum "github.com/zhongjie-cai/WebServiceTemplate/apperror/enum"
+	"github.com/zhongjie-cai/WebServiceTemplate/config"
+	"github.com/zhongjie-cai/WebServiceTemplate/customization"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger/loglevel"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger/logtype"
 )
 
 // GetAllowedLogType parses and returns the allowed log type in request header
 func GetAllowedLogType(httpRequest *http.Request) logtype.LogType {
-	if httpRequest == nil {
-		return logtype.GeneralTracing
+	if httpRequest == nil ||
+		customization.SessionAllowedLogType == nil {
+		return config.DefaultAllowedLogType()
 	}
-	var headerValues, headerValuesFound = httpRequest.Header["Log-Type"]
-	if !headerValuesFound || len(headerValues) == 0 {
-		return logtype.GeneralTracing
-	}
-	var logType logtype.LogType
-	for _, headerValue := range headerValues {
-		logType = logType | logtypeFromString(
-			headerValue,
-		)
-	}
-	if logType == logtype.AppRoot {
-		return logtype.GeneralTracing
-	}
-	return logType
+	return customization.SessionAllowedLogType(httpRequest)
 }
 
 // GetAllowedLogLevel parses and returns the allowed log level in request header
 func GetAllowedLogLevel(httpRequest *http.Request) loglevel.LogLevel {
-	if httpRequest == nil {
-		return loglevel.Warn
+	if httpRequest == nil ||
+		customization.SessionAllowedLogLevel == nil {
+		return config.DefaultAllowedLogLevel()
 	}
-	var headerValues, headerValuesFound = httpRequest.Header["Log-Level"]
-	if !headerValuesFound || len(headerValues) == 0 {
-		return loglevel.Warn
-	}
-	var logLevel = loglevel.LogLevel(math.MaxInt32)
-	for _, headerValue := range headerValues {
-		var tempLogLevel = loglevelFromString(headerValue)
-		if tempLogLevel < logLevel {
-			logLevel = tempLogLevel
-		}
-	}
-	return logLevel
+	return customization.SessionAllowedLogLevel(httpRequest)
 }
 
 // GetClientCertificates parses and returns the client certificates in request header

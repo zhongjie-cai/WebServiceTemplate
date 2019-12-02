@@ -64,17 +64,14 @@ func defaultLogging(
 }
 
 func prepareLogging(
-	sessionID uuid.UUID,
+	session sessionModel.Session,
 	logType logtype.LogType,
 	logLevel loglevel.LogLevel,
 	category,
 	subcategory,
 	description string,
 ) {
-	var session = sessionGet(
-		sessionID,
-	)
-	if !session.IsLogAllowed(logType, logLevel) {
+	if !session.IsLoggingAllowed(logType, logLevel) {
 		return
 	}
 	if customization.LoggingFunc == nil {
@@ -101,7 +98,7 @@ func prepareLogging(
 // AppRoot logs the given message as AppRoot category
 func AppRoot(category string, subcategory string, messageFormat string, parameters ...interface{}) {
 	prepareLoggingFunc(
-		uuid.Nil,
+		nil,
 		logtype.AppRoot,
 		loglevel.Info,
 		category,
@@ -114,9 +111,9 @@ func AppRoot(category string, subcategory string, messageFormat string, paramete
 }
 
 // APIEnter logs the given message as APIEnter category
-func APIEnter(sessionID uuid.UUID, category string, subcategory string, messageFormat string, parameters ...interface{}) {
+func APIEnter(session sessionModel.Session, category string, subcategory string, messageFormat string, parameters ...interface{}) {
 	prepareLoggingFunc(
-		sessionID,
+		session,
 		logtype.APIEnter,
 		loglevel.Info,
 		category,
@@ -129,9 +126,9 @@ func APIEnter(sessionID uuid.UUID, category string, subcategory string, messageF
 }
 
 // APIRequest logs the given message as APIRequest category
-func APIRequest(sessionID uuid.UUID, category string, subcategory string, messageFormat string, parameters ...interface{}) {
+func APIRequest(session sessionModel.Session, category string, subcategory string, messageFormat string, parameters ...interface{}) {
 	prepareLoggingFunc(
-		sessionID,
+		session,
 		logtype.APIRequest,
 		loglevel.Info,
 		category,
@@ -144,9 +141,9 @@ func APIRequest(sessionID uuid.UUID, category string, subcategory string, messag
 }
 
 // MethodEnter logs the given message as MethodEnter category
-func MethodEnter(sessionID uuid.UUID, category string, subcategory string, messageFormat string, parameters ...interface{}) {
+func MethodEnter(session sessionModel.Session, category string, subcategory string, messageFormat string, parameters ...interface{}) {
 	prepareLoggingFunc(
-		sessionID,
+		session,
 		logtype.MethodEnter,
 		loglevel.Info,
 		category,
@@ -159,9 +156,9 @@ func MethodEnter(sessionID uuid.UUID, category string, subcategory string, messa
 }
 
 // MethodParameter logs the given message as MethodParameter category
-func MethodParameter(sessionID uuid.UUID, category string, subcategory string, messageFormat string, parameters ...interface{}) {
+func MethodParameter(session sessionModel.Session, category string, subcategory string, messageFormat string, parameters ...interface{}) {
 	prepareLoggingFunc(
-		sessionID,
+		session,
 		logtype.MethodParameter,
 		loglevel.Info,
 		category,
@@ -174,9 +171,9 @@ func MethodParameter(sessionID uuid.UUID, category string, subcategory string, m
 }
 
 // MethodLogic logs the given message as MethodLogic category
-func MethodLogic(sessionID uuid.UUID, logLevel loglevel.LogLevel, category string, subcategory string, messageFormat string, parameters ...interface{}) {
+func MethodLogic(session sessionModel.Session, logLevel loglevel.LogLevel, category string, subcategory string, messageFormat string, parameters ...interface{}) {
 	prepareLoggingFunc(
-		sessionID,
+		session,
 		logtype.MethodLogic,
 		logLevel,
 		category,
@@ -189,9 +186,9 @@ func MethodLogic(sessionID uuid.UUID, logLevel loglevel.LogLevel, category strin
 }
 
 // NetworkCall logs the given message as NetworkCall category
-func NetworkCall(sessionID uuid.UUID, category string, subcategory string, messageFormat string, parameters ...interface{}) {
+func NetworkCall(session sessionModel.Session, category string, subcategory string, messageFormat string, parameters ...interface{}) {
 	prepareLoggingFunc(
-		sessionID,
+		session,
 		logtype.NetworkCall,
 		loglevel.Info,
 		category,
@@ -204,9 +201,9 @@ func NetworkCall(sessionID uuid.UUID, category string, subcategory string, messa
 }
 
 // NetworkRequest logs the given message as NetworkRequest category
-func NetworkRequest(sessionID uuid.UUID, category string, subcategory string, messageFormat string, parameters ...interface{}) {
+func NetworkRequest(session sessionModel.Session, category string, subcategory string, messageFormat string, parameters ...interface{}) {
 	prepareLoggingFunc(
-		sessionID,
+		session,
 		logtype.NetworkRequest,
 		loglevel.Info,
 		category,
@@ -219,9 +216,9 @@ func NetworkRequest(sessionID uuid.UUID, category string, subcategory string, me
 }
 
 // NetworkResponse logs the given message as NetworkResponse category
-func NetworkResponse(sessionID uuid.UUID, category string, subcategory string, messageFormat string, parameters ...interface{}) {
+func NetworkResponse(session sessionModel.Session, category string, subcategory string, messageFormat string, parameters ...interface{}) {
 	prepareLoggingFunc(
-		sessionID,
+		session,
 		logtype.NetworkResponse,
 		loglevel.Info,
 		category,
@@ -234,9 +231,9 @@ func NetworkResponse(sessionID uuid.UUID, category string, subcategory string, m
 }
 
 // NetworkFinish logs the given message as NetworkFinish category
-func NetworkFinish(sessionID uuid.UUID, category string, subcategory string, messageFormat string, parameters ...interface{}) {
+func NetworkFinish(session sessionModel.Session, category string, subcategory string, messageFormat string, parameters ...interface{}) {
 	prepareLoggingFunc(
-		sessionID,
+		session,
 		logtype.NetworkFinish,
 		loglevel.Info,
 		category,
@@ -249,9 +246,9 @@ func NetworkFinish(sessionID uuid.UUID, category string, subcategory string, mes
 }
 
 // MethodReturn logs the given message as MethodReturn category
-func MethodReturn(sessionID uuid.UUID, category string, subcategory string, messageFormat string, parameters ...interface{}) {
+func MethodReturn(session sessionModel.Session, category string, subcategory string, messageFormat string, parameters ...interface{}) {
 	prepareLoggingFunc(
-		sessionID,
+		session,
 		logtype.MethodReturn,
 		loglevel.Info,
 		category,
@@ -264,9 +261,9 @@ func MethodReturn(sessionID uuid.UUID, category string, subcategory string, mess
 }
 
 // MethodExit logs the given message as MethodExit category
-func MethodExit(sessionID uuid.UUID, category string, subcategory string, messageFormat string, parameters ...interface{}) {
+func MethodExit(session sessionModel.Session, category string, subcategory string, messageFormat string, parameters ...interface{}) {
 	prepareLoggingFunc(
-		sessionID,
+		session,
 		logtype.MethodExit,
 		loglevel.Info,
 		category,
@@ -279,9 +276,9 @@ func MethodExit(sessionID uuid.UUID, category string, subcategory string, messag
 }
 
 // APIResponse logs the given message as APIResponse category
-func APIResponse(sessionID uuid.UUID, category string, subcategory string, messageFormat string, parameters ...interface{}) {
+func APIResponse(session sessionModel.Session, category string, subcategory string, messageFormat string, parameters ...interface{}) {
 	prepareLoggingFunc(
-		sessionID,
+		session,
 		logtype.APIResponse,
 		loglevel.Info,
 		category,
@@ -294,9 +291,9 @@ func APIResponse(sessionID uuid.UUID, category string, subcategory string, messa
 }
 
 // APIExit logs the given message as APIExit category
-func APIExit(sessionID uuid.UUID, category string, subcategory string, messageFormat string, parameters ...interface{}) {
+func APIExit(session sessionModel.Session, category string, subcategory string, messageFormat string, parameters ...interface{}) {
 	prepareLoggingFunc(
-		sessionID,
+		session,
 		logtype.APIExit,
 		loglevel.Info,
 		category,

@@ -6,6 +6,7 @@ import (
 	"github.com/google/uuid"
 	apperrorModel "github.com/zhongjie-cai/WebServiceTemplate/apperror/model"
 	"github.com/zhongjie-cai/WebServiceTemplate/customization"
+	sessionModel "github.com/zhongjie-cai/WebServiceTemplate/session/model"
 )
 
 // These are the constants used by the HTTP modules
@@ -73,27 +74,20 @@ func createErrorResponse(
 }
 
 func writeResponse(
-	sessionID uuid.UUID,
-	responseWriter http.ResponseWriter,
+	session sessionModel.Session,
 	statusCode int,
 	responseMessage string,
 ) {
 	loggerAPIResponse(
-		sessionID,
-		"response",
+		session,
 		strconvItoa(statusCode),
+		"",
 		responseMessage,
 	)
+	var responseWriter = session.GetResponseWriter()
 	responseWriter.Header().Set("Content-Type", ContentTypeJSON)
 	responseWriter.WriteHeader(statusCode)
 	responseWriter.Write([]byte(responseMessage))
-	loggerAPIExit(
-		sessionID,
-		"response",
-		"Write",
-		"%v",
-		statusCode,
-	)
 }
 
 func constructResponse(
@@ -117,13 +111,10 @@ func constructResponse(
 
 // Write responds to the consumer with corresponding HTTP status code and response body
 func Write(
-	sessionID uuid.UUID,
+	session sessionModel.Session,
 	responseObject interface{},
 	responseError error,
 ) {
-	var responseWriter = sessionGetResponseWriter(
-		sessionID,
-	)
 	var responseMessage, statusCode = constructResponseFunc(
 		responseObject,
 		responseError,
@@ -131,17 +122,9 @@ func Write(
 	var _, isOverrided = responseObject.(overrideResponse)
 	if !isOverrided {
 		writeResponseFunc(
-			sessionID,
-			responseWriter,
+			session,
 			statusCode,
 			responseMessage,
-		)
-	} else {
-		loggerAPIExit(
-			sessionID,
-			"response",
-			"Write",
-			"Overrided",
 		)
 	}
 }

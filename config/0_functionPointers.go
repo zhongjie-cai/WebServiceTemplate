@@ -10,15 +10,17 @@ import (
 
 // func pointers for injection / testing: config.go
 var (
-	timeutilGetTimeNowUTC            = timeutil.GetTimeNowUTC
-	timeutilFormatDateTime           = timeutil.FormatDateTime
-	apperrorGetCustomError           = apperror.GetCustomError
-	apperrorWrapSimpleError          = apperror.WrapSimpleError
-	reflectValueOf                   = reflect.ValueOf
-	fmtSprintf                       = fmt.Sprintf
-	functionPointerEqualsFunc        = functionPointerEquals
-	isServerCertificateAvailableFunc = isServerCertificateAvailable
-	isCaCertificateAvailableFunc     = isCaCertificateAvailable
-	validateStringFunctionFunc       = validateStringFunction
-	validateBooleanFunctionFunc      = validateBooleanFunction
+	timeutilGetTimeNowUTC              = timeutil.GetTimeNowUTC
+	timeutilFormatDateTime             = timeutil.FormatDateTime
+	apperrorGetCustomError             = apperror.GetCustomError
+	apperrorWrapSimpleError            = apperror.WrapSimpleError
+	reflectValueOf                     = reflect.ValueOf
+	fmtSprintf                         = fmt.Sprintf
+	functionPointerEqualsFunc          = functionPointerEquals
+	isServerCertificateAvailableFunc   = isServerCertificateAvailable
+	isCaCertificateAvailableFunc       = isCaCertificateAvailable
+	validateStringFunctionFunc         = validateStringFunction
+	validateBooleanFunctionFunc        = validateBooleanFunction
+	validateDefaultAllowedLogTypeFunc  = validateDefaultAllowedLogType
+	validateDefaultAllowedLogLevelFunc = validateDefaultAllowedLogLevel
 )

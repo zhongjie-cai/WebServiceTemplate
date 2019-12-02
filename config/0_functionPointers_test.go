@@ -10,32 +10,38 @@ import (
 	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
 	apperrorEnum "github.com/zhongjie-cai/WebServiceTemplate/apperror/enum"
 	apperrorModel "github.com/zhongjie-cai/WebServiceTemplate/apperror/model"
+	"github.com/zhongjie-cai/WebServiceTemplate/logger/loglevel"
+	"github.com/zhongjie-cai/WebServiceTemplate/logger/logtype"
 	"github.com/zhongjie-cai/WebServiceTemplate/timeutil"
 )
 
 var (
-	timeutilGetTimeNowUTCExpected            int
-	timeutilGetTimeNowUTCCalled              int
-	timeutilFormatDateTimeExpected           int
-	timeutilFormatDateTimeCalled             int
-	apperrorGetCustomErrorExpected           int
-	apperrorGetCustomErrorCalled             int
-	apperrorWrapSimpleErrorExpected          int
-	apperrorWrapSimpleErrorCalled            int
-	reflectValueOfExpected                   int
-	reflectValueOfCalled                     int
-	fmtSprintfExpected                       int
-	fmtSprintfCalled                         int
-	functionPointerEqualsFuncExpected        int
-	functionPointerEqualsFuncCalled          int
-	isServerCertificateAvailableFuncExpected int
-	isServerCertificateAvailableFuncCalled   int
-	isCaCertificateAvailableFuncExpected     int
-	isCaCertificateAvailableFuncCalled       int
-	validateStringFunctionFuncExpected       int
-	validateStringFunctionFuncCalled         int
-	validateBooleanFunctionFuncExpected      int
-	validateBooleanFunctionFuncCalled        int
+	timeutilGetTimeNowUTCExpected              int
+	timeutilGetTimeNowUTCCalled                int
+	timeutilFormatDateTimeExpected             int
+	timeutilFormatDateTimeCalled               int
+	apperrorGetCustomErrorExpected             int
+	apperrorGetCustomErrorCalled               int
+	apperrorWrapSimpleErrorExpected            int
+	apperrorWrapSimpleErrorCalled              int
+	reflectValueOfExpected                     int
+	reflectValueOfCalled                       int
+	fmtSprintfExpected                         int
+	fmtSprintfCalled                           int
+	functionPointerEqualsFuncExpected          int
+	functionPointerEqualsFuncCalled            int
+	isServerCertificateAvailableFuncExpected   int
+	isServerCertificateAvailableFuncCalled     int
+	isCaCertificateAvailableFuncExpected       int
+	isCaCertificateAvailableFuncCalled         int
+	validateStringFunctionFuncExpected         int
+	validateStringFunctionFuncCalled           int
+	validateBooleanFunctionFuncExpected        int
+	validateBooleanFunctionFuncCalled          int
+	validateDefaultAllowedLogTypeFuncExpected  int
+	validateDefaultAllowedLogTypeFuncCalled    int
+	validateDefaultAllowedLogLevelFuncExpected int
+	validateDefaultAllowedLogLevelFuncCalled   int
 )
 
 func createMock(t *testing.T) {
@@ -105,6 +111,18 @@ func createMock(t *testing.T) {
 		validateBooleanFunctionFuncCalled++
 		return nil, nil
 	}
+	validateDefaultAllowedLogTypeFuncExpected = 0
+	validateDefaultAllowedLogTypeFuncCalled = 0
+	validateDefaultAllowedLogTypeFunc = func(customizedFunc func() logtype.LogType, defaultFunc func() logtype.LogType) (func() logtype.LogType, error) {
+		validateDefaultAllowedLogTypeFuncCalled++
+		return nil, nil
+	}
+	validateDefaultAllowedLogLevelFuncExpected = 0
+	validateDefaultAllowedLogLevelFuncCalled = 0
+	validateDefaultAllowedLogLevelFunc = func(customizedFunc func() loglevel.LogLevel, defaultFunc func() loglevel.LogLevel) (func() loglevel.LogLevel, error) {
+		validateDefaultAllowedLogLevelFuncCalled++
+		return nil, nil
+	}
 }
 
 func verifyAll(t *testing.T) {
@@ -130,6 +148,10 @@ func verifyAll(t *testing.T) {
 	assert.Equal(t, validateStringFunctionFuncExpected, validateStringFunctionFuncCalled, "Unexpected number of calls to validateStringFunctionFunc")
 	validateBooleanFunctionFunc = validateBooleanFunction
 	assert.Equal(t, validateBooleanFunctionFuncExpected, validateBooleanFunctionFuncCalled, "Unexpected number of calls to validateBooleanFunctionFunc")
+	validateDefaultAllowedLogTypeFunc = validateDefaultAllowedLogType
+	assert.Equal(t, validateDefaultAllowedLogTypeFuncExpected, validateDefaultAllowedLogTypeFuncCalled, "Unexpected number of calls to validateDefaultAllowedLogTypeFunc")
+	validateDefaultAllowedLogLevelFunc = validateDefaultAllowedLogLevel
+	assert.Equal(t, validateDefaultAllowedLogLevelFuncExpected, validateDefaultAllowedLogLevelFuncCalled, "Unexpected number of calls to validateDefaultAllowedLogLevelFunc")
 
 	AppVersion = defaultAppVersion
 	AppPort = defaultAppPort
@@ -141,4 +163,6 @@ func verifyAll(t *testing.T) {
 	ServerKeyContent = defaultServerKeyContent
 	ValidateClientCert = defaultValidateClientCert
 	CaCertContent = defaultCaCertContent
+	DefaultAllowedLogType = defaultAllowedLogType
+	DefaultAllowedLogLevel = defaultAllowedLogLevel
 }

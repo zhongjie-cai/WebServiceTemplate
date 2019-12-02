@@ -1,6 +1,7 @@
 package customization
 
 import (
+	"net/http"
 	"testing"
 
 	"github.com/google/uuid"
@@ -17,6 +18,10 @@ func TestReset(t *testing.T) {
 	PreBootstrapFunc = func() error { return nil }
 	PostBootstrapFunc = func() error { return nil }
 	AppClosingFunc = func() error { return nil }
+	DefaultAllowedLogType = func() logtype.LogType { return logtype.LogType(0) }
+	DefaultAllowedLogLevel = func() loglevel.LogLevel { return loglevel.LogLevel(0) }
+	SessionAllowedLogType = func(httpRequest *http.Request) logtype.LogType { return logtype.LogType(0) }
+	SessionAllowedLogLevel = func(httpRequest *http.Request) loglevel.LogLevel { return loglevel.LogLevel(0) }
 	LoggingFunc = func(session sessionModel.Session, logType logtype.LogType, logLevel loglevel.LogLevel, category, subcategory, description string) {
 	}
 	AppVersion = func() string { return "" }
@@ -47,6 +52,10 @@ func TestReset(t *testing.T) {
 	assert.Nil(t, PreBootstrapFunc)
 	assert.Nil(t, PostBootstrapFunc)
 	assert.Nil(t, AppClosingFunc)
+	assert.Nil(t, DefaultAllowedLogType)
+	assert.Nil(t, DefaultAllowedLogLevel)
+	assert.Nil(t, SessionAllowedLogType)
+	assert.Nil(t, SessionAllowedLogLevel)
 	assert.Nil(t, LoggingFunc)
 	assert.Nil(t, AppVersion)
 	assert.Nil(t, AppPort)

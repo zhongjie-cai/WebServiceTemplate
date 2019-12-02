@@ -1,6 +1,8 @@
 package customization
 
 import (
+	"net/http"
+
 	"github.com/google/uuid"
 	apperrorEnum "github.com/zhongjie-cai/WebServiceTemplate/apperror/enum"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger/loglevel"
@@ -17,6 +19,18 @@ var PostBootstrapFunc func() error
 
 // AppClosingFunc is to customize the application closing logic after server shutdown
 var AppClosingFunc func() error
+
+// DefaultAllowedLogType is to customize the default allowed log type loading logic for the whole application
+var DefaultAllowedLogType func() logtype.LogType
+
+// DefaultAllowedLogLevel is to customize the default allowed log type loading logic for the whole application
+var DefaultAllowedLogLevel func() loglevel.LogLevel
+
+// SessionAllowedLogType is to customize the allowed log type determination logic for every HTTP session
+var SessionAllowedLogType func(httpRequest *http.Request) logtype.LogType
+
+// SessionAllowedLogLevel is to customize the allowed log level determination logic for every HTTP session
+var SessionAllowedLogLevel func(httpRequest *http.Request) loglevel.LogLevel
 
 // LoggingFunc is to customize the logging backend for the whole application
 var LoggingFunc func(session sessionModel.Session, logType logtype.LogType, logLevel loglevel.LogLevel, category, subcategory, description string)
@@ -77,6 +91,10 @@ func Reset() {
 	PreBootstrapFunc = nil
 	PostBootstrapFunc = nil
 	AppClosingFunc = nil
+	DefaultAllowedLogType = nil
+	DefaultAllowedLogLevel = nil
+	SessionAllowedLogType = nil
+	SessionAllowedLogLevel = nil
 	LoggingFunc = nil
 	AppVersion = nil
 	AppPort = nil

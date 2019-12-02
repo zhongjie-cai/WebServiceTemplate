@@ -51,6 +51,6 @@ type Session interface {
 	// GetAttachment retrieves any value object from the given session associated to the session ID and unmarshals the content to given data template
 	GetAttachment(name string, dataTemplate interface{}) bool
 
-	// IsLogAllowed checks the passed in log type and level and determines whether they match the session log criteria or not
-	IsLogAllowed(logType logtype.LogType, logLevel loglevel.LogLevel) bool
+	// IsLoggingAllowed checks the passed in log type and level and determines whether they match the session log criteria or not
+	IsLoggingAllowed(logType logtype.LogType, logLevel loglevel.LogLevel) bool
 }

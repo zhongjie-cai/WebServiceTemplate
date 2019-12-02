@@ -7,9 +7,13 @@ import (
 	"errors"
 	"io"
 	"io/ioutil"
+	"math/rand"
 	"net/http"
 	"strings"
 	"testing"
+
+	"github.com/zhongjie-cai/WebServiceTemplate/config"
+	"github.com/zhongjie-cai/WebServiceTemplate/customization"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
@@ -22,101 +26,16 @@ import (
 func TestGetAllowedLogType_NilHTTPRequest(t *testing.T) {
 	// arrange
 	var dummyHTTPRequest *http.Request
-
-	// mock
-	createMock(t)
-
-	// SUT + act
-	var allowedLogType = GetAllowedLogType(
-		dummyHTTPRequest,
-	)
-
-	// assert
-	assert.Equal(t, logtype.GeneralTracing, allowedLogType)
-
-	// verify
-	verifyAll(t)
-}
-
-func TestGetAllowedLogType_NoMatchingHeaderFound(t *testing.T) {
-	// arrange
-	var dummyHTTPRequest = &http.Request{
-		Method:     http.MethodGet,
-		RequestURI: "http://localhost/",
-		Header:     map[string][]string{},
-	}
-
-	// stub
-	dummyHTTPRequest.Header.Add("foo", "bar")
-
-	// mock
-	createMock(t)
-
-	// SUT + act
-	var allowedLogType = GetAllowedLogType(
-		dummyHTTPRequest,
-	)
-
-	// assert
-	assert.Equal(t, logtype.GeneralTracing, allowedLogType)
-
-	// verify
-	verifyAll(t)
-}
-
-func TestGetAllowedLogType_MatchingHeaderEmpty(t *testing.T) {
-	// arrange
-	var dummyHTTPRequest = &http.Request{
-		Method:     http.MethodGet,
-		RequestURI: "http://localhost/",
-		Header:     map[string][]string{},
-	}
-
-	// stub
-	dummyHTTPRequest.Header.Add("Foo", "bar")
-	dummyHTTPRequest.Header["Log-Type"] = []string{}
-
-	// mock
-	createMock(t)
-
-	// SUT + act
-	var allowedLogType = GetAllowedLogType(
-		dummyHTTPRequest,
-	)
-
-	// assert
-	assert.Equal(t, logtype.GeneralTracing, allowedLogType)
-
-	// verify
-	verifyAll(t)
-}
-
-func TestGetAllowedLogType_MatchingHeaderInvalid(t *testing.T) {
-	// arrange
-	var dummyHTTPRequest = &http.Request{
-		Method:     http.MethodGet,
-		RequestURI: "http://localhost/",
-		Header:     map[string][]string{},
-	}
-
-	// stub
-	dummyHTTPRequest.Header.Add("Foo", "bar")
-	dummyHTTPRequest.Header.Add("Log-Type", "abc")
-	dummyHTTPRequest.Header.Add("Log-Type", "def")
+	var dummyLogType = logtype.LogType(rand.Intn(255))
 
 	// mock
 	createMock(t)
 
 	// expect
-	logtypeFromStringExpected = 2
-	logtypeFromString = func(value string) logtype.LogType {
-		logtypeFromStringCalled++
-		if logtypeFromStringCalled == 1 {
-			assert.Equal(t, "abc", value)
-		} else if logtypeFromStringCalled == 2 {
-			assert.Equal(t, "def", value)
-		}
-		return logtype.AppRoot
+	configDefaultAllowedLogTypeExpected = 1
+	config.DefaultAllowedLogType = func() logtype.LogType {
+		configDefaultAllowedLogTypeCalled++
+		return dummyLogType
 	}
 
 	// SUT + act
@@ -125,40 +44,25 @@ func TestGetAllowedLogType_MatchingHeaderInvalid(t *testing.T) {
 	)
 
 	// assert
-	assert.Equal(t, logtype.GeneralTracing, allowedLogType)
+	assert.Equal(t, dummyLogType, allowedLogType)
 
 	// verify
 	verifyAll(t)
 }
 
-func TestGetAllowedLogType_MatchingHeaderValid(t *testing.T) {
+func TestGetAllowedLogType_NoCustomization(t *testing.T) {
 	// arrange
-	var dummyHTTPRequest = &http.Request{
-		Method:     http.MethodGet,
-		RequestURI: "http://localhost/",
-		Header:     map[string][]string{},
-	}
-
-	// stub
-	dummyHTTPRequest.Header.Add("Foo", "bar")
-	dummyHTTPRequest.Header.Add("Log-Type", logtype.MethodEnterName)
-	dummyHTTPRequest.Header.Add("Log-Type", logtype.MethodExitName)
+	var dummyHTTPRequest = &http.Request{}
+	var dummyLogType = logtype.LogType(rand.Intn(255))
 
 	// mock
 	createMock(t)
 
 	// expect
-	logtypeFromStringExpected = 2
-	logtypeFromString = func(value string) logtype.LogType {
-		logtypeFromStringCalled++
-		if logtypeFromStringCalled == 1 {
-			assert.Equal(t, logtype.MethodEnterName, value)
-			return logtype.MethodEnter
-		} else if logtypeFromStringCalled == 2 {
-			assert.Equal(t, logtype.MethodExitName, value)
-			return logtype.MethodExit
-		}
-		return logtype.AppRoot
+	configDefaultAllowedLogTypeExpected = 1
+	config.DefaultAllowedLogType = func() logtype.LogType {
+		configDefaultAllowedLogTypeCalled++
+		return dummyLogType
 	}
 
 	// SUT + act
@@ -167,7 +71,35 @@ func TestGetAllowedLogType_MatchingHeaderValid(t *testing.T) {
 	)
 
 	// assert
-	assert.Equal(t, logtype.MethodEnter|logtype.MethodExit, allowedLogType)
+	assert.Equal(t, dummyLogType, allowedLogType)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestGetAllowedLogType_WithCustomization(t *testing.T) {
+	// arrange
+	var dummyHTTPRequest = &http.Request{}
+	var dummyLogType = logtype.LogType(rand.Intn(255))
+
+	// mock
+	createMock(t)
+
+	// expect
+	customizationSessionAllowedLogTypeExpected = 1
+	customization.SessionAllowedLogType = func(httpRequest *http.Request) logtype.LogType {
+		customizationSessionAllowedLogTypeCalled++
+		assert.Equal(t, dummyHTTPRequest, httpRequest)
+		return dummyLogType
+	}
+
+	// SUT + act
+	var allowedLogType = GetAllowedLogType(
+		dummyHTTPRequest,
+	)
+
+	// assert
+	assert.Equal(t, dummyLogType, allowedLogType)
 
 	// verify
 	verifyAll(t)
@@ -176,103 +108,16 @@ func TestGetAllowedLogType_MatchingHeaderValid(t *testing.T) {
 func TestGetAllowedLogLevel_NilHTTPRequest(t *testing.T) {
 	// arrange
 	var dummyHTTPRequest *http.Request
-
-	// mock
-	createMock(t)
-
-	// SUT + act
-	var allowedLogLevel = GetAllowedLogLevel(
-		dummyHTTPRequest,
-	)
-
-	// assert
-	assert.Equal(t, loglevel.Warn, allowedLogLevel)
-
-	// verify
-	verifyAll(t)
-}
-
-func TestGetAllowedLogLevel_NoMatchingHeaderFound(t *testing.T) {
-	// arrange
-	var dummyHTTPRequest = &http.Request{
-		Method:     http.MethodGet,
-		RequestURI: "http://localhost/",
-		Header:     map[string][]string{},
-	}
-
-	// stub
-	dummyHTTPRequest.Header.Add("foo", "bar")
-
-	// mock
-	createMock(t)
-
-	// SUT + act
-	var allowedLogLevel = GetAllowedLogLevel(
-		dummyHTTPRequest,
-	)
-
-	// assert
-	assert.Equal(t, loglevel.Warn, allowedLogLevel)
-
-	// verify
-	verifyAll(t)
-}
-
-func TestGetAllowedLogLevel_MatchingHeaderEmpty(t *testing.T) {
-	// arrange
-	var dummyHTTPRequest = &http.Request{
-		Method:     http.MethodGet,
-		RequestURI: "http://localhost/",
-		Header:     map[string][]string{},
-	}
-
-	// stub
-	dummyHTTPRequest.Header.Add("Foo", "bar")
-	dummyHTTPRequest.Header["Log-Level"] = []string{}
-
-	// mock
-	createMock(t)
-
-	// SUT + act
-	var allowedLogLevel = GetAllowedLogLevel(
-		dummyHTTPRequest,
-	)
-
-	// assert
-	assert.Equal(t, loglevel.Warn, allowedLogLevel)
-
-	// verify
-	verifyAll(t)
-}
-
-func TestGetAllowedLogLevel_MatchingHeader(t *testing.T) {
-	// arrange
-	var dummyHTTPRequest = &http.Request{
-		Method:     http.MethodGet,
-		RequestURI: "http://localhost/",
-		Header:     map[string][]string{},
-	}
-
-	// stub
-	dummyHTTPRequest.Header.Add("Foo", "bar")
-	dummyHTTPRequest.Header.Add("Log-Level", loglevel.FatalName)
-	dummyHTTPRequest.Header.Add("Log-Level", loglevel.InfoName)
+	var dummyLogLevel = loglevel.LogLevel(rand.Intn(255))
 
 	// mock
 	createMock(t)
 
 	// expect
-	loglevelFromStringExpected = 2
-	loglevelFromString = func(value string) loglevel.LogLevel {
-		loglevelFromStringCalled++
-		if loglevelFromStringCalled == 1 {
-			assert.Equal(t, loglevel.FatalName, value)
-			return loglevel.Fatal
-		} else if loglevelFromStringCalled == 2 {
-			assert.Equal(t, loglevel.InfoName, value)
-			return loglevel.Info
-		}
-		return loglevel.Warn
+	configDefaultAllowedLogLevelExpected = 1
+	config.DefaultAllowedLogLevel = func() loglevel.LogLevel {
+		configDefaultAllowedLogLevelCalled++
+		return dummyLogLevel
 	}
 
 	// SUT + act
@@ -281,7 +126,62 @@ func TestGetAllowedLogLevel_MatchingHeader(t *testing.T) {
 	)
 
 	// assert
-	assert.Equal(t, loglevel.Info, allowedLogLevel)
+	assert.Equal(t, dummyLogLevel, allowedLogLevel)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestGetAllowedLogLevel_NoCustomization(t *testing.T) {
+	// arrange
+	var dummyHTTPRequest = &http.Request{}
+	var dummyLogLevel = loglevel.LogLevel(rand.Intn(255))
+
+	// mock
+	createMock(t)
+
+	// expect
+	configDefaultAllowedLogLevelExpected = 1
+	config.DefaultAllowedLogLevel = func() loglevel.LogLevel {
+		configDefaultAllowedLogLevelCalled++
+		return dummyLogLevel
+	}
+
+	// SUT + act
+	var allowedLogLevel = GetAllowedLogLevel(
+		dummyHTTPRequest,
+	)
+
+	// assert
+	assert.Equal(t, dummyLogLevel, allowedLogLevel)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestGetAllowedLogLevel_WithCustomization(t *testing.T) {
+	// arrange
+	var dummyHTTPRequest = &http.Request{}
+	var dummyLogLevel = loglevel.LogLevel(rand.Intn(255))
+
+	// mock
+	createMock(t)
+
+	// expect
+	customizationSessionAllowedLogLevelExpected = 1
+	customization.SessionAllowedLogLevel = func(httpRequest *http.Request) loglevel.LogLevel {
+		customizationSessionAllowedLogLevelCalled++
+		assert.Equal(t, dummyHTTPRequest, httpRequest)
+		return dummyLogLevel
+	}
+
+	// SUT + act
+	var allowedLogLevel = GetAllowedLogLevel(
+		dummyHTTPRequest,
+	)
+
+	// assert
+	assert.Equal(t, dummyLogLevel, allowedLogLevel)
 
 	// verify
 	verifyAll(t)

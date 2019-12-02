@@ -18,14 +18,7 @@ var (
 	defaultRequest        = &http.Request{}
 	defaultResponseWriter = &nilResponseWriter{}
 	defaultName           = "AppRoot"
-	defaultSession        = session{
-		ID:              uuid.Nil,
-		Name:            defaultName,
-		AllowedLogType:  logtype.BasicLogging,
-		AllowedLogLevel: loglevel.Debug,
-		Request:         defaultRequest,
-		ResponseWriter:  defaultResponseWriter,
-	}
+	defaultSession        *session
 )
 
 type session struct {
@@ -109,6 +102,12 @@ func (session *session) GetRequestBody(dataTemplate interface{}) apperrorModel.A
 			),
 		)
 	}
+	loggerAPIRequest(
+		session,
+		"Body",
+		"",
+		requestBody,
+	)
 	return tryUnmarshalFunc(
 		requestBody,
 		dataTemplate,
@@ -130,6 +129,12 @@ func (session *session) GetRequestParameter(name string, dataTemplate interface{
 			),
 		)
 	}
+	loggerAPIRequest(
+		session,
+		"Parameter",
+		name,
+		value,
+	)
 	return tryUnmarshalFunc(
 		value,
 		dataTemplate,
@@ -159,8 +164,15 @@ func (session *session) GetRequestQuery(name string, dataTemplate interface{}) a
 			),
 		)
 	}
+	var value = queries[0]
+	loggerAPIRequest(
+		session,
+		"Query",
+		name,
+		value,
+	)
 	return tryUnmarshalFunc(
-		queries[0],
+		value,
 		dataTemplate,
 	)
 }
@@ -173,6 +185,12 @@ func (session *session) GetRequestQueries(name string, dataTemplate interface{},
 	)
 	var unmarshalErrors = []error{}
 	for _, query := range queries {
+		loggerAPIRequest(
+			session,
+			"Query",
+			name,
+			query,
+		)
 		var unmarshalError = tryUnmarshalFunc(
 			query,
 			dataTemplate,
@@ -216,8 +234,15 @@ func (session *session) GetRequestHeader(name string, dataTemplate interface{}) 
 			),
 		)
 	}
+	var value = headers[0]
+	loggerAPIRequest(
+		session,
+		"Header",
+		name,
+		value,
+	)
 	return tryUnmarshalFunc(
-		headers[0],
+		value,
 		dataTemplate,
 	)
 }
@@ -230,6 +255,12 @@ func (session *session) GetRequestHeaders(name string, dataTemplate interface{},
 	)
 	var unmarshalErrors = []error{}
 	for _, header := range headers {
+		loggerAPIRequest(
+			session,
+			"Header",
+			name,
+			header,
+		)
 		var unmarshalError = tryUnmarshalFunc(
 			header,
 			dataTemplate,
@@ -292,30 +323,43 @@ func (session *session) GetAttachment(name string, dataTemplate interface{}) boo
 	return unmarshalError == nil
 }
 
-// IsLogAllowed checks the passed in log type and level and determines whether they match the session log criteria or not
-func (session *session) IsLogAllowed(logType logtype.LogType, logLevel loglevel.LogLevel) bool {
+func isLoggingTypeMatch(session *session, logType logtype.LogType) bool {
+	var allowedLogType logtype.LogType
 	if session == nil {
-		return false
+		allowedLogType = config.DefaultAllowedLogType()
+	} else {
+		allowedLogType = session.AllowedLogType
 	}
+	return allowedLogType.HasFlag(logType)
+}
+
+func isLoggingLevelMatch(session *session, logLevel loglevel.LogLevel) bool {
+	var allowedLogLevel loglevel.LogLevel
+	if session == nil {
+		allowedLogLevel = config.DefaultAllowedLogLevel()
+	} else {
+		allowedLogLevel = session.AllowedLogLevel
+	}
+	return allowedLogLevel <= logLevel
+}
+
+// IsLoggingAllowed checks the passed in log type and level and determines whether they match the session log criteria or not
+func (session *session) IsLoggingAllowed(logType logtype.LogType, logLevel loglevel.LogLevel) bool {
 	if !config.IsLocalhost() {
-		if !session.AllowedLogType.HasFlag(logType) {
-			return false
-		}
-		if session.AllowedLogLevel > logLevel {
+		var loggingTypeMatched = isLoggingTypeMatchFunc(
+			session,
+			logType,
+		)
+		var loggingLevelMatched = isLoggingLevelMatchFunc(
+			session,
+			logLevel,
+		)
+		if !loggingTypeMatched ||
+			(logType == logtype.MethodLogic && !loggingLevelMatched) {
 			return false
 		}
 	}
 	return true
-}
-
-// Init initialize the default session for the application
-func Init() {
-	// Initialize default session entry
-	sessionCache.Set(
-		uuid.Nil.String(),
-		defaultSession,
-		cache.NoExpiration,
-	)
 }
 
 // Register registers the information of a session for given session ID
@@ -325,25 +369,27 @@ func Register(
 	allowedLogLevel loglevel.LogLevel,
 	httpRequest *http.Request,
 	responseWriter http.ResponseWriter,
-) uuid.UUID {
+) model.Session {
 	var sessionID = uuidNew()
+	var session = &session{
+		ID:              sessionID,
+		Name:            name,
+		AllowedLogType:  allowedLogType,
+		AllowedLogLevel: allowedLogLevel,
+		Request:         httpRequest,
+		ResponseWriter:  responseWriter,
+		attachment:      map[string]interface{}{},
+	}
 	sessionCache.SetDefault(
 		sessionID.String(),
-		session{
-			ID:              sessionID,
-			Name:            name,
-			AllowedLogType:  allowedLogType,
-			AllowedLogLevel: allowedLogLevel,
-			Request:         httpRequest,
-			ResponseWriter:  responseWriter,
-			attachment:      map[string]interface{}{},
-		},
+		session,
 	)
-	return sessionID
+	return session
 }
 
 // Unregister unregisters the information of a session for given session ID
-func Unregister(sessionID uuid.UUID) {
+func Unregister(session model.Session) {
+	var sessionID = session.GetID()
 	sessionCache.Delete(
 		sessionID.String(),
 	)
@@ -353,13 +399,13 @@ func Unregister(sessionID uuid.UUID) {
 func Get(sessionID uuid.UUID) model.Session {
 	var cacheItem, sessionLoaded = sessionCache.Get(sessionID.String())
 	if !sessionLoaded {
-		return &defaultSession
+		return defaultSession
 	}
-	var session, ok = cacheItem.(session)
+	var session, ok = cacheItem.(model.Session)
 	if !ok {
-		return &defaultSession
+		return defaultSession
 	}
-	return &session
+	return session
 }
 
 // GetName returns the name registered to session object for given session ID
@@ -434,5 +480,81 @@ func GetAttachment(sessionID uuid.UUID, name string, dataTemplate interface{}) b
 	return session.GetAttachment(
 		name,
 		dataTemplate,
+	)
+}
+
+func getMethodName() string {
+	var pc, _, _, ok = runtimeCaller(3)
+	if !ok {
+		return "?"
+	}
+	var fn = runtimeFuncForPC(pc)
+	return fn.Name()
+}
+
+// LogMethodEnter sends a logging entry of MethodEnter log type for the given session associated to the session ID
+func LogMethodEnter(sessionID uuid.UUID) {
+	var session = getFunc(sessionID)
+	var methodName = getMethodNameFunc()
+	loggerMethodEnter(
+		session,
+		methodName,
+		"",
+		"",
+	)
+}
+
+// LogMethodParameter sends a logging entry of MethodParameter log type for the given session associated to the session ID
+func LogMethodParameter(sessionID uuid.UUID, parameters ...interface{}) {
+	var session = getFunc(sessionID)
+	var methodName = getMethodNameFunc()
+	for index, parameter := range parameters {
+		loggerMethodParameter(
+			session,
+			methodName,
+			strconvItoa(index),
+			"%v",
+			parameter,
+		)
+	}
+}
+
+// LogMethodLogic sends a logging entry of MethodLogic log type for the given session associated to the session ID
+func LogMethodLogic(sessionID uuid.UUID, logLevel loglevel.LogLevel, category string, subcategory string, messageFormat string, parameters ...interface{}) {
+	var session = getFunc(sessionID)
+	loggerMethodLogic(
+		session,
+		logLevel,
+		category,
+		subcategory,
+		messageFormat,
+		parameters...,
+	)
+}
+
+// LogMethodReturn sends a logging entry of MethodReturn log type for the given session associated to the session ID
+func LogMethodReturn(sessionID uuid.UUID, returns ...interface{}) {
+	var session = getFunc(sessionID)
+	var methodName = getMethodNameFunc()
+	for index, returnValue := range returns {
+		loggerMethodReturn(
+			session,
+			methodName,
+			strconvItoa(index),
+			"%v",
+			returnValue,
+		)
+	}
+}
+
+// LogMethodExit sends a logging entry of MethodExit log type for the given session associated to the session ID
+func LogMethodExit(sessionID uuid.UUID) {
+	var session = getFunc(sessionID)
+	var methodName = getMethodNameFunc()
+	loggerMethodExit(
+		session,
+		methodName,
+		"",
+		"",
 	)
 }

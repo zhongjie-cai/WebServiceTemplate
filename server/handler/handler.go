@@ -27,7 +27,7 @@ func Session(
 	var endpoint, action, routeError = routeGetRouteInfo(
 		httpRequest,
 	)
-	var sessionID = sessionRegister(
+	var session = sessionRegister(
 		endpoint,
 		requestGetAllowedLogType(
 			httpRequest,
@@ -38,43 +38,42 @@ func Session(
 		httpRequest,
 		responseWriter,
 	)
+	var sessionID = session.GetID()
 	defer func() {
 		panicHandle(
-			endpoint,
-			sessionID,
+			session,
 			recover(),
-			responseWriter,
 		)
 		sessionUnregister(
-			sessionID,
+			session,
 		)
 	}()
 	if routeError != nil {
 		loggerAPIEnter(
-			sessionID,
-			"handler",
-			endpoint,
+			session,
 			httpRequest.Method,
+			endpoint,
+			"",
 		)
 		responseWrite(
-			sessionID,
+			session,
 			nil,
 			apperrorGetInvalidOperation(
 				routeError,
 			),
 		)
 		loggerAPIExit(
-			sessionID,
-			"handler",
-			endpoint,
+			session,
 			httpRequest.Method,
+			endpoint,
+			"",
 		)
 	} else {
 		loggerAPIEnter(
-			sessionID,
-			"handler",
-			endpoint,
+			session,
 			httpRequest.Method,
+			endpoint,
+			"",
 		)
 		var preActionError = executeCustomizedFunctionFunc(
 			sessionID,
@@ -82,7 +81,7 @@ func Session(
 		)
 		if preActionError != nil {
 			responseWrite(
-				sessionID,
+				session,
 				nil,
 				preActionError,
 			)
@@ -97,37 +96,37 @@ func Session(
 			if postActionError != nil {
 				if responseError != nil {
 					loggerAPIExit(
-						sessionID,
-						"handler",
+						session,
+						httpRequest.Method,
 						endpoint,
 						"Post-action error: %v",
 						postActionError,
 					)
 					responseWrite(
-						sessionID,
+						session,
 						nil,
 						responseError,
 					)
 				} else {
 					responseWrite(
-						sessionID,
+						session,
 						nil,
 						postActionError,
 					)
 				}
 			} else {
 				responseWrite(
-					sessionID,
+					session,
 					responseObject,
 					responseError,
 				)
 			}
 		}
 		loggerAPIExit(
-			sessionID,
-			"handler",
-			endpoint,
+			session,
 			httpRequest.Method,
+			endpoint,
+			"",
 		)
 	}
 }

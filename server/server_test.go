@@ -118,9 +118,9 @@ func TestCreateServer_HTTPS_ValidateClientCert(t *testing.T) {
 		certificateGetServerCertificateCalled++
 		return dummyServerCert
 	}
-	certificateGetClientCertPoolExpected = 1
-	certificateGetClientCertPool = func() *x509.CertPool {
-		certificateGetClientCertPoolCalled++
+	certificateGetCaCertPoolExpected = 1
+	certificateGetCaCertPool = func() *x509.CertPool {
+		certificateGetCaCertPoolCalled++
 		return dummyCertPool
 	}
 

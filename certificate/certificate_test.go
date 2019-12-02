@@ -460,7 +460,7 @@ func TestGetServerCertificate(t *testing.T) {
 	verifyAll(t)
 }
 
-func TestGetClientCertPool(t *testing.T) {
+func TestGetCaCertPool(t *testing.T) {
 	// arrange
 	var dummyCertPool = &x509.CertPool{}
 
@@ -468,7 +468,7 @@ func TestGetClientCertPool(t *testing.T) {
 	caCertPool = dummyCertPool
 
 	// SUT + act
-	var result = GetClientCertPool()
+	var result = GetCaCertPool()
 
 	// assert
 	assert.Equal(t, dummyCertPool, result)

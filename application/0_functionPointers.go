@@ -6,12 +6,10 @@ import (
 	"github.com/zhongjie-cai/WebServiceTemplate/config"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger"
 	"github.com/zhongjie-cai/WebServiceTemplate/server"
-	"github.com/zhongjie-cai/WebServiceTemplate/session"
 )
 
 // func pointers for injection / testing: main.go
 var (
-	sessionInit               = session.Init
 	configInitialize          = config.Initialize
 	certificateInitialize     = certificate.Initialize
 	apperrorInitialize        = apperror.Initialize

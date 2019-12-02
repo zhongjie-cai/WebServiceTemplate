@@ -13,6 +13,10 @@ func verifyAll(t *testing.T) {
 	PreBootstrapFunc = nil
 	PostBootstrapFunc = nil
 	AppClosingFunc = nil
+	DefaultAllowedLogType = nil
+	DefaultAllowedLogLevel = nil
+	SessionAllowedLogType = nil
+	SessionAllowedLogLevel = nil
 	LoggingFunc = nil
 	AppVersion = nil
 	AppPort = nil
