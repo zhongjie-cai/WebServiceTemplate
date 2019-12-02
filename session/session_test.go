@@ -22,24 +22,11 @@ import (
 )
 
 func TestInit_AllValuesSet(t *testing.T) {
-	// arrange
-	var appName = "dummyAppName"
-	var roleType = "dummyRoleType"
-	var hostName = "dummyHostName"
-	var version = "dummyVersion"
-	var buildTime = "dummyBuildTime"
-
 	// mock
 	createMock(t)
 
 	// SUT + act
-	Init(
-		appName,
-		roleType,
-		hostName,
-		version,
-		buildTime,
-	)
+	Init()
 	var result, found = sessionCache.Get(uuid.Nil.String())
 
 	// assert
