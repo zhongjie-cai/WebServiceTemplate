@@ -309,7 +309,7 @@ func (session *session) IsLogAllowed(logType logtype.LogType, logLevel loglevel.
 }
 
 // Init initialize the default session for the application
-func Init(appName string, roleType string, hostName string, version string, buildTime string) {
+func Init() {
 	// Initialize default session entry
 	sessionCache.Set(
 		uuid.Nil.String(),

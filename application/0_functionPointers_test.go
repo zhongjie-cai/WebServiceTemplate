@@ -10,9 +10,12 @@ import (
 	"github.com/zhongjie-cai/WebServiceTemplate/customization"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger"
 	"github.com/zhongjie-cai/WebServiceTemplate/server"
+	"github.com/zhongjie-cai/WebServiceTemplate/session"
 )
 
 var (
+	sessionInitExpected               int
+	sessionInitCalled                 int
 	configAppPortExpected             int
 	configAppPortCalled               int
 	configAppVersionExpected          int
@@ -52,6 +55,11 @@ var (
 )
 
 func createMock(t *testing.T) {
+	sessionInitExpected = 0
+	sessionInitCalled = 0
+	sessionInit = func() {
+		sessionInitCalled++
+	}
 	configAppPortExpected = 0
 	configAppPortCalled = 0
 	config.AppPort = func() string {
@@ -160,6 +168,8 @@ func createMock(t *testing.T) {
 }
 
 func verifyAll(t *testing.T) {
+	sessionInit = session.Init
+	assert.Equal(t, sessionInitExpected, sessionInitCalled, "Unexpected number of calls to sessionInit")
 	config.AppPort = func() string { return "" }
 	assert.Equal(t, configAppPortExpected, configAppPortCalled, "Unexpected number of calls to configAppPort")
 	config.AppVersion = func() string { return "" }

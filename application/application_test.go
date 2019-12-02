@@ -127,6 +127,10 @@ func TestBootstrapApplication_CertError(t *testing.T) {
 	createMock(t)
 
 	// expect
+	sessionInitExpected = 1
+	sessionInit = func() {
+		sessionInitCalled++
+	}
 	loggerInitializeExpected = 1
 	loggerInitialize = func() error {
 		loggerInitializeCalled++
@@ -217,6 +221,10 @@ func TestBootstrapApplication_AppError(t *testing.T) {
 	createMock(t)
 
 	// expect
+	sessionInitExpected = 1
+	sessionInit = func() {
+		sessionInitCalled++
+	}
 	loggerInitializeExpected = 1
 	loggerInitialize = func() error {
 		loggerInitializeCalled++
@@ -309,6 +317,10 @@ func TestBootstrapApplication_NoError(t *testing.T) {
 	createMock(t)
 
 	// expect
+	sessionInitExpected = 1
+	sessionInit = func() {
+		sessionInitCalled++
+	}
 	loggerInitializeExpected = 1
 	loggerInitialize = func() error {
 		loggerInitializeCalled++
