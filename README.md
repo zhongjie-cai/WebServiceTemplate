@@ -19,6 +19,8 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/zhongjie-cai/WebServiceTemplate/session"
+
 	"github.com/google/uuid"
 	"github.com/zhongjie-cai/WebServiceTemplate/application"
 	"github.com/zhongjie-cai/WebServiceTemplate/customization"
@@ -80,7 +82,16 @@ func main() {
 func getHealth(
 	sessionID uuid.UUID,
 ) (interface{}, error) {
-	return "some version number", nil
+	var appVersion = "some application version"
+	session.LogMethodLogic(
+		sessionID,
+		loglevel.Warn,
+		"Health",
+		"Message",
+		"AppVersion = %v",
+		appVersion,
+	)
+	return appVersion, nil
 }
 
 // swaggerRedirect is an example of how a special HTTP handling method, which overrides the default library behavior, is written with this template library
@@ -192,6 +203,45 @@ customization.CreateErrorResponseFunc = func(err error) (responseMessage string,
 	return err.Error(), 500
 }
 ```
+
+# Logging
+
+The library allows the user to customize its logging function by setting the variable `LoggingFunc` under the `customization` package. 
+The logging is split into two management areas: log type and log level. 
+
+## Log Type
+
+The log type definitions can be found under the `logtype` sub-package under the `logging` package. 
+Apart from all `Method`-prefixed log types, all remainig log types are managed by the library internally and should not be worried by the user. 
+
+The application uses `AllowedLogType` concept to filter out any logging that does not fall into the allowed log type list. 
+To configure the `AllowedLogType`, the user can:
+- set the variable `DefaultAllowedLogType` under the `customization` package, which affects default logging types for all application (if no session level configuration found)
+- set the variable `SessionAllowedLogType` under the `customization` package, which affects session logging types for all sessions (if configured)
+
+## Log Level
+
+The log level definitions can be found under the `loglevel` sub-package under the `logging` package. 
+Log level only affects all `Method`-prefixed log types, and the log level is per session configurable. 
+
+The application uses `DefaultAllowedLogLevel` concept to filter out any logging that does not fall into the allowed log level list. 
+To configure the `AllowedLogType`, the user can:
+- set the variable `DefaultAllowedLogLevel` under the `customization` package, which affects default logging levels for all application (if no session level configuration found)
+- set the variable `SessionAllowedLogLevel` under the `customization` package, which affects session logging levels for all sessions (if configured)
+
+## Session Logging
+
+The registered session allows the user to add manual logging to its codebase, through several listed methods as
+```golang
+session.LogMethodEnter(sessionID uuid.UUID)
+session.LogMethodParameter(sessionID uuid.UUID, parameters ...interface{})
+session.LogMethodLogic(sessionID uuid.UUID, logLevel loglevel.LogLevel, category string, subcategory string, messageFormat string, parameters ...interface{})
+session.LogMethodReturn(sessionID uuid.UUID, returns ...interface{})
+session.LogMethodExit(sessionID uuid.UUID)
+```
+
+The `Enter`, `Parameter`, `Return` and `Exit` are limited to the scope of method boundary area loggings. 
+The `Logic` is the normal logging that can be used in any place at any level in the codebase to enforce the user's customized logging entries.
 
 # Session Attachment
 
