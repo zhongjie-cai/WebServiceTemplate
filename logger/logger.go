@@ -188,11 +188,11 @@ func MethodLogic(sessionID uuid.UUID, logLevel loglevel.LogLevel, category strin
 	)
 }
 
-// DependencyCall logs the given message as DependencyCall category
-func DependencyCall(sessionID uuid.UUID, category string, subcategory string, messageFormat string, parameters ...interface{}) {
+// NetworkCall logs the given message as NetworkCall category
+func NetworkCall(sessionID uuid.UUID, category string, subcategory string, messageFormat string, parameters ...interface{}) {
 	prepareLoggingFunc(
 		sessionID,
-		logtype.DependencyCall,
+		logtype.NetworkCall,
 		loglevel.Info,
 		category,
 		subcategory,
@@ -203,11 +203,11 @@ func DependencyCall(sessionID uuid.UUID, category string, subcategory string, me
 	)
 }
 
-// DependencyRequest logs the given message as DependencyRequest category
-func DependencyRequest(sessionID uuid.UUID, category string, subcategory string, messageFormat string, parameters ...interface{}) {
+// NetworkRequest logs the given message as NetworkRequest category
+func NetworkRequest(sessionID uuid.UUID, category string, subcategory string, messageFormat string, parameters ...interface{}) {
 	prepareLoggingFunc(
 		sessionID,
-		logtype.DependencyRequest,
+		logtype.NetworkRequest,
 		loglevel.Info,
 		category,
 		subcategory,
@@ -218,11 +218,11 @@ func DependencyRequest(sessionID uuid.UUID, category string, subcategory string,
 	)
 }
 
-// DependencyResponse logs the given message as DependencyResponse category
-func DependencyResponse(sessionID uuid.UUID, category string, subcategory string, messageFormat string, parameters ...interface{}) {
+// NetworkResponse logs the given message as NetworkResponse category
+func NetworkResponse(sessionID uuid.UUID, category string, subcategory string, messageFormat string, parameters ...interface{}) {
 	prepareLoggingFunc(
 		sessionID,
-		logtype.DependencyResponse,
+		logtype.NetworkResponse,
 		loglevel.Info,
 		category,
 		subcategory,
@@ -233,11 +233,11 @@ func DependencyResponse(sessionID uuid.UUID, category string, subcategory string
 	)
 }
 
-// DependencyFinish logs the given message as DependencyFinish category
-func DependencyFinish(sessionID uuid.UUID, category string, subcategory string, messageFormat string, parameters ...interface{}) {
+// NetworkFinish logs the given message as NetworkFinish category
+func NetworkFinish(sessionID uuid.UUID, category string, subcategory string, messageFormat string, parameters ...interface{}) {
 	prepareLoggingFunc(
 		sessionID,
-		logtype.DependencyFinish,
+		logtype.NetworkFinish,
 		loglevel.Info,
 		category,
 		subcategory,

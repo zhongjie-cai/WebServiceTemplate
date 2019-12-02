@@ -526,10 +526,10 @@ func TestMethodLogic(t *testing.T) {
 	verifyAll(t)
 }
 
-func TestDependencyCall(t *testing.T) {
+func TestNetworkCall(t *testing.T) {
 	// arrange
 	var dummySessionID = uuid.New()
-	var dummyLogType = logtype.DependencyCall
+	var dummyLogType = logtype.NetworkCall
 	var dummyCategory = "some category"
 	var dummySubCategory = "some sub category"
 	var dummyDescription = "some description"
@@ -555,7 +555,7 @@ func TestDependencyCall(t *testing.T) {
 	}
 
 	// SUT + act
-	DependencyCall(
+	NetworkCall(
 		dummySessionID,
 		dummyCategory,
 		dummySubCategory,
@@ -566,10 +566,10 @@ func TestDependencyCall(t *testing.T) {
 	verifyAll(t)
 }
 
-func TestDependencyRequest(t *testing.T) {
+func TestNetworkRequest(t *testing.T) {
 	// arrange
 	var dummySessionID = uuid.New()
-	var dummyLogType = logtype.DependencyRequest
+	var dummyLogType = logtype.NetworkRequest
 	var dummyCategory = "some category"
 	var dummySubCategory = "some sub category"
 	var dummyDescription = "some description"
@@ -595,7 +595,7 @@ func TestDependencyRequest(t *testing.T) {
 	}
 
 	// SUT + act
-	DependencyRequest(
+	NetworkRequest(
 		dummySessionID,
 		dummyCategory,
 		dummySubCategory,
@@ -606,10 +606,10 @@ func TestDependencyRequest(t *testing.T) {
 	verifyAll(t)
 }
 
-func TestDependencyResponse(t *testing.T) {
+func TestNetworkResponse(t *testing.T) {
 	// arrange
 	var dummySessionID = uuid.New()
-	var dummyLogType = logtype.DependencyResponse
+	var dummyLogType = logtype.NetworkResponse
 	var dummyCategory = "some category"
 	var dummySubCategory = "some sub category"
 	var dummyDescription = "some description"
@@ -635,7 +635,7 @@ func TestDependencyResponse(t *testing.T) {
 	}
 
 	// SUT + act
-	DependencyResponse(
+	NetworkResponse(
 		dummySessionID,
 		dummyCategory,
 		dummySubCategory,
@@ -646,10 +646,10 @@ func TestDependencyResponse(t *testing.T) {
 	verifyAll(t)
 }
 
-func TestDependencyFinish(t *testing.T) {
+func TestNetworkFinish(t *testing.T) {
 	// arrange
 	var dummySessionID = uuid.New()
-	var dummyLogType = logtype.DependencyFinish
+	var dummyLogType = logtype.NetworkFinish
 	var dummyCategory = "some category"
 	var dummySubCategory = "some sub category"
 	var dummyDescription = "some description"
@@ -675,7 +675,7 @@ func TestDependencyFinish(t *testing.T) {
 	}
 
 	// SUT + act
-	DependencyFinish(
+	NetworkFinish(
 		dummySessionID,
 		dummyCategory,
 		dummySubCategory,

@@ -1997,7 +1997,7 @@ func TestIsLoggingAllowed_FlagNotMatch(t *testing.T) {
 	// arrange
 	var dummyAllowedLogType = logtype.GeneralTracing
 	var dummyAllowedLogLevel = loglevel.Warn
-	var dummyLogType = logtype.MethodLogic
+	var dummyLogType = logtype.MethodEnter
 	var dummyLogLevel = loglevel.Warn
 
 	// mock

@@ -11,98 +11,107 @@ const (
 	MethodEnter
 	MethodParameter
 	MethodLogic
-	DependencyCall
-	DependencyRequest
-	DependencyResponse
-	DependencyFinish
+	NetworkCall
+	NetworkRequest
+	NetworkResponse
+	NetworkFinish
 	MethodReturn
 	MethodExit
 	APIResponse
 	APIExit
-	GeneralTracing   LogType = APIEnter | APIExit
-	VerboseTracing   LogType = GeneralTracing | MethodEnter | MethodExit
-	FullTracing      LogType = VerboseTracing | DependencyCall | DependencyFinish
+
+	BasicTracing   LogType = MethodLogic
+	GeneralTracing LogType = BasicTracing | APIEnter | APIExit
+	VerboseTracing LogType = GeneralTracing | MethodEnter | MethodExit
+	FullTracing    LogType = VerboseTracing | NetworkCall | NetworkFinish
+
 	BasicDebugging   LogType = MethodLogic
 	GeneralDebugging LogType = BasicDebugging | APIRequest | APIResponse
-	VerboseDebugging LogType = GeneralDebugging | MethodReturn | MethodExit
-	FullDebugging    LogType = VerboseDebugging | DependencyRequest | DependencyResponse
-	BasicLogging     LogType = BasicDebugging
-	GeneralLogging   LogType = BasicLogging | GeneralTracing | GeneralDebugging
-	VerboseLogging   LogType = GeneralLogging | VerboseTracing | VerboseDebugging
-	FullLogging      LogType = VerboseLogging | FullTracing | FullDebugging
+	VerboseDebugging LogType = GeneralDebugging | MethodParameter | MethodReturn
+	FullDebugging    LogType = VerboseDebugging | NetworkRequest | NetworkResponse
+
+	BasicLogging   LogType = BasicTracing | BasicDebugging
+	GeneralLogging LogType = BasicLogging | GeneralTracing | GeneralDebugging
+	VerboseLogging LogType = GeneralLogging | VerboseTracing | VerboseDebugging
+	FullLogging    LogType = VerboseLogging | FullTracing | FullDebugging
 )
 
 // These are the string representations of log category and preset names
 const (
-	AppRootName            string = "AppRoot"
-	APIEnterName           string = "APIEnter"
-	APIRequestName         string = "APIRequest"
-	MethodEnterName        string = "MethodEnter"
-	MethodParameterName    string = "MethodParameter"
-	MethodLogicName        string = "MethodLogic"
-	DependencyCallName     string = "DependencyCall"
-	DependencyRequestName  string = "DependencyRequest"
-	DependencyResponseName string = "DependencyResponse"
-	DependencyFinishName   string = "DependencyFinish"
-	MethodReturnName       string = "MethodReturn"
-	MethodExitName         string = "MethodExit"
-	APIResponseName        string = "APIResponse"
-	APIExitName            string = "APIExit"
-	GeneralTracingName     string = "GeneralTracing"
-	VerboseTracingName     string = "VerboseTracing"
-	FullTracingName        string = "FullTracing"
-	BasicDebuggingName     string = "BasicDebugging"
-	GeneralDebuggingName   string = "GeneralDebugging"
-	VerboseDebuggingName   string = "VerboseDebugging"
-	FullDebuggingName      string = "FullDebugging"
-	BasicLoggingName       string = "BasicLogging"
-	GeneralLoggingName     string = "GeneralLogging"
-	VerboseLoggingName     string = "VerboseLogging"
-	FullLoggingName        string = "FullLogging"
+	AppRootName         string = "AppRoot"
+	APIEnterName        string = "APIEnter"
+	APIRequestName      string = "APIRequest"
+	MethodEnterName     string = "MethodEnter"
+	MethodParameterName string = "MethodParameter"
+	MethodLogicName     string = "MethodLogic"
+	NetworkCallName     string = "NetworkCall"
+	NetworkRequestName  string = "NetworkRequest"
+	NetworkResponseName string = "NetworkResponse"
+	NetworkFinishName   string = "NetworkFinish"
+	MethodReturnName    string = "MethodReturn"
+	MethodExitName      string = "MethodExit"
+	APIResponseName     string = "APIResponse"
+	APIExitName         string = "APIExit"
+
+	BasicTracingName   string = "BasicTracing"
+	GeneralTracingName string = "GeneralTracing"
+	VerboseTracingName string = "VerboseTracing"
+	FullTracingName    string = "FullTracing"
+
+	BasicDebuggingName   string = "BasicDebugging"
+	GeneralDebuggingName string = "GeneralDebugging"
+	VerboseDebuggingName string = "VerboseDebugging"
+	FullDebuggingName    string = "FullDebugging"
+
+	BasicLoggingName   string = "BasicLogging"
+	GeneralLoggingName string = "GeneralLogging"
+	VerboseLoggingName string = "VerboseLogging"
+	FullLoggingName    string = "FullLogging"
 )
 
 var supportedLogTypes = map[LogType]string{
-	APIEnter:           APIEnterName,
-	APIRequest:         APIRequestName,
-	MethodEnter:        MethodEnterName,
-	MethodParameter:    MethodParameterName,
-	MethodLogic:        MethodLogicName,
-	DependencyCall:     DependencyCallName,
-	DependencyRequest:  DependencyRequestName,
-	DependencyResponse: DependencyResponseName,
-	DependencyFinish:   DependencyFinishName,
-	MethodReturn:       MethodReturnName,
-	MethodExit:         MethodExitName,
-	APIResponse:        APIResponseName,
-	APIExit:            APIExitName,
+	APIEnter:        APIEnterName,
+	APIRequest:      APIRequestName,
+	MethodEnter:     MethodEnterName,
+	MethodParameter: MethodParameterName,
+	MethodLogic:     MethodLogicName,
+	NetworkCall:     NetworkCallName,
+	NetworkRequest:  NetworkRequestName,
+	NetworkResponse: NetworkResponseName,
+	NetworkFinish:   NetworkFinishName,
+	MethodReturn:    MethodReturnName,
+	MethodExit:      MethodExitName,
+	APIResponse:     APIResponseName,
+	APIExit:         APIExitName,
 }
 
 var logTypeNameMapping = map[string]LogType{
-	AppRootName:            AppRoot,
-	APIEnterName:           APIEnter,
-	APIRequestName:         APIRequest,
-	MethodEnterName:        MethodEnter,
-	MethodParameterName:    MethodParameter,
-	MethodLogicName:        MethodLogic,
-	DependencyCallName:     DependencyCall,
-	DependencyRequestName:  DependencyRequest,
-	DependencyResponseName: DependencyResponse,
-	DependencyFinishName:   DependencyFinish,
-	MethodReturnName:       MethodReturn,
-	MethodExitName:         MethodExit,
-	APIResponseName:        APIResponse,
-	APIExitName:            APIExit,
-	GeneralTracingName:     GeneralTracing,
-	VerboseTracingName:     VerboseTracing,
-	FullTracingName:        FullTracing,
-	BasicDebuggingName:     BasicDebugging,
-	GeneralDebuggingName:   GeneralDebugging,
-	VerboseDebuggingName:   VerboseDebugging,
-	FullDebuggingName:      FullDebugging,
-	BasicLoggingName:       BasicLogging,
-	GeneralLoggingName:     GeneralLogging,
-	VerboseLoggingName:     VerboseLogging,
-	FullLoggingName:        FullLogging,
+	AppRootName:          AppRoot,
+	APIEnterName:         APIEnter,
+	APIRequestName:       APIRequest,
+	MethodEnterName:      MethodEnter,
+	MethodParameterName:  MethodParameter,
+	MethodLogicName:      MethodLogic,
+	NetworkCallName:      NetworkCall,
+	NetworkRequestName:   NetworkRequest,
+	NetworkResponseName:  NetworkResponse,
+	NetworkFinishName:    NetworkFinish,
+	MethodReturnName:     MethodReturn,
+	MethodExitName:       MethodExit,
+	APIResponseName:      APIResponse,
+	APIExitName:          APIExit,
+	BasicTracingName:     BasicTracing,
+	GeneralTracingName:   GeneralTracing,
+	VerboseTracingName:   VerboseTracing,
+	FullTracingName:      FullTracing,
+	BasicDebuggingName:   BasicDebugging,
+	GeneralDebuggingName: GeneralDebugging,
+	VerboseDebuggingName: VerboseDebugging,
+	FullDebuggingName:    FullDebugging,
+	BasicLoggingName:     BasicLogging,
+	GeneralLoggingName:   GeneralLogging,
+	VerboseLoggingName:   VerboseLogging,
+	FullLoggingName:      FullLogging,
 }
 
 // FromString converts a LogType flag instance to its string representation
