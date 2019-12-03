@@ -10,6 +10,7 @@ import (
 	"github.com/zhongjie-cai/WebServiceTemplate/config"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger/loglevel"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger/logtype"
+	networkModel "github.com/zhongjie-cai/WebServiceTemplate/network/model"
 	"github.com/zhongjie-cai/WebServiceTemplate/session/model"
 )
 
@@ -556,5 +557,17 @@ func LogMethodExit(sessionID uuid.UUID) {
 		methodName,
 		"",
 		"",
+	)
+}
+
+// CreateNetworkRequest generates a network request object to the targeted external web service for the given session associated to the session ID
+func CreateNetworkRequest(sessionID uuid.UUID, method string, url string, payload string, header map[string]string) networkModel.NetworkRequest {
+	var session = getFunc(sessionID)
+	return networkNewNetworkRequest(
+		session,
+		method,
+		url,
+		payload,
+		header,
 	)
 }

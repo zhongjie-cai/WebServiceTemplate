@@ -57,6 +57,9 @@ func bootstrapApplication() bool {
 		config.ServerKeyContent(),
 		config.ValidateClientCert(),
 		config.CaCertContent(),
+		config.SendClientCert(),
+		config.ClientCertContent(),
+		config.ClientKeyContent(),
 	)
 	if certError != nil {
 		loggerAppRoot(
@@ -77,6 +80,10 @@ func bootstrapApplication() bool {
 		)
 		return false
 	}
+	networkInitialize(
+		config.SendClientCert(),
+		config.DefaultNetworkTimeout(),
+	)
 	loggerAppRoot(
 		"application",
 		"bootstrapApplication",

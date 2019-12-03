@@ -12,24 +12,24 @@ import (
 )
 
 var (
-	tlsX509KeyPairExpected           int
-	tlsX509KeyPairCalled             int
-	x509NewCertPoolExpected          int
-	x509NewCertPoolCalled            int
-	apperrorGetCustomErrorExpected   int
-	apperrorGetCustomErrorCalled     int
-	apperrorWrapSimpleErrorExpected  int
-	apperrorWrapSimpleErrorCalled    int
-	loadTLSCertificateFuncExpected   int
-	loadTLSCertificateFuncCalled     int
-	appendCertsFromPEMFuncExpected   int
-	appendCertsFromPEMFuncCalled     int
-	loadX509CertPoolFuncExpected     int
-	loadX509CertPoolFuncCalled       int
-	initializeServerCertFuncExpected int
-	initializeServerCertFuncCalled   int
-	initializeCaCertPoolFuncExpected int
-	initializeCaCertPoolFuncCalled   int
+	tlsX509KeyPairExpected               int
+	tlsX509KeyPairCalled                 int
+	x509NewCertPoolExpected              int
+	x509NewCertPoolCalled                int
+	apperrorGetCustomErrorExpected       int
+	apperrorGetCustomErrorCalled         int
+	apperrorWrapSimpleErrorExpected      int
+	apperrorWrapSimpleErrorCalled        int
+	loadTLSCertificateFuncExpected       int
+	loadTLSCertificateFuncCalled         int
+	appendCertsFromPEMFuncExpected       int
+	appendCertsFromPEMFuncCalled         int
+	loadX509CertPoolFuncExpected         int
+	loadX509CertPoolFuncCalled           int
+	initializeTLSCertiticateFuncExpected int
+	initializeTLSCertiticateFuncCalled   int
+	initializeX509CertPoolFuncExpected   int
+	initializeX509CertPoolFuncCalled     int
 )
 
 func createMock(t *testing.T) {
@@ -75,17 +75,17 @@ func createMock(t *testing.T) {
 		loadX509CertPoolFuncCalled++
 		return nil, nil
 	}
-	initializeServerCertFuncExpected = 0
-	initializeServerCertFuncCalled = 0
-	initializeServerCertFunc = func(serveHTTPS bool, serverCertContent string, serverKeyContent string) error {
-		initializeServerCertFuncCalled++
-		return nil
+	initializeTLSCertiticateFuncExpected = 0
+	initializeTLSCertiticateFuncCalled = 0
+	initializeTLSCertiticateFunc = func(shouldLoadCert bool, certContent string, keyContent string) (*tls.Certificate, error) {
+		initializeTLSCertiticateFuncCalled++
+		return nil, nil
 	}
-	initializeCaCertPoolFuncExpected = 0
-	initializeCaCertPoolFuncCalled = 0
-	initializeCaCertPoolFunc = func(validateClientCert bool, caCertContent string) error {
-		initializeCaCertPoolFuncCalled++
-		return nil
+	initializeX509CertPoolFuncExpected = 0
+	initializeX509CertPoolFuncCalled = 0
+	initializeX509CertPoolFunc = func(shouldLoadCert bool, certContent string) (*x509.CertPool, error) {
+		initializeX509CertPoolFuncCalled++
+		return nil, nil
 	}
 }
 
@@ -104,11 +104,12 @@ func verifyAll(t *testing.T) {
 	assert.Equal(t, appendCertsFromPEMFuncExpected, appendCertsFromPEMFuncCalled, "Unexpected number of calls to appendCertsFromPEMFunc")
 	loadX509CertPoolFunc = loadX509CertPool
 	assert.Equal(t, loadX509CertPoolFuncExpected, loadX509CertPoolFuncCalled, "Unexpected number of calls to loadX509CertPoolFunc")
-	initializeServerCertFunc = initializeServerCert
-	assert.Equal(t, initializeServerCertFuncExpected, initializeServerCertFuncCalled, "Unexpected number of calls to initializeServerCertFunc")
-	initializeCaCertPoolFunc = initializeCaCertPool
-	assert.Equal(t, initializeCaCertPoolFuncExpected, initializeCaCertPoolFuncCalled, "Unexpected number of calls to initializeCaCertPoolFunc")
+	initializeTLSCertiticateFunc = initializeTLSCertiticate
+	assert.Equal(t, initializeTLSCertiticateFuncExpected, initializeTLSCertiticateFuncCalled, "Unexpected number of calls to initializeTLSCertiticateFunc")
+	initializeX509CertPoolFunc = initializeX509CertPool
+	assert.Equal(t, initializeX509CertPoolFuncExpected, initializeX509CertPoolFuncCalled, "Unexpected number of calls to initializeX509CertPoolFunc")
 
 	serverCertificate = nil
 	caCertPool = nil
+	clientCertificate = nil
 }

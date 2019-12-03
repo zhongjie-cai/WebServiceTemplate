@@ -9,6 +9,8 @@ import (
 	"testing"
 
 	"github.com/zhongjie-cai/WebServiceTemplate/logger/logtype"
+	"github.com/zhongjie-cai/WebServiceTemplate/network"
+	networkModel "github.com/zhongjie-cai/WebServiceTemplate/network/model"
 
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
@@ -82,6 +84,8 @@ var (
 	loggerMethodReturnCalled                int
 	loggerMethodExitExpected                int
 	loggerMethodExitCalled                  int
+	networkNewNetworkRequestExpected        int
+	networkNewNetworkRequestCalled          int
 )
 
 func createMock(t *testing.T) {
@@ -253,6 +257,12 @@ func createMock(t *testing.T) {
 	loggerMethodExit = func(session sessionModel.Session, category string, subcategory string, messageFormat string, parameters ...interface{}) {
 		loggerMethodExitCalled++
 	}
+	networkNewNetworkRequestExpected = 0
+	networkNewNetworkRequestCalled = 0
+	networkNewNetworkRequest = func(session sessionModel.Session, method string, url string, payload string, header map[string]string) networkModel.NetworkRequest {
+		networkNewNetworkRequestCalled++
+		return nil
+	}
 }
 
 func verifyAll(t *testing.T) {
@@ -312,6 +322,8 @@ func verifyAll(t *testing.T) {
 	assert.Equal(t, loggerMethodReturnExpected, loggerMethodReturnCalled, "Unexpected number of calls to loggerMethodReturn")
 	loggerMethodExit = logger.MethodExit
 	assert.Equal(t, loggerMethodExitExpected, loggerMethodExitCalled, "Unexpected number of calls to loggerMethodExit")
+	networkNewNetworkRequest = network.NewNetworkRequest
+	assert.Equal(t, networkNewNetworkRequestExpected, networkNewNetworkRequestCalled, "Unexpected number of calls to networkNewNetworkRequest")
 }
 
 // mock structs
@@ -337,4 +349,18 @@ type dummyAttachment struct {
 	ID   uuid.UUID
 	Foo  string
 	Test int
+}
+
+type dummyNetworkRequest struct {
+	t *testing.T
+}
+
+func (dnr *dummyNetworkRequest) Process(dataTemplate interface{}) (statusCode int, responseHeader http.Header, responseError error) {
+	assert.Fail(dnr.t, "Unexpected number of calls to Process")
+	return 0, nil, nil
+}
+
+func (dnr *dummyNetworkRequest) ProcessRaw() (responseObject *http.Response, responseError error) {
+	assert.Fail(dnr.t, "Unexpected number of calls to Process")
+	return nil, nil
 }

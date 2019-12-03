@@ -19,8 +19,10 @@ var (
 	functionPointerEqualsFunc          = functionPointerEquals
 	isServerCertificateAvailableFunc   = isServerCertificateAvailable
 	isCaCertificateAvailableFunc       = isCaCertificateAvailable
+	isClientCertificateAvailableFunc   = isClientCertificateAvailable
 	validateStringFunctionFunc         = validateStringFunction
 	validateBooleanFunctionFunc        = validateBooleanFunction
 	validateDefaultAllowedLogTypeFunc  = validateDefaultAllowedLogType
 	validateDefaultAllowedLogLevelFunc = validateDefaultAllowedLogLevel
+	validateDefaultNetworkTimeoutFunc  = validateDefaultNetworkTimeout
 )

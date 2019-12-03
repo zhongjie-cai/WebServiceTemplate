@@ -3,6 +3,7 @@ package customization
 import (
 	"net/http"
 	"testing"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
@@ -34,6 +35,9 @@ func TestReset(t *testing.T) {
 	ServerKeyContent = func() string { return "" }
 	ValidateClientCert = func() bool { return false }
 	CaCertContent = func() string { return "" }
+	SendClientCert = func() bool { return false }
+	ClientCertContent = func() string { return "" }
+	ClientKeyContent = func() string { return "" }
 	PreActionFunc = func(sessionID uuid.UUID) error { return nil }
 	PostActionFunc = func(sessionID uuid.UUID) error { return nil }
 	CreateErrorResponseFunc = func(err error) (responseMessage string, statusCode int) { return "", 0 }
@@ -41,6 +45,9 @@ func TestReset(t *testing.T) {
 	Statics = func() []serverModel.Static { return nil }
 	Middlewares = func() []serverModel.MiddlewareFunc { return nil }
 	AppErrors = func() (map[apperrorEnum.Code]string, map[apperrorEnum.Code]int) { return nil, nil }
+	HTTPRoundTripper = func(originalTransport http.RoundTripper) http.RoundTripper { return nil }
+	WrapHTTPRequest = func(httpRequest *http.Request) *http.Request { return nil }
+	DefaultNetworkTimeout = func() time.Duration { return 0 }
 
 	// mock
 	createMock(t)
@@ -67,6 +74,9 @@ func TestReset(t *testing.T) {
 	assert.Nil(t, ServerKeyContent)
 	assert.Nil(t, ValidateClientCert)
 	assert.Nil(t, CaCertContent)
+	assert.Nil(t, SendClientCert)
+	assert.Nil(t, ClientCertContent)
+	assert.Nil(t, ClientKeyContent)
 	assert.Nil(t, PreActionFunc)
 	assert.Nil(t, PostActionFunc)
 	assert.Nil(t, CreateErrorResponseFunc)
@@ -74,6 +84,9 @@ func TestReset(t *testing.T) {
 	assert.Nil(t, Statics)
 	assert.Nil(t, Middlewares)
 	assert.Nil(t, AppErrors)
+	assert.Nil(t, HTTPRoundTripper)
+	assert.Nil(t, WrapHTTPRequest)
+	assert.Nil(t, DefaultNetworkTimeout)
 
 	// verify
 	verifyAll(t)

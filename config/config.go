@@ -1,6 +1,8 @@
 package config
 
 import (
+	"time"
+
 	apperrorEnum "github.com/zhongjie-cai/WebServiceTemplate/apperror/enum"
 	"github.com/zhongjie-cai/WebServiceTemplate/customization"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger/loglevel"
@@ -37,11 +39,23 @@ var ValidateClientCert = defaultValidateClientCert
 // CaCertContent returns the CA certificate cert content of the application
 var CaCertContent = defaultCaCertContent
 
+// SendClientCert returns the control switch for whether or not send client certificate to external web services
+var SendClientCert = defaultSendClientCert
+
+// ClientCertContent returns the client certificate cert content of the application
+var ClientCertContent = defaultClientCertContent
+
+// ClientKeyContent returns the client certificate key content of the application
+var ClientKeyContent = defaultClientKeyContent
+
 // DefaultAllowedLogType returns the default allowed log type of the application
 var DefaultAllowedLogType = defaultAllowedLogType
 
 // DefaultAllowedLogLevel returns the default allowed log level of the application
 var DefaultAllowedLogLevel = defaultAllowedLogLevel
+
+// DefaultNetworkTimeout returns the default network timeout value of the application
+var DefaultNetworkTimeout = defaultNetworkTimeout
 
 func defaultAppVersion() string {
 	return "0.0.0.0"
@@ -83,12 +97,28 @@ func defaultCaCertContent() string {
 	return ""
 }
 
+func defaultSendClientCert() bool {
+	return false
+}
+
+func defaultClientCertContent() string {
+	return ""
+}
+
+func defaultClientKeyContent() string {
+	return ""
+}
+
 func defaultAllowedLogType() logtype.LogType {
 	return logtype.BasicLogging
 }
 
 func defaultAllowedLogLevel() loglevel.LogLevel {
 	return loglevel.Warn
+}
+
+func defaultNetworkTimeout() time.Duration {
+	return 3 * time.Minute
 }
 
 func functionPointerEquals(left, right interface{}) bool {
@@ -184,12 +214,31 @@ func validateDefaultAllowedLogLevel(
 	return customizedFunc, nil
 }
 
+func validateDefaultNetworkTimeout(
+	customizedFunc func() time.Duration,
+	defaultFunc func() time.Duration,
+) (func() time.Duration, error) {
+	if customizedFunc == nil {
+		return defaultFunc,
+			apperrorGetCustomError(
+				apperrorEnum.CodeGeneralFailure,
+				"customization.DefaultNetworkTimeout function is not configured; fallback to default [%v].",
+				defaultFunc(),
+			)
+	}
+	return customizedFunc, nil
+}
+
 func isServerCertificateAvailable() bool {
 	return len(ServerCertContent()) != 0 && len(ServerKeyContent()) != 0
 }
 
 func isCaCertificateAvailable() bool {
 	return len(CaCertContent()) != 0
+}
+
+func isClientCertificateAvailable() bool {
+	return len(ClientCertContent()) != 0 && len(ClientKeyContent()) != 0
 }
 
 // Initialize initiates and checks all application config related function injections
@@ -206,8 +255,12 @@ func Initialize() error {
 		serverKeyContentError       error
 		validateClientCertError     error
 		caCertContentError          error
+		sendClientCertError         error
+		clientCertContentError      error
+		clientKeyContentError       error
 		defaultAllowedLogTypeError  error
 		defaultAllowedLogLevelError error
+		defaultNetworkTimeoutError  error
 	)
 	AppVersion, appVersionError = validateStringFunctionFunc(
 		customization.AppVersion,
@@ -269,6 +322,24 @@ func Initialize() error {
 		defaultValidateClientCert,
 		!isCaCertificateAvailableFunc(),
 	)
+	ClientCertContent, clientCertContentError = validateStringFunctionFunc(
+		customization.ClientCertContent,
+		"ClientCertContent",
+		defaultClientCertContent,
+		noForceToDefault,
+	)
+	ClientKeyContent, clientKeyContentError = validateStringFunctionFunc(
+		customization.ClientKeyContent,
+		"ClientKeyContent",
+		defaultClientKeyContent,
+		noForceToDefault,
+	)
+	SendClientCert, sendClientCertError = validateBooleanFunctionFunc(
+		customization.SendClientCert,
+		"SendClientCert",
+		defaultSendClientCert,
+		!isClientCertificateAvailableFunc(),
+	)
 	DefaultAllowedLogType, defaultAllowedLogTypeError = validateDefaultAllowedLogTypeFunc(
 		customization.DefaultAllowedLogType,
 		defaultAllowedLogType,
@@ -276,6 +347,10 @@ func Initialize() error {
 	DefaultAllowedLogLevel, defaultAllowedLogLevelError = validateDefaultAllowedLogLevelFunc(
 		customization.DefaultAllowedLogLevel,
 		defaultAllowedLogLevel,
+	)
+	DefaultNetworkTimeout, defaultNetworkTimeoutError = validateDefaultNetworkTimeoutFunc(
+		customization.DefaultNetworkTimeout,
+		defaultNetworkTimeout,
 	)
 	return apperrorWrapSimpleError(
 		[]error{
@@ -289,8 +364,12 @@ func Initialize() error {
 			serveHTTPSError,
 			caCertContentError,
 			validateClientCertError,
+			clientCertContentError,
+			clientKeyContentError,
+			sendClientCertError,
 			defaultAllowedLogTypeError,
 			defaultAllowedLogLevelError,
+			defaultNetworkTimeoutError,
 		},
 		"Unexpected errors occur during configuration initialization",
 	)

@@ -11,6 +11,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger"
+	"github.com/zhongjie-cai/WebServiceTemplate/network"
 	"github.com/zhongjie-cai/WebServiceTemplate/request"
 )
 
@@ -42,4 +43,5 @@ var (
 	loggerMethodLogic               = logger.MethodLogic
 	loggerMethodReturn              = logger.MethodReturn
 	loggerMethodExit                = logger.MethodExit
+	networkNewNetworkRequest        = network.NewNetworkRequest
 )

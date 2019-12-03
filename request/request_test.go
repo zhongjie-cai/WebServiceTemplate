@@ -2,8 +2,6 @@ package request
 
 import (
 	"bytes"
-	"crypto/tls"
-	"crypto/x509"
 	"errors"
 	"io"
 	"io/ioutil"
@@ -16,9 +14,6 @@ import (
 	"github.com/zhongjie-cai/WebServiceTemplate/customization"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
-	apperrorEnum "github.com/zhongjie-cai/WebServiceTemplate/apperror/enum"
-	apperrorModel "github.com/zhongjie-cai/WebServiceTemplate/apperror/model"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger/loglevel"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger/logtype"
 )
@@ -182,96 +177,6 @@ func TestGetAllowedLogLevel_WithCustomization(t *testing.T) {
 
 	// assert
 	assert.Equal(t, dummyLogLevel, allowedLogLevel)
-
-	// verify
-	verifyAll(t)
-}
-
-func TestGetClientCertificates_RequestNil(t *testing.T) {
-	// arrange
-	var dummyHTTPRequest *http.Request
-	var dummyMessageFormat = "Invalid request or insecure communication channel"
-	var dummySyncError = apperror.GetCustomError(0, "")
-
-	// mock
-	createMock(t)
-
-	// expect
-	apperrorGetCustomErrorExpected = 1
-	apperrorGetCustomError = func(errorCode apperrorEnum.Code, messageFormat string, parameters ...interface{}) apperrorModel.AppError {
-		apperrorGetCustomErrorCalled++
-		assert.Equal(t, apperrorEnum.CodeGeneralFailure, errorCode)
-		assert.Equal(t, dummyMessageFormat, messageFormat)
-		assert.Equal(t, 0, len(parameters))
-		return dummySyncError
-	}
-
-	// SUT + act
-	var result, err = GetClientCertificates(
-		dummyHTTPRequest,
-	)
-
-	// assert
-	assert.Nil(t, result)
-	assert.Equal(t, dummySyncError, err)
-
-	// verify
-	verifyAll(t)
-}
-
-func TestGetClientCertificates_TLSNil(t *testing.T) {
-	// arrange
-	var dummyHTTPRequest = &http.Request{}
-	var dummyMessageFormat = "Invalid request or insecure communication channel"
-	var dummySyncError = apperror.GetCustomError(0, "")
-
-	// mock
-	createMock(t)
-
-	// expect
-	apperrorGetCustomErrorExpected = 1
-	apperrorGetCustomError = func(errorCode apperrorEnum.Code, messageFormat string, parameters ...interface{}) apperrorModel.AppError {
-		apperrorGetCustomErrorCalled++
-		assert.Equal(t, apperrorEnum.CodeGeneralFailure, errorCode)
-		assert.Equal(t, dummyMessageFormat, messageFormat)
-		assert.Equal(t, 0, len(parameters))
-		return dummySyncError
-	}
-
-	// SUT + act
-	var result, err = GetClientCertificates(
-		dummyHTTPRequest,
-	)
-
-	// assert
-	assert.Nil(t, result)
-	assert.Equal(t, dummySyncError, err)
-
-	// verify
-	verifyAll(t)
-}
-
-func TestGetClientCertificates_Success(t *testing.T) {
-	// arrange
-	var dummyHTTPRequest = &http.Request{
-		TLS: &tls.ConnectionState{
-			PeerCertificates: []*x509.Certificate{
-				&x509.Certificate{},
-			},
-		},
-	}
-
-	// mock
-	createMock(t)
-
-	// SUT + act
-	var result, err = GetClientCertificates(
-		dummyHTTPRequest,
-	)
-
-	// assert
-	assert.Equal(t, dummyHTTPRequest.TLS.PeerCertificates, result)
-	assert.NoError(t, err)
 
 	// verify
 	verifyAll(t)

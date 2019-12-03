@@ -34,6 +34,8 @@ var (
 	isServerCertificateAvailableFuncCalled     int
 	isCaCertificateAvailableFuncExpected       int
 	isCaCertificateAvailableFuncCalled         int
+	isClientCertificateAvailableFuncExpected   int
+	isClientCertificateAvailableFuncCalled     int
 	validateStringFunctionFuncExpected         int
 	validateStringFunctionFuncCalled           int
 	validateBooleanFunctionFuncExpected        int
@@ -42,6 +44,8 @@ var (
 	validateDefaultAllowedLogTypeFuncCalled    int
 	validateDefaultAllowedLogLevelFuncExpected int
 	validateDefaultAllowedLogLevelFuncCalled   int
+	validateDefaultNetworkTimeoutFuncExpected  int
+	validateDefaultNetworkTimeoutFuncCalled    int
 )
 
 func createMock(t *testing.T) {
@@ -99,6 +103,12 @@ func createMock(t *testing.T) {
 		isCaCertificateAvailableFuncCalled++
 		return false
 	}
+	isClientCertificateAvailableFuncExpected = 0
+	isClientCertificateAvailableFuncCalled = 0
+	isClientCertificateAvailableFunc = func() bool {
+		isClientCertificateAvailableFuncCalled++
+		return false
+	}
 	validateStringFunctionFuncExpected = 0
 	validateStringFunctionFuncCalled = 0
 	validateStringFunctionFunc = func(stringFunc func() string, name string, defaultFunc func() string, forceToDefault bool) (func() string, error) {
@@ -123,6 +133,12 @@ func createMock(t *testing.T) {
 		validateDefaultAllowedLogLevelFuncCalled++
 		return nil, nil
 	}
+	validateDefaultNetworkTimeoutFuncExpected = 0
+	validateDefaultNetworkTimeoutFuncCalled = 0
+	validateDefaultNetworkTimeoutFunc = func(customizedFunc func() time.Duration, defaultFunc func() time.Duration) (func() time.Duration, error) {
+		validateDefaultNetworkTimeoutFuncCalled++
+		return nil, nil
+	}
 }
 
 func verifyAll(t *testing.T) {
@@ -144,6 +160,8 @@ func verifyAll(t *testing.T) {
 	assert.Equal(t, isServerCertificateAvailableFuncExpected, isServerCertificateAvailableFuncCalled, "Unexpected number of calls to isServerCertificateAvailableFunc")
 	isCaCertificateAvailableFunc = isCaCertificateAvailable
 	assert.Equal(t, isCaCertificateAvailableFuncExpected, isCaCertificateAvailableFuncCalled, "Unexpected number of calls to isCaCertificateAvailableFunc")
+	isClientCertificateAvailableFunc = isClientCertificateAvailable
+	assert.Equal(t, isClientCertificateAvailableFuncExpected, isClientCertificateAvailableFuncCalled, "Unexpected number of calls to isClientCertificateAvailableFunc")
 	validateStringFunctionFunc = validateStringFunction
 	assert.Equal(t, validateStringFunctionFuncExpected, validateStringFunctionFuncCalled, "Unexpected number of calls to validateStringFunctionFunc")
 	validateBooleanFunctionFunc = validateBooleanFunction
@@ -152,6 +170,8 @@ func verifyAll(t *testing.T) {
 	assert.Equal(t, validateDefaultAllowedLogTypeFuncExpected, validateDefaultAllowedLogTypeFuncCalled, "Unexpected number of calls to validateDefaultAllowedLogTypeFunc")
 	validateDefaultAllowedLogLevelFunc = validateDefaultAllowedLogLevel
 	assert.Equal(t, validateDefaultAllowedLogLevelFuncExpected, validateDefaultAllowedLogLevelFuncCalled, "Unexpected number of calls to validateDefaultAllowedLogLevelFunc")
+	validateDefaultNetworkTimeoutFunc = validateDefaultNetworkTimeout
+	assert.Equal(t, validateDefaultNetworkTimeoutFuncExpected, validateDefaultNetworkTimeoutFuncCalled, "Unexpected number of calls to validateDefaultNetworkTimeoutFunc")
 
 	AppVersion = defaultAppVersion
 	AppPort = defaultAppPort
@@ -163,6 +183,10 @@ func verifyAll(t *testing.T) {
 	ServerKeyContent = defaultServerKeyContent
 	ValidateClientCert = defaultValidateClientCert
 	CaCertContent = defaultCaCertContent
+	SendClientCert = defaultSendClientCert
+	ClientCertContent = defaultClientCertContent
+	ClientKeyContent = defaultClientKeyContent
 	DefaultAllowedLogType = defaultAllowedLogType
 	DefaultAllowedLogLevel = defaultAllowedLogLevel
+	DefaultNetworkTimeout = defaultNetworkTimeout
 }

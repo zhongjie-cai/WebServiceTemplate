@@ -2,6 +2,7 @@ package customization
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/google/uuid"
 	apperrorEnum "github.com/zhongjie-cai/WebServiceTemplate/apperror/enum"
@@ -65,6 +66,15 @@ var ValidateClientCert func() bool
 // CaCertContent is to customize the loading logic for CA certificate content
 var CaCertContent func() string
 
+// SendClientCert is to customize the HTTP request option to the external web services (mTLS v.s. none)
+var SendClientCert func() bool
+
+// ClientCertContent is to customize the loading logic for client certificate content
+var ClientCertContent func() string
+
+// ClientKeyContent is to customize the loading logic for client key content
+var ClientKeyContent func() string
+
 // PreActionFunc is to customize the pre-action function used before each route action takes place, e.g. authorization, etc.
 var PreActionFunc func(sessionID uuid.UUID) error
 
@@ -83,8 +93,17 @@ var Statics func() []serverModel.Static
 // Middlewares is to customize the middlewares registration
 var Middlewares func() []serverModel.MiddlewareFunc
 
-// AppErrors is to customize (override) the AppErrors for their string representations and corresponding HTTP status codes; customized enum must be after apperrorEnum.CodeReservedCount
+// AppErrors is to append customized AppErrors with their string representations and corresponding HTTP status codes; customized enum must be after apperrorEnum.CodeReservedCount
 var AppErrors func() (map[apperrorEnum.Code]string, map[apperrorEnum.Code]int)
+
+// HTTPRoundTripper is to customize the creation of the HTTP transport for any network communications through HTTP/HTTPS by session
+var HTTPRoundTripper func(originalTransport http.RoundTripper) http.RoundTripper
+
+// WrapHTTPRequest is to customize the creation of the HTTP request for any network communications through HTTP/HTTPS by session; utilize this method if needed for new relic wrapping, etc.
+var WrapHTTPRequest func(httpRequest *http.Request) *http.Request
+
+// DefaultNetworkTimeout is to customize the default timeout for any network communications through HTTP/HTTPS by session
+var DefaultNetworkTimeout func() time.Duration
 
 // Reset clears all customization of functions for the whole application
 func Reset() {
@@ -106,6 +125,9 @@ func Reset() {
 	ServerKeyContent = nil
 	ValidateClientCert = nil
 	CaCertContent = nil
+	SendClientCert = nil
+	ClientCertContent = nil
+	ClientKeyContent = nil
 	PreActionFunc = nil
 	PostActionFunc = nil
 	CreateErrorResponseFunc = nil
@@ -113,4 +135,7 @@ func Reset() {
 	Statics = nil
 	Middlewares = nil
 	AppErrors = nil
+	HTTPRoundTripper = nil
+	WrapHTTPRequest = nil
+	DefaultNetworkTimeout = nil
 }

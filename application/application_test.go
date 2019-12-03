@@ -4,6 +4,7 @@ import (
 	"errors"
 	"math/rand"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/zhongjie-cai/WebServiceTemplate/config"
@@ -121,6 +122,9 @@ func TestBootstrapApplication_CertError(t *testing.T) {
 	var dummyServerKeyContent = "some server key content"
 	var dummyValidateClientCert = rand.Intn(100) < 50
 	var dummyCaCertContent = "some CA cert content"
+	var dummySendClientCert = rand.Intn(100) < 50
+	var dummyClientCertContent = "some client cert content"
+	var dummyClientKeyContent = "some client key content"
 	var dummyCertError = errors.New("some cert error")
 
 	// mock
@@ -162,14 +166,32 @@ func TestBootstrapApplication_CertError(t *testing.T) {
 		configCaCertContentCalled++
 		return dummyCaCertContent
 	}
+	configSendClientCertExpected = 1
+	config.SendClientCert = func() bool {
+		configSendClientCertCalled++
+		return dummySendClientCert
+	}
+	configClientCertContentExpected = 1
+	config.ClientCertContent = func() string {
+		configClientCertContentCalled++
+		return dummyClientCertContent
+	}
+	configClientKeyContentExpected = 1
+	config.ClientKeyContent = func() string {
+		configClientKeyContentCalled++
+		return dummyClientKeyContent
+	}
 	certificateInitializeExpected = 1
-	certificateInitialize = func(serveHTTPS bool, serverCertContent string, serverKeyContent string, validateClientCert bool, caCertContent string) error {
+	certificateInitialize = func(serveHTTPS bool, serverCertContent string, serverKeyContent string, validateClientCert bool, caCertContent string, sendClientCert bool, clientCertContent string, clientKeyContent string) error {
 		certificateInitializeCalled++
 		assert.Equal(t, dummyServeHTTPS, serveHTTPS)
 		assert.Equal(t, dummyServerCertContent, serverCertContent)
 		assert.Equal(t, dummyServerKeyContent, serverKeyContent)
 		assert.Equal(t, dummyValidateClientCert, validateClientCert)
 		assert.Equal(t, dummyCaCertContent, caCertContent)
+		assert.Equal(t, dummySendClientCert, sendClientCert)
+		assert.Equal(t, dummyClientCertContent, clientCertContent)
+		assert.Equal(t, dummyClientKeyContent, clientKeyContent)
 		return dummyCertError
 	}
 	loggerAppRootExpected = 3
@@ -211,6 +233,9 @@ func TestBootstrapApplication_AppError(t *testing.T) {
 	var dummyServerKeyContent = "some server key content"
 	var dummyValidateClientCert = rand.Intn(100) < 50
 	var dummyCaCertContent = "some CA cert content"
+	var dummySendClientCert = rand.Intn(100) < 50
+	var dummyClientCertContent = "some client cert content"
+	var dummyClientKeyContent = "some client key content"
 	var dummyAppError = errors.New("some cert error")
 
 	// mock
@@ -252,14 +277,32 @@ func TestBootstrapApplication_AppError(t *testing.T) {
 		configCaCertContentCalled++
 		return dummyCaCertContent
 	}
+	configSendClientCertExpected = 1
+	config.SendClientCert = func() bool {
+		configSendClientCertCalled++
+		return dummySendClientCert
+	}
+	configClientCertContentExpected = 1
+	config.ClientCertContent = func() string {
+		configClientCertContentCalled++
+		return dummyClientCertContent
+	}
+	configClientKeyContentExpected = 1
+	config.ClientKeyContent = func() string {
+		configClientKeyContentCalled++
+		return dummyClientKeyContent
+	}
 	certificateInitializeExpected = 1
-	certificateInitialize = func(serveHTTPS bool, serverCertContent string, serverKeyContent string, validateClientCert bool, caCertContent string) error {
+	certificateInitialize = func(serveHTTPS bool, serverCertContent string, serverKeyContent string, validateClientCert bool, caCertContent string, sendClientCert bool, clientCertContent string, clientKeyContent string) error {
 		certificateInitializeCalled++
 		assert.Equal(t, dummyServeHTTPS, serveHTTPS)
 		assert.Equal(t, dummyServerCertContent, serverCertContent)
 		assert.Equal(t, dummyServerKeyContent, serverKeyContent)
 		assert.Equal(t, dummyValidateClientCert, validateClientCert)
 		assert.Equal(t, dummyCaCertContent, caCertContent)
+		assert.Equal(t, dummySendClientCert, sendClientCert)
+		assert.Equal(t, dummyClientCertContent, clientCertContent)
+		assert.Equal(t, dummyClientKeyContent, clientKeyContent)
 		return nil
 	}
 	apperrorInitializeExpected = 1
@@ -304,6 +347,10 @@ func TestBootstrapApplication_NoError(t *testing.T) {
 	var dummyServerKeyContent = "some server key content"
 	var dummyValidateClientCert = rand.Intn(100) < 50
 	var dummyCaCertContent = "some CA cert content"
+	var dummySendClientCert = rand.Intn(100) < 50
+	var dummyClientCertContent = "some client cert content"
+	var dummyClientKeyContent = "some client key content"
+	var dummyDefaultNetworkTimeout = time.Duration(rand.Int())
 
 	// mock
 	createMock(t)
@@ -344,20 +391,49 @@ func TestBootstrapApplication_NoError(t *testing.T) {
 		configCaCertContentCalled++
 		return dummyCaCertContent
 	}
+	configSendClientCertExpected = 2
+	config.SendClientCert = func() bool {
+		configSendClientCertCalled++
+		return dummySendClientCert
+	}
+	configClientCertContentExpected = 1
+	config.ClientCertContent = func() string {
+		configClientCertContentCalled++
+		return dummyClientCertContent
+	}
+	configClientKeyContentExpected = 1
+	config.ClientKeyContent = func() string {
+		configClientKeyContentCalled++
+		return dummyClientKeyContent
+	}
 	certificateInitializeExpected = 1
-	certificateInitialize = func(serveHTTPS bool, serverCertContent string, serverKeyContent string, validateClientCert bool, caCertContent string) error {
+	certificateInitialize = func(serveHTTPS bool, serverCertContent string, serverKeyContent string, validateClientCert bool, caCertContent string, sendClientCert bool, clientCertContent string, clientKeyContent string) error {
 		certificateInitializeCalled++
 		assert.Equal(t, dummyServeHTTPS, serveHTTPS)
 		assert.Equal(t, dummyServerCertContent, serverCertContent)
 		assert.Equal(t, dummyServerKeyContent, serverKeyContent)
 		assert.Equal(t, dummyValidateClientCert, validateClientCert)
 		assert.Equal(t, dummyCaCertContent, caCertContent)
+		assert.Equal(t, dummySendClientCert, sendClientCert)
+		assert.Equal(t, dummyClientCertContent, clientCertContent)
+		assert.Equal(t, dummyClientKeyContent, clientKeyContent)
 		return nil
 	}
 	apperrorInitializeExpected = 1
 	apperrorInitialize = func() error {
 		apperrorInitializeCalled++
 		return nil
+	}
+	configDefaultNetworkTimeoutExpected = 1
+	config.DefaultNetworkTimeout = func() time.Duration {
+		configDefaultNetworkTimeoutCalled++
+		return dummyDefaultNetworkTimeout
+	}
+	networkInitializeExpected = 1
+	networkInitialize = func(sendClientCert bool, networkTimeout time.Duration) {
+		networkInitializeCalled++
+		assert.Equal(t, dummySendClientCert, sendClientCert)
+		assert.Equal(t, dummyDefaultNetworkTimeout, networkTimeout)
 	}
 	loggerAppRootExpected = 1
 	loggerAppRoot = func(category string, subcategory string, messageFormat string, parameters ...interface{}) {

@@ -19,6 +19,7 @@ import (
 	"github.com/zhongjie-cai/WebServiceTemplate/config"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger/loglevel"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger/logtype"
+	networkModel "github.com/zhongjie-cai/WebServiceTemplate/network/model"
 	"github.com/zhongjie-cai/WebServiceTemplate/session/model"
 	sessionModel "github.com/zhongjie-cai/WebServiceTemplate/session/model"
 )
@@ -2563,6 +2564,58 @@ func TestLogMethodExit(t *testing.T) {
 	)
 
 	// assert
+
+	// verify
+	verifyAll(t)
+}
+
+func TestCreateNetworkRequest(t *testing.T) {
+	// arrange
+	var dummySessionID = uuid.New()
+	var dummySessionObject = &session{
+		ID: dummySessionID,
+	}
+	var dummyMethod = "some method"
+	var dummyURL = "some URL"
+	var dummyPayload = "some payload"
+	var dummyHeader = map[string]string{
+		"foo":  "bar",
+		"test": "123",
+	}
+	var dummyNetworkRequest = &dummyNetworkRequest{}
+
+	// mock
+	createMock(t)
+
+	// expect
+	getFuncExpected = 1
+	getFunc = func(sessionID uuid.UUID) model.Session {
+		getFuncCalled++
+		assert.Equal(t, dummySessionID, sessionID)
+		return dummySessionObject
+	}
+	networkNewNetworkRequestExpected = 1
+	networkNewNetworkRequest = func(session sessionModel.Session, method string, url string, payload string, header map[string]string) networkModel.NetworkRequest {
+		networkNewNetworkRequestCalled++
+		assert.Equal(t, dummySessionObject, session)
+		assert.Equal(t, dummyMethod, method)
+		assert.Equal(t, dummyURL, url)
+		assert.Equal(t, dummyPayload, payload)
+		assert.Equal(t, dummyHeader, header)
+		return dummyNetworkRequest
+	}
+
+	// SUT + act
+	var result = CreateNetworkRequest(
+		dummySessionID,
+		dummyMethod,
+		dummyURL,
+		dummyPayload,
+		dummyHeader,
+	)
+
+	// assert
+	assert.Equal(t, dummyNetworkRequest, result)
 
 	// verify
 	verifyAll(t)

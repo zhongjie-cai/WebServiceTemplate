@@ -10,6 +10,7 @@ import (
 var (
 	caCertPool        *x509.CertPool
 	serverCertificate *tls.Certificate
+	clientCertificate *tls.Certificate
 )
 
 func loadTLSCertificate(
@@ -49,48 +50,46 @@ func loadX509CertPool(certBytes []byte) (*x509.CertPool, error) {
 	return certPool, nil
 }
 
-func initializeServerCert(
-	serveHTTPS bool,
-	serverCertContent string,
-	serverKeyContent string,
-) error {
-	serverCertificate = nil
-	if !serveHTTPS {
-		return nil
+func initializeTLSCertiticate(
+	shouldLoadCert bool,
+	certContent string,
+	keyContent string,
+) (*tls.Certificate, error) {
+	if !shouldLoadCert {
+		return nil, nil
 	}
-	var serverCert, serverCertError = loadTLSCertificateFunc(
-		[]byte(serverCertContent),
-		[]byte(serverKeyContent),
+	var cert, certError = loadTLSCertificateFunc(
+		[]byte(certContent),
+		[]byte(keyContent),
 	)
-	if serverCertError != nil {
-		return apperrorWrapSimpleError(
-			[]error{serverCertError},
-			"Failed to initialize server certificate",
-		)
+	if certError != nil {
+		return nil,
+			apperrorWrapSimpleError(
+				[]error{certError},
+				"Failed to initialize certificate by key-cert pair",
+			)
 	}
-	serverCertificate = serverCert
-	return nil
+	return cert, nil
 }
 
-func initializeCaCertPool(
-	validateClientCert bool,
-	caCertContent string,
-) error {
-	caCertPool = nil
-	if !validateClientCert {
-		return nil
+func initializeX509CertPool(
+	shouldLoadCert bool,
+	certContent string,
+) (*x509.CertPool, error) {
+	if !shouldLoadCert {
+		return nil, nil
 	}
 	var certPool, poolError = loadX509CertPoolFunc(
-		[]byte(caCertContent),
+		[]byte(certContent),
 	)
 	if poolError != nil {
-		return apperrorWrapSimpleError(
-			[]error{poolError},
-			"Failed to initialize CA cert pool",
-		)
+		return nil,
+			apperrorWrapSimpleError(
+				[]error{poolError},
+				"Failed to initialize cert pool by cert content",
+			)
 	}
-	caCertPool = certPool
-	return nil
+	return certPool, nil
 }
 
 // Initialize initializes the certificates used by the application
@@ -100,22 +99,34 @@ func Initialize(
 	serverKeyContent string,
 	validateClientCert bool,
 	caCertContent string,
+	sendClientCert bool,
+	clientCertContent string,
+	clientKeyContent string,
 ) error {
 	var (
-		serverCertError = initializeServerCertFunc(
+		serverCert, serverCertError = initializeTLSCertiticateFunc(
 			serveHTTPS,
 			serverCertContent,
 			serverKeyContent,
 		)
-		caCertPoolError = initializeCaCertPoolFunc(
+		certPool, caCertPoolError = initializeX509CertPoolFunc(
 			validateClientCert,
 			caCertContent,
 		)
+		clientCert, clientCertError = initializeTLSCertiticateFunc(
+			sendClientCert,
+			clientCertContent,
+			clientKeyContent,
+		)
 	)
+	serverCertificate = serverCert
+	caCertPool = certPool
+	clientCertificate = clientCert
 	return apperrorWrapSimpleError(
 		[]error{
 			serverCertError,
 			caCertPoolError,
+			clientCertError,
 		},
 		"Failed to initialize certificates for application",
 	)
@@ -129,4 +140,9 @@ func GetServerCertificate() *tls.Certificate {
 // GetCaCertPool returns the client cert pool (CA root) loaded from local storage
 func GetCaCertPool() *x509.CertPool {
 	return caCertPool
+}
+
+// GetClientCertificate returns the client certificate loaded from local storage
+func GetClientCertificate() *tls.Certificate {
+	return clientCertificate
 }

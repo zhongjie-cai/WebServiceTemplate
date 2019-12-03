@@ -2,6 +2,7 @@ package application
 
 import (
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
@@ -9,46 +10,57 @@ import (
 	"github.com/zhongjie-cai/WebServiceTemplate/config"
 	"github.com/zhongjie-cai/WebServiceTemplate/customization"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger"
+	"github.com/zhongjie-cai/WebServiceTemplate/network"
 	"github.com/zhongjie-cai/WebServiceTemplate/server"
 )
 
 var (
-	configAppPortExpected             int
-	configAppPortCalled               int
-	configAppVersionExpected          int
-	configAppVersionCalled            int
-	configInitializeExpected          int
-	configInitializeCalled            int
-	configServeHTTPSExpected          int
-	configServeHTTPSCalled            int
-	configServerCertContentExpected   int
-	configServerCertContentCalled     int
-	configServerKeyContentExpected    int
-	configServerKeyContentCalled      int
-	configValidateClientCertExpected  int
-	configValidateClientCertCalled    int
-	configCaCertContentExpected       int
-	configCaCertContentCalled         int
-	certificateInitializeExpected     int
-	certificateInitializeCalled       int
-	apperrorInitializeExpected        int
-	apperrorInitializeCalled          int
-	loggerInitializeExpected          int
-	loggerInitializeCalled            int
-	loggerAppRootExpected             int
-	loggerAppRootCalled               int
-	serverHostExpected                int
-	serverHostCalled                  int
-	doPreBootstrapingFuncExpected     int
-	doPreBootstrapingFuncCalled       int
-	bootstrapApplicationFuncExpected  int
-	bootstrapApplicationFuncCalled    int
-	doPostBootstrapingFuncExpected    int
-	doPostBootstrapingFuncCalled      int
-	doApplicationStartingFuncExpected int
-	doApplicationStartingFuncCalled   int
-	doApplicationClosingFuncExpected  int
-	doApplicationClosingFuncCalled    int
+	configAppPortExpected               int
+	configAppPortCalled                 int
+	configAppVersionExpected            int
+	configAppVersionCalled              int
+	configInitializeExpected            int
+	configInitializeCalled              int
+	configServeHTTPSExpected            int
+	configServeHTTPSCalled              int
+	configServerCertContentExpected     int
+	configServerCertContentCalled       int
+	configServerKeyContentExpected      int
+	configServerKeyContentCalled        int
+	configValidateClientCertExpected    int
+	configValidateClientCertCalled      int
+	configCaCertContentExpected         int
+	configCaCertContentCalled           int
+	configSendClientCertExpected        int
+	configSendClientCertCalled          int
+	configClientCertContentExpected     int
+	configClientCertContentCalled       int
+	configClientKeyContentExpected      int
+	configClientKeyContentCalled        int
+	configDefaultNetworkTimeoutExpected int
+	configDefaultNetworkTimeoutCalled   int
+	certificateInitializeExpected       int
+	certificateInitializeCalled         int
+	apperrorInitializeExpected          int
+	apperrorInitializeCalled            int
+	networkInitializeExpected           int
+	networkInitializeCalled             int
+	loggerInitializeExpected            int
+	loggerInitializeCalled              int
+	loggerAppRootExpected               int
+	loggerAppRootCalled                 int
+	serverHostExpected                  int
+	serverHostCalled                    int
+	doPreBootstrapingFuncExpected       int
+	doPreBootstrapingFuncCalled         int
+	bootstrapApplicationFuncExpected    int
+	bootstrapApplicationFuncCalled      int
+	doPostBootstrapingFuncExpected      int
+	doPostBootstrapingFuncCalled        int
+	doApplicationStartingFuncExpected   int
+	doApplicationStartingFuncCalled     int
+	doApplicationClosingFuncExpected    int
+	doApplicationClosingFuncCalled      int
 )
 
 func createMock(t *testing.T) {
@@ -100,9 +112,33 @@ func createMock(t *testing.T) {
 		configCaCertContentCalled++
 		return ""
 	}
+	configSendClientCertExpected = 0
+	configSendClientCertCalled = 0
+	config.SendClientCert = func() bool {
+		configSendClientCertCalled++
+		return false
+	}
+	configClientCertContentExpected = 0
+	configClientCertContentCalled = 0
+	config.ClientCertContent = func() string {
+		configClientCertContentCalled++
+		return ""
+	}
+	configClientKeyContentExpected = 0
+	configClientKeyContentCalled = 0
+	config.ClientKeyContent = func() string {
+		configClientKeyContentCalled++
+		return ""
+	}
+	configDefaultNetworkTimeoutExpected = 0
+	configDefaultNetworkTimeoutCalled = 0
+	config.DefaultNetworkTimeout = func() time.Duration {
+		configDefaultNetworkTimeoutCalled++
+		return 0
+	}
 	certificateInitializeExpected = 0
 	certificateInitializeCalled = 0
-	certificateInitialize = func(serveHTTPS bool, serverCertContent string, serverKeyContent string, validateClientCert bool, caCertContent string) error {
+	certificateInitialize = func(serveHTTPS bool, serverCertContent string, serverKeyContent string, validateClientCert bool, caCertContent string, sendClientCert bool, clientCertContent string, clientKeyContent string) error {
 		certificateInitializeCalled++
 		return nil
 	}
@@ -111,6 +147,11 @@ func createMock(t *testing.T) {
 	apperrorInitialize = func() error {
 		apperrorInitializeCalled++
 		return nil
+	}
+	networkInitializeExpected = 0
+	networkInitializeCalled = 0
+	networkInitialize = func(sendClientCert bool, networkTimeout time.Duration) {
+		networkInitializeCalled++
 	}
 	loggerInitializeExpected = 0
 	loggerInitializeCalled = 0
@@ -176,10 +217,20 @@ func verifyAll(t *testing.T) {
 	assert.Equal(t, configValidateClientCertExpected, configValidateClientCertCalled, "Unexpected number of calls to configValidateClientCert")
 	config.CaCertContent = func() string { return "" }
 	assert.Equal(t, configCaCertContentExpected, configCaCertContentCalled, "Unexpected number of calls to configCaCertContent")
+	config.SendClientCert = func() bool { return false }
+	assert.Equal(t, configSendClientCertExpected, configSendClientCertCalled, "Unexpected number of calls to configSendClientCert")
+	config.ClientCertContent = func() string { return "" }
+	assert.Equal(t, configClientCertContentExpected, configClientCertContentCalled, "Unexpected number of calls to configClientCertContent")
+	config.ClientKeyContent = func() string { return "" }
+	assert.Equal(t, configClientKeyContentExpected, configClientKeyContentCalled, "Unexpected number of calls to configClientKeyContent")
+	config.DefaultNetworkTimeout = func() time.Duration { return 0 }
+	assert.Equal(t, configDefaultNetworkTimeoutExpected, configDefaultNetworkTimeoutCalled, "Unexpected number of calls to configDefaultNetworkTimeout")
 	certificateInitialize = certificate.Initialize
 	assert.Equal(t, certificateInitializeExpected, certificateInitializeCalled, "Unexpected number of calls to certificateInitialize")
 	apperrorInitialize = apperror.Initialize
 	assert.Equal(t, apperrorInitializeExpected, apperrorInitializeCalled, "Unexpected number of calls to apperrorInitialize")
+	networkInitialize = network.Initialize
+	assert.Equal(t, networkInitializeExpected, networkInitializeCalled, "Unexpected number of calls to networkInitialize")
 	loggerInitialize = logger.Initialize
 	assert.Equal(t, loggerInitializeExpected, loggerInitializeCalled, "Unexpected number of calls to loggerInitialize")
 	loggerAppRoot = logger.AppRoot

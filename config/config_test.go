@@ -6,6 +6,7 @@ import (
 	"math/rand"
 	"reflect"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
@@ -186,6 +187,57 @@ func TestDefaultCaCertContent(t *testing.T) {
 	verifyAll(t)
 }
 
+func TestDefaultSendClientCert(t *testing.T) {
+	// arrange
+	var expectedResult = false
+
+	// mock
+	createMock(t)
+
+	// SUT + act
+	var result = defaultSendClientCert()
+
+	// assert
+	assert.Equal(t, expectedResult, result)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestDefaultClientCertContent(t *testing.T) {
+	// arrange
+	var expectedResult = ""
+
+	// mock
+	createMock(t)
+
+	// SUT + act
+	var result = defaultClientCertContent()
+
+	// assert
+	assert.Equal(t, expectedResult, result)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestDefaultClientKeyContent(t *testing.T) {
+	// arrange
+	var expectedResult = ""
+
+	// mock
+	createMock(t)
+
+	// SUT + act
+	var result = defaultClientKeyContent()
+
+	// assert
+	assert.Equal(t, expectedResult, result)
+
+	// verify
+	verifyAll(t)
+}
+
 func TestDefaultAllowedLogType(t *testing.T) {
 	// arrange
 	var expectedResult = logtype.BasicLogging
@@ -212,6 +264,23 @@ func TestDefaultAllowedLogLevel(t *testing.T) {
 
 	// SUT + act
 	var result = defaultAllowedLogLevel()
+
+	// assert
+	assert.Equal(t, expectedResult, result)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestDefaultNetworkTimeout(t *testing.T) {
+	// arrange
+	var expectedResult = 3 * time.Minute
+
+	// mock
+	createMock(t)
+
+	// SUT + act
+	var result = defaultNetworkTimeout()
 
 	// assert
 	assert.Equal(t, expectedResult, result)
@@ -988,6 +1057,88 @@ func TestValidateDefaultAllowedLogLevel_ValidFunc(t *testing.T) {
 	assert.Equal(t, dummyDefaultFuncExpected, dummyDefaultFuncCalled, "Unexpected number of calls to dummyDefaultFunc")
 }
 
+func TestValidateDefaultNetworkTimeout_NilFunc(t *testing.T) {
+	// arrange
+	var dummyCustomizedFuncExpected int
+	var dummyCustomizedFuncCalled int
+	var dummyCustomizedFunc func() time.Duration
+	var dummyDefaultFuncExpected int
+	var dummyDefaultFuncCalled int
+	var dummyDefaultFuncReturn = time.Duration(rand.Intn(255))
+	var dummyMessageFormat = "customization.DefaultNetworkTimeout function is not configured; fallback to default [%v]."
+	var dummyAppError = apperror.GetCustomError(0, "")
+
+	// mock
+	createMock(t)
+
+	// expect
+	dummyDefaultFuncExpected = 1
+	var dummyDefaultFunc = func() time.Duration {
+		dummyDefaultFuncCalled++
+		return dummyDefaultFuncReturn
+	}
+	apperrorGetCustomErrorExpected = 1
+	apperrorGetCustomError = func(errorCode apperrorEnum.Code, messageFormat string, parameters ...interface{}) apperrorModel.AppError {
+		apperrorGetCustomErrorCalled++
+		assert.Equal(t, apperrorEnum.CodeGeneralFailure, errorCode)
+		assert.Equal(t, dummyMessageFormat, messageFormat)
+		assert.Equal(t, 1, len(parameters))
+		assert.Equal(t, dummyDefaultFuncReturn, parameters[0])
+		return dummyAppError
+	}
+
+	// SUT + act
+	var result, err = validateDefaultNetworkTimeout(
+		dummyCustomizedFunc,
+		dummyDefaultFunc,
+	)
+
+	// assert
+	assert.Equal(t, fmt.Sprintf("%v", reflect.ValueOf(dummyDefaultFunc)), fmt.Sprintf("%v", reflect.ValueOf(result)))
+	assert.Equal(t, dummyAppError, err)
+
+	// verify
+	verifyAll(t)
+	assert.Equal(t, dummyCustomizedFuncExpected, dummyCustomizedFuncCalled, "Unexpected number of calls to dummyCustomizedFunc")
+	assert.Equal(t, dummyDefaultFuncExpected, dummyDefaultFuncCalled, "Unexpected number of calls to dummyDefaultFunc")
+}
+
+func TestValidateDefaultNetworkTimeout_ValidFunc(t *testing.T) {
+	// arrange
+	var dummyCustomizedFuncExpected int
+	var dummyCustomizedFuncCalled int
+	var dummyCustomizedFuncReturn = time.Duration(rand.Intn(255))
+	var dummyCustomizedFunc = func() time.Duration {
+		dummyCustomizedFuncCalled++
+		return dummyCustomizedFuncReturn
+	}
+	var dummyDefaultFuncExpected int
+	var dummyDefaultFuncCalled int
+	var dummyDefaultFuncReturn = time.Duration(rand.Intn(255))
+	var dummyDefaultFunc = func() time.Duration {
+		dummyDefaultFuncCalled++
+		return dummyDefaultFuncReturn
+	}
+
+	// mock
+	createMock(t)
+
+	// SUT + act
+	var result, err = validateDefaultNetworkTimeout(
+		dummyCustomizedFunc,
+		dummyDefaultFunc,
+	)
+
+	// assert
+	assert.Equal(t, fmt.Sprintf("%v", reflect.ValueOf(dummyCustomizedFunc)), fmt.Sprintf("%v", reflect.ValueOf(result)))
+	assert.NoError(t, err)
+
+	// verify
+	verifyAll(t)
+	assert.Equal(t, dummyCustomizedFuncExpected, dummyCustomizedFuncCalled, "Unexpected number of calls to dummyCustomizedFunc")
+	assert.Equal(t, dummyDefaultFuncExpected, dummyDefaultFuncCalled, "Unexpected number of calls to dummyDefaultFunc")
+}
+
 func TestIsServerCertificateAvailable_CertEmpty(t *testing.T) {
 	// arrange
 	var serverCertContentExpected int
@@ -1137,6 +1288,103 @@ func TestIsCaCertificateAvailable_NotEmpty(t *testing.T) {
 	assert.Equal(t, caCertContentExpected, caCertContentCalled, "Unexpected number of calls to CaCertContent")
 }
 
+func TestIsClientCertificateAvailable_CertEmpty(t *testing.T) {
+	// arrange
+	var clientCertContentExpected int
+	var clientCertContentCalled int
+	var clientKeyContentExpected int
+	var clientKeyContentCalled int
+
+	// mock
+	createMock(t)
+
+	// expect
+	clientCertContentExpected = 1
+	ClientCertContent = func() string {
+		clientCertContentCalled++
+		return ""
+	}
+
+	// SUT + act
+	var result = isClientCertificateAvailable()
+
+	// assert
+	assert.False(t, result)
+
+	// verify
+	verifyAll(t)
+	assert.Equal(t, clientCertContentExpected, clientCertContentCalled, "Unexpected number of calls to ClientCertContent")
+	assert.Equal(t, clientKeyContentExpected, clientKeyContentCalled, "Unexpected number of calls to ClientKeyContent")
+}
+
+func TestIsClientCertificateAvailable_KeyEmpty(t *testing.T) {
+	// arrange
+	var clientCertContentExpected int
+	var clientCertContentCalled int
+	var clientKeyContentExpected int
+	var clientKeyContentCalled int
+
+	// mock
+	createMock(t)
+
+	// expect
+	clientCertContentExpected = 1
+	ClientCertContent = func() string {
+		clientCertContentCalled++
+		return "some cert content"
+	}
+	clientKeyContentExpected = 1
+	ClientKeyContent = func() string {
+		clientKeyContentCalled++
+		return ""
+	}
+
+	// SUT + act
+	var result = isClientCertificateAvailable()
+
+	// assert
+	assert.False(t, result)
+
+	// verify
+	verifyAll(t)
+	assert.Equal(t, clientCertContentExpected, clientCertContentCalled, "Unexpected number of calls to ClientCertContent")
+	assert.Equal(t, clientKeyContentExpected, clientKeyContentCalled, "Unexpected number of calls to ClientKeyContent")
+}
+
+func TestIsClientCertificateAvailable_NotEmpty(t *testing.T) {
+	// arrange
+	var clientCertContentExpected int
+	var clientCertContentCalled int
+	var clientKeyContentExpected int
+	var clientKeyContentCalled int
+
+	// mock
+	createMock(t)
+
+	// expect
+	clientCertContentExpected = 1
+	ClientCertContent = func() string {
+		clientCertContentCalled++
+		return "some cert content"
+	}
+	clientKeyContentExpected = 1
+	ClientKeyContent = func() string {
+		clientKeyContentCalled++
+		return "some key content"
+	}
+
+	// SUT + act
+	var result = isClientCertificateAvailable()
+
+	// assert
+	assert.True(t, result)
+
+	// verify
+	verifyAll(t)
+	assert.Equal(t, clientCertContentExpected, clientCertContentCalled, "Unexpected number of calls to ClientCertContent")
+	assert.Equal(t, clientKeyContentExpected, clientKeyContentCalled, "Unexpected number of calls to ClientKeyContent")
+}
+
 func TestInitialize(t *testing.T) {
 	// arrange
 	var expectedValidateStringFunctionFuncParameter1 = []string{
@@ -1147,6 +1395,8 @@ func TestInitialize(t *testing.T) {
 		fmt.Sprintf("%v", reflect.ValueOf(customization.ServerCertContent)),
 		fmt.Sprintf("%v", reflect.ValueOf(customization.ServerKeyContent)),
 		fmt.Sprintf("%v", reflect.ValueOf(customization.CaCertContent)),
+		fmt.Sprintf("%v", reflect.ValueOf(customization.ClientCertContent)),
+		fmt.Sprintf("%v", reflect.ValueOf(customization.ClientKeyContent)),
 	}
 	var expectedValidateStringFunctionFuncParameter2 = []string{
 		"AppVersion",
@@ -1156,6 +1406,8 @@ func TestInitialize(t *testing.T) {
 		"ServerCertContent",
 		"ServerKeyContent",
 		"CaCertContent",
+		"ClientCertContent",
+		"ClientKeyContent",
 	}
 	var expectedValidateStringFunctionFuncParameter3 = []string{
 		fmt.Sprintf("%v", reflect.ValueOf(defaultAppVersion)),
@@ -1165,6 +1417,8 @@ func TestInitialize(t *testing.T) {
 		fmt.Sprintf("%v", reflect.ValueOf(defaultServerCertContent)),
 		fmt.Sprintf("%v", reflect.ValueOf(defaultServerKeyContent)),
 		fmt.Sprintf("%v", reflect.ValueOf(defaultCaCertContent)),
+		fmt.Sprintf("%v", reflect.ValueOf(defaultClientCertContent)),
+		fmt.Sprintf("%v", reflect.ValueOf(defaultClientKeyContent)),
 	}
 	var expectedValidateStringFunctionFuncReturn1 = []func() string{
 		defaultAppVersion,
@@ -1174,6 +1428,8 @@ func TestInitialize(t *testing.T) {
 		defaultServerCertContent,
 		defaultServerKeyContent,
 		defaultCaCertContent,
+		defaultClientCertContent,
+		defaultClientKeyContent,
 	}
 	var expectedValidateStringFunctionFuncReturn2 = []error{
 		errors.New("some AppVersion error"),
@@ -1183,41 +1439,51 @@ func TestInitialize(t *testing.T) {
 		errors.New("some ServerCertContent error"),
 		errors.New("some ServerKeyContent error"),
 		errors.New("some CaCertContent error"),
+		errors.New("some ClientCertContent error"),
+		errors.New("some ClientKeyContent error"),
 	}
 	var expectedValidateBooleanFunctionFuncParameter1 = []string{
 		fmt.Sprintf("%v", reflect.ValueOf(customization.IsLocalhost)),
 		fmt.Sprintf("%v", reflect.ValueOf(customization.ServeHTTPS)),
 		fmt.Sprintf("%v", reflect.ValueOf(customization.ValidateClientCert)),
+		fmt.Sprintf("%v", reflect.ValueOf(customization.SendClientCert)),
 	}
 	var expectedValidateBooleanFunctionFuncParameter2 = []string{
 		"IsLocalhost",
 		"ServeHTTPS",
 		"ValidateClientCert",
+		"SendClientCert",
 	}
 	var expectedValidateBooleanFunctionFuncParameter3 = []string{
 		fmt.Sprintf("%v", reflect.ValueOf(defaultIsLocalhost)),
 		fmt.Sprintf("%v", reflect.ValueOf(defaultServeHTTPS)),
 		fmt.Sprintf("%v", reflect.ValueOf(defaultValidateClientCert)),
+		fmt.Sprintf("%v", reflect.ValueOf(defaultSendClientCert)),
 	}
 	var dummyIsServerCertificateAvailable = rand.Intn(100) < 50
 	var dummyIsCaCertificateAvailable = rand.Intn(100) < 50
+	var dummyIsClientCertificateAvailable = rand.Intn(100) < 50
 	var expectedValidateBooleanFunctionFuncParameter4 = []bool{
 		false,
 		!dummyIsServerCertificateAvailable,
 		!dummyIsCaCertificateAvailable,
+		!dummyIsClientCertificateAvailable,
 	}
 	var expectedValidateBooleanFunctionFuncReturn1 = []func() bool{
 		defaultIsLocalhost,
 		defaultServeHTTPS,
 		defaultValidateClientCert,
+		defaultSendClientCert,
 	}
 	var expectedValidateBooleanFunctionFuncReturn2 = []error{
 		errors.New("some IsLocalhost error"),
 		errors.New("some ServeHTTPS error"),
 		errors.New("some ValidateClientCert error"),
+		errors.New("some SendClientCert error"),
 	}
 	var expectedDefaultAllowedLogTypeError = errors.New("some default allowed log type error")
 	var expectedDefaultAllowedLogLevelError = errors.New("some default allowed log level error")
+	var expectedDefaultNetworkTimeoutError = errors.New("some default network timeout error")
 	var dummyMessageFormat = "Unexpected errors occur during configuration initialization"
 	var dummyAppError = apperror.GetCustomError(0, "")
 
@@ -1225,7 +1491,7 @@ func TestInitialize(t *testing.T) {
 	createMock(t)
 
 	// expect
-	validateStringFunctionFuncExpected = 7
+	validateStringFunctionFuncExpected = 9
 	validateStringFunctionFunc = func(stringFunc func() string, name string, defaultFunc func() string, forceToDefault bool) (func() string, error) {
 		validateStringFunctionFuncCalled++
 		assert.Equal(t, expectedValidateStringFunctionFuncParameter1[validateStringFunctionFuncCalled-1], fmt.Sprintf("%v", reflect.ValueOf(stringFunc)))
@@ -1235,7 +1501,7 @@ func TestInitialize(t *testing.T) {
 		return expectedValidateStringFunctionFuncReturn1[validateStringFunctionFuncCalled-1],
 			expectedValidateStringFunctionFuncReturn2[validateStringFunctionFuncCalled-1]
 	}
-	validateBooleanFunctionFuncExpected = 3
+	validateBooleanFunctionFuncExpected = 4
 	validateBooleanFunctionFunc = func(booleanFunc func() bool, name string, defaultFunc func() bool, forceToDefault bool) (func() bool, error) {
 		validateBooleanFunctionFuncCalled++
 		assert.Equal(t, expectedValidateBooleanFunctionFuncParameter1[validateBooleanFunctionFuncCalled-1], fmt.Sprintf("%v", reflect.ValueOf(booleanFunc)))
@@ -1255,6 +1521,11 @@ func TestInitialize(t *testing.T) {
 		isCaCertificateAvailableFuncCalled++
 		return dummyIsCaCertificateAvailable
 	}
+	isClientCertificateAvailableFuncExpected = 1
+	isClientCertificateAvailableFunc = func() bool {
+		isClientCertificateAvailableFuncCalled++
+		return dummyIsClientCertificateAvailable
+	}
 	validateDefaultAllowedLogTypeFuncExpected = 1
 	validateDefaultAllowedLogTypeFunc = func(customizedFunc func() logtype.LogType, defaultFunc func() logtype.LogType) (func() logtype.LogType, error) {
 		validateDefaultAllowedLogTypeFuncCalled++
@@ -1269,10 +1540,17 @@ func TestInitialize(t *testing.T) {
 		assert.Equal(t, fmt.Sprintf("%v", reflect.ValueOf(defaultAllowedLogLevel)), fmt.Sprintf("%v", reflect.ValueOf(defaultFunc)))
 		return defaultAllowedLogLevel, expectedDefaultAllowedLogLevelError
 	}
+	validateDefaultNetworkTimeoutFuncExpected = 1
+	validateDefaultNetworkTimeoutFunc = func(customizedFunc func() time.Duration, defaultFunc func() time.Duration) (func() time.Duration, error) {
+		validateDefaultNetworkTimeoutFuncCalled++
+		assert.Equal(t, fmt.Sprintf("%v", reflect.ValueOf(customization.DefaultNetworkTimeout)), fmt.Sprintf("%v", reflect.ValueOf(customizedFunc)))
+		assert.Equal(t, fmt.Sprintf("%v", reflect.ValueOf(defaultNetworkTimeout)), fmt.Sprintf("%v", reflect.ValueOf(defaultFunc)))
+		return defaultNetworkTimeout, expectedDefaultNetworkTimeoutError
+	}
 	apperrorWrapSimpleErrorExpected = 1
 	apperrorWrapSimpleError = func(innerErrors []error, messageFormat string, parameters ...interface{}) apperrorModel.AppError {
 		apperrorWrapSimpleErrorCalled++
-		assert.Equal(t, 12, len(innerErrors))
+		assert.Equal(t, 16, len(innerErrors))
 		assert.Equal(t, expectedValidateStringFunctionFuncReturn2[0], innerErrors[0])
 		assert.Equal(t, expectedValidateStringFunctionFuncReturn2[1], innerErrors[1])
 		assert.Equal(t, expectedValidateStringFunctionFuncReturn2[2], innerErrors[2])
@@ -1283,8 +1561,12 @@ func TestInitialize(t *testing.T) {
 		assert.Equal(t, expectedValidateBooleanFunctionFuncReturn2[1], innerErrors[7])
 		assert.Equal(t, expectedValidateStringFunctionFuncReturn2[6], innerErrors[8])
 		assert.Equal(t, expectedValidateBooleanFunctionFuncReturn2[2], innerErrors[9])
-		assert.Equal(t, expectedDefaultAllowedLogTypeError, innerErrors[10])
-		assert.Equal(t, expectedDefaultAllowedLogLevelError, innerErrors[11])
+		assert.Equal(t, expectedValidateStringFunctionFuncReturn2[7], innerErrors[10])
+		assert.Equal(t, expectedValidateStringFunctionFuncReturn2[8], innerErrors[11])
+		assert.Equal(t, expectedValidateBooleanFunctionFuncReturn2[3], innerErrors[12])
+		assert.Equal(t, expectedDefaultAllowedLogTypeError, innerErrors[13])
+		assert.Equal(t, expectedDefaultAllowedLogLevelError, innerErrors[14])
+		assert.Equal(t, expectedDefaultNetworkTimeoutError, innerErrors[15])
 		assert.Equal(t, dummyMessageFormat, messageFormat)
 		assert.Equal(t, 0, len(parameters))
 		return dummyAppError

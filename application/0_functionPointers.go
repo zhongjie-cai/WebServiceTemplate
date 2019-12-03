@@ -5,6 +5,7 @@ import (
 	"github.com/zhongjie-cai/WebServiceTemplate/certificate"
 	"github.com/zhongjie-cai/WebServiceTemplate/config"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger"
+	"github.com/zhongjie-cai/WebServiceTemplate/network"
 	"github.com/zhongjie-cai/WebServiceTemplate/server"
 )
 
@@ -13,6 +14,7 @@ var (
 	configInitialize          = config.Initialize
 	certificateInitialize     = certificate.Initialize
 	apperrorInitialize        = apperror.Initialize
+	networkInitialize         = network.Initialize
 	loggerInitialize          = logger.Initialize
 	loggerAppRoot             = logger.AppRoot
 	serverHost                = server.Host
