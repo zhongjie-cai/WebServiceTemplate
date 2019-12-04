@@ -46,7 +46,7 @@ func TestReset(t *testing.T) {
 	Middlewares = func() []serverModel.MiddlewareFunc { return nil }
 	AppErrors = func() (map[apperrorEnum.Code]string, map[apperrorEnum.Code]int) { return nil, nil }
 	HTTPRoundTripper = func(originalTransport http.RoundTripper) http.RoundTripper { return nil }
-	WrapHTTPRequest = func(httpRequest *http.Request) *http.Request { return nil }
+	WrapHTTPRequest = func(session sessionModel.Session, httpRequest *http.Request) *http.Request { return nil }
 	DefaultNetworkTimeout = func() time.Duration { return 0 }
 
 	// mock

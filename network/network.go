@@ -99,11 +99,12 @@ func NewNetworkRequest(
 	}
 }
 
-func customizeHTTPRequest(httpRequest *http.Request) *http.Request {
+func customizeHTTPRequest(session sessionModel.Session, httpRequest *http.Request) *http.Request {
 	if customization.WrapHTTPRequest == nil {
 		return httpRequest
 	}
 	return customization.WrapHTTPRequest(
+		session,
 		httpRequest,
 	)
 }
@@ -148,6 +149,7 @@ func createHTTPRequest(networkRequest *networkRequest) (*http.Request, error) {
 		requestObject.Header.Add(name, value)
 	}
 	return customizeHTTPRequestFunc(
+		networkRequest.session,
 		requestObject,
 	), nil
 }

@@ -204,7 +204,7 @@ func createMock(t *testing.T) {
 	}
 	customizeHTTPRequestFuncExpected = 0
 	customizeHTTPRequestFuncCalled = 0
-	customizeHTTPRequestFunc = func(httpRequest *http.Request) *http.Request {
+	customizeHTTPRequestFunc = func(session sessionModel.Session, httpRequest *http.Request) *http.Request {
 		customizeHTTPRequestFuncCalled++
 		return nil
 	}

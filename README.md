@@ -336,7 +336,7 @@ customization.HTTPRoundTripper = func(originalTransport http.RoundTripper) http.
 This is to enable the 3rd party monitoring libraries, e.g. new relic, to wrap individual HTTP request for better handling of web requests.
 
 ```golang
-customization.WrapHTTPRequest = func(httpRequest *http.Request) *http.Request {
+customization.WrapHTTPRequest = func(session sessionModel.Session, httpRequest *http.Request) *http.Request {
 	return ...
 }
 ```

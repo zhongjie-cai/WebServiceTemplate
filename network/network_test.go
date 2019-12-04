@@ -267,6 +267,7 @@ func TestNewNetworkRequest(t *testing.T) {
 
 func TestCustomizeHTTPRequest_NoCustomization(t *testing.T) {
 	// arrange
+	var dummySessionObject = &dummySession{t}
 	var dummyHTTPRequest = &http.Request{
 		RequestURI: "foo",
 	}
@@ -276,6 +277,7 @@ func TestCustomizeHTTPRequest_NoCustomization(t *testing.T) {
 
 	// SUT + act
 	var result = customizeHTTPRequest(
+		dummySessionObject,
 		dummyHTTPRequest,
 	)
 
@@ -288,6 +290,7 @@ func TestCustomizeHTTPRequest_NoCustomization(t *testing.T) {
 
 func TestCustomizeHTTPRequest_WithCustomization(t *testing.T) {
 	// arrange
+	var dummySessionObject = &dummySession{t}
 	var dummyHTTPRequest = &http.Request{
 		RequestURI: "foo",
 	}
@@ -300,7 +303,7 @@ func TestCustomizeHTTPRequest_WithCustomization(t *testing.T) {
 
 	// expect
 	customizationWrapHTTPRequestExpected = 1
-	customization.WrapHTTPRequest = func(httpRequest *http.Request) *http.Request {
+	customization.WrapHTTPRequest = func(session sessionModel.Session, httpRequest *http.Request) *http.Request {
 		customizationWrapHTTPRequestCalled++
 		assert.Equal(t, dummyHTTPRequest, httpRequest)
 		return dummyCustomized
@@ -308,6 +311,7 @@ func TestCustomizeHTTPRequest_WithCustomization(t *testing.T) {
 
 	// SUT + act
 	var result = customizeHTTPRequest(
+		dummySessionObject,
 		dummyHTTPRequest,
 	)
 
@@ -446,8 +450,9 @@ func TestCreateHTTPRequest_Success(t *testing.T) {
 		}
 	}
 	customizeHTTPRequestFuncExpected = 1
-	customizeHTTPRequestFunc = func(httpRequest *http.Request) *http.Request {
+	customizeHTTPRequestFunc = func(session sessionModel.Session, httpRequest *http.Request) *http.Request {
 		customizeHTTPRequestFuncCalled++
+		assert.Equal(t, dummySessionObject, session)
 		assert.Equal(t, dummyRequest, httpRequest)
 		return dummyCustomized
 	}
