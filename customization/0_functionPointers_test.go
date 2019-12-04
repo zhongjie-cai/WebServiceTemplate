@@ -40,5 +40,6 @@ func verifyAll(t *testing.T) {
 	InstrumentRouter = nil
 	HTTPRoundTripper = nil
 	WrapHTTPRequest = nil
+	DefaultNetworkRetryDelay = nil
 	DefaultNetworkTimeout = nil
 }

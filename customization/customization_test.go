@@ -49,6 +49,7 @@ func TestReset(t *testing.T) {
 	AppErrors = func() (map[apperrorEnum.Code]string, map[apperrorEnum.Code]int) { return nil, nil }
 	HTTPRoundTripper = func(originalTransport http.RoundTripper) http.RoundTripper { return nil }
 	WrapHTTPRequest = func(session sessionModel.Session, httpRequest *http.Request) *http.Request { return nil }
+	DefaultNetworkRetryDelay = func() time.Duration { return 0 }
 	DefaultNetworkTimeout = func() time.Duration { return 0 }
 
 	// mock
@@ -89,6 +90,7 @@ func TestReset(t *testing.T) {
 	assert.Nil(t, AppErrors)
 	assert.Nil(t, HTTPRoundTripper)
 	assert.Nil(t, WrapHTTPRequest)
+	assert.Nil(t, DefaultNetworkRetryDelay)
 	assert.Nil(t, DefaultNetworkTimeout)
 
 	// verify

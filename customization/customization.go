@@ -106,6 +106,9 @@ var HTTPRoundTripper func(originalTransport http.RoundTripper) http.RoundTripper
 // WrapHTTPRequest is to customize the creation of the HTTP request for any network communications through HTTP/HTTPS by session; utilize this method if needed for new relic wrapping, etc.
 var WrapHTTPRequest func(session sessionModel.Session, httpRequest *http.Request) *http.Request
 
+// DefaultNetworkRetryDelay is to customize the default retry delay for any network communications through HTTP/HTTPS by session
+var DefaultNetworkRetryDelay func() time.Duration
+
 // DefaultNetworkTimeout is to customize the default timeout for any network communications through HTTP/HTTPS by session
 var DefaultNetworkTimeout func() time.Duration
 
@@ -142,5 +145,6 @@ func Reset() {
 	AppErrors = nil
 	HTTPRoundTripper = nil
 	WrapHTTPRequest = nil
+	DefaultNetworkRetryDelay = nil
 	DefaultNetworkTimeout = nil
 }

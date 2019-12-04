@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
@@ -24,58 +25,64 @@ import (
 )
 
 var (
-	stringsNewReaderExpected                int
-	stringsNewReaderCalled                  int
-	httpNewRequestExpected                  int
-	httpNewRequestCalled                    int
-	apperrorWrapSimpleErrorExpected         int
-	apperrorWrapSimpleErrorCalled           int
-	loggerNetworkCallExpected               int
-	loggerNetworkCallCalled                 int
-	loggerNetworkRequestExpected            int
-	loggerNetworkRequestCalled              int
-	loggerNetworkResponseExpected           int
-	loggerNetworkResponseCalled             int
-	loggerNetworkFinishExpected             int
-	loggerNetworkFinishCalled               int
-	loggerAppRootExpected                   int
-	loggerAppRootCalled                     int
-	ioutilReadAllExpected                   int
-	ioutilReadAllCalled                     int
-	strconvItoaExpected                     int
-	strconvItoaCalled                       int
-	ioutilNopCloserExpected                 int
-	ioutilNopCloserCalled                   int
-	bytesNewBufferExpected                  int
-	bytesNewBufferCalled                    int
-	createHTTPRequestFuncExpected           int
-	createHTTPRequestFuncCalled             int
-	clientDoFuncExpected                    int
-	clientDoFuncCalled                      int
-	clientDoWithRetryFuncExpected           int
-	clientDoWithRetryFuncCalled             int
-	logErrorResponseFuncExpected            int
-	logErrorResponseFuncCalled              int
-	logHTTPResponseFuncExpected             int
-	logHTTPResponseFuncCalled               int
-	doRequestProcessingFuncExpected         int
-	doRequestProcessingFuncCalled           int
-	jsonUnmarshalExpected                   int
-	jsonUnmarshalCalled                     int
-	parseResponseFuncExpected               int
-	parseResponseFuncCalled                 int
-	certificateGetClientCertificateExpected int
-	certificateGetClientCertificateCalled   int
-	customizeRoundTripperFuncExpected       int
-	customizeRoundTripperFuncCalled         int
-	getHTTPTransportFuncExpected            int
-	getHTTPTransportFuncCalled              int
-	customizeHTTPRequestFuncExpected        int
-	customizeHTTPRequestFuncCalled          int
-	customizationHTTPRoundTripperExpected   int
-	customizationHTTPRoundTripperCalled     int
-	customizationWrapHTTPRequestExpected    int
-	customizationWrapHTTPRequestCalled      int
+	stringsNewReaderExpected                      int
+	stringsNewReaderCalled                        int
+	httpNewRequestExpected                        int
+	httpNewRequestCalled                          int
+	apperrorWrapSimpleErrorExpected               int
+	apperrorWrapSimpleErrorCalled                 int
+	loggerNetworkCallExpected                     int
+	loggerNetworkCallCalled                       int
+	loggerNetworkRequestExpected                  int
+	loggerNetworkRequestCalled                    int
+	loggerNetworkResponseExpected                 int
+	loggerNetworkResponseCalled                   int
+	loggerNetworkFinishExpected                   int
+	loggerNetworkFinishCalled                     int
+	loggerAppRootExpected                         int
+	loggerAppRootCalled                           int
+	ioutilReadAllExpected                         int
+	ioutilReadAllCalled                           int
+	strconvItoaExpected                           int
+	strconvItoaCalled                             int
+	ioutilNopCloserExpected                       int
+	ioutilNopCloserCalled                         int
+	bytesNewBufferExpected                        int
+	bytesNewBufferCalled                          int
+	timeSleepExpected                             int
+	timeSleepCalled                               int
+	customizationDefaultNetworkRetryDelayExpected int
+	customizationDefaultNetworkRetryDelayCalled   int
+	createHTTPRequestFuncExpected                 int
+	createHTTPRequestFuncCalled                   int
+	clientDoFuncExpected                          int
+	clientDoFuncCalled                            int
+	delayForRetryFuncExpected                     int
+	delayForRetryFuncCalled                       int
+	clientDoWithRetryFuncExpected                 int
+	clientDoWithRetryFuncCalled                   int
+	logErrorResponseFuncExpected                  int
+	logErrorResponseFuncCalled                    int
+	logHTTPResponseFuncExpected                   int
+	logHTTPResponseFuncCalled                     int
+	doRequestProcessingFuncExpected               int
+	doRequestProcessingFuncCalled                 int
+	jsonUnmarshalExpected                         int
+	jsonUnmarshalCalled                           int
+	parseResponseFuncExpected                     int
+	parseResponseFuncCalled                       int
+	certificateGetClientCertificateExpected       int
+	certificateGetClientCertificateCalled         int
+	customizeRoundTripperFuncExpected             int
+	customizeRoundTripperFuncCalled               int
+	getHTTPTransportFuncExpected                  int
+	getHTTPTransportFuncCalled                    int
+	customizeHTTPRequestFuncExpected              int
+	customizeHTTPRequestFuncCalled                int
+	customizationHTTPRoundTripperExpected         int
+	customizationHTTPRoundTripperCalled           int
+	customizationWrapHTTPRequestExpected          int
+	customizationWrapHTTPRequestCalled            int
 )
 
 func createMock(t *testing.T) {
@@ -146,6 +153,11 @@ func createMock(t *testing.T) {
 		bytesNewBufferCalled++
 		return nil
 	}
+	timeSleepExpected = 0
+	timeSleepCalled = 0
+	timeSleep = func(d time.Duration) {
+		timeSleepCalled++
+	}
 	createHTTPRequestFuncExpected = 0
 	createHTTPRequestFuncCalled = 0
 	createHTTPRequestFunc = func(networkRequest *networkRequest) (*http.Request, error) {
@@ -157,6 +169,14 @@ func createMock(t *testing.T) {
 	clientDoFunc = func(client *http.Client, request *http.Request) (*http.Response, error) {
 		clientDoFuncCalled++
 		return nil, nil
+	}
+	customizationDefaultNetworkRetryDelayExpected = 0
+	customizationDefaultNetworkRetryDelayCalled = 0
+	customization.DefaultNetworkRetryDelay = nil
+	delayForRetryFuncExpected = 0
+	delayForRetryFuncCalled = 0
+	delayForRetryFunc = func() {
+		delayForRetryFuncCalled++
 	}
 	clientDoWithRetryFuncExpected = 0
 	clientDoWithRetryFuncCalled = 0
@@ -249,10 +269,16 @@ func verifyAll(t *testing.T) {
 	assert.Equal(t, ioutilNopCloserExpected, ioutilNopCloserCalled, "Unexpected number of calls to method ioutilNopCloser")
 	bytesNewBuffer = bytes.NewBuffer
 	assert.Equal(t, bytesNewBufferExpected, bytesNewBufferCalled, "Unexpected number of calls to method bytesNewBuffer")
+	customization.DefaultNetworkRetryDelay = nil
+	assert.Equal(t, customizationDefaultNetworkRetryDelayExpected, customizationDefaultNetworkRetryDelayCalled, "Unexpected number of calls to method timeSleep")
+	timeSleep = time.Sleep
+	assert.Equal(t, timeSleepExpected, timeSleepCalled, "Unexpected number of calls to method customization.DefaultNetworkRetryDelay")
 	createHTTPRequestFunc = createHTTPRequest
 	assert.Equal(t, createHTTPRequestFuncExpected, createHTTPRequestFuncCalled, "Unexpected number of calls to method createHTTPRequestFunc")
 	clientDoFunc = clientDo
 	assert.Equal(t, clientDoFuncExpected, clientDoFuncCalled, "Unexpected number of calls to method clientDoFunc")
+	delayForRetryFunc = delayForRetry
+	assert.Equal(t, delayForRetryFuncExpected, delayForRetryFuncCalled, "Unexpected number of calls to method delayForRetryFunc")
 	clientDoWithRetryFunc = clientDoWithRetry
 	assert.Equal(t, clientDoWithRetryFuncExpected, clientDoWithRetryFuncCalled, "Unexpected number of calls to method clientDoWithRetryFunc")
 	logErrorResponseFunc = logErrorResponse

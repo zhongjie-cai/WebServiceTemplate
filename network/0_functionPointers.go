@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
 	"github.com/zhongjie-cai/WebServiceTemplate/certificate"
@@ -27,8 +28,10 @@ var (
 	strconvItoa                     = strconv.Itoa
 	ioutilNopCloser                 = ioutil.NopCloser
 	bytesNewBuffer                  = bytes.NewBuffer
+	timeSleep                       = time.Sleep
 	createHTTPRequestFunc           = createHTTPRequest
 	clientDoFunc                    = clientDo
+	delayForRetryFunc               = delayForRetry
 	clientDoWithRetryFunc           = clientDoWithRetry
 	logErrorResponseFunc            = logErrorResponse
 	logHTTPResponseFunc             = logHTTPResponse

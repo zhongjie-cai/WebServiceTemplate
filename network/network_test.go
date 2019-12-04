@@ -43,6 +43,53 @@ func TestClientDo(t *testing.T) {
 	)
 }
 
+func TestDelayForRetry_NoCustomization(t *testing.T) {
+	// arrange
+	var dummyDelay = 3 * time.Second
+
+	// mock
+	createMock(t)
+
+	// expect
+	timeSleepExpected = 1
+	timeSleep = func(d time.Duration) {
+		timeSleepCalled++
+		assert.Equal(t, dummyDelay, d)
+	}
+
+	// SUT + act
+	delayForRetry()
+
+	// verify
+	verifyAll(t)
+}
+
+func TestDelayForRetry_WithCustomization(t *testing.T) {
+	// arrange
+	var dummyDelay = time.Duration(rand.Int())
+
+	// mock
+	createMock(t)
+
+	// expect
+	customizationDefaultNetworkRetryDelayExpected = 1
+	customization.DefaultNetworkRetryDelay = func() time.Duration {
+		customizationDefaultNetworkRetryDelayCalled++
+		return dummyDelay
+	}
+	timeSleepExpected = 1
+	timeSleep = func(d time.Duration) {
+		timeSleepCalled++
+		assert.Equal(t, dummyDelay, d)
+	}
+
+	// SUT + act
+	delayForRetry()
+
+	// verify
+	verifyAll(t)
+}
+
 func TestClientDoWithRetry_ConnError_NoRetry(t *testing.T) {
 	// arrange
 	var dummyClient = &http.Client{}
@@ -105,6 +152,10 @@ func TestClientDoWithRetry_ConnError_RetryOK(t *testing.T) {
 		}
 		return nil, nil
 	}
+	delayForRetryFuncExpected = 1
+	delayForRetryFunc = func() {
+		delayForRetryFuncCalled++
+	}
 
 	// SUT + act
 	var result, err = clientDoWithRetry(
@@ -141,6 +192,10 @@ func TestClientDoWithRetry_ConnError_RetryFail(t *testing.T) {
 		assert.Equal(t, dummyClient, client)
 		assert.Equal(t, dummyRequestObject, request)
 		return dummyResponseObject, dummyResponseError
+	}
+	delayForRetryFuncExpected = 2
+	delayForRetryFunc = func() {
+		delayForRetryFuncCalled++
 	}
 
 	// SUT + act
@@ -261,6 +316,10 @@ func TestClientDoWithRetry_HTTPError_RetryOK(t *testing.T) {
 		}
 		return nil, nil
 	}
+	delayForRetryFuncExpected = 1
+	delayForRetryFunc = func() {
+		delayForRetryFuncCalled++
+	}
 
 	// SUT + act
 	var result, err = clientDoWithRetry(
@@ -301,6 +360,10 @@ func TestClientDoWithRetry_HTTPError_RetryFail(t *testing.T) {
 		assert.Equal(t, dummyClient, client)
 		assert.Equal(t, dummyRequestObject, request)
 		return dummyResponseObject, nil
+	}
+	delayForRetryFuncExpected = 2
+	delayForRetryFunc = func() {
+		delayForRetryFuncCalled++
 	}
 
 	// SUT + act

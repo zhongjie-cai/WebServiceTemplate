@@ -13,6 +13,7 @@ import (
 
 var (
 	httpClient *http.Client
+	retryDelay = 3 * time.Second
 )
 
 func clientDo(
@@ -22,6 +23,13 @@ func clientDo(
 	return httpClient.Do(
 		httpRequest,
 	)
+}
+
+func delayForRetry() {
+	if customization.DefaultNetworkRetryDelay != nil {
+		retryDelay = customization.DefaultNetworkRetryDelay()
+	}
+	timeSleep(retryDelay)
 }
 
 func clientDoWithRetry(
@@ -51,6 +59,7 @@ func clientDoWithRetry(
 		} else {
 			break
 		}
+		delayForRetryFunc()
 	}
 	return responseObject, responseError
 }
