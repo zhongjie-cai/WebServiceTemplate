@@ -24,6 +24,37 @@ func clientDo(
 	)
 }
 
+func clientDoWithRetry(
+	httpClient *http.Client,
+	httpRequest *http.Request,
+	connectivityRetryCount int,
+	httpStatusRetryCount map[int]int,
+) (*http.Response, error) {
+	var responseObject *http.Response
+	var responseError error
+	for {
+		responseObject, responseError = clientDoFunc(
+			httpClient,
+			httpRequest,
+		)
+		if responseError != nil {
+			if connectivityRetryCount <= 0 {
+				break
+			}
+			connectivityRetryCount--
+		} else if responseObject != nil {
+			var retry, found = httpStatusRetryCount[responseObject.StatusCode]
+			if !found || retry <= 0 {
+				break
+			}
+			httpStatusRetryCount[responseObject.StatusCode] = retry - 1
+		} else {
+			break
+		}
+	}
+	return responseObject, responseError
+}
+
 func customizeRoundTripper(original http.RoundTripper) http.RoundTripper {
 	if customization.HTTPRoundTripper == nil {
 		return original
@@ -75,11 +106,13 @@ func Initialize(
 }
 
 type networkRequest struct {
-	session sessionModel.Session
-	method  string
-	url     string
-	payload string
-	header  map[string]string
+	session   sessionModel.Session
+	method    string
+	url       string
+	payload   string
+	header    map[string]string
+	connRetry int
+	httpRetry map[int]int
 }
 
 // NewNetworkRequest creates a new network request for consumer to use
@@ -96,7 +129,15 @@ func NewNetworkRequest(
 		url,
 		payload,
 		header,
+		0,
+		nil,
 	}
+}
+
+// EnableRetry sets up automatic retry upon error of specific HTTP status codes; each entry maps an HTTP status code to how many times retry should happen if code matches; 0 stands for error not mapped to an HTTP status code, e.g. network or connectivity issue
+func (networkRequest *networkRequest) EnableRetry(connectivityRetryCount int, httpStatusRetryCount map[int]int) {
+	networkRequest.connRetry = connectivityRetryCount
+	networkRequest.httpRetry = httpStatusRetryCount
 }
 
 func customizeHTTPRequest(session sessionModel.Session, httpRequest *http.Request) *http.Request {
@@ -217,9 +258,11 @@ func doRequestProcessing(networkRequest *networkRequest) (*http.Response, error)
 	if requestError != nil {
 		return nil, requestError
 	}
-	var responseObject, responseError = clientDoFunc(
+	var responseObject, responseError = clientDoWithRetryFunc(
 		httpClient,
 		requestObject,
+		networkRequest.connRetry,
+		networkRequest.httpRetry,
 	)
 	if responseError != nil {
 		logErrorResponseFunc(

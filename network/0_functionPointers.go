@@ -29,6 +29,7 @@ var (
 	bytesNewBuffer                  = bytes.NewBuffer
 	createHTTPRequestFunc           = createHTTPRequest
 	clientDoFunc                    = clientDo
+	clientDoWithRetryFunc           = clientDoWithRetry
 	logErrorResponseFunc            = logErrorResponse
 	logHTTPResponseFunc             = logHTTPResponse
 	doRequestProcessingFunc         = doRequestProcessing

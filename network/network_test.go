@@ -43,6 +43,282 @@ func TestClientDo(t *testing.T) {
 	)
 }
 
+func TestClientDoWithRetry_ConnError_NoRetry(t *testing.T) {
+	// arrange
+	var dummyClient = &http.Client{}
+	var dummyRequestObject = &http.Request{}
+	var dummyConnRetry = 0
+	var dummyHTTPRetry = map[int]int{}
+	var dummyResponseObject = &http.Response{}
+	var dummyResponseError = errors.New("some error")
+
+	// mock
+	createMock(t)
+
+	// expect
+	clientDoFuncExpected = 1
+	clientDoFunc = func(client *http.Client, request *http.Request) (*http.Response, error) {
+		clientDoFuncCalled++
+		assert.Equal(t, dummyClient, client)
+		assert.Equal(t, dummyRequestObject, request)
+		return dummyResponseObject, dummyResponseError
+	}
+
+	// SUT + act
+	var result, err = clientDoWithRetry(
+		dummyClient,
+		dummyRequestObject,
+		dummyConnRetry,
+		dummyHTTPRetry,
+	)
+
+	// assert
+	assert.Equal(t, dummyResponseObject, result)
+	assert.Equal(t, dummyResponseError, err)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestClientDoWithRetry_ConnError_RetryOK(t *testing.T) {
+	// arrange
+	var dummyClient = &http.Client{}
+	var dummyRequestObject = &http.Request{}
+	var dummyConnRetry = 2
+	var dummyHTTPRetry = map[int]int{}
+	var dummyResponseObject = &http.Response{}
+	var dummyResponseError = errors.New("some error")
+
+	// mock
+	createMock(t)
+
+	// expect
+	clientDoFuncExpected = 2
+	clientDoFunc = func(client *http.Client, request *http.Request) (*http.Response, error) {
+		clientDoFuncCalled++
+		assert.Equal(t, dummyClient, client)
+		assert.Equal(t, dummyRequestObject, request)
+		if clientDoFuncCalled == 1 {
+			return dummyResponseObject, dummyResponseError
+		} else if clientDoFuncCalled == 2 {
+			return dummyResponseObject, nil
+		}
+		return nil, nil
+	}
+
+	// SUT + act
+	var result, err = clientDoWithRetry(
+		dummyClient,
+		dummyRequestObject,
+		dummyConnRetry,
+		dummyHTTPRetry,
+	)
+
+	// assert
+	assert.Equal(t, dummyResponseObject, result)
+	assert.NoError(t, err)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestClientDoWithRetry_ConnError_RetryFail(t *testing.T) {
+	// arrange
+	var dummyClient = &http.Client{}
+	var dummyRequestObject = &http.Request{}
+	var dummyConnRetry = 2
+	var dummyHTTPRetry = map[int]int{}
+	var dummyResponseObject = &http.Response{}
+	var dummyResponseError = errors.New("some error")
+
+	// mock
+	createMock(t)
+
+	// expect
+	clientDoFuncExpected = 3
+	clientDoFunc = func(client *http.Client, request *http.Request) (*http.Response, error) {
+		clientDoFuncCalled++
+		assert.Equal(t, dummyClient, client)
+		assert.Equal(t, dummyRequestObject, request)
+		return dummyResponseObject, dummyResponseError
+	}
+
+	// SUT + act
+	var result, err = clientDoWithRetry(
+		dummyClient,
+		dummyRequestObject,
+		dummyConnRetry,
+		dummyHTTPRetry,
+	)
+
+	// assert
+	assert.Equal(t, dummyResponseObject, result)
+	assert.Equal(t, dummyResponseError, err)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestClientDoWithRetry_HTTPError_NilResponse(t *testing.T) {
+	// arrange
+	var dummyClient = &http.Client{}
+	var dummyRequestObject = &http.Request{}
+	var dummyConnRetry = rand.Int()
+	var dummyHTTPRetry = map[int]int{}
+	var dummyResponseObject *http.Response
+
+	// mock
+	createMock(t)
+
+	// expect
+	clientDoFuncExpected = 1
+	clientDoFunc = func(client *http.Client, request *http.Request) (*http.Response, error) {
+		clientDoFuncCalled++
+		assert.Equal(t, dummyClient, client)
+		assert.Equal(t, dummyRequestObject, request)
+		return dummyResponseObject, nil
+	}
+
+	// SUT + act
+	var result, err = clientDoWithRetry(
+		dummyClient,
+		dummyRequestObject,
+		dummyConnRetry,
+		dummyHTTPRetry,
+	)
+
+	// assert
+	assert.Equal(t, dummyResponseObject, result)
+	assert.NoError(t, err)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestClientDoWithRetry_HTTPError_NoRetry(t *testing.T) {
+	// arrange
+	var dummyClient = &http.Client{}
+	var dummyRequestObject = &http.Request{}
+	var dummyConnRetry = rand.Int()
+	var dummyHTTPRetry = map[int]int{}
+	var dummyResponseObject = &http.Response{}
+
+	// mock
+	createMock(t)
+
+	// expect
+	clientDoFuncExpected = 1
+	clientDoFunc = func(client *http.Client, request *http.Request) (*http.Response, error) {
+		clientDoFuncCalled++
+		assert.Equal(t, dummyClient, client)
+		assert.Equal(t, dummyRequestObject, request)
+		return dummyResponseObject, nil
+	}
+
+	// SUT + act
+	var result, err = clientDoWithRetry(
+		dummyClient,
+		dummyRequestObject,
+		dummyConnRetry,
+		dummyHTTPRetry,
+	)
+
+	// assert
+	assert.Equal(t, dummyResponseObject, result)
+	assert.NoError(t, err)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestClientDoWithRetry_HTTPError_RetryOK(t *testing.T) {
+	// arrange
+	var dummyClient = &http.Client{}
+	var dummyRequestObject = &http.Request{}
+	var dummyConnRetry = rand.Int()
+	var dummyStatusCode = rand.Int()
+	var dummyHTTPRetry = map[int]int{
+		dummyStatusCode: 2,
+	}
+	var dummyResponseObject1 = &http.Response{
+		StatusCode: dummyStatusCode,
+	}
+	var dummyResponseObject2 = &http.Response{}
+
+	// mock
+	createMock(t)
+
+	// expect
+	clientDoFuncExpected = 2
+	clientDoFunc = func(client *http.Client, request *http.Request) (*http.Response, error) {
+		clientDoFuncCalled++
+		assert.Equal(t, dummyClient, client)
+		assert.Equal(t, dummyRequestObject, request)
+		if clientDoFuncCalled == 1 {
+			return dummyResponseObject1, nil
+		} else if clientDoFuncCalled == 2 {
+			return dummyResponseObject2, nil
+		}
+		return nil, nil
+	}
+
+	// SUT + act
+	var result, err = clientDoWithRetry(
+		dummyClient,
+		dummyRequestObject,
+		dummyConnRetry,
+		dummyHTTPRetry,
+	)
+
+	// assert
+	assert.Equal(t, dummyResponseObject2, result)
+	assert.NoError(t, err)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestClientDoWithRetry_HTTPError_RetryFail(t *testing.T) {
+	// arrange
+	var dummyClient = &http.Client{}
+	var dummyRequestObject = &http.Request{}
+	var dummyConnRetry = rand.Int()
+	var dummyStatusCode = rand.Int()
+	var dummyHTTPRetry = map[int]int{
+		dummyStatusCode: 2,
+	}
+	var dummyResponseObject = &http.Response{
+		StatusCode: dummyStatusCode,
+	}
+
+	// mock
+	createMock(t)
+
+	// expect
+	clientDoFuncExpected = 3
+	clientDoFunc = func(client *http.Client, request *http.Request) (*http.Response, error) {
+		clientDoFuncCalled++
+		assert.Equal(t, dummyClient, client)
+		assert.Equal(t, dummyRequestObject, request)
+		return dummyResponseObject, nil
+	}
+
+	// SUT + act
+	var result, err = clientDoWithRetry(
+		dummyClient,
+		dummyRequestObject,
+		dummyConnRetry,
+		dummyHTTPRetry,
+	)
+
+	// assert
+	assert.Equal(t, dummyResponseObject, result)
+	assert.NoError(t, err)
+
+	// verify
+	verifyAll(t)
+}
+
 func TestCustomizeRoundTripper_NoCustomization(t *testing.T) {
 	// arrange
 	var dummyOriginal = http.DefaultTransport
@@ -265,6 +541,34 @@ func TestNewNetworkRequest(t *testing.T) {
 	verifyAll(t)
 }
 
+func TestNetworkRequestEnableRetry(t *testing.T) {
+	// arrange
+	var dummyConnRetry = rand.Int()
+	var dummyHTTPRetry = map[int]int{
+		rand.Int(): rand.Int(),
+		rand.Int(): rand.Int(),
+	}
+
+	// SUT
+	var sut = &networkRequest{}
+
+	// mock
+	createMock(t)
+
+	// act
+	sut.EnableRetry(
+		dummyConnRetry,
+		dummyHTTPRetry,
+	)
+
+	// assert
+	assert.Equal(t, dummyConnRetry, sut.connRetry)
+	assert.Equal(t, dummyHTTPRetry, sut.httpRetry)
+
+	// verify
+	verifyAll(t)
+}
+
 func TestCustomizeHTTPRequest_NoCustomization(t *testing.T) {
 	// arrange
 	var dummySessionObject = &dummySession{t}
@@ -332,12 +636,19 @@ func TestCreateHTTPRequest_RequestError(t *testing.T) {
 		"foo":  "bar",
 		"test": "123",
 	}
+	var dummyConnRetry = rand.Int()
+	var dummyHTTPRetry = map[int]int{
+		rand.Int(): rand.Int(),
+		rand.Int(): rand.Int(),
+	}
 	var dummyNetworkRequest = &networkRequest{
 		dummySessionObject,
 		dummyMethod,
 		dummyURL,
 		dummyPayload,
 		dummyHeader,
+		dummyConnRetry,
+		dummyHTTPRetry,
 	}
 	var dummyRequest *http.Request
 	var dummyError = errors.New("some error message")
@@ -395,12 +706,19 @@ func TestCreateHTTPRequest_Success(t *testing.T) {
 		"foo":  "bar",
 		"test": "123",
 	}
+	var dummyConnRetry = rand.Int()
+	var dummyHTTPRetry = map[int]int{
+		rand.Int(): rand.Int(),
+		rand.Int(): rand.Int(),
+	}
 	var dummyNetworkRequest = &networkRequest{
 		dummySessionObject,
 		dummyMethod,
 		dummyURL,
 		dummyPayload,
 		dummyHeader,
+		dummyConnRetry,
+		dummyHTTPRetry,
 	}
 	var dummyRequest = &http.Request{
 		RequestURI: "abc",
@@ -651,8 +969,15 @@ func TestDoRequestProcessing_RequestError(t *testing.T) {
 func TestDoRequestProcessing_ResponseError(t *testing.T) {
 	// arrange
 	var dummySessionObject = &dummySession{t}
+	var dummyConnRetry = rand.Int()
+	var dummyHTTPRetry = map[int]int{
+		rand.Int(): rand.Int(),
+		rand.Int(): rand.Int(),
+	}
 	var dummyNetworkRequest = &networkRequest{
-		session: dummySessionObject,
+		session:   dummySessionObject,
+		connRetry: dummyConnRetry,
+		httpRetry: dummyHTTPRetry,
 	}
 	var dummyRequestObject = &http.Request{}
 	var dummyResponseObject *http.Response
@@ -671,11 +996,13 @@ func TestDoRequestProcessing_ResponseError(t *testing.T) {
 		assert.Equal(t, dummyNetworkRequest, networkRequest)
 		return dummyRequestObject, nil
 	}
-	clientDoFuncExpected = 1
-	clientDoFunc = func(client *http.Client, request *http.Request) (*http.Response, error) {
-		clientDoFuncCalled++
+	clientDoWithRetryFuncExpected = 1
+	clientDoWithRetryFunc = func(client *http.Client, request *http.Request, connRetry int, httpRetry map[int]int) (*http.Response, error) {
+		clientDoWithRetryFuncCalled++
 		assert.Equal(t, httpClient, client)
 		assert.Equal(t, dummyRequestObject, request)
+		assert.Equal(t, dummyConnRetry, connRetry)
+		assert.Equal(t, dummyHTTPRetry, httpRetry)
 		return dummyResponseObject, dummyResponseError
 	}
 	logErrorResponseFuncExpected = 1
@@ -701,8 +1028,15 @@ func TestDoRequestProcessing_ResponseError(t *testing.T) {
 func TestDoRequestProcessing_ResponseSuccess(t *testing.T) {
 	// arrange
 	var dummySessionObject = &dummySession{t}
+	var dummyConnRetry = rand.Int()
+	var dummyHTTPRetry = map[int]int{
+		rand.Int(): rand.Int(),
+		rand.Int(): rand.Int(),
+	}
 	var dummyNetworkRequest = &networkRequest{
-		session: dummySessionObject,
+		session:   dummySessionObject,
+		connRetry: dummyConnRetry,
+		httpRetry: dummyHTTPRetry,
 	}
 	var dummyRequestObject = &http.Request{}
 	var dummyResponseObject = &http.Response{}
@@ -720,11 +1054,13 @@ func TestDoRequestProcessing_ResponseSuccess(t *testing.T) {
 		assert.Equal(t, dummyNetworkRequest, networkRequest)
 		return dummyRequestObject, nil
 	}
-	clientDoFuncExpected = 1
-	clientDoFunc = func(client *http.Client, request *http.Request) (*http.Response, error) {
-		clientDoFuncCalled++
+	clientDoWithRetryFuncExpected = 1
+	clientDoWithRetryFunc = func(client *http.Client, request *http.Request, connRetry int, httpRetry map[int]int) (*http.Response, error) {
+		clientDoWithRetryFuncCalled++
 		assert.Equal(t, httpClient, client)
 		assert.Equal(t, dummyRequestObject, request)
+		assert.Equal(t, dummyConnRetry, connRetry)
+		assert.Equal(t, dummyHTTPRetry, httpRetry)
 		return dummyResponseObject, nil
 	}
 	logHTTPResponseFuncExpected = 1

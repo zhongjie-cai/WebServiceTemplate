@@ -355,6 +355,10 @@ type dummyNetworkRequest struct {
 	t *testing.T
 }
 
+func (dnr *dummyNetworkRequest) EnableRetry(connectivityRetryCount int, httpStatusRetryCount map[int]int) {
+	assert.Fail(dnr.t, "Unexpected number of calls to EnableRetry")
+}
+
 func (dnr *dummyNetworkRequest) Process(dataTemplate interface{}) (statusCode int, responseHeader http.Header, responseError error) {
 	assert.Fail(dnr.t, "Unexpected number of calls to Process")
 	return 0, nil, nil

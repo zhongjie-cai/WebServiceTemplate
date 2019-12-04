@@ -52,6 +52,8 @@ var (
 	createHTTPRequestFuncCalled             int
 	clientDoFuncExpected                    int
 	clientDoFuncCalled                      int
+	clientDoWithRetryFuncExpected           int
+	clientDoWithRetryFuncCalled             int
 	logErrorResponseFuncExpected            int
 	logErrorResponseFuncCalled              int
 	logHTTPResponseFuncExpected             int
@@ -156,6 +158,12 @@ func createMock(t *testing.T) {
 		clientDoFuncCalled++
 		return nil, nil
 	}
+	clientDoWithRetryFuncExpected = 0
+	clientDoWithRetryFuncCalled = 0
+	clientDoWithRetryFunc = func(client *http.Client, request *http.Request, connRetry int, httpRetry map[int]int) (*http.Response, error) {
+		clientDoWithRetryFuncCalled++
+		return nil, nil
+	}
 	logErrorResponseFuncExpected = 0
 	logErrorResponseFuncCalled = 0
 	logErrorResponseFunc = func(session sessionModel.Session, responseError error) {
@@ -245,6 +253,8 @@ func verifyAll(t *testing.T) {
 	assert.Equal(t, createHTTPRequestFuncExpected, createHTTPRequestFuncCalled, "Unexpected number of calls to method createHTTPRequestFunc")
 	clientDoFunc = clientDo
 	assert.Equal(t, clientDoFuncExpected, clientDoFuncCalled, "Unexpected number of calls to method clientDoFunc")
+	clientDoWithRetryFunc = clientDoWithRetry
+	assert.Equal(t, clientDoWithRetryFuncExpected, clientDoWithRetryFuncCalled, "Unexpected number of calls to method clientDoWithRetryFunc")
 	logErrorResponseFunc = logErrorResponse
 	assert.Equal(t, logErrorResponseFuncExpected, logErrorResponseFuncCalled, "Unexpected number of calls to method logErrorResponseFunc")
 	logHTTPResponseFunc = logHTTPResponse
