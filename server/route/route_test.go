@@ -80,7 +80,6 @@ func TestGetPathTemplate_Error(t *testing.T) {
 
 	// assert
 	assert.Zero(t, result)
-	assert.NotNil(t, err)
 	assert.Equal(t, "mux: route doesn't have a path", err.Error())
 
 	// verify
@@ -129,7 +128,6 @@ func TestGetPathRegexp_Error(t *testing.T) {
 
 	// assert
 	assert.Zero(t, result)
-	assert.NotNil(t, err)
 	assert.Equal(t, "mux: route does not have a path", err.Error())
 
 	// verify

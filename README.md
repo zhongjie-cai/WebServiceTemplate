@@ -285,6 +285,33 @@ if !success {
 }
 ```
 
+# External Web Requests
+
+The library provides a way to send out HTTP/HTTPS requests to external web services based on current session. 
+
+```golang
+...
+
+var networkRequest = session.CreateNetworkRequest(
+	sessionID,
+	HTTP.POST,                       // Method
+	"https://www.example.com/tests", // URL
+	"{\"foo\":\"bar\"}",             // Payload
+	map[string]string{               // Headers
+		"Content-Type": "application/json",
+		"Accept": "application/json",
+	},
+)
+var testSample testSampleStruct
+var statusCode, responseHeader, responseError = networkRequest.Process(
+	&testSample,
+)
+
+...
+```
+
+Using this provided feature ensures the logging of the web service requests into corresponding log type for the given session. 
+
 # Swagger UI
 
 Copy the swagger UI folder "/docs/" from this library to your repository root path.  

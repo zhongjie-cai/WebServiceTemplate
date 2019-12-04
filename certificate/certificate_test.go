@@ -51,7 +51,6 @@ func TestLoadTLSCertificate_ErrorTLSCert(t *testing.T) {
 
 	// assert
 	assert.Nil(t, cert)
-	assert.NotNil(t, err)
 	assert.Equal(t, dummyAppError, err)
 
 	// verify

@@ -161,13 +161,19 @@ func TestListenAndServe_HTTPS(t *testing.T) {
 	createMock(t)
 
 	// SUT + act
-	var err = listenAndServe(
-		dummyServer,
-		dummyServeHTTPS,
-	)
+	assert.NotPanics(
+		t,
+		func() {
+			go listenAndServe(
+				dummyServer,
+				dummyServeHTTPS,
+			)
+			var err = dummyServer.Close()
 
-	// assert
-	assert.NotNil(t, err)
+			// assert
+			assert.NoError(t, err)
+		},
+	)
 
 	// verify
 	verifyAll(t)
@@ -182,13 +188,19 @@ func TestListenAndServe_HTTP(t *testing.T) {
 	createMock(t)
 
 	// SUT + act
-	var err = listenAndServe(
-		dummyServer,
-		dummyServeHTTPS,
-	)
+	assert.NotPanics(
+		t,
+		func() {
+			go listenAndServe(
+				dummyServer,
+				dummyServeHTTPS,
+			)
+			var err = dummyServer.Close()
 
-	// assert
-	assert.NotNil(t, err)
+			// assert
+			assert.NoError(t, err)
+		},
+	)
 
 	// verify
 	verifyAll(t)
