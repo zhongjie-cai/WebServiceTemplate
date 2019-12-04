@@ -288,6 +288,7 @@ if !success {
 # External Web Requests
 
 The library provides a way to send out HTTP/HTTPS requests to external web services based on current session. 
+Using this provided feature ensures the logging of the web service requests into corresponding log type for the given session. 
 
 ```golang
 ...
@@ -310,9 +311,42 @@ var statusCode, responseHeader, responseError = networkRequest.Process(
 ...
 ```
 
-Using this provided feature ensures the logging of the web service requests into corresponding log type for the given session. 
+Network requests would send out client certificate for mTLS communications if the following customization is in place.
 
-# Swagger UI
+```golang
+customization.SendClientCert = func() bool { return true }
+customization.ClientCertContent = func() string { return "your client certificate content" }
+customization.ClientKeyContent = func() string { return "your client key content" }
+```
 
-Copy the swagger UI folder "/docs/" from this library to your repository root path.  
-The "openapi.json" is the swagger definition (in OpenAPI v3 format).  
+Network requests could also be customized for：
+
+## HTTP Client's HTTP Transport (http.RoundTripper)
+
+This is to enable the 3rd party monitoring libraries, e.g. new relic, to wrap the HTTP transport for better handling of network communications. 
+
+```golang
+customization.HTTPRoundTripper = func(originalTransport http.RoundTripper) http.RoundTripper {
+	return ... 
+}
+```
+
+# HTTP Request (http.Request)
+
+This is to enable the 3rd party monitoring libraries, e.g. new relic, to wrap individual HTTP request for better handling of web requests.
+
+```golang
+customization.WrapHTTPRequest = func(httpRequest *http.Request) *http.Request {
+	return ...
+}
+```
+
+# Network Timeout
+
+This is to provide the default HTTP request timeouts for HTTP Client over all network communications.
+
+```golang
+customization.DefaultNetworkTimeout = func() time.Duration {
+	return ...
+}
+```
