@@ -601,6 +601,53 @@ func TestRegisterMiddlewares_ValidMiddlewares(t *testing.T) {
 	assert.Equal(t, MiddlewaresExpected, MiddlewaresCalled, "Unexpected number of calls to Middlewares")
 }
 
+func TestInstrumentRouter_NoCustomization(t *testing.T) {
+	// arrange
+	var dummyRouter = &mux.Router{}
+
+	// mock
+	createMock(t)
+
+	// SUT + act
+	var result = instrumentRouter(
+		dummyRouter,
+	)
+
+	// assert
+	assert.Equal(t, dummyRouter, result)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestInstrumentRouter_WithCustomization(t *testing.T) {
+	// arrange
+	var dummyRouter = &mux.Router{}
+	var dummyCustomizedRouter = &mux.Router{}
+
+	// mock
+	createMock(t)
+
+	// expect
+	customizationInstrumentRouterExpected = 1
+	customization.InstrumentRouter = func(router *mux.Router) *mux.Router {
+		customizationInstrumentRouterCalled++
+		assert.Equal(t, dummyRouter, router)
+		return dummyCustomizedRouter
+	}
+
+	// SUT + act
+	var result = instrumentRouter(
+		dummyRouter,
+	)
+
+	// assert
+	assert.Equal(t, dummyCustomizedRouter, result)
+
+	// verify
+	verifyAll(t)
+}
+
 func TestInstantiate_RouterError(t *testing.T) {
 	// arrange
 	var dummyRouter = &mux.Router{}
@@ -662,6 +709,7 @@ func TestInstantiate_RouterError(t *testing.T) {
 func TestInstantiate_Success(t *testing.T) {
 	// arrange
 	var dummyRouter = &mux.Router{}
+	var dummyInstrumentedRouter = &mux.Router{}
 
 	// mock
 	createMock(t)
@@ -693,12 +741,18 @@ func TestInstantiate_Success(t *testing.T) {
 		assert.Equal(t, dummyRouter, router)
 		return nil
 	}
+	instrumentRouterFuncExpected = 1
+	instrumentRouterFunc = func(router *mux.Router) *mux.Router {
+		instrumentRouterFuncCalled++
+		assert.Equal(t, dummyRouter, router)
+		return dummyInstrumentedRouter
+	}
 
 	// SUT + act
 	var result, err = Instantiate()
 
 	// assert
-	assert.Equal(t, dummyRouter, result)
+	assert.Equal(t, dummyInstrumentedRouter, result)
 	assert.NoError(t, err)
 
 	// verify

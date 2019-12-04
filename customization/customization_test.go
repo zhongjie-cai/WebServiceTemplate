@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
 	apperrorEnum "github.com/zhongjie-cai/WebServiceTemplate/apperror/enum"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger/loglevel"
@@ -44,6 +45,7 @@ func TestReset(t *testing.T) {
 	Routes = func() []serverModel.Route { return nil }
 	Statics = func() []serverModel.Static { return nil }
 	Middlewares = func() []serverModel.MiddlewareFunc { return nil }
+	InstrumentRouter = func(router *mux.Router) *mux.Router { return nil }
 	AppErrors = func() (map[apperrorEnum.Code]string, map[apperrorEnum.Code]int) { return nil, nil }
 	HTTPRoundTripper = func(originalTransport http.RoundTripper) http.RoundTripper { return nil }
 	WrapHTTPRequest = func(session sessionModel.Session, httpRequest *http.Request) *http.Request { return nil }
@@ -83,6 +85,7 @@ func TestReset(t *testing.T) {
 	assert.Nil(t, Routes)
 	assert.Nil(t, Statics)
 	assert.Nil(t, Middlewares)
+	assert.Nil(t, InstrumentRouter)
 	assert.Nil(t, AppErrors)
 	assert.Nil(t, HTTPRoundTripper)
 	assert.Nil(t, WrapHTTPRequest)

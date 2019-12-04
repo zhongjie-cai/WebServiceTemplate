@@ -181,6 +181,13 @@ func registerMiddlewares(
 	}
 }
 
+func instrumentRouter(router *mux.Router) *mux.Router {
+	if customization.InstrumentRouter == nil {
+		return router
+	}
+	return customization.InstrumentRouter(router)
+}
+
 // Instantiate instantiates and registers the given routes according to custom specification
 func Instantiate() (*mux.Router, error) {
 	var router = routeCreateRouter()
@@ -203,5 +210,5 @@ func Instantiate() (*mux.Router, error) {
 				"Failed to instantiate routes",
 			)
 	}
-	return router, nil
+	return instrumentRouterFunc(router), nil
 }

@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/gorilla/mux"
 	apperrorEnum "github.com/zhongjie-cai/WebServiceTemplate/apperror/enum"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger/loglevel"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger/logtype"
@@ -93,6 +94,9 @@ var Statics func() []serverModel.Static
 // Middlewares is to customize the middlewares registration
 var Middlewares func() []serverModel.MiddlewareFunc
 
+// InstrumentRouter is to customize the instrumentation on top of a fully configured router; usually useful for 3rd party monitoring tools such as new relic, etc.
+var InstrumentRouter func(router *mux.Router) *mux.Router
+
 // AppErrors is to append customized AppErrors with their string representations and corresponding HTTP status codes; customized enum must be after apperrorEnum.CodeReservedCount
 var AppErrors func() (map[apperrorEnum.Code]string, map[apperrorEnum.Code]int)
 
@@ -134,6 +138,7 @@ func Reset() {
 	Routes = nil
 	Statics = nil
 	Middlewares = nil
+	InstrumentRouter = nil
 	AppErrors = nil
 	HTTPRoundTripper = nil
 	WrapHTTPRequest = nil

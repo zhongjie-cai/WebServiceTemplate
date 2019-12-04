@@ -28,4 +28,5 @@ var (
 	registerRoutesFunc             = registerRoutes
 	registerStaticsFunc            = registerStatics
 	registerMiddlewaresFunc        = registerMiddlewares
+	instrumentRouterFunc           = instrumentRouter
 )

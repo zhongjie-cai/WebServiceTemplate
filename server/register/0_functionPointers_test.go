@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
 	apperrorModel "github.com/zhongjie-cai/WebServiceTemplate/apperror/model"
+	"github.com/zhongjie-cai/WebServiceTemplate/customization"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger"
 	"github.com/zhongjie-cai/WebServiceTemplate/server/handler"
 	"github.com/zhongjie-cai/WebServiceTemplate/server/model"
@@ -49,6 +50,10 @@ var (
 	registerStaticsFuncCalled              int
 	registerMiddlewaresFuncExpected        int
 	registerMiddlewaresFuncCalled          int
+	instrumentRouterFuncExpected           int
+	instrumentRouterFuncCalled             int
+	customizationInstrumentRouterExpected  int
+	customizationInstrumentRouterCalled    int
 )
 
 func createMock(t *testing.T) {
@@ -142,6 +147,15 @@ func createMock(t *testing.T) {
 	registerMiddlewaresFunc = func(router *mux.Router) {
 		registerMiddlewaresFuncCalled++
 	}
+	instrumentRouterFuncExpected = 0
+	instrumentRouterFuncCalled = 0
+	instrumentRouterFunc = func(router *mux.Router) *mux.Router {
+		instrumentRouterFuncCalled++
+		return nil
+	}
+	customizationInstrumentRouterExpected = 0
+	customizationInstrumentRouterCalled = 0
+	customization.InstrumentRouter = nil
 }
 
 func verifyAll(t *testing.T) {
@@ -177,6 +191,10 @@ func verifyAll(t *testing.T) {
 	assert.Equal(t, registerStaticsFuncExpected, registerStaticsFuncCalled, "Unexpected number of calls to registerStaticsFunc")
 	registerMiddlewaresFunc = registerMiddlewares
 	assert.Equal(t, registerMiddlewaresFuncExpected, registerMiddlewaresFuncCalled, "Unexpected number of calls to registerMiddlewaresFunc")
+	instrumentRouterFunc = instrumentRouter
+	assert.Equal(t, instrumentRouterFuncExpected, instrumentRouterFuncCalled, "Unexpected number of calls to instrumentRouterFunc")
+	customization.InstrumentRouter = nil
+	assert.Equal(t, customizationInstrumentRouterExpected, customizationInstrumentRouterCalled, "Unexpected number of calls to customization.InstrumentRouter")
 }
 
 // mock structs
