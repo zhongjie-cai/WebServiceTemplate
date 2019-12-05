@@ -22,7 +22,7 @@ func TestString_AppRoot(t *testing.T) {
 
 	// assert
 	assert.Equal(t, AppRoot, sut)
-	assert.Equal(t, AppRootName, result)
+	assert.Equal(t, appRootName, result)
 
 	// verify
 	verifyAll(t)
@@ -73,7 +73,7 @@ func TestString_SingleSupportedLogType(t *testing.T) {
 	var result = sut.String()
 
 	// assert
-	assert.Equal(t, MethodLogicName, result)
+	assert.Equal(t, methodLogicName, result)
 
 	// verify
 	verifyAll(t)
@@ -101,11 +101,11 @@ func TestString_MultipleSupportedLogTypes(t *testing.T) {
 
 	// assert
 	assert.Equal(t, GeneralLogging, sut)
-	assert.True(t, strings.Contains(result, APIEnterName))
-	assert.True(t, strings.Contains(result, APIRequestName))
-	assert.True(t, strings.Contains(result, MethodLogicName))
-	assert.True(t, strings.Contains(result, APIResponseName))
-	assert.True(t, strings.Contains(result, APIExitName))
+	assert.True(t, strings.Contains(result, apiEnterName))
+	assert.True(t, strings.Contains(result, apiRequestName))
+	assert.True(t, strings.Contains(result, methodLogicName))
+	assert.True(t, strings.Contains(result, apiResponseName))
+	assert.True(t, strings.Contains(result, apiExitName))
 
 	// verify
 	verifyAll(t)
@@ -210,7 +210,7 @@ func TestFromString_NoMatchFound(t *testing.T) {
 
 func TestFromString_AppRoot(t *testing.T) {
 	// arrange
-	var dummyValue = AppRootName
+	var dummyValue = appRootName
 
 	// mock
 	createMock(t)

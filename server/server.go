@@ -17,8 +17,6 @@ func createServer(
 	router *mux.Router,
 ) *http.Server {
 	var tlsConfig = &tls.Config{
-		// PFS because we can but this will reject client with RSA certificates
-		CipherSuites: []uint16{tls.TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384},
 		// Force it server side
 		PreferServerCipherSuites: true,
 		// TLS 1.2 as minimum requirement
@@ -33,6 +31,8 @@ func createServer(
 			var clientCertPool = certificateGetCaCertPool()
 			tlsConfig.ClientAuth = tls.RequireAndVerifyClientCert
 			tlsConfig.ClientCAs = clientCertPool
+		} else {
+			tlsConfig.ClientAuth = tls.RequestClientCert
 		}
 	}
 	return &http.Server{

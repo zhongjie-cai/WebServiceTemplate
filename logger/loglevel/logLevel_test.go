@@ -20,7 +20,7 @@ func TestString_NonSupportedLogLevels(t *testing.T) {
 	var result = sut.String()
 
 	// assert
-	assert.Equal(t, DebugName, result)
+	assert.Equal(t, debugName, result)
 
 	// verify
 	verifyAll(t)
@@ -37,7 +37,7 @@ func TestString_SupportedLogLevel(t *testing.T) {
 	var result = sut.String()
 
 	// assert
-	assert.Equal(t, ErrorName, result)
+	assert.Equal(t, errorName, result)
 
 	// verify
 	verifyAll(t)

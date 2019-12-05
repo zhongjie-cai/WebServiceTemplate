@@ -10,6 +10,11 @@ import (
 	"github.com/zhongjie-cai/WebServiceTemplate/logger/logtype"
 )
 
+var (
+	// NilSession is for application root logging
+	NilSession Session
+)
+
 // Session is the storage for the current HTTP request session, containing information needed for logging, monitoring, etc.
 type Session interface {
 	// GetID returns the ID of this registered session object

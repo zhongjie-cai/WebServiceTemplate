@@ -98,7 +98,7 @@ func prepareLogging(
 // AppRoot logs the given message as AppRoot category
 func AppRoot(category string, subcategory string, messageFormat string, parameters ...interface{}) {
 	prepareLoggingFunc(
-		nil,
+		sessionModel.NilSession,
 		logtype.AppRoot,
 		loglevel.Info,
 		category,

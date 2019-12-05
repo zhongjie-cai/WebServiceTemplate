@@ -15,27 +15,27 @@ const (
 
 // These are the string representations of log category and preset names
 const (
-	DebugName string = "Debug"
-	InfoName  string = "Info"
-	WarnName  string = "Warn"
-	ErrorName string = "Error"
-	FatalName string = "Fatal"
+	debugName string = "Debug"
+	infoName  string = "Info"
+	warnName  string = "Warn"
+	errorName string = "Error"
+	fatalName string = "Fatal"
 )
 
 var supportedLogLevels = map[LogLevel]string{
-	Debug: DebugName,
-	Info:  InfoName,
-	Warn:  WarnName,
-	Error: ErrorName,
-	Fatal: FatalName,
+	Debug: debugName,
+	Info:  infoName,
+	Warn:  warnName,
+	Error: errorName,
+	Fatal: fatalName,
 }
 
 var logLevelNameMapping = map[string]LogLevel{
-	DebugName: Debug,
-	InfoName:  Info,
-	WarnName:  Warn,
-	ErrorName: Error,
-	FatalName: Fatal,
+	debugName: Debug,
+	infoName:  Info,
+	warnName:  Warn,
+	errorName: Error,
+	fatalName: Fatal,
 }
 
 // FromString converts a LogLevel flag instance to its string representation
@@ -45,7 +45,7 @@ func (logLevel LogLevel) String() string {
 			return value
 		}
 	}
-	return DebugName
+	return debugName
 }
 
 // FromString converts a string representation of LogLevel flag to its strongly typed instance

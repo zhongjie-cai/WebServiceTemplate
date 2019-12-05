@@ -175,6 +175,7 @@ func doApplicationClosing() {
 
 // Start bootstraps and starts the application web server according to configured function values
 func Start() {
+	sessionInitialize()
 	if !doPreBootstrapingFunc() {
 		return
 	}

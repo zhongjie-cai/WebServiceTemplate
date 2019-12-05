@@ -315,6 +315,8 @@ func verifyAll(t *testing.T) {
 	assert.Equal(t, loggerMethodExitExpected, loggerMethodExitCalled, "Unexpected number of calls to loggerMethodExit")
 	networkNewNetworkRequest = network.NewNetworkRequest
 	assert.Equal(t, networkNewNetworkRequestExpected, networkNewNetworkRequestCalled, "Unexpected number of calls to networkNewNetworkRequest")
+
+	defaultSession = nil
 }
 
 // mock structs

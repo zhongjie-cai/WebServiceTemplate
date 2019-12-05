@@ -777,6 +777,10 @@ func TestStart_PreBoostrapExit(t *testing.T) {
 	createMock(t)
 
 	// expect
+	sessionInitializeExpected = 1
+	sessionInitialize = func() {
+		sessionInitializeCalled++
+	}
 	doPreBootstrapingFuncExpected = 1
 	doPreBootstrapingFunc = func() bool {
 		doPreBootstrapingFuncCalled++
@@ -795,6 +799,10 @@ func TestStart_BoostrappingExit(t *testing.T) {
 	createMock(t)
 
 	// expect
+	sessionInitializeExpected = 1
+	sessionInitialize = func() {
+		sessionInitializeCalled++
+	}
 	doPreBootstrapingFuncExpected = 1
 	doPreBootstrapingFunc = func() bool {
 		doPreBootstrapingFuncCalled++
@@ -818,6 +826,10 @@ func TestStart_PostBoostrapExit(t *testing.T) {
 	createMock(t)
 
 	// expect
+	sessionInitializeExpected = 1
+	sessionInitialize = func() {
+		sessionInitializeCalled++
+	}
 	doPreBootstrapingFuncExpected = 1
 	doPreBootstrapingFunc = func() bool {
 		doPreBootstrapingFuncCalled++
@@ -846,6 +858,10 @@ func TestStart_RunApplication(t *testing.T) {
 	createMock(t)
 
 	// expect
+	sessionInitializeExpected = 1
+	sessionInitialize = func() {
+		sessionInitializeCalled++
+	}
 	doPreBootstrapingFuncExpected = 1
 	doPreBootstrapingFunc = func() bool {
 		doPreBootstrapingFuncCalled++

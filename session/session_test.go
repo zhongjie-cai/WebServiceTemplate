@@ -24,6 +24,24 @@ import (
 	sessionModel "github.com/zhongjie-cai/WebServiceTemplate/session/model"
 )
 
+func TestInitialize(t *testing.T) {
+	// arrange
+	assert.IsType(t, nil, sessionModel.NilSession)
+
+	// mock
+	createMock(t)
+
+	// SUT + act
+	Initialize()
+
+	// assert
+	assert.Nil(t, sessionModel.NilSession)
+	assert.IsType(t, defaultSession, sessionModel.NilSession)
+
+	// verify
+	verifyAll(t)
+}
+
 func TestRegister(t *testing.T) {
 	// arrange
 	var dummySessionID = uuid.New()

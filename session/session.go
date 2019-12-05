@@ -22,6 +22,11 @@ var (
 	defaultSession        *session
 )
 
+// Initialize ensures the NilSession is set for the AppRoot function
+func Initialize() {
+	model.NilSession = defaultSession
+}
+
 type session struct {
 	ID              uuid.UUID
 	Name            string

@@ -12,9 +12,12 @@ import (
 	"github.com/zhongjie-cai/WebServiceTemplate/logger"
 	"github.com/zhongjie-cai/WebServiceTemplate/network"
 	"github.com/zhongjie-cai/WebServiceTemplate/server"
+	"github.com/zhongjie-cai/WebServiceTemplate/session"
 )
 
 var (
+	sessionInitializeExpected           int
+	sessionInitializeCalled             int
 	configAppPortExpected               int
 	configAppPortCalled                 int
 	configAppVersionExpected            int
@@ -64,6 +67,11 @@ var (
 )
 
 func createMock(t *testing.T) {
+	sessionInitializeExpected = 0
+	sessionInitializeCalled = 0
+	sessionInitialize = func() {
+		sessionInitializeCalled++
+	}
 	configAppPortExpected = 0
 	configAppPortCalled = 0
 	config.AppPort = func() string {
@@ -225,6 +233,8 @@ func verifyAll(t *testing.T) {
 	assert.Equal(t, configClientKeyContentExpected, configClientKeyContentCalled, "Unexpected number of calls to configClientKeyContent")
 	config.DefaultNetworkTimeout = func() time.Duration { return 0 }
 	assert.Equal(t, configDefaultNetworkTimeoutExpected, configDefaultNetworkTimeoutCalled, "Unexpected number of calls to configDefaultNetworkTimeout")
+	sessionInitialize = session.Initialize
+	assert.Equal(t, sessionInitializeExpected, sessionInitializeCalled, "Unexpected number of calls to sessionInitialize")
 	certificateInitialize = certificate.Initialize
 	assert.Equal(t, certificateInitializeExpected, certificateInitializeCalled, "Unexpected number of calls to certificateInitialize")
 	apperrorInitialize = apperror.Initialize
