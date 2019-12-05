@@ -198,6 +198,11 @@ func TestFromString_NoMatchFound(t *testing.T) {
 	// mock
 	createMock(t)
 
+	// expect
+	stringsSplit = func(s, sep string) []string {
+		return strings.Split(s, sep)
+	}
+
 	// SUT + act
 	var result = FromString(dummyValue)
 
@@ -215,6 +220,11 @@ func TestFromString_AppRoot(t *testing.T) {
 	// mock
 	createMock(t)
 
+	// expect
+	stringsSplit = func(s, sep string) []string {
+		return strings.Split(s, sep)
+	}
+
 	// SUT + act
 	var result = FromString(dummyValue)
 
@@ -229,6 +239,11 @@ func TestFromString_HappyPath(t *testing.T) {
 	for key, value := range logTypeNameMapping {
 		// mock
 		createMock(t)
+
+		// expect
+		stringsSplit = func(s, sep string) []string {
+			return strings.Split(s, sep)
+		}
 
 		// SUT + act
 		var result = FromString(key)

@@ -1,7 +1,5 @@
 package logtype
 
-import "strings"
-
 // LogType is the entry type of logging
 type LogType int
 
@@ -143,7 +141,7 @@ func (logtype LogType) HasFlag(flag LogType) bool {
 
 // FromString converts a string representation of LogType flag to its strongly typed instance
 func FromString(value string) LogType {
-	var splitValues = strings.Split(
+	var splitValues = stringsSplit(
 		value,
 		"|",
 	)

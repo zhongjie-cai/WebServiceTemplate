@@ -8,8 +8,10 @@ import (
 )
 
 var (
-	stringsJoinExpected int
-	stringsJoinCalled   int
+	stringsJoinExpected  int
+	stringsJoinCalled    int
+	stringsSplitExpected int
+	stringsSplitCalled   int
 )
 
 func createMock(t *testing.T) {
@@ -19,9 +21,17 @@ func createMock(t *testing.T) {
 		stringsJoinCalled++
 		return ""
 	}
+	stringsSplitExpected = 0
+	stringsSplitCalled = 0
+	stringsSplit = func(s, sep string) []string {
+		stringsSplitCalled++
+		return nil
+	}
 }
 
 func verifyAll(t *testing.T) {
 	stringsJoin = strings.Join
 	assert.Equal(t, stringsJoinExpected, stringsJoinCalled, "Unexpected number of calls to stringsJoin")
+	stringsSplit = strings.Split
+	assert.Equal(t, stringsSplitExpected, stringsSplitCalled, "Unexpected number of calls to stringsSplit")
 }
