@@ -386,221 +386,6 @@ func TestGetResponseWriter_ValidSessionObject(t *testing.T) {
 	verifyAll(t)
 }
 
-func TestTryUnmarshal_NoQuoteJSONEmpty(t *testing.T) {
-	// arrange
-	var dummyValue string
-	var dummyDataTemplate int
-
-	// mock
-	createMock(t)
-
-	// expect
-	jsonUnmarshalExpected = 1
-	jsonUnmarshal = func(data []byte, v interface{}) error {
-		jsonUnmarshalCalled++
-		assert.Equal(t, []byte(dummyValue), data)
-		return json.Unmarshal(data, v)
-	}
-
-	// SUT + act
-	var err = tryUnmarshal(
-		dummyValue,
-		&dummyDataTemplate,
-	)
-
-	// assert
-	assert.NoError(t, err)
-	assert.Zero(t, dummyDataTemplate)
-
-	// verify
-	verifyAll(t)
-}
-
-func TestTryUnmarshal_NoQuoteJSONSuccess_Primitive(t *testing.T) {
-	// arrange
-	var dummyValue = rand.Int()
-	var dummyValueString = strconv.Itoa(dummyValue)
-	var dummyDataTemplate int
-
-	// mock
-	createMock(t)
-
-	// expect
-	jsonUnmarshalExpected = 1
-	jsonUnmarshal = func(data []byte, v interface{}) error {
-		jsonUnmarshalCalled++
-		assert.Equal(t, []byte(dummyValueString), data)
-		return json.Unmarshal(data, v)
-	}
-
-	// SUT + act
-	var err = tryUnmarshal(
-		dummyValueString,
-		&dummyDataTemplate,
-	)
-
-	// assert
-	assert.NoError(t, err)
-	assert.Equal(t, dummyValue, dummyDataTemplate)
-
-	// verify
-	verifyAll(t)
-}
-
-func TestTryUnmarshal_NoQuoteJSONSuccess_Struct(t *testing.T) {
-	// arrange
-	var dummyValueString = "{\"foo\":\"bar\",\"test\":123}"
-	var dummyDataTemplate struct {
-		Foo  string `json:"foo"`
-		Test int    `json:"test"`
-	}
-
-	// mock
-	createMock(t)
-
-	// expect
-	jsonUnmarshalExpected = 1
-	jsonUnmarshal = func(data []byte, v interface{}) error {
-		jsonUnmarshalCalled++
-		assert.Equal(t, []byte(dummyValueString), data)
-		return json.Unmarshal(data, v)
-	}
-
-	// SUT + act
-	var err = tryUnmarshal(
-		dummyValueString,
-		&dummyDataTemplate,
-	)
-
-	// assert
-	assert.NoError(t, err)
-	assert.Equal(t, "bar", dummyDataTemplate.Foo)
-	assert.Equal(t, 123, dummyDataTemplate.Test)
-
-	// verify
-	verifyAll(t)
-}
-
-func TestTryUnmarshal_WithQuoteJSONEmpty(t *testing.T) {
-	// arrange
-	var dummyValueString string
-	var dummyDataTemplate struct {
-		Foo  string `json:"foo"`
-		Test int    `json:"test"`
-	}
-
-	// mock
-	createMock(t)
-
-	// expect
-	jsonUnmarshalExpected = 1
-	jsonUnmarshal = func(data []byte, v interface{}) error {
-		jsonUnmarshalCalled++
-		assert.Equal(t, []byte(dummyValueString), data)
-		return json.Unmarshal(data, v)
-	}
-
-	// SUT + act
-	var err = tryUnmarshal(
-		dummyValueString,
-		&dummyDataTemplate,
-	)
-
-	// assert
-	assert.NoError(t, err)
-	assert.Zero(t, dummyDataTemplate)
-	assert.Zero(t, dummyDataTemplate.Foo)
-	assert.Zero(t, dummyDataTemplate.Test)
-
-	// verify
-	verifyAll(t)
-}
-
-func TestTryUnmarshal_WithQuoteJSONSuccess(t *testing.T) {
-	// arrange
-	var dummyValue = "some value"
-	var dummyDataTemplate string
-
-	// mock
-	createMock(t)
-
-	// expect
-	jsonUnmarshalExpected = 2
-	jsonUnmarshal = func(data []byte, v interface{}) error {
-		jsonUnmarshalCalled++
-		if jsonUnmarshalCalled == 1 {
-			assert.Equal(t, []byte(dummyValue), data)
-		} else if jsonUnmarshalCalled == 2 {
-			assert.Equal(t, []byte("\""+dummyValue+"\""), data)
-		}
-		return json.Unmarshal(data, v)
-	}
-
-	// SUT + act
-	var err = tryUnmarshal(
-		dummyValue,
-		&dummyDataTemplate,
-	)
-
-	// assert
-	assert.NoError(t, err)
-	assert.Equal(t, dummyValue, dummyDataTemplate)
-
-	// verify
-	verifyAll(t)
-}
-
-func TestTryUnmarshal_Failure(t *testing.T) {
-	// arrange
-	var dummyValue = "some value"
-	var dummyDataTemplate uuid.UUID
-	var dummyError = errors.New("some error")
-	var dummyAppError = apperror.GetCustomError(0, "")
-
-	// mock
-	createMock(t)
-
-	// expect
-	jsonUnmarshalExpected = 2
-	jsonUnmarshal = func(data []byte, v interface{}) error {
-		jsonUnmarshalCalled++
-		if jsonUnmarshalCalled == 1 {
-			assert.Equal(t, []byte(dummyValue), data)
-		} else if jsonUnmarshalCalled == 2 {
-			assert.Equal(t, []byte("\""+dummyValue+"\""), data)
-		}
-		return json.Unmarshal(data, v)
-	}
-	fmtErrorfExpected = 1
-	fmtErrorf = func(format string, a ...interface{}) error {
-		fmtErrorfCalled++
-		assert.Equal(t, "Unable to unmarshal value [%v] into data template", format)
-		assert.Equal(t, 1, len(a))
-		assert.Equal(t, dummyValue, a[0])
-		return dummyError
-	}
-	apperrorGetBadRequestErrorExpected = 1
-	apperrorGetBadRequestError = func(innerErrors ...error) apperrorModel.AppError {
-		apperrorGetBadRequestErrorCalled++
-		assert.Equal(t, 1, len(innerErrors))
-		assert.Equal(t, dummyError, innerErrors[0])
-		return dummyAppError
-	}
-
-	// SUT + act
-	var err = tryUnmarshal(
-		dummyValue,
-		&dummyDataTemplate,
-	)
-
-	// assert
-	assert.Equal(t, dummyAppError, err)
-	assert.Zero(t, dummyDataTemplate)
-
-	// verify
-	verifyAll(t)
-}
-
 func TestGetRequestBody_EmptyBody(t *testing.T) {
 	// arrange
 	var dummySessionID = uuid.New()
@@ -611,7 +396,7 @@ func TestGetRequestBody_EmptyBody(t *testing.T) {
 		Request: dummyHTTPRequest,
 	}
 	var dummyError = errors.New("some error")
-	var dummyAppError = apperror.GetCustomError(0, "")
+	var dummyAppError = apperror.GetCustomError(0, "some app error")
 
 	// mock
 	createMock(t)
@@ -667,7 +452,8 @@ func TestGetRequestBody_ValidBody(t *testing.T) {
 	var dummySessionObject = &session{
 		Request: dummyHTTPRequest,
 	}
-	var dummyAppError = apperror.GetCustomError(0, "")
+	var dummyError = errors.New("some error")
+	var dummyAppError = apperror.GetCustomError(0, "some app error")
 	var dummyResult = rand.Int()
 
 	// mock
@@ -695,11 +481,18 @@ func TestGetRequestBody_ValidBody(t *testing.T) {
 		assert.Equal(t, dummyRequestBody, messageFormat)
 		assert.Equal(t, 0, len(parameters))
 	}
-	tryUnmarshalFuncExpected = 1
-	tryUnmarshalFunc = func(value string, dataTemplate interface{}) apperrorModel.AppError {
-		tryUnmarshalFuncCalled++
+	jsonutilTryUnmarshalExpected = 1
+	jsonutilTryUnmarshal = func(value string, dataTemplate interface{}) error {
+		jsonutilTryUnmarshalCalled++
 		assert.Equal(t, dummyRequestBody, value)
 		*(dataTemplate.(*int)) = dummyResult
+		return dummyError
+	}
+	apperrorGetBadRequestErrorExpected = 1
+	apperrorGetBadRequestError = func(innerErrors ...error) apperrorModel.AppError {
+		apperrorGetBadRequestErrorCalled++
+		assert.Equal(t, 1, len(innerErrors))
+		assert.Equal(t, dummyError, innerErrors[0])
 		return dummyAppError
 	}
 
@@ -731,7 +524,7 @@ func TestGetRequestParameter_ValueNotFound(t *testing.T) {
 		Request: dummyHTTPRequest,
 	}
 	var dummyError = errors.New("some error")
-	var dummyAppError = apperror.GetCustomError(0, "")
+	var dummyAppError = apperror.GetCustomError(0, "some app error")
 
 	// mock
 	createMock(t)
@@ -794,7 +587,8 @@ func TestGetRequestParameter_HappyPath(t *testing.T) {
 	var dummySessionObject = &session{
 		Request: dummyHTTPRequest,
 	}
-	var dummyAppError = apperror.GetCustomError(0, "")
+	var dummyError = errors.New("some error")
+	var dummyAppError = apperror.GetCustomError(0, "some app error")
 	var dummyResult = rand.Int()
 
 	// mock
@@ -822,11 +616,18 @@ func TestGetRequestParameter_HappyPath(t *testing.T) {
 		assert.Equal(t, dummyValue, messageFormat)
 		assert.Equal(t, 0, len(parameters))
 	}
-	tryUnmarshalFuncExpected = 1
-	tryUnmarshalFunc = func(value string, dataTemplate interface{}) apperrorModel.AppError {
-		tryUnmarshalFuncCalled++
+	jsonutilTryUnmarshalExpected = 1
+	jsonutilTryUnmarshal = func(value string, dataTemplate interface{}) error {
+		jsonutilTryUnmarshalCalled++
 		assert.Equal(t, dummyValue, value)
 		*(dataTemplate.(*int)) = dummyResult
+		return dummyError
+	}
+	apperrorGetBadRequestErrorExpected = 1
+	apperrorGetBadRequestError = func(innerErrors ...error) apperrorModel.AppError {
+		apperrorGetBadRequestErrorCalled++
+		assert.Equal(t, 1, len(innerErrors))
+		assert.Equal(t, dummyError, innerErrors[0])
 		return dummyAppError
 	}
 
@@ -913,7 +714,7 @@ func TestGetRequestQuery_EmptyList(t *testing.T) {
 	var dummyDataTemplate int
 	var dummyQueries []string
 	var dummyError = errors.New("some error")
-	var dummyAppError = apperror.GetCustomError(0, "")
+	var dummyAppError = apperror.GetCustomError(0, "some app error")
 
 	// mock
 	createMock(t)
@@ -976,7 +777,8 @@ func TestGetRequestQuery_HappyPath(t *testing.T) {
 		"some query string 2",
 		"some query string 3",
 	}
-	var dummyAppError = apperror.GetCustomError(0, "")
+	var dummyError = errors.New("some error")
+	var dummyAppError = apperror.GetCustomError(0, "some app error")
 	var dummyResult = rand.Int()
 
 	// mock
@@ -1005,11 +807,18 @@ func TestGetRequestQuery_HappyPath(t *testing.T) {
 		assert.Equal(t, dummyQueries[0], messageFormat)
 		assert.Equal(t, 0, len(parameters))
 	}
-	tryUnmarshalFuncExpected = 1
-	tryUnmarshalFunc = func(value string, dataTemplate interface{}) apperrorModel.AppError {
-		tryUnmarshalFuncCalled++
+	jsonutilTryUnmarshalExpected = 1
+	jsonutilTryUnmarshal = func(value string, dataTemplate interface{}) error {
+		jsonutilTryUnmarshalCalled++
 		assert.Equal(t, dummyQueries[0], value)
 		*(dataTemplate.(*int)) = dummyResult
+		return dummyError
+	}
+	apperrorGetBadRequestErrorExpected = 1
+	apperrorGetBadRequestError = func(innerErrors ...error) apperrorModel.AppError {
+		apperrorGetBadRequestErrorCalled++
+		assert.Equal(t, 1, len(innerErrors))
+		assert.Equal(t, dummyError, innerErrors[0])
 		return dummyAppError
 	}
 
@@ -1040,7 +849,7 @@ func TestGetRequestQueries_EmptyList(t *testing.T) {
 	var dummyFillCallbackExpected int
 	var dummyFillCallbackCalled int
 	var dummyFillCallback func()
-	var dummyError = apperror.GetCustomError(0, "")
+	var dummyAppError = apperror.GetCustomError(0, "some app error")
 
 	// mock
 	createMock(t)
@@ -1063,13 +872,11 @@ func TestGetRequestQueries_EmptyList(t *testing.T) {
 	dummyFillCallback = func() {
 		dummyFillCallbackCalled++
 	}
-	apperrorWrapSimpleErrorExpected = 1
-	apperrorWrapSimpleError = func(innerErrors []error, messageFormat string, parameters ...interface{}) apperrorModel.AppError {
-		apperrorWrapSimpleErrorCalled++
+	apperrorGetBadRequestErrorExpected = 1
+	apperrorGetBadRequestError = func(innerErrors ...error) apperrorModel.AppError {
+		apperrorGetBadRequestErrorCalled++
 		assert.Equal(t, 0, len(innerErrors))
-		assert.Equal(t, "Failed to get request query strings", messageFormat)
-		assert.Equal(t, 0, len(parameters))
-		return dummyError
+		return dummyAppError
 	}
 
 	// SUT + act
@@ -1081,7 +888,7 @@ func TestGetRequestQueries_EmptyList(t *testing.T) {
 	)
 
 	// assert
-	assert.Equal(t, dummyError, err)
+	assert.Equal(t, dummyAppError, err)
 	assert.Zero(t, dummyDataTemplate)
 
 	// verify
@@ -1105,12 +912,12 @@ func TestGetRequestQueries_HappyPath(t *testing.T) {
 	var dummyFillCallbackExpected int
 	var dummyFillCallbackCalled int
 	var dummyFillCallback func()
-	var unmarshalErrors = []apperrorModel.AppError{
+	var unmarshalErrors = []error{
 		nil,
-		apperror.GetCustomError(0, ""),
+		errors.New("some error"),
 		nil,
 	}
-	var dummyAppError = apperror.GetCustomError(0, "")
+	var dummyAppError = apperror.GetCustomError(0, "some app error")
 	var dummyResult = rand.Int()
 
 	// mock
@@ -1139,24 +946,22 @@ func TestGetRequestQueries_HappyPath(t *testing.T) {
 		assert.Contains(t, dummyQueries, messageFormat)
 		assert.Equal(t, 0, len(parameters))
 	}
-	tryUnmarshalFuncExpected = 3
-	tryUnmarshalFunc = func(value string, dataTemplate interface{}) apperrorModel.AppError {
-		tryUnmarshalFuncCalled++
-		assert.Equal(t, dummyQueries[tryUnmarshalFuncCalled-1], value)
+	jsonutilTryUnmarshalExpected = 3
+	jsonutilTryUnmarshal = func(value string, dataTemplate interface{}) error {
+		jsonutilTryUnmarshalCalled++
+		assert.Equal(t, dummyQueries[jsonutilTryUnmarshalCalled-1], value)
 		*(dataTemplate.(*int)) = dummyResult
-		return unmarshalErrors[tryUnmarshalFuncCalled-1]
+		return unmarshalErrors[jsonutilTryUnmarshalCalled-1]
 	}
 	dummyFillCallbackExpected = 2
 	dummyFillCallback = func() {
 		dummyFillCallbackCalled++
 	}
-	apperrorWrapSimpleErrorExpected = 1
-	apperrorWrapSimpleError = func(innerErrors []error, messageFormat string, parameters ...interface{}) apperrorModel.AppError {
-		apperrorWrapSimpleErrorCalled++
+	apperrorGetBadRequestErrorExpected = 1
+	apperrorGetBadRequestError = func(innerErrors ...error) apperrorModel.AppError {
+		apperrorGetBadRequestErrorCalled++
 		assert.Equal(t, 1, len(innerErrors))
 		assert.Equal(t, unmarshalErrors[1], innerErrors[0])
-		assert.Equal(t, "Failed to get request query strings", messageFormat)
-		assert.Equal(t, 0, len(parameters))
 		return dummyAppError
 	}
 
@@ -1267,7 +1072,7 @@ func TestGetRequestHeader_EmptyList(t *testing.T) {
 	var dummyDataTemplate int
 	var dummyHeaders []string
 	var dummyError = errors.New("some error")
-	var dummyAppError = apperror.GetCustomError(0, "")
+	var dummyAppError = apperror.GetCustomError(0, "some app error")
 
 	// mock
 	createMock(t)
@@ -1330,7 +1135,8 @@ func TestGetRequestHeader_HappyPath(t *testing.T) {
 		"some header string 2",
 		"some header string 3",
 	}
-	var dummyAppError = apperror.GetCustomError(0, "")
+	var dummyError = errors.New("some error")
+	var dummyAppError = apperror.GetCustomError(0, "some app error")
 	var dummyResult = rand.Int()
 
 	// mock
@@ -1359,11 +1165,18 @@ func TestGetRequestHeader_HappyPath(t *testing.T) {
 		assert.Contains(t, dummyHeaders, messageFormat)
 		assert.Equal(t, 0, len(parameters))
 	}
-	tryUnmarshalFuncExpected = 1
-	tryUnmarshalFunc = func(value string, dataTemplate interface{}) apperrorModel.AppError {
-		tryUnmarshalFuncCalled++
+	jsonutilTryUnmarshalExpected = 1
+	jsonutilTryUnmarshal = func(value string, dataTemplate interface{}) error {
+		jsonutilTryUnmarshalCalled++
 		assert.Equal(t, dummyHeaders[0], value)
 		*(dataTemplate.(*int)) = dummyResult
+		return dummyError
+	}
+	apperrorGetBadRequestErrorExpected = 1
+	apperrorGetBadRequestError = func(innerErrors ...error) apperrorModel.AppError {
+		apperrorGetBadRequestErrorCalled++
+		assert.Equal(t, 1, len(innerErrors))
+		assert.Equal(t, dummyError, innerErrors[0])
 		return dummyAppError
 	}
 
@@ -1394,7 +1207,7 @@ func TestGetRequestHeaders_EmptyList(t *testing.T) {
 	var dummyFillCallbackExpected int
 	var dummyFillCallbackCalled int
 	var dummyFillCallback func()
-	var dummyError = apperror.GetCustomError(0, "")
+	var dummyAppError = apperror.GetCustomError(0, "some app error")
 
 	// mock
 	createMock(t)
@@ -1417,13 +1230,11 @@ func TestGetRequestHeaders_EmptyList(t *testing.T) {
 	dummyFillCallback = func() {
 		dummyFillCallbackCalled++
 	}
-	apperrorWrapSimpleErrorExpected = 1
-	apperrorWrapSimpleError = func(innerErrors []error, messageFormat string, parameters ...interface{}) apperrorModel.AppError {
-		apperrorWrapSimpleErrorCalled++
+	apperrorGetBadRequestErrorExpected = 1
+	apperrorGetBadRequestError = func(innerErrors ...error) apperrorModel.AppError {
+		apperrorGetBadRequestErrorCalled++
 		assert.Equal(t, 0, len(innerErrors))
-		assert.Equal(t, "Failed to get request header strings", messageFormat)
-		assert.Equal(t, 0, len(parameters))
-		return dummyError
+		return dummyAppError
 	}
 
 	// SUT + act
@@ -1435,7 +1246,7 @@ func TestGetRequestHeaders_EmptyList(t *testing.T) {
 	)
 
 	// assert
-	assert.Equal(t, dummyError, err)
+	assert.Equal(t, dummyAppError, err)
 	assert.Zero(t, dummyDataTemplate)
 
 	// verify
@@ -1459,12 +1270,12 @@ func TestGetRequestHeaders_HappyPath(t *testing.T) {
 	var dummyFillCallbackExpected int
 	var dummyFillCallbackCalled int
 	var dummyFillCallback func()
-	var unmarshalErrors = []apperrorModel.AppError{
+	var unmarshalErrors = []error{
 		nil,
-		apperror.GetCustomError(0, ""),
+		errors.New("some error"),
 		nil,
 	}
-	var dummyAppError = apperror.GetCustomError(0, "")
+	var dummyAppError = apperror.GetCustomError(0, "some app error")
 	var dummyResult = rand.Int()
 
 	// mock
@@ -1493,24 +1304,22 @@ func TestGetRequestHeaders_HappyPath(t *testing.T) {
 		assert.Contains(t, dummyHeaders, messageFormat)
 		assert.Equal(t, 0, len(parameters))
 	}
-	tryUnmarshalFuncExpected = 3
-	tryUnmarshalFunc = func(value string, dataTemplate interface{}) apperrorModel.AppError {
-		tryUnmarshalFuncCalled++
-		assert.Equal(t, dummyHeaders[tryUnmarshalFuncCalled-1], value)
+	jsonutilTryUnmarshalExpected = 3
+	jsonutilTryUnmarshal = func(value string, dataTemplate interface{}) error {
+		jsonutilTryUnmarshalCalled++
+		assert.Equal(t, dummyHeaders[jsonutilTryUnmarshalCalled-1], value)
 		*(dataTemplate.(*int)) = dummyResult
-		return unmarshalErrors[tryUnmarshalFuncCalled-1]
+		return unmarshalErrors[jsonutilTryUnmarshalCalled-1]
 	}
 	dummyFillCallbackExpected = 2
 	dummyFillCallback = func() {
 		dummyFillCallbackCalled++
 	}
-	apperrorWrapSimpleErrorExpected = 1
-	apperrorWrapSimpleError = func(innerErrors []error, messageFormat string, parameters ...interface{}) apperrorModel.AppError {
-		apperrorWrapSimpleErrorCalled++
+	apperrorGetBadRequestErrorExpected = 1
+	apperrorGetBadRequestError = func(innerErrors ...error) apperrorModel.AppError {
+		apperrorGetBadRequestErrorCalled++
 		assert.Equal(t, 1, len(innerErrors))
 		assert.Equal(t, unmarshalErrors[1], innerErrors[0])
-		assert.Equal(t, "Failed to get request header strings", messageFormat)
-		assert.Equal(t, 0, len(parameters))
 		return dummyAppError
 	}
 

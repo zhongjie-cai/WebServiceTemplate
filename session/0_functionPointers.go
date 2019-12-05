@@ -10,6 +10,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
+	"github.com/zhongjie-cai/WebServiceTemplate/jsonutil"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger"
 	"github.com/zhongjie-cai/WebServiceTemplate/network"
 	"github.com/zhongjie-cai/WebServiceTemplate/request"
@@ -25,10 +26,9 @@ var (
 	loggerAPIRequest                = logger.APIRequest
 	requestGetRequestBody           = request.GetRequestBody
 	apperrorGetBadRequestError      = apperror.GetBadRequestError
-	apperrorWrapSimpleError         = apperror.WrapSimpleError
 	textprotoCanonicalMIMEHeaderKey = textproto.CanonicalMIMEHeaderKey
 	getFunc                         = Get
-	tryUnmarshalFunc                = tryUnmarshal
+	jsonutilTryUnmarshal            = jsonutil.TryUnmarshal
 	getRequestFunc                  = GetRequest
 	getAllQueriesFunc               = getAllQueries
 	getAllHeadersFunc               = getAllHeaders

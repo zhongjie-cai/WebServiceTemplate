@@ -20,7 +20,7 @@ func TestLoadTLSCertificate_ErrorTLSCert(t *testing.T) {
 	var dummyTLSCert = tls.Certificate{}
 	var dummyError = errors.New("some error message")
 	var dummyMessageFormat = "Failed to load certificate content"
-	var dummyAppError = apperror.GetCustomError(0, "")
+	var dummyAppError = apperror.GetCustomError(0, "some app error")
 
 	// mock
 	createMock(t)
@@ -93,7 +93,7 @@ func TestLoadX509CertPool_ParseError(t *testing.T) {
 	// arrange
 	var dummyCertBytes []byte
 	var dummyMessageFormat = "Failed to parse certificate bytes"
-	var dummyAppError = apperror.GetCustomError(0, "")
+	var dummyAppError = apperror.GetCustomError(0, "some app error")
 
 	// mock
 	createMock(t)
@@ -198,7 +198,7 @@ func TestInitializeTLSCertiticate_ServerCertError(t *testing.T) {
 	var dummyCert = &tls.Certificate{}
 	var dummyCertError = errors.New("some cert error")
 	var dummyMessageFormat = "Failed to initialize certificate by key-cert pair"
-	var dummyAppError = apperror.GetCustomError(0, "")
+	var dummyAppError = apperror.GetCustomError(0, "some app error")
 
 	// mock
 	createMock(t)
@@ -299,7 +299,7 @@ func TestInitializeX509CertPool_CaCertPoolError(t *testing.T) {
 	var dummyCertPool = &x509.CertPool{}
 	var dummyCertPoolError = errors.New("some cert pool error")
 	var dummyMessageFormat = "Failed to initialize cert pool by cert content"
-	var dummyAppError = apperror.GetCustomError(0, "")
+	var dummyAppError = apperror.GetCustomError(0, "some app error")
 
 	// mock
 	createMock(t)
@@ -383,7 +383,7 @@ func TestInitialize_ErrorConsolidated(t *testing.T) {
 	var dummyClientCert = &tls.Certificate{}
 	var dummyClientCertError = errors.New("some client cert error")
 	var dummyMessageFormat = "Failed to initialize certificates for application"
-	var dummyAppError = apperror.GetCustomError(0, "")
+	var dummyAppError = apperror.GetCustomError(0, "some app error")
 
 	// mock
 	createMock(t)

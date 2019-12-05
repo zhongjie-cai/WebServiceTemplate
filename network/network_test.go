@@ -3,7 +3,6 @@ package network
 import (
 	"bytes"
 	"crypto/tls"
-	"encoding/json"
 	"errors"
 	"io"
 	"io/ioutil"
@@ -716,7 +715,7 @@ func TestCreateHTTPRequest_RequestError(t *testing.T) {
 	var dummyRequest *http.Request
 	var dummyError = errors.New("some error message")
 	var expectedErrorMessage = "Failed to generate request to [%v]"
-	var dummyAppError = apperror.GetCustomError(0, "")
+	var dummyAppError = apperror.GetCustomError(0, "some app error")
 
 	// mock
 	createMock(t)
@@ -1225,10 +1224,10 @@ func TestParseResponse_JSONError(t *testing.T) {
 		assert.Equal(t, dummyBody, r)
 		return dummyBytes, nil
 	}
-	jsonUnmarshalExpected = 1
-	jsonUnmarshal = func(data []byte, v interface{}) error {
-		jsonUnmarshalCalled++
-		assert.Equal(t, dummyBytes, data)
+	jsonutilTryUnmarshalExpected = 1
+	jsonutilTryUnmarshal = func(value string, dataTemplate interface{}) error {
+		jsonutilTryUnmarshalCalled++
+		assert.Equal(t, string(dummyBytes), value)
 		return dummyError
 	}
 
@@ -1263,11 +1262,12 @@ func TestParseResponse_HappyPath(t *testing.T) {
 		assert.Equal(t, dummyBody, r)
 		return dummyBytes, nil
 	}
-	jsonUnmarshalExpected = 1
-	jsonUnmarshal = func(data []byte, v interface{}) error {
-		jsonUnmarshalCalled++
-		assert.Equal(t, dummyBytes, data)
-		return json.Unmarshal(data, v)
+	jsonutilTryUnmarshalExpected = 1
+	jsonutilTryUnmarshal = func(value string, dataTemplate interface{}) error {
+		jsonutilTryUnmarshalCalled++
+		assert.Equal(t, string(dummyBytes), value)
+		(*(dataTemplate).(*string)) = dummyData
+		return nil
 	}
 
 	// SUT + act
@@ -1389,7 +1389,7 @@ func TestNetworkRequestProcess_Success_NilObject(t *testing.T) {
 
 	// assert
 	assert.Zero(t, dummyDataTemplate)
-	assert.Equal(t, http.StatusNoContent, result)
+	assert.Zero(t, result)
 	assert.Empty(t, header)
 	assert.NoError(t, err)
 

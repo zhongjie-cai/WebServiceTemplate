@@ -2,7 +2,6 @@ package network
 
 import (
 	"bytes"
-	"encoding/json"
 	"io/ioutil"
 	"net/http"
 	"strconv"
@@ -11,6 +10,7 @@ import (
 
 	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
 	"github.com/zhongjie-cai/WebServiceTemplate/certificate"
+	"github.com/zhongjie-cai/WebServiceTemplate/jsonutil"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger"
 )
 
@@ -36,7 +36,7 @@ var (
 	logErrorResponseFunc            = logErrorResponse
 	logHTTPResponseFunc             = logHTTPResponse
 	doRequestProcessingFunc         = doRequestProcessing
-	jsonUnmarshal                   = json.Unmarshal
+	jsonutilTryUnmarshal            = jsonutil.TryUnmarshal
 	parseResponseFunc               = parseResponse
 	certificateGetClientCertificate = certificate.GetClientCertificate
 	customizeRoundTripperFunc       = customizeRoundTripper

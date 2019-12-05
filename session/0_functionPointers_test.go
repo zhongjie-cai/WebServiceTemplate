@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"testing"
 
+	"github.com/zhongjie-cai/WebServiceTemplate/jsonutil"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger/logtype"
 	"github.com/zhongjie-cai/WebServiceTemplate/network"
 	networkModel "github.com/zhongjie-cai/WebServiceTemplate/network/model"
@@ -42,14 +43,12 @@ var (
 	requestGetRequestBodyCalled             int
 	apperrorGetBadRequestErrorExpected      int
 	apperrorGetBadRequestErrorCalled        int
-	apperrorWrapSimpleErrorExpected         int
-	apperrorWrapSimpleErrorCalled           int
 	textprotoCanonicalMIMEHeaderKeyExpected int
 	textprotoCanonicalMIMEHeaderKeyCalled   int
 	getFuncExpected                         int
 	getFuncCalled                           int
-	tryUnmarshalFuncExpected                int
-	tryUnmarshalFuncCalled                  int
+	jsonutilTryUnmarshalExpected            int
+	jsonutilTryUnmarshalCalled              int
 	getRequestFuncExpected                  int
 	getRequestFuncCalled                    int
 	getAllQueriesFuncExpected               int
@@ -136,12 +135,6 @@ func createMock(t *testing.T) {
 		apperrorGetBadRequestErrorCalled++
 		return nil
 	}
-	apperrorWrapSimpleErrorExpected = 0
-	apperrorWrapSimpleErrorCalled = 0
-	apperrorWrapSimpleError = func(innerErrors []error, messageFormat string, parameters ...interface{}) apperrorModel.AppError {
-		apperrorWrapSimpleErrorCalled++
-		return nil
-	}
 	textprotoCanonicalMIMEHeaderKeyExpected = 0
 	textprotoCanonicalMIMEHeaderKeyCalled = 0
 	textprotoCanonicalMIMEHeaderKey = func(s string) string {
@@ -154,10 +147,10 @@ func createMock(t *testing.T) {
 		getFuncCalled++
 		return nil
 	}
-	tryUnmarshalFuncExpected = 0
-	tryUnmarshalFuncCalled = 0
-	tryUnmarshalFunc = func(value string, dataTemplate interface{}) apperrorModel.AppError {
-		tryUnmarshalFuncCalled++
+	jsonutilTryUnmarshalExpected = 0
+	jsonutilTryUnmarshalCalled = 0
+	jsonutilTryUnmarshal = func(value string, dataTemplate interface{}) error {
+		jsonutilTryUnmarshalCalled++
 		return nil
 	}
 	getRequestFuncExpected = 0
@@ -280,14 +273,12 @@ func verifyAll(t *testing.T) {
 	assert.Equal(t, requestGetRequestBodyExpected, requestGetRequestBodyCalled, "Unexpected number of calls to requestGetRequestBody")
 	apperrorGetBadRequestError = apperror.GetBadRequestError
 	assert.Equal(t, apperrorGetBadRequestErrorExpected, apperrorGetBadRequestErrorCalled, "Unexpected number of calls to apperrorGetBadRequestError")
-	apperrorWrapSimpleError = apperror.WrapSimpleError
-	assert.Equal(t, apperrorWrapSimpleErrorExpected, apperrorWrapSimpleErrorCalled, "Unexpected number of calls to apperrorWrapSimpleError")
 	textprotoCanonicalMIMEHeaderKey = textproto.CanonicalMIMEHeaderKey
 	assert.Equal(t, textprotoCanonicalMIMEHeaderKeyExpected, textprotoCanonicalMIMEHeaderKeyCalled, "Unexpected number of calls to textprotoCanonicalMIMEHeaderKey")
 	getFunc = Get
 	assert.Equal(t, getFuncExpected, getFuncCalled, "Unexpected number of calls to getFunc")
-	tryUnmarshalFunc = tryUnmarshal
-	assert.Equal(t, tryUnmarshalFuncExpected, tryUnmarshalFuncCalled, "Unexpected number of calls to tryUnmarshalFunc")
+	jsonutilTryUnmarshal = jsonutil.TryUnmarshal
+	assert.Equal(t, jsonutilTryUnmarshalExpected, jsonutilTryUnmarshalCalled, "Unexpected number of calls to jsonutilTryUnmarshal")
 	getRequestFunc = GetRequest
 	assert.Equal(t, getRequestFuncExpected, getRequestFuncCalled, "Unexpected number of calls to getRequestFunc")
 	getAllQueriesFunc = getAllQueries

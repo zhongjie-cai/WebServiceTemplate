@@ -3,7 +3,6 @@ package network
 import (
 	"bytes"
 	"crypto/tls"
-	"encoding/json"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -18,6 +17,7 @@ import (
 	apperrorModel "github.com/zhongjie-cai/WebServiceTemplate/apperror/model"
 	"github.com/zhongjie-cai/WebServiceTemplate/certificate"
 	"github.com/zhongjie-cai/WebServiceTemplate/customization"
+	"github.com/zhongjie-cai/WebServiceTemplate/jsonutil"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger/loglevel"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger/logtype"
@@ -67,8 +67,8 @@ var (
 	logHTTPResponseFuncCalled                     int
 	doRequestProcessingFuncExpected               int
 	doRequestProcessingFuncCalled                 int
-	jsonUnmarshalExpected                         int
-	jsonUnmarshalCalled                           int
+	jsonutilTryUnmarshalExpected                  int
+	jsonutilTryUnmarshalCalled                    int
 	parseResponseFuncExpected                     int
 	parseResponseFuncCalled                       int
 	certificateGetClientCertificateExpected       int
@@ -200,10 +200,10 @@ func createMock(t *testing.T) {
 		doRequestProcessingFuncCalled++
 		return nil, nil
 	}
-	jsonUnmarshalExpected = 0
-	jsonUnmarshalCalled = 0
-	jsonUnmarshal = func(data []byte, v interface{}) error {
-		jsonUnmarshalCalled++
+	jsonutilTryUnmarshalExpected = 0
+	jsonutilTryUnmarshalCalled = 0
+	jsonutilTryUnmarshal = func(value string, dataTemplate interface{}) error {
+		jsonutilTryUnmarshalCalled++
 		return nil
 	}
 	parseResponseFuncExpected = 0
@@ -287,8 +287,8 @@ func verifyAll(t *testing.T) {
 	assert.Equal(t, logHTTPResponseFuncExpected, logHTTPResponseFuncCalled, "Unexpected number of calls to method logHTTPResponseFunc")
 	doRequestProcessingFunc = doRequestProcessing
 	assert.Equal(t, doRequestProcessingFuncExpected, doRequestProcessingFuncCalled, "Unexpected number of calls to method doRequestProcessingFunc")
-	jsonUnmarshal = json.Unmarshal
-	assert.Equal(t, jsonUnmarshalExpected, jsonUnmarshalCalled, "Unexpected number of calls to method jsonUnmarshal")
+	jsonutilTryUnmarshal = jsonutil.TryUnmarshal
+	assert.Equal(t, jsonutilTryUnmarshalExpected, jsonutilTryUnmarshalCalled, "Unexpected number of calls to method jsonutilTryUnmarshal")
 	parseResponseFunc = parseResponse
 	assert.Equal(t, parseResponseFuncExpected, parseResponseFuncCalled, "Unexpected number of calls to method parseResponseFunc")
 	certificateGetClientCertificate = certificate.GetClientCertificate

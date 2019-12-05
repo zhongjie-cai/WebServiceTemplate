@@ -99,7 +99,7 @@ func TestHandleInSession_RouteError(t *testing.T) {
 	var dummyAllowedLogType = logtype.LogType(rand.Intn(256))
 	var dummyAllowedLogLevel = loglevel.LogLevel(rand.Intn(256))
 	var dummyRouteError = errors.New("some route error")
-	var dummyResponseError = apperror.GetCustomError(0, "")
+	var dummyResponseError = apperror.GetCustomError(0, "some app error")
 
 	// mock
 	createMock(t)
@@ -318,7 +318,7 @@ func TestHandleInSession_PostActionError_WithResponseError(t *testing.T) {
 	var dummyAllowedLogType = logtype.LogType(rand.Intn(256))
 	var dummyAllowedLogLevel = loglevel.LogLevel(rand.Intn(256))
 	var dummyResponseObject = "some response object"
-	var dummyResponseError = apperror.GetCustomError(0, "")
+	var dummyResponseError = apperror.GetCustomError(0, "some app error")
 	var dummyPostActionError = errors.New("some post-action error")
 
 	// mock
@@ -573,7 +573,7 @@ func TestHandleInSession_Success(t *testing.T) {
 	var dummyAllowedLogType = logtype.LogType(rand.Intn(256))
 	var dummyAllowedLogLevel = loglevel.LogLevel(rand.Intn(256))
 	var dummyResponseObject = "some response object"
-	var dummyResponseError = apperror.GetCustomError(0, "")
+	var dummyResponseError = apperror.GetCustomError(0, "some app error")
 
 	// mock
 	createMock(t)

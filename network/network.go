@@ -301,8 +301,8 @@ func parseResponse(body io.ReadCloser, dataTemplate interface{}) error {
 	if bodyError != nil {
 		return bodyError
 	}
-	return jsonUnmarshal(
-		bodyBytes,
+	return jsonutilTryUnmarshal(
+		string(bodyBytes),
 		dataTemplate,
 	)
 }
@@ -319,7 +319,7 @@ func (networkRequest *networkRequest) Process(dataTemplate interface{}) (statusC
 		}
 	} else {
 		if responseObject == nil {
-			return http.StatusNoContent, make(http.Header), nil
+			return 0, make(http.Header), nil
 		}
 		responseError = parseResponseFunc(
 			responseObject.Body,

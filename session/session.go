@@ -64,32 +64,6 @@ func (session *session) GetResponseWriter() http.ResponseWriter {
 	return session.ResponseWriter
 }
 
-func tryUnmarshal(value string, dataTemplate interface{}) apperrorModel.AppError {
-	var noQuoteJSONError = jsonUnmarshal(
-		[]byte(value),
-		dataTemplate,
-	)
-	if noQuoteJSONError == nil {
-		return nil
-	}
-	if value == "" {
-		return nil
-	}
-	var withQuoteJSONError = jsonUnmarshal(
-		[]byte("\""+value+"\""),
-		dataTemplate,
-	)
-	if withQuoteJSONError == nil {
-		return nil
-	}
-	return apperrorGetBadRequestError(
-		fmtErrorf(
-			"Unable to unmarshal value [%v] into data template",
-			value,
-		),
-	)
-}
-
 // GetRequestBody loads HTTP request body associated to session and unmarshals the content JSON to given data template
 func (session *session) GetRequestBody(dataTemplate interface{}) apperrorModel.AppError {
 	var httpRequest = session.GetRequest()
@@ -109,9 +83,11 @@ func (session *session) GetRequestBody(dataTemplate interface{}) apperrorModel.A
 		"",
 		requestBody,
 	)
-	return tryUnmarshalFunc(
-		requestBody,
-		dataTemplate,
+	return apperrorGetBadRequestError(
+		jsonutilTryUnmarshal(
+			requestBody,
+			dataTemplate,
+		),
 	)
 }
 
@@ -136,9 +112,11 @@ func (session *session) GetRequestParameter(name string, dataTemplate interface{
 		name,
 		value,
 	)
-	return tryUnmarshalFunc(
-		value,
-		dataTemplate,
+	return apperrorGetBadRequestError(
+		jsonutilTryUnmarshal(
+			value,
+			dataTemplate,
+		),
 	)
 }
 
@@ -172,9 +150,11 @@ func (session *session) GetRequestQuery(name string, dataTemplate interface{}) a
 		name,
 		value,
 	)
-	return tryUnmarshalFunc(
-		value,
-		dataTemplate,
+	return apperrorGetBadRequestError(
+		jsonutilTryUnmarshal(
+			value,
+			dataTemplate,
+		),
 	)
 }
 
@@ -192,7 +172,7 @@ func (session *session) GetRequestQueries(name string, dataTemplate interface{},
 			name,
 			query,
 		)
-		var unmarshalError = tryUnmarshalFunc(
+		var unmarshalError = jsonutilTryUnmarshal(
 			query,
 			dataTemplate,
 		)
@@ -205,9 +185,8 @@ func (session *session) GetRequestQueries(name string, dataTemplate interface{},
 			fillCallback()
 		}
 	}
-	return apperrorWrapSimpleError(
-		unmarshalErrors,
-		"Failed to get request query strings",
+	return apperrorGetBadRequestError(
+		unmarshalErrors...,
 	)
 }
 
@@ -242,9 +221,11 @@ func (session *session) GetRequestHeader(name string, dataTemplate interface{}) 
 		name,
 		value,
 	)
-	return tryUnmarshalFunc(
-		value,
-		dataTemplate,
+	return apperrorGetBadRequestError(
+		jsonutilTryUnmarshal(
+			value,
+			dataTemplate,
+		),
 	)
 }
 
@@ -262,7 +243,7 @@ func (session *session) GetRequestHeaders(name string, dataTemplate interface{},
 			name,
 			header,
 		)
-		var unmarshalError = tryUnmarshalFunc(
+		var unmarshalError = jsonutilTryUnmarshal(
 			header,
 			dataTemplate,
 		)
@@ -275,9 +256,8 @@ func (session *session) GetRequestHeaders(name string, dataTemplate interface{},
 			fillCallback()
 		}
 	}
-	return apperrorWrapSimpleError(
-		unmarshalErrors,
-		"Failed to get request header strings",
+	return apperrorGetBadRequestError(
+		unmarshalErrors...,
 	)
 }
 

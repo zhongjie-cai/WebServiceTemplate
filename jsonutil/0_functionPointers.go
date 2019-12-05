@@ -2,6 +2,7 @@ package jsonutil
 
 import (
 	"encoding/json"
+	"fmt"
 	"strings"
 )
 
@@ -9,4 +10,6 @@ import (
 var (
 	jsonNewEncoder   = json.NewEncoder
 	stringsTrimRight = strings.TrimRight
+	jsonUnmarshal    = json.Unmarshal
+	fmtErrorf        = fmt.Errorf
 )

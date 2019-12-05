@@ -399,7 +399,7 @@ func TestValidateStringFunction_ForcedToDefault(t *testing.T) {
 	var dummyDefaultFuncReturn = "some default func return"
 	var dummyForceToDefault = true
 	var dummyMessageFormat = "customization.%v function is forced to default [%v] due to forceToDefault flag set"
-	var dummyAppError = apperror.GetCustomError(0, "")
+	var dummyAppError = apperror.GetCustomError(0, "some app error")
 
 	// mock
 	createMock(t)
@@ -455,7 +455,7 @@ func TestValidateStringFunction_NilStringFunc(t *testing.T) {
 	var dummyDefaultFuncReturn = "some default func return"
 	var dummyForceToDefault = false
 	var dummyMessageFormat = "customization.%v function is not configured or is empty; fallback to default [%v]"
-	var dummyAppError = apperror.GetCustomError(0, "")
+	var dummyAppError = apperror.GetCustomError(0, "some app error")
 
 	// mock
 	createMock(t)
@@ -506,7 +506,7 @@ func TestValidateStringFunction_DefaultStringFunc(t *testing.T) {
 	var dummyDefaultFuncReturn = "some default func return"
 	var dummyForceToDefault = false
 	var dummyMessageFormat = "customization.%v function is not configured or is empty; fallback to default [%v]"
-	var dummyAppError = apperror.GetCustomError(0, "")
+	var dummyAppError = apperror.GetCustomError(0, "some app error")
 
 	// mock
 	createMock(t)
@@ -569,7 +569,7 @@ func TestValidateStringFunction_EmptyStringFunc(t *testing.T) {
 	var dummyDefaultFuncReturn = "some default func return"
 	var dummyForceToDefault = false
 	var dummyMessageFormat = "customization.%v function is not configured or is empty; fallback to default [%v]"
-	var dummyAppError = apperror.GetCustomError(0, "")
+	var dummyAppError = apperror.GetCustomError(0, "some app error")
 
 	// mock
 	createMock(t)
@@ -683,7 +683,7 @@ func TestValidateBooleanFunction_ForcedToDefault(t *testing.T) {
 	var dummyDefaultFuncReturn = rand.Intn(100) < 50
 	var dummyForceToDefault = true
 	var dummyMessageFormat = "customization.%v function is forced to default [%v] due to forceToDefault flag set"
-	var dummyAppError = apperror.GetCustomError(0, "")
+	var dummyAppError = apperror.GetCustomError(0, "some app error")
 
 	// mock
 	createMock(t)
@@ -739,7 +739,7 @@ func TestValidateBooleanFunction_NilBooleanFunc(t *testing.T) {
 	var dummyDefaultFuncReturn = rand.Intn(100) < 50
 	var dummyForceToDefault = false
 	var dummyMessageFormat = "customization.%v function is not configured; fallback to default [%v]."
-	var dummyAppError = apperror.GetCustomError(0, "")
+	var dummyAppError = apperror.GetCustomError(0, "some app error")
 
 	// mock
 	createMock(t)
@@ -790,7 +790,7 @@ func TestValidateBooleanFunction_DefaultBooleanFunc(t *testing.T) {
 	var dummyDefaultFuncReturn = rand.Intn(100) < 50
 	var dummyForceToDefault = false
 	var dummyMessageFormat = "customization.%v function is not configured; fallback to default [%v]."
-	var dummyAppError = apperror.GetCustomError(0, "")
+	var dummyAppError = apperror.GetCustomError(0, "some app error")
 
 	// mock
 	createMock(t)
@@ -902,7 +902,7 @@ func TestValidateDefaultAllowedLogType_NilFunc(t *testing.T) {
 	var dummyDefaultFuncCalled int
 	var dummyDefaultFuncReturn = logtype.LogType(rand.Intn(255))
 	var dummyMessageFormat = "customization.DefaultAllowedLogType function is not configured; fallback to default [%v]."
-	var dummyAppError = apperror.GetCustomError(0, "")
+	var dummyAppError = apperror.GetCustomError(0, "some app error")
 
 	// mock
 	createMock(t)
@@ -984,7 +984,7 @@ func TestValidateDefaultAllowedLogLevel_NilFunc(t *testing.T) {
 	var dummyDefaultFuncCalled int
 	var dummyDefaultFuncReturn = loglevel.LogLevel(rand.Intn(255))
 	var dummyMessageFormat = "customization.DefaultAllowedLogLevel function is not configured; fallback to default [%v]."
-	var dummyAppError = apperror.GetCustomError(0, "")
+	var dummyAppError = apperror.GetCustomError(0, "some app error")
 
 	// mock
 	createMock(t)
@@ -1066,7 +1066,7 @@ func TestValidateDefaultNetworkTimeout_NilFunc(t *testing.T) {
 	var dummyDefaultFuncCalled int
 	var dummyDefaultFuncReturn = time.Duration(rand.Intn(255))
 	var dummyMessageFormat = "customization.DefaultNetworkTimeout function is not configured; fallback to default [%v]."
-	var dummyAppError = apperror.GetCustomError(0, "")
+	var dummyAppError = apperror.GetCustomError(0, "some app error")
 
 	// mock
 	createMock(t)
@@ -1485,7 +1485,7 @@ func TestInitialize(t *testing.T) {
 	var expectedDefaultAllowedLogLevelError = errors.New("some default allowed log level error")
 	var expectedDefaultNetworkTimeoutError = errors.New("some default network timeout error")
 	var dummyMessageFormat = "Unexpected errors occur during configuration initialization"
-	var dummyAppError = apperror.GetCustomError(0, "")
+	var dummyAppError = apperror.GetCustomError(0, "some app error")
 
 	// mock
 	createMock(t)

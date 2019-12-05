@@ -239,7 +239,7 @@ func TestRunServer_HappyPath(t *testing.T) {
 	var dummyRuntimeContext = context.TODO()
 	var dummyShutDownError = errors.New("some shut down error message")
 	var dummyMessageFormat = "One or more errors have occurred during server hosting"
-	var dummyAppError = apperror.GetCustomError(0, "")
+	var dummyAppError = apperror.GetCustomError(0, "some app error")
 
 	// mock
 	createMock(t)
@@ -326,7 +326,7 @@ func TestHost_ErrorRegisterRoutes(t *testing.T) {
 	var dummyRouter = &mux.Router{}
 	var dummyError = errors.New("some error message")
 	var dummyMessageFormat = "Failed to host entries on port %v"
-	var dummyAppError = apperror.GetCustomError(0, "")
+	var dummyAppError = apperror.GetCustomError(0, "some app error")
 
 	// mock
 	createMock(t)
@@ -370,7 +370,7 @@ func TestHost_ErrorRunServer(t *testing.T) {
 	var dummyRouter = &mux.Router{}
 	var dummyError = errors.New("some error message")
 	var dummyMessageFormat = "Failed to run server on port %v"
-	var dummyAppError = apperror.GetCustomError(0, "")
+	var dummyAppError = apperror.GetCustomError(0, "some app error")
 
 	// mock
 	createMock(t)

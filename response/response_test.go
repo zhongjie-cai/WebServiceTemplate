@@ -118,7 +118,7 @@ func TestCreateOkResponse_ValidContent(t *testing.T) {
 
 func TestGetAppError_IsAppError(t *testing.T) {
 	// arrange
-	var dummyError = apperror.GetCustomError(0, "")
+	var dummyError = apperror.GetCustomError(0, "some app error")
 
 	// mock
 	createMock(t)
@@ -138,7 +138,7 @@ func TestGetAppError_IsAppError(t *testing.T) {
 func TestGetAppError_IsNotAppError(t *testing.T) {
 	// arrange
 	var dummyError = errors.New("some error")
-	var dummyAppError = apperror.GetCustomError(0, "")
+	var dummyAppError = apperror.GetCustomError(0, "some app error")
 
 	// mock
 	createMock(t)

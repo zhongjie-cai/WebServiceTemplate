@@ -13,7 +13,7 @@ import (
 func TestGetRecoverError_Error(t *testing.T) {
 	// arrange
 	var dummyRecoverResult = errors.New("some error")
-	var dummyAppError = apperror.GetCustomError(0, "")
+	var dummyAppError = apperror.GetCustomError(0, "some app error")
 
 	// mock
 	createMock(t)
@@ -43,7 +43,7 @@ func TestGetRecoverError_NonError(t *testing.T) {
 	// arrange
 	var dummyRecoverResult = "some recovery result"
 	var dummyError = errors.New("some error")
-	var dummyAppError = apperror.GetCustomError(0, "")
+	var dummyAppError = apperror.GetCustomError(0, "some app error")
 
 	// mock
 	createMock(t)

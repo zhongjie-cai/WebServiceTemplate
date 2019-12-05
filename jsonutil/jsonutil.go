@@ -18,3 +18,28 @@ func MarshalIgnoreError(v interface{}) string {
 	var result = string(buffer.Bytes())
 	return stringsTrimRight(result, "\n")
 }
+
+// TryUnmarshal tries to unmarshal given value to dataTemplate
+func TryUnmarshal(value string, dataTemplate interface{}) error {
+	if value == "" {
+		return nil
+	}
+	var noQuoteJSONError = jsonUnmarshal(
+		[]byte(value),
+		dataTemplate,
+	)
+	if noQuoteJSONError == nil {
+		return nil
+	}
+	var withQuoteJSONError = jsonUnmarshal(
+		[]byte("\""+value+"\""),
+		dataTemplate,
+	)
+	if withQuoteJSONError == nil {
+		return nil
+	}
+	return fmtErrorf(
+		"Unable to unmarshal value [%v] into data template",
+		value,
+	)
+}
