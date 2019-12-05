@@ -3,8 +3,11 @@ package jsonutil
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
+	"math"
 	"math/rand"
+	"reflect"
 	"strconv"
 	"strings"
 	"testing"
@@ -86,13 +89,460 @@ func TestMarshalIgnoreError_Success(t *testing.T) {
 	verifyAll(t)
 }
 
-func TestTryUnmarshal_NoQuoteJSONEmpty(t *testing.T) {
+func TestTtryUnmarshalPrimitiveTypes_Empty(t *testing.T) {
 	// arrange
 	var dummyValue string
+	var dummyDataTemplate string
+
+	// mock
+	createMock(t)
+
+	// expect
+
+	// SUT + act
+	var result = tryUnmarshalPrimitiveTypes(
+		dummyValue,
+		&dummyDataTemplate,
+	)
+
+	// assert
+	assert.True(t, result)
+	assert.Zero(t, dummyDataTemplate)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestTtryUnmarshalPrimitiveTypes_String(t *testing.T) {
+	// arrange
+	var dummyValue = "some value"
+	var dummyDataTemplate string
+
+	// mock
+	createMock(t)
+
+	// expect
+	reflectTypeOfExpected = 2
+	reflectTypeOf = func(i interface{}) reflect.Type {
+		reflectTypeOfCalled++
+		return reflect.TypeOf(i)
+	}
+
+	// SUT + act
+	var result = tryUnmarshalPrimitiveTypes(
+		dummyValue,
+		&dummyDataTemplate,
+	)
+
+	// assert
+	assert.True(t, result)
+	assert.Equal(t, dummyValue, dummyDataTemplate)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestTtryUnmarshalPrimitiveTypes_Bool_Error(t *testing.T) {
+	// arrange
+	var dummyValue = "some invalid bool"
+	var dummyDataTemplate bool
+
+	// mock
+	createMock(t)
+
+	// expect
+	reflectTypeOfExpected = 4
+	reflectTypeOf = func(i interface{}) reflect.Type {
+		reflectTypeOfCalled++
+		return reflect.TypeOf(i)
+	}
+	stringsToLowerExpected = 1
+	stringsToLower = func(s string) string {
+		stringsToLowerCalled++
+		return strings.ToLower(s)
+	}
+	strconvParseBoolExpected = 1
+	strconvParseBool = func(str string) (bool, error) {
+		strconvParseBoolCalled++
+		return strconv.ParseBool(str)
+	}
+
+	// SUT + act
+	var result = tryUnmarshalPrimitiveTypes(
+		dummyValue,
+		&dummyDataTemplate,
+	)
+
+	// assert
+	assert.False(t, result)
+	assert.Zero(t, dummyDataTemplate)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestTtryUnmarshalPrimitiveTypes_Bool_NoError(t *testing.T) {
+	// arrange
+	var dummyValue = rand.Intn(100) < 50
+	var dummyValueString = fmt.Sprintf("%v", dummyValue)
+	var dummyDataTemplate bool
+
+	// mock
+	createMock(t)
+
+	// expect
+	reflectTypeOfExpected = 4
+	reflectTypeOf = func(i interface{}) reflect.Type {
+		reflectTypeOfCalled++
+		return reflect.TypeOf(i)
+	}
+	stringsToLowerExpected = 1
+	stringsToLower = func(s string) string {
+		stringsToLowerCalled++
+		return strings.ToLower(s)
+	}
+	strconvParseBoolExpected = 1
+	strconvParseBool = func(str string) (bool, error) {
+		strconvParseBoolCalled++
+		return strconv.ParseBool(str)
+	}
+
+	// SUT + act
+	var result = tryUnmarshalPrimitiveTypes(
+		dummyValueString,
+		&dummyDataTemplate,
+	)
+
+	// assert
+	assert.True(t, result)
+	assert.Equal(t, dummyValue, dummyDataTemplate)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestTtryUnmarshalPrimitiveTypes_Integer_Error(t *testing.T) {
+	// arrange
+	var dummyValue = "some invalid integer"
 	var dummyDataTemplate int
 
 	// mock
 	createMock(t)
+
+	// expect
+	reflectTypeOfExpected = 6
+	reflectTypeOf = func(i interface{}) reflect.Type {
+		reflectTypeOfCalled++
+		return reflect.TypeOf(i)
+	}
+	strconvAtoiExpected = 1
+	strconvAtoi = func(str string) (int, error) {
+		strconvAtoiCalled++
+		return strconv.Atoi(str)
+	}
+
+	// SUT + act
+	var result = tryUnmarshalPrimitiveTypes(
+		dummyValue,
+		&dummyDataTemplate,
+	)
+
+	// assert
+	assert.False(t, result)
+	assert.Zero(t, dummyDataTemplate)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestTtryUnmarshalPrimitiveTypes_Integer_NoError(t *testing.T) {
+	// arrange
+	var dummyValue = rand.Intn(math.MaxInt32)
+	var dummyValueString = fmt.Sprintf("%v", dummyValue)
+	var dummyDataTemplate int
+
+	// mock
+	createMock(t)
+
+	// expect
+	reflectTypeOfExpected = 6
+	reflectTypeOf = func(i interface{}) reflect.Type {
+		reflectTypeOfCalled++
+		return reflect.TypeOf(i)
+	}
+	strconvAtoiExpected = 1
+	strconvAtoi = func(str string) (int, error) {
+		strconvAtoiCalled++
+		return strconv.Atoi(str)
+	}
+
+	// SUT + act
+	var result = tryUnmarshalPrimitiveTypes(
+		dummyValueString,
+		&dummyDataTemplate,
+	)
+
+	// assert
+	assert.True(t, result)
+	assert.Equal(t, dummyValue, dummyDataTemplate)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestTtryUnmarshalPrimitiveTypes_Int64_Error(t *testing.T) {
+	// arrange
+	var dummyValue = "some invalid int64"
+	var dummyDataTemplate int64
+
+	// mock
+	createMock(t)
+
+	// expect
+	reflectTypeOfExpected = 8
+	reflectTypeOf = func(i interface{}) reflect.Type {
+		reflectTypeOfCalled++
+		return reflect.TypeOf(i)
+	}
+	strconvParseIntExpected = 1
+	strconvParseInt = func(s string, base int, bitSize int) (int64, error) {
+		strconvParseIntCalled++
+		return strconv.ParseInt(s, base, bitSize)
+	}
+
+	// SUT + act
+	var result = tryUnmarshalPrimitiveTypes(
+		dummyValue,
+		&dummyDataTemplate,
+	)
+
+	// assert
+	assert.False(t, result)
+	assert.Zero(t, dummyDataTemplate)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestTtryUnmarshalPrimitiveTypes_Int64_NoError(t *testing.T) {
+	// arrange
+	var dummyValue = rand.Int63()
+	var dummyValueString = fmt.Sprintf("%v", dummyValue)
+	var dummyDataTemplate int64
+
+	// mock
+	createMock(t)
+
+	// expect
+	reflectTypeOfExpected = 8
+	reflectTypeOf = func(i interface{}) reflect.Type {
+		reflectTypeOfCalled++
+		return reflect.TypeOf(i)
+	}
+	strconvParseIntExpected = 1
+	strconvParseInt = func(s string, base int, bitSize int) (int64, error) {
+		strconvParseIntCalled++
+		return strconv.ParseInt(s, base, bitSize)
+	}
+
+	// SUT + act
+	var result = tryUnmarshalPrimitiveTypes(
+		dummyValueString,
+		&dummyDataTemplate,
+	)
+
+	// assert
+	assert.True(t, result)
+	assert.Equal(t, dummyValue, dummyDataTemplate)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestTtryUnmarshalPrimitiveTypes_Float64_Error(t *testing.T) {
+	// arrange
+	var dummyValue = "some invalid float64"
+	var dummyDataTemplate float64
+
+	// mock
+	createMock(t)
+
+	// expect
+	reflectTypeOfExpected = 10
+	reflectTypeOf = func(i interface{}) reflect.Type {
+		reflectTypeOfCalled++
+		return reflect.TypeOf(i)
+	}
+	strconvParseFloatExpected = 1
+	strconvParseFloat = func(s string, bitSize int) (float64, error) {
+		strconvParseFloatCalled++
+		return strconv.ParseFloat(s, bitSize)
+	}
+
+	// SUT + act
+	var result = tryUnmarshalPrimitiveTypes(
+		dummyValue,
+		&dummyDataTemplate,
+	)
+
+	// assert
+	assert.False(t, result)
+	assert.Zero(t, dummyDataTemplate)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestTtryUnmarshalPrimitiveTypes_Float64_NoError(t *testing.T) {
+	// arrange
+	var dummyValue = rand.Float64()
+	var dummyValueString = fmt.Sprintf("%v", dummyValue)
+	var dummyDataTemplate float64
+
+	// mock
+	createMock(t)
+
+	// expect
+	reflectTypeOfExpected = 10
+	reflectTypeOf = func(i interface{}) reflect.Type {
+		reflectTypeOfCalled++
+		return reflect.TypeOf(i)
+	}
+	strconvParseFloatExpected = 1
+	strconvParseFloat = func(s string, bitSize int) (float64, error) {
+		strconvParseFloatCalled++
+		return strconv.ParseFloat(s, bitSize)
+	}
+
+	// SUT + act
+	var result = tryUnmarshalPrimitiveTypes(
+		dummyValueString,
+		&dummyDataTemplate,
+	)
+
+	// assert
+	assert.True(t, result)
+	assert.Equal(t, dummyValue, dummyDataTemplate)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestTtryUnmarshalPrimitiveTypes_Byte_Error(t *testing.T) {
+	// arrange
+	var dummyValue = "some invalid byte"
+	var dummyDataTemplate byte
+
+	// mock
+	createMock(t)
+
+	// expect
+	reflectTypeOfExpected = 12
+	reflectTypeOf = func(i interface{}) reflect.Type {
+		reflectTypeOfCalled++
+		return reflect.TypeOf(i)
+	}
+	strconvParseUintExpected = 1
+	strconvParseUint = func(s string, base int, bitSize int) (uint64, error) {
+		strconvParseUintCalled++
+		return strconv.ParseUint(s, base, bitSize)
+	}
+
+	// SUT + act
+	var result = tryUnmarshalPrimitiveTypes(
+		dummyValue,
+		&dummyDataTemplate,
+	)
+
+	// assert
+	assert.False(t, result)
+	assert.Zero(t, dummyDataTemplate)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestTtryUnmarshalPrimitiveTypes_Byte_NoError(t *testing.T) {
+	// arrange
+	var dummyValue = byte(rand.Intn(math.MaxUint8))
+	var dummyValueString = fmt.Sprintf("%v", dummyValue)
+	var dummyDataTemplate byte
+
+	// mock
+	createMock(t)
+
+	// expect
+	reflectTypeOfExpected = 12
+	reflectTypeOf = func(i interface{}) reflect.Type {
+		reflectTypeOfCalled++
+		return reflect.TypeOf(i)
+	}
+	strconvParseUintExpected = 1
+	strconvParseUint = func(s string, base int, bitSize int) (uint64, error) {
+		strconvParseUintCalled++
+		return strconv.ParseUint(s, base, bitSize)
+	}
+
+	// SUT + act
+	var result = tryUnmarshalPrimitiveTypes(
+		dummyValueString,
+		&dummyDataTemplate,
+	)
+
+	// assert
+	assert.True(t, result)
+	assert.Equal(t, dummyValue, dummyDataTemplate)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestTtryUnmarshalPrimitiveTypes_OtherTypes(t *testing.T) {
+	// arrange
+	var dummyValue = "some value"
+	var dummyDataTemplate error
+
+	// mock
+	createMock(t)
+
+	// expect
+	reflectTypeOfExpected = 12
+	reflectTypeOf = func(i interface{}) reflect.Type {
+		reflectTypeOfCalled++
+		return reflect.TypeOf(i)
+	}
+
+	// SUT + act
+	var result = tryUnmarshalPrimitiveTypes(
+		dummyValue,
+		&dummyDataTemplate,
+	)
+
+	// assert
+	assert.False(t, result)
+	assert.Zero(t, dummyDataTemplate)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestTryUnmarshal_Primitype(t *testing.T) {
+	// arrange
+	var dummyValue = "some value"
+	var dummyDataTemplate string
+	var dummyData = "some data"
+
+	// mock
+	createMock(t)
+
+	// expect
+	tryUnmarshalPrimitiveTypesFuncExpected = 1
+	tryUnmarshalPrimitiveTypesFunc = func(value string, dataTemplate interface{}) bool {
+		tryUnmarshalPrimitiveTypesFuncCalled++
+		assert.Equal(t, dummyValue, value)
+		(*(dataTemplate).(*string)) = dummyData
+		return true
+	}
 
 	// SUT + act
 	var err = TryUnmarshal(
@@ -102,7 +552,7 @@ func TestTryUnmarshal_NoQuoteJSONEmpty(t *testing.T) {
 
 	// assert
 	assert.NoError(t, err)
-	assert.Zero(t, dummyDataTemplate)
+	assert.Equal(t, dummyData, dummyDataTemplate)
 
 	// verify
 	verifyAll(t)
@@ -118,6 +568,12 @@ func TestTryUnmarshal_NoQuoteJSONSuccess_Primitive(t *testing.T) {
 	createMock(t)
 
 	// expect
+	tryUnmarshalPrimitiveTypesFuncExpected = 1
+	tryUnmarshalPrimitiveTypesFunc = func(value string, dataTemplate interface{}) bool {
+		tryUnmarshalPrimitiveTypesFuncCalled++
+		assert.Equal(t, dummyValueString, value)
+		return false
+	}
 	jsonUnmarshalExpected = 1
 	jsonUnmarshal = func(data []byte, v interface{}) error {
 		jsonUnmarshalCalled++
@@ -151,6 +607,12 @@ func TestTryUnmarshal_NoQuoteJSONSuccess_Struct(t *testing.T) {
 	createMock(t)
 
 	// expect
+	tryUnmarshalPrimitiveTypesFuncExpected = 1
+	tryUnmarshalPrimitiveTypesFunc = func(value string, dataTemplate interface{}) bool {
+		tryUnmarshalPrimitiveTypesFuncCalled++
+		assert.Equal(t, dummyValueString, value)
+		return false
+	}
 	jsonUnmarshalExpected = 1
 	jsonUnmarshal = func(data []byte, v interface{}) error {
 		jsonUnmarshalCalled++
@@ -182,6 +644,12 @@ func TestTryUnmarshal_WithQuoteJSONSuccess(t *testing.T) {
 	createMock(t)
 
 	// expect
+	tryUnmarshalPrimitiveTypesFuncExpected = 1
+	tryUnmarshalPrimitiveTypesFunc = func(value string, dataTemplate interface{}) bool {
+		tryUnmarshalPrimitiveTypesFuncCalled++
+		assert.Equal(t, dummyValue, value)
+		return false
+	}
 	jsonUnmarshalExpected = 2
 	jsonUnmarshal = func(data []byte, v interface{}) error {
 		jsonUnmarshalCalled++
@@ -217,6 +685,12 @@ func TestTryUnmarshal_Failure(t *testing.T) {
 	createMock(t)
 
 	// expect
+	tryUnmarshalPrimitiveTypesFuncExpected = 1
+	tryUnmarshalPrimitiveTypesFunc = func(value string, dataTemplate interface{}) bool {
+		tryUnmarshalPrimitiveTypesFuncCalled++
+		assert.Equal(t, dummyValue, value)
+		return false
+	}
 	jsonUnmarshalExpected = 2
 	jsonUnmarshal = func(data []byte, v interface{}) error {
 		jsonUnmarshalCalled++

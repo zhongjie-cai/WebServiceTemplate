@@ -19,9 +19,67 @@ func MarshalIgnoreError(v interface{}) string {
 	return stringsTrimRight(result, "\n")
 }
 
+func tryUnmarshalPrimitiveTypes(value string, dataTemplate interface{}) bool {
+	if value == "" {
+		return true
+	}
+	if reflectTypeOf(dataTemplate) == reflectTypeOf((*string)(nil)) {
+		(*(dataTemplate).(*string)) = value
+		return true
+	}
+	if reflectTypeOf(dataTemplate) == reflectTypeOf((*bool)(nil)) {
+		var parsedValue, parseError = strconvParseBool(
+			stringsToLower(
+				value,
+			),
+		)
+		if parseError != nil {
+			return false
+		}
+		(*(dataTemplate).(*bool)) = parsedValue
+		return true
+	}
+	if reflectTypeOf(dataTemplate) == reflectTypeOf((*int)(nil)) {
+		var parsedValue, parseError = strconvAtoi(value)
+		if parseError != nil {
+			return false
+		}
+		(*(dataTemplate).(*int)) = parsedValue
+		return true
+	}
+	if reflectTypeOf(dataTemplate) == reflectTypeOf((*int64)(nil)) {
+		var parsedValue, parseError = strconvParseInt(value, 0, 64)
+		if parseError != nil {
+			return false
+		}
+		(*(dataTemplate).(*int64)) = parsedValue
+		return true
+	}
+	if reflectTypeOf(dataTemplate) == reflectTypeOf((*float64)(nil)) {
+		var parsedValue, parseError = strconvParseFloat(value, 64)
+		if parseError != nil {
+			return false
+		}
+		(*(dataTemplate).(*float64)) = parsedValue
+		return true
+	}
+	if reflectTypeOf(dataTemplate) == reflectTypeOf((*byte)(nil)) {
+		var parsedValue, parseError = strconvParseUint(value, 0, 8)
+		if parseError != nil {
+			return false
+		}
+		(*(dataTemplate).(*byte)) = byte(parsedValue)
+		return true
+	}
+	return false
+}
+
 // TryUnmarshal tries to unmarshal given value to dataTemplate
 func TryUnmarshal(value string, dataTemplate interface{}) error {
-	if value == "" {
+	if tryUnmarshalPrimitiveTypesFunc(
+		value,
+		dataTemplate,
+	) {
 		return nil
 	}
 	var noQuoteJSONError = jsonUnmarshal(
