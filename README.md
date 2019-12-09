@@ -32,15 +32,9 @@ import (
 
 // This is a sample of how to setup application for running the server
 func main() {
-	customization.AppName = func() string {
-		return "WebServiceTemplate"
-	}
-	customization.AppPort = func() string {
-		return "18605"
-	}
-	customization.AppVersion = func() string {
-		return "1.2.3"
-	}
+	customization.AppName = func() string { return "WebServiceTemplate" }
+	customization.AppPort = func() string { return "18605" }
+	customization.AppVersion = func() string { return "1.2.3" }
 	customization.LoggingFunc = func(session sessionModel.Session, logType logtype.LogType, logLevel loglevel.LogLevel, category, subcategory, description string) {
 		fmt.Printf("<%v|%v> %v\n", category, subcategory, description)
 	}
@@ -86,7 +80,7 @@ func getHealth(
 		sessionID,
 		loglevel.Warn,
 		"Health",
-		"Message",
+		"Summary",
 		"AppVersion = %v",
 		appVersion,
 	)
@@ -99,10 +93,7 @@ func swaggerRedirect(
 ) (interface{}, error) {
 	return response.Override(
 		sessionID,
-		func(
-			httpRequest *http.Request,
-			responseWriter http.ResponseWriter,
-		) {
+		func(httpRequest *http.Request, responseWriter http.ResponseWriter) {
 			http.Redirect(
 				responseWriter,
 				httpRequest,
@@ -117,11 +108,7 @@ func swaggerRedirect(
 func swaggerHandler() http.Handler {
 	return http.StripPrefix(
 		"/docs/",
-		http.FileServer(
-			http.Dir(
-				"./docs",
-			),
-		),
+		http.FileServer(http.Dir("./docs")),
 	)
 }
 
@@ -133,14 +120,9 @@ func loggingRequestURIMiddleware(nextHandler http.Handler) http.Handler {
 			httpRequest *http.Request,
 		) {
 			// middleware logic & processing
-			fmt.Println(
-				httpRequest.RequestURI,
-			)
+			fmt.Println(httpRequest.RequestURI)
 			// hand over to next handler in the chain
-			nextHandler.ServeHTTP(
-				responseWriter,
-				httpRequest,
-			)
+			nextHandler.ServeHTTP(responseWriter, httpRequest)
 		},
 	)
 }
