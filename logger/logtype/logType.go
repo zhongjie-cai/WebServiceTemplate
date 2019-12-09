@@ -22,13 +22,13 @@ const (
 
 	BasicTracing   LogType = MethodLogic
 	GeneralTracing LogType = BasicTracing | APIEnter | APIExit
-	VerboseTracing LogType = GeneralTracing | MethodEnter | MethodExit
-	FullTracing    LogType = VerboseTracing | NetworkCall | NetworkFinish
+	VerboseTracing LogType = GeneralTracing | NetworkCall | NetworkFinish
+	FullTracing    LogType = VerboseTracing | MethodEnter | MethodExit
 
 	BasicDebugging   LogType = MethodLogic
 	GeneralDebugging LogType = BasicDebugging | APIRequest | APIResponse
-	VerboseDebugging LogType = GeneralDebugging | MethodParameter | MethodReturn
-	FullDebugging    LogType = VerboseDebugging | NetworkRequest | NetworkResponse
+	VerboseDebugging LogType = GeneralDebugging | NetworkRequest | NetworkResponse
+	FullDebugging    LogType = VerboseDebugging | MethodParameter | MethodReturn
 
 	BasicLogging   LogType = BasicTracing | BasicDebugging
 	GeneralLogging LogType = BasicLogging | GeneralTracing | GeneralDebugging
