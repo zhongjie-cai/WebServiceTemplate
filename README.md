@@ -203,6 +203,54 @@ customization.CreateErrorResponseFunc = func(err error) (responseMessage string,
 }
 ```
 
+Apart from full override of the handling of error responses, one could also utilize the following customization to extend the existing AppError codes and provide wanted code names and HTTP status code mapping. 
+
+```golang
+...
+
+const (
+	CodeGeneralFailure apperrorEnum.Code = iota + apperrorEnum.CodeReservedCount
+	CodeMissingID
+	CodeInvalidID
+)
+
+...
+
+customization.AppErrors = func() (map[apperrorEnum.Code]string, map[apperrorEnum.Code]int) {
+	var codeNames = map[apperrorEnum.Code]string{
+		CodeGeneralFailure:	"GeneralFailure",
+		CodeMissingID:		"MissingID",
+		CodeInvalidID:		"InvalidID",
+	}
+	var statusCodes = map[apperrorEnum.Code]int{
+		CodeGeneralFailure:	http.StatusInternalServerError,
+		CodeMissingID:		http.StatusBadRequest,
+		CodeInvalidID:		http.StatusBadRequest,
+	}
+	return codeNames, statusCodes
+}
+
+...
+```
+
+In this way, a customized error can be specified using apperror package methods, and once returned in a Route ActionFunc, it can be properly translated into corresponding error messages and HTTP status codes. 
+
+```golang
+...
+
+func sampleError(
+	sessionID uuid.UUID,
+) (interface{}, error) {
+	return nil,
+		apperror.GetCustomError(
+			CodeMissingID,
+			"Unable to process request: missing ID",
+		)
+}
+
+...
+```
+
 # Logging
 
 The library allows the user to customize its logging function by setting the variable `LoggingFunc` under the `customization` package. 
