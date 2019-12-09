@@ -19,8 +19,6 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/zhongjie-cai/WebServiceTemplate/session"
-
 	"github.com/google/uuid"
 	"github.com/zhongjie-cai/WebServiceTemplate/application"
 	"github.com/zhongjie-cai/WebServiceTemplate/customization"
@@ -28,6 +26,7 @@ import (
 	"github.com/zhongjie-cai/WebServiceTemplate/logger/logtype"
 	"github.com/zhongjie-cai/WebServiceTemplate/response"
 	serverModel "github.com/zhongjie-cai/WebServiceTemplate/server/model"
+	"github.com/zhongjie-cai/WebServiceTemplate/session"
 	sessionModel "github.com/zhongjie-cai/WebServiceTemplate/session/model"
 )
 
