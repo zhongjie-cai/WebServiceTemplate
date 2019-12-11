@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"testing"
 
+	"github.com/zhongjie-cai/WebServiceTemplate/certificate"
 	"github.com/zhongjie-cai/WebServiceTemplate/customization"
 	"github.com/zhongjie-cai/WebServiceTemplate/jsonutil"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger/logtype"
@@ -94,6 +95,12 @@ var (
 	getAllowedLogTypeFuncCalled                 int
 	getAllowedLogLevelFuncExpected              int
 	getAllowedLogLevelFuncCalled                int
+	certificateHasClientCertExpected            int
+	certificateHasClientCertCalled              int
+	customizationSendClientCertExpected         int
+	customizationSendClientCertCalled           int
+	shouldSendClientCertFuncExpected            int
+	shouldSendClientCertFuncCalled              int
 )
 
 func createMock(t *testing.T) {
@@ -261,7 +268,7 @@ func createMock(t *testing.T) {
 	}
 	networkNewNetworkRequestExpected = 0
 	networkNewNetworkRequestCalled = 0
-	networkNewNetworkRequest = func(session sessionModel.Session, method string, url string, payload string, header map[string]string) networkModel.NetworkRequest {
+	networkNewNetworkRequest = func(session sessionModel.Session, method string, url string, payload string, header map[string]string, sendClientCert bool) networkModel.NetworkRequest {
 		networkNewNetworkRequestCalled++
 		return nil
 	}
@@ -276,6 +283,21 @@ func createMock(t *testing.T) {
 	getAllowedLogLevelFunc = func(sessionID uuid.UUID) loglevel.LogLevel {
 		getAllowedLogLevelFuncCalled++
 		return 0
+	}
+	certificateHasClientCertExpected = 0
+	certificateHasClientCertCalled = 0
+	certificateHasClientCert = func() bool {
+		certificateHasClientCertCalled++
+		return false
+	}
+	customizationSendClientCertExpected = 0
+	customizationSendClientCertCalled = 0
+	customization.SendClientCert = nil
+	shouldSendClientCertFuncExpected = 0
+	shouldSendClientCertFuncCalled = 0
+	shouldSendClientCertFunc = func(url string) bool {
+		shouldSendClientCertFuncCalled++
+		return false
 	}
 }
 
@@ -344,6 +366,12 @@ func verifyAll(t *testing.T) {
 	assert.Equal(t, getAllowedLogTypeFuncExpected, getAllowedLogTypeFuncCalled, "Unexpected number of calls to getAllowedLogTypeFunc")
 	getAllowedLogLevelFunc = getAllowedLogLevel
 	assert.Equal(t, getAllowedLogLevelFuncExpected, getAllowedLogLevelFuncCalled, "Unexpected number of calls to getAllowedLogLevelFunc")
+	certificateHasClientCert = certificate.HasClientCert
+	assert.Equal(t, certificateHasClientCertExpected, certificateHasClientCertCalled, "Unexpected number of calls to certificateHasClientCert")
+	customization.SendClientCert = nil
+	assert.Equal(t, customizationSendClientCertExpected, customizationSendClientCertCalled, "Unexpected number of calls to customization.SendClientCert")
+	shouldSendClientCertFunc = shouldSendClientCert
+	assert.Equal(t, shouldSendClientCertFuncExpected, shouldSendClientCertFuncCalled, "Unexpected number of calls to shouldSendClientCertFunc")
 
 	defaultSession = nil
 }

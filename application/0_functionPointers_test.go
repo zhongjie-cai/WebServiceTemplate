@@ -34,8 +34,6 @@ var (
 	configValidateClientCertCalled      int
 	configCaCertContentExpected         int
 	configCaCertContentCalled           int
-	configSendClientCertExpected        int
-	configSendClientCertCalled          int
 	configClientCertContentExpected     int
 	configClientCertContentCalled       int
 	configClientKeyContentExpected      int
@@ -120,12 +118,6 @@ func createMock(t *testing.T) {
 		configCaCertContentCalled++
 		return ""
 	}
-	configSendClientCertExpected = 0
-	configSendClientCertCalled = 0
-	config.SendClientCert = func() bool {
-		configSendClientCertCalled++
-		return false
-	}
 	configClientCertContentExpected = 0
 	configClientCertContentCalled = 0
 	config.ClientCertContent = func() string {
@@ -146,7 +138,7 @@ func createMock(t *testing.T) {
 	}
 	certificateInitializeExpected = 0
 	certificateInitializeCalled = 0
-	certificateInitialize = func(serveHTTPS bool, serverCertContent string, serverKeyContent string, validateClientCert bool, caCertContent string, sendClientCert bool, clientCertContent string, clientKeyContent string) error {
+	certificateInitialize = func(serveHTTPS bool, serverCertContent string, serverKeyContent string, validateClientCert bool, caCertContent string, clientCertContent string, clientKeyContent string) error {
 		certificateInitializeCalled++
 		return nil
 	}
@@ -158,7 +150,7 @@ func createMock(t *testing.T) {
 	}
 	networkInitializeExpected = 0
 	networkInitializeCalled = 0
-	networkInitialize = func(sendClientCert bool, networkTimeout time.Duration) {
+	networkInitialize = func(networkTimeout time.Duration) {
 		networkInitializeCalled++
 	}
 	loggerInitializeExpected = 0
@@ -225,8 +217,6 @@ func verifyAll(t *testing.T) {
 	assert.Equal(t, configValidateClientCertExpected, configValidateClientCertCalled, "Unexpected number of calls to configValidateClientCert")
 	config.CaCertContent = func() string { return "" }
 	assert.Equal(t, configCaCertContentExpected, configCaCertContentCalled, "Unexpected number of calls to configCaCertContent")
-	config.SendClientCert = func() bool { return false }
-	assert.Equal(t, configSendClientCertExpected, configSendClientCertCalled, "Unexpected number of calls to configSendClientCert")
 	config.ClientCertContent = func() string { return "" }
 	assert.Equal(t, configClientCertContentExpected, configClientCertContentCalled, "Unexpected number of calls to configClientCertContent")
 	config.ClientKeyContent = func() string { return "" }

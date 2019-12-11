@@ -20,6 +20,50 @@ import (
 	sessionModel "github.com/zhongjie-cai/WebServiceTemplate/session/model"
 )
 
+func TestGetClientForRequest_SendClientCert(t *testing.T) {
+	// arrange
+	var dummyHTTPClient1 = &http.Client{Timeout: time.Duration(rand.Int())}
+	var dummyHTTPClient2 = &http.Client{Timeout: time.Duration(rand.Int())}
+
+	// stub
+	httpClientWithCert = dummyHTTPClient1
+	httpClientNoCert = dummyHTTPClient2
+
+	// mock
+	createMock(t)
+
+	// SUT + act
+	var result = getClientForRequest(true)
+
+	// assert
+	assert.Equal(t, dummyHTTPClient1, result)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestGetClientForRequest_NoSendClientCert(t *testing.T) {
+	// arrange
+	var dummyHTTPClient1 = &http.Client{Timeout: time.Duration(rand.Int())}
+	var dummyHTTPClient2 = &http.Client{Timeout: time.Duration(rand.Int())}
+
+	// stub
+	httpClientWithCert = dummyHTTPClient1
+	httpClientNoCert = dummyHTTPClient2
+
+	// mock
+	createMock(t)
+
+	// SUT + act
+	var result = getClientForRequest(false)
+
+	// assert
+	assert.Equal(t, dummyHTTPClient2, result)
+
+	// verify
+	verifyAll(t)
+}
+
 func TestClientDo(t *testing.T) {
 	// arrange
 	var dummyClient = &http.Client{}
@@ -534,31 +578,39 @@ func TestGetHTTPTransport_SendClientCert_CertFound(t *testing.T) {
 
 func TestInitialize(t *testing.T) {
 	// arrange
-	var dummySendClientCert = rand.Intn(100) < 50
 	var dummyNetworkTimeout = time.Duration(rand.Int())
-	var dummyHTTPTransport = &http.Transport{}
+	var dummyHTTPTransport1 = &http.Transport{MaxConnsPerHost: rand.Int()}
+	var dummyHTTPTransport2 = &http.Transport{MaxConnsPerHost: rand.Int()}
 
 	// mock
 	createMock(t)
 
 	// expect
-	getHTTPTransportFuncExpected = 1
+	getHTTPTransportFuncExpected = 2
 	getHTTPTransportFunc = func(sendClientCert bool) http.RoundTripper {
 		getHTTPTransportFuncCalled++
-		assert.Equal(t, dummySendClientCert, sendClientCert)
-		return dummyHTTPTransport
+		if getHTTPTransportFuncCalled == 1 {
+			assert.True(t, sendClientCert)
+			return dummyHTTPTransport1
+		} else if getHTTPTransportFuncCalled == 2 {
+			assert.False(t, sendClientCert)
+			return dummyHTTPTransport2
+		}
+		return nil
 	}
 
 	// SUT + act
 	Initialize(
-		dummySendClientCert,
 		dummyNetworkTimeout,
 	)
 
 	// assert
-	assert.NotNil(t, httpClient)
-	assert.Equal(t, dummyHTTPTransport, httpClient.Transport)
-	assert.Equal(t, dummyNetworkTimeout, httpClient.Timeout)
+	assert.NotNil(t, httpClientWithCert)
+	assert.Equal(t, dummyHTTPTransport1, httpClientWithCert.Transport)
+	assert.Equal(t, dummyNetworkTimeout, httpClientWithCert.Timeout)
+	assert.NotNil(t, httpClientNoCert)
+	assert.Equal(t, dummyHTTPTransport2, httpClientNoCert.Transport)
+	assert.Equal(t, dummyNetworkTimeout, httpClientNoCert.Timeout)
 
 	// verify
 	verifyAll(t)
@@ -574,6 +626,7 @@ func TestNewNetworkRequest(t *testing.T) {
 		"foo":  "bar",
 		"test": "123",
 	}
+	var dummySendClientCert = rand.Intn(100) < 50
 
 	// mock
 	createMock(t)
@@ -585,6 +638,7 @@ func TestNewNetworkRequest(t *testing.T) {
 		dummyURL,
 		dummyPayload,
 		dummyHeader,
+		dummySendClientCert,
 	)
 
 	// act
@@ -598,6 +652,7 @@ func TestNewNetworkRequest(t *testing.T) {
 	assert.Equal(t, dummyURL, typedResult.url)
 	assert.Equal(t, dummyPayload, typedResult.payload)
 	assert.Equal(t, dummyHeader, typedResult.header)
+	assert.Equal(t, dummySendClientCert, typedResult.sendClientCert)
 
 	// verify
 	verifyAll(t)
@@ -703,6 +758,7 @@ func TestCreateHTTPRequest_RequestError(t *testing.T) {
 		rand.Int(): rand.Int(),
 		rand.Int(): rand.Int(),
 	}
+	var dummySendClientCert = rand.Intn(100) < 50
 	var dummyNetworkRequest = &networkRequest{
 		dummySessionObject,
 		dummyMethod,
@@ -711,6 +767,7 @@ func TestCreateHTTPRequest_RequestError(t *testing.T) {
 		dummyHeader,
 		dummyConnRetry,
 		dummyHTTPRetry,
+		dummySendClientCert,
 	}
 	var dummyRequest *http.Request
 	var dummyError = errors.New("some error message")
@@ -773,6 +830,7 @@ func TestCreateHTTPRequest_Success(t *testing.T) {
 		rand.Int(): rand.Int(),
 		rand.Int(): rand.Int(),
 	}
+	var dummySendClientCert = rand.Intn(100) < 50
 	var dummyNetworkRequest = &networkRequest{
 		dummySessionObject,
 		dummyMethod,
@@ -781,6 +839,7 @@ func TestCreateHTTPRequest_Success(t *testing.T) {
 		dummyHeader,
 		dummyConnRetry,
 		dummyHTTPRetry,
+		dummySendClientCert,
 	}
 	var dummyRequest = &http.Request{
 		RequestURI: "abc",
@@ -1036,17 +1095,17 @@ func TestDoRequestProcessing_ResponseError(t *testing.T) {
 		rand.Int(): rand.Int(),
 		rand.Int(): rand.Int(),
 	}
+	var dummySendClientCert = rand.Intn(100) < 50
 	var dummyNetworkRequest = &networkRequest{
-		session:   dummySessionObject,
-		connRetry: dummyConnRetry,
-		httpRetry: dummyHTTPRetry,
+		session:        dummySessionObject,
+		connRetry:      dummyConnRetry,
+		httpRetry:      dummyHTTPRetry,
+		sendClientCert: dummySendClientCert,
 	}
+	var dummyHTTPClient = &http.Client{}
 	var dummyRequestObject = &http.Request{}
 	var dummyResponseObject *http.Response
 	var dummyResponseError = errors.New("some error")
-
-	// stub
-	httpClient = &http.Client{}
 
 	// mock
 	createMock(t)
@@ -1058,10 +1117,16 @@ func TestDoRequestProcessing_ResponseError(t *testing.T) {
 		assert.Equal(t, dummyNetworkRequest, networkRequest)
 		return dummyRequestObject, nil
 	}
+	getClientForRequestFuncExpected = 1
+	getClientForRequestFunc = func(sendClientCert bool) *http.Client {
+		getClientForRequestFuncCalled++
+		assert.Equal(t, dummySendClientCert, sendClientCert)
+		return dummyHTTPClient
+	}
 	clientDoWithRetryFuncExpected = 1
 	clientDoWithRetryFunc = func(client *http.Client, request *http.Request, connRetry int, httpRetry map[int]int) (*http.Response, error) {
 		clientDoWithRetryFuncCalled++
-		assert.Equal(t, httpClient, client)
+		assert.Equal(t, dummyHTTPClient, client)
 		assert.Equal(t, dummyRequestObject, request)
 		assert.Equal(t, dummyConnRetry, connRetry)
 		assert.Equal(t, dummyHTTPRetry, httpRetry)
@@ -1095,16 +1160,16 @@ func TestDoRequestProcessing_ResponseSuccess(t *testing.T) {
 		rand.Int(): rand.Int(),
 		rand.Int(): rand.Int(),
 	}
+	var dummySendClientCert = rand.Intn(100) < 50
 	var dummyNetworkRequest = &networkRequest{
-		session:   dummySessionObject,
-		connRetry: dummyConnRetry,
-		httpRetry: dummyHTTPRetry,
+		session:        dummySessionObject,
+		connRetry:      dummyConnRetry,
+		httpRetry:      dummyHTTPRetry,
+		sendClientCert: dummySendClientCert,
 	}
+	var dummyHTTPClient = &http.Client{}
 	var dummyRequestObject = &http.Request{}
 	var dummyResponseObject = &http.Response{}
-
-	// stub
-	httpClient = &http.Client{}
 
 	// mock
 	createMock(t)
@@ -1116,10 +1181,16 @@ func TestDoRequestProcessing_ResponseSuccess(t *testing.T) {
 		assert.Equal(t, dummyNetworkRequest, networkRequest)
 		return dummyRequestObject, nil
 	}
+	getClientForRequestFuncExpected = 1
+	getClientForRequestFunc = func(sendClientCert bool) *http.Client {
+		getClientForRequestFuncCalled++
+		assert.Equal(t, dummySendClientCert, sendClientCert)
+		return dummyHTTPClient
+	}
 	clientDoWithRetryFuncExpected = 1
 	clientDoWithRetryFunc = func(client *http.Client, request *http.Request, connRetry int, httpRetry map[int]int) (*http.Response, error) {
 		clientDoWithRetryFuncCalled++
-		assert.Equal(t, httpClient, client)
+		assert.Equal(t, dummyHTTPClient, client)
 		assert.Equal(t, dummyRequestObject, request)
 		assert.Equal(t, dummyConnRetry, connRetry)
 		assert.Equal(t, dummyHTTPRetry, httpRetry)

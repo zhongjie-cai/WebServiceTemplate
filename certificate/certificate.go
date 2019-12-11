@@ -55,7 +55,7 @@ func initializeTLSCertiticate(
 	certContent string,
 	keyContent string,
 ) (*tls.Certificate, error) {
-	if !shouldLoadCert {
+	if !shouldLoadCert || certContent == "" || keyContent == "" {
 		return nil, nil
 	}
 	var cert, certError = loadTLSCertificateFunc(
@@ -76,7 +76,7 @@ func initializeX509CertPool(
 	shouldLoadCert bool,
 	certContent string,
 ) (*x509.CertPool, error) {
-	if !shouldLoadCert {
+	if !shouldLoadCert || certContent == "" {
 		return nil, nil
 	}
 	var certPool, poolError = loadX509CertPoolFunc(
@@ -99,7 +99,6 @@ func Initialize(
 	serverKeyContent string,
 	validateClientCert bool,
 	caCertContent string,
-	sendClientCert bool,
 	clientCertContent string,
 	clientKeyContent string,
 ) error {
@@ -114,7 +113,7 @@ func Initialize(
 			caCertContent,
 		)
 		clientCert, clientCertError = initializeTLSCertiticateFunc(
-			sendClientCert,
+			true,
 			clientCertContent,
 			clientKeyContent,
 		)
@@ -145,4 +144,9 @@ func GetCaCertPool() *x509.CertPool {
 // GetClientCertificate returns the client certificate loaded from local storage
 func GetClientCertificate() *tls.Certificate {
 	return clientCertificate
+}
+
+// HasClientCert returns whether a client certificate is available for runtime or not
+func HasClientCert() bool {
+	return clientCertificate != nil
 }

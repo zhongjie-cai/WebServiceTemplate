@@ -36,7 +36,7 @@ func TestReset(t *testing.T) {
 	ServerKeyContent = func() string { return "" }
 	ValidateClientCert = func() bool { return false }
 	CaCertContent = func() string { return "" }
-	SendClientCert = func() bool { return false }
+	SendClientCert = func(url string) bool { return false }
 	ClientCertContent = func() string { return "" }
 	ClientKeyContent = func() string { return "" }
 	PreActionFunc = func(sessionID uuid.UUID) error { return nil }

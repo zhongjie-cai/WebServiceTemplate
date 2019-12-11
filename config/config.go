@@ -39,9 +39,6 @@ var ValidateClientCert = defaultValidateClientCert
 // CaCertContent returns the CA certificate cert content of the application
 var CaCertContent = defaultCaCertContent
 
-// SendClientCert returns the control switch for whether or not send client certificate to external web services
-var SendClientCert = defaultSendClientCert
-
 // ClientCertContent returns the client certificate cert content of the application
 var ClientCertContent = defaultClientCertContent
 
@@ -95,10 +92,6 @@ func defaultValidateClientCert() bool {
 
 func defaultCaCertContent() string {
 	return ""
-}
-
-func defaultSendClientCert() bool {
-	return false
 }
 
 func defaultClientCertContent() string {
@@ -237,10 +230,6 @@ func isCaCertificateAvailable() bool {
 	return len(CaCertContent()) != 0
 }
 
-func isClientCertificateAvailable() bool {
-	return len(ClientCertContent()) != 0 && len(ClientKeyContent()) != 0
-}
-
 // Initialize initiates and checks all application config related function injections
 func Initialize() error {
 	const noForceToDefault = false
@@ -255,7 +244,6 @@ func Initialize() error {
 		serverKeyContentError       error
 		validateClientCertError     error
 		caCertContentError          error
-		sendClientCertError         error
 		clientCertContentError      error
 		clientKeyContentError       error
 		defaultAllowedLogTypeError  error
@@ -334,12 +322,6 @@ func Initialize() error {
 		defaultClientKeyContent,
 		noForceToDefault,
 	)
-	SendClientCert, sendClientCertError = validateBooleanFunctionFunc(
-		customization.SendClientCert,
-		"SendClientCert",
-		defaultSendClientCert,
-		!isClientCertificateAvailableFunc(),
-	)
 	DefaultAllowedLogType, defaultAllowedLogTypeError = validateDefaultAllowedLogTypeFunc(
 		customization.DefaultAllowedLogType,
 		defaultAllowedLogType,
@@ -366,7 +348,6 @@ func Initialize() error {
 			validateClientCertError,
 			clientCertContentError,
 			clientKeyContentError,
-			sendClientCertError,
 			defaultAllowedLogTypeError,
 			defaultAllowedLogLevelError,
 			defaultNetworkTimeoutError,

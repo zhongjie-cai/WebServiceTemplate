@@ -2517,6 +2517,61 @@ func TestLogMethodExit(t *testing.T) {
 	verifyAll(t)
 }
 
+func TestShouldSendClientCert_NoCustomization(t *testing.T) {
+	// arrange
+	var dummyURL = "some URL"
+	var dummySendClientCert = rand.Intn(100) < 50
+
+	// mock
+	createMock(t)
+
+	// expect
+	certificateHasClientCertExpected = 1
+	certificateHasClientCert = func() bool {
+		certificateHasClientCertCalled++
+		return dummySendClientCert
+	}
+
+	// SUT + act
+	var result = shouldSendClientCert(
+		dummyURL,
+	)
+
+	// assert
+	assert.Equal(t, dummySendClientCert, result)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestShouldSendClientCert_WithCustomization(t *testing.T) {
+	// arrange
+	var dummyURL = "some URL"
+	var dummySendClientCert = rand.Intn(100) < 50
+
+	// mock
+	createMock(t)
+
+	// expect
+	customizationSendClientCertExpected = 1
+	customization.SendClientCert = func(url string) bool {
+		customizationSendClientCertCalled++
+		assert.Equal(t, dummyURL, url)
+		return dummySendClientCert
+	}
+
+	// SUT + act
+	var result = shouldSendClientCert(
+		dummyURL,
+	)
+
+	// assert
+	assert.Equal(t, dummySendClientCert, result)
+
+	// verify
+	verifyAll(t)
+}
+
 func TestCreateNetworkRequest(t *testing.T) {
 	// arrange
 	var dummySessionID = uuid.New()
@@ -2530,6 +2585,7 @@ func TestCreateNetworkRequest(t *testing.T) {
 		"foo":  "bar",
 		"test": "123",
 	}
+	var dummySendClientCert = rand.Intn(100) < 50
 	var dummyNetworkRequest = &dummyNetworkRequest{}
 
 	// mock
@@ -2542,14 +2598,21 @@ func TestCreateNetworkRequest(t *testing.T) {
 		assert.Equal(t, dummySessionID, sessionID)
 		return dummySessionObject
 	}
+	shouldSendClientCertFuncExpected = 1
+	shouldSendClientCertFunc = func(url string) bool {
+		shouldSendClientCertFuncCalled++
+		assert.Equal(t, dummyURL, url)
+		return dummySendClientCert
+	}
 	networkNewNetworkRequestExpected = 1
-	networkNewNetworkRequest = func(session sessionModel.Session, method string, url string, payload string, header map[string]string) networkModel.NetworkRequest {
+	networkNewNetworkRequest = func(session sessionModel.Session, method string, url string, payload string, header map[string]string, sendClientCert bool) networkModel.NetworkRequest {
 		networkNewNetworkRequestCalled++
 		assert.Equal(t, dummySessionObject, session)
 		assert.Equal(t, dummyMethod, method)
 		assert.Equal(t, dummyURL, url)
 		assert.Equal(t, dummyPayload, payload)
 		assert.Equal(t, dummyHeader, header)
+		assert.Equal(t, dummySendClientCert, sendClientCert)
 		return dummyNetworkRequest
 	}
 

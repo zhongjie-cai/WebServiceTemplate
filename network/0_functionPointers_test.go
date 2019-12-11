@@ -83,6 +83,8 @@ var (
 	customizationHTTPRoundTripperCalled           int
 	customizationWrapHTTPRequestExpected          int
 	customizationWrapHTTPRequestCalled            int
+	getClientForRequestFuncExpected               int
+	getClientForRequestFuncCalled                 int
 )
 
 func createMock(t *testing.T) {
@@ -236,6 +238,12 @@ func createMock(t *testing.T) {
 		customizeHTTPRequestFuncCalled++
 		return nil
 	}
+	getClientForRequestFuncExpected = 0
+	getClientForRequestFuncCalled = 0
+	getClientForRequestFunc = func(sendClientCert bool) *http.Client {
+		getClientForRequestFuncCalled++
+		return nil
+	}
 	customizationHTTPRoundTripperExpected = 0
 	customizationHTTPRoundTripperCalled = 0
 	customization.HTTPRoundTripper = nil
@@ -299,10 +307,15 @@ func verifyAll(t *testing.T) {
 	assert.Equal(t, getHTTPTransportFuncExpected, getHTTPTransportFuncCalled, "Unexpected number of calls to method getHTTPTransportFunc")
 	customizeHTTPRequestFunc = customizeHTTPRequest
 	assert.Equal(t, customizeHTTPRequestFuncExpected, customizeHTTPRequestFuncCalled, "Unexpected number of calls to method customizeHTTPRequestFunc")
-
-	httpClient = nil
+	getClientForRequestFunc = getClientForRequest
+	assert.Equal(t, getClientForRequestFuncExpected, getClientForRequestFuncCalled, "Unexpected number of calls to method getClientForRequestFunc")
 	customization.HTTPRoundTripper = nil
+	assert.Equal(t, customizationHTTPRoundTripperExpected, customizationHTTPRoundTripperCalled, "Unexpected number of calls to method customization.HTTPRoundTripper")
 	customization.WrapHTTPRequest = nil
+	assert.Equal(t, customizationWrapHTTPRequestExpected, customizationWrapHTTPRequestCalled, "Unexpected number of calls to method customization.WrapHTTPRequest")
+
+	httpClientWithCert = nil
+	httpClientNoCert = nil
 }
 
 // mock structs

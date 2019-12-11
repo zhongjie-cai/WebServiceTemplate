@@ -12,9 +12,17 @@ import (
 )
 
 var (
-	httpClient *http.Client
-	retryDelay = 3 * time.Second
+	httpClientWithCert *http.Client
+	httpClientNoCert   *http.Client
+	retryDelay         = 3 * time.Second
 )
+
+func getClientForRequest(sendClientCert bool) *http.Client {
+	if sendClientCert {
+		return httpClientWithCert
+	}
+	return httpClientNoCert
+}
 
 func clientDo(
 	httpClient *http.Client,
@@ -102,26 +110,27 @@ func getHTTPTransport(sendClientCert bool) http.RoundTripper {
 
 // Initialize creates a singleton instance for the network package to make HTTP request to external web services
 func Initialize(
-	sendClientCert bool,
 	networkTimeout time.Duration,
 ) {
-	var httpTransport = getHTTPTransportFunc(
-		sendClientCert,
-	)
-	httpClient = &http.Client{
-		Transport: httpTransport,
+	httpClientWithCert = &http.Client{
+		Transport: getHTTPTransportFunc(true),
+		Timeout:   networkTimeout,
+	}
+	httpClientNoCert = &http.Client{
+		Transport: getHTTPTransportFunc(false),
 		Timeout:   networkTimeout,
 	}
 }
 
 type networkRequest struct {
-	session   sessionModel.Session
-	method    string
-	url       string
-	payload   string
-	header    map[string]string
-	connRetry int
-	httpRetry map[int]int
+	session        sessionModel.Session
+	method         string
+	url            string
+	payload        string
+	header         map[string]string
+	connRetry      int
+	httpRetry      map[int]int
+	sendClientCert bool
 }
 
 // NewNetworkRequest creates a new network request for consumer to use
@@ -131,6 +140,7 @@ func NewNetworkRequest(
 	url string,
 	payload string,
 	header map[string]string,
+	sendClientCert bool,
 ) model.NetworkRequest {
 	return &networkRequest{
 		session,
@@ -140,6 +150,7 @@ func NewNetworkRequest(
 		header,
 		0,
 		nil,
+		sendClientCert,
 	}
 }
 
@@ -267,6 +278,9 @@ func doRequestProcessing(networkRequest *networkRequest) (*http.Response, error)
 	if requestError != nil {
 		return nil, requestError
 	}
+	var httpClient = getClientForRequestFunc(
+		networkRequest.sendClientCert,
+	)
 	var responseObject, responseError = clientDoWithRetryFunc(
 		httpClient,
 		requestObject,

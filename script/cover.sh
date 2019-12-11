@@ -29,14 +29,14 @@ do
 	go tool cover -html=$outFileName.cover.profile -o $outFileName.cover.html
 done
 
-echo ""
-echo "Coverage result:"
-cat $allTestCoverResultFile
-
-echo "Analyzed result:"
-
 # Echo result for visibility
 FullReportLines=$(grep -e 'github.com' $allTestCoverResultFile)
+
+echo ""
+echo "Coverage result:"
+echo "$FullReportLines"
+
+echo "Analyzed result:"
 
 FailedLines=$(echo "$FullReportLines" | grep -e 'FAIL')
 if [ -n "$FailedLines" ]

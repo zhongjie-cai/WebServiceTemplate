@@ -34,8 +34,6 @@ var (
 	isServerCertificateAvailableFuncCalled     int
 	isCaCertificateAvailableFuncExpected       int
 	isCaCertificateAvailableFuncCalled         int
-	isClientCertificateAvailableFuncExpected   int
-	isClientCertificateAvailableFuncCalled     int
 	validateStringFunctionFuncExpected         int
 	validateStringFunctionFuncCalled           int
 	validateBooleanFunctionFuncExpected        int
@@ -103,12 +101,6 @@ func createMock(t *testing.T) {
 		isCaCertificateAvailableFuncCalled++
 		return false
 	}
-	isClientCertificateAvailableFuncExpected = 0
-	isClientCertificateAvailableFuncCalled = 0
-	isClientCertificateAvailableFunc = func() bool {
-		isClientCertificateAvailableFuncCalled++
-		return false
-	}
 	validateStringFunctionFuncExpected = 0
 	validateStringFunctionFuncCalled = 0
 	validateStringFunctionFunc = func(stringFunc func() string, name string, defaultFunc func() string, forceToDefault bool) (func() string, error) {
@@ -160,8 +152,6 @@ func verifyAll(t *testing.T) {
 	assert.Equal(t, isServerCertificateAvailableFuncExpected, isServerCertificateAvailableFuncCalled, "Unexpected number of calls to isServerCertificateAvailableFunc")
 	isCaCertificateAvailableFunc = isCaCertificateAvailable
 	assert.Equal(t, isCaCertificateAvailableFuncExpected, isCaCertificateAvailableFuncCalled, "Unexpected number of calls to isCaCertificateAvailableFunc")
-	isClientCertificateAvailableFunc = isClientCertificateAvailable
-	assert.Equal(t, isClientCertificateAvailableFuncExpected, isClientCertificateAvailableFuncCalled, "Unexpected number of calls to isClientCertificateAvailableFunc")
 	validateStringFunctionFunc = validateStringFunction
 	assert.Equal(t, validateStringFunctionFuncExpected, validateStringFunctionFuncCalled, "Unexpected number of calls to validateStringFunctionFunc")
 	validateBooleanFunctionFunc = validateBooleanFunction
@@ -183,7 +173,6 @@ func verifyAll(t *testing.T) {
 	ServerKeyContent = defaultServerKeyContent
 	ValidateClientCert = defaultValidateClientCert
 	CaCertContent = defaultCaCertContent
-	SendClientCert = defaultSendClientCert
 	ClientCertContent = defaultClientCertContent
 	ClientKeyContent = defaultClientKeyContent
 	DefaultAllowedLogType = defaultAllowedLogType

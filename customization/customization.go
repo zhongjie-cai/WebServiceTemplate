@@ -68,7 +68,7 @@ var ValidateClientCert func() bool
 var CaCertContent func() string
 
 // SendClientCert is to customize the HTTP request option to the external web services (mTLS v.s. none)
-var SendClientCert func() bool
+var SendClientCert func(url string) bool
 
 // ClientCertContent is to customize the loading logic for client certificate content
 var ClientCertContent func() string

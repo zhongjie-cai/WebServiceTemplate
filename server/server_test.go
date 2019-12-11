@@ -98,6 +98,56 @@ func TestCreateServer_HTTPS_NoValidateClientCert(t *testing.T) {
 	verifyAll(t)
 }
 
+func TestCreateServer_HTTPS_NoCaCert(t *testing.T) {
+	// arrange
+	var dummyServeHTTPS = true
+	var dummyValidateClientCert = true
+	var dummyAppPort = "some app port"
+	var dummyRouter = &mux.Router{}
+	var dummyServerCert = &tls.Certificate{}
+
+	// mock
+	createMock(t)
+
+	// expect
+	certificateGetServerCertificateExpected = 1
+	certificateGetServerCertificate = func() *tls.Certificate {
+		certificateGetServerCertificateCalled++
+		return dummyServerCert
+	}
+	certificateGetCaCertPoolExpected = 1
+	certificateGetCaCertPool = func() *x509.CertPool {
+		certificateGetCaCertPoolCalled++
+		return nil
+	}
+
+	// SUT + act
+	var server = createServer(
+		dummyServeHTTPS,
+		dummyValidateClientCert,
+		dummyAppPort,
+		dummyRouter,
+	)
+
+	// assert
+	assert.NotNil(t, server)
+	assert.Equal(t, ":"+dummyAppPort, server.Addr)
+	assert.NotNil(t, server.TLSConfig)
+	assert.Equal(t, 1, len(server.TLSConfig.Certificates))
+	assert.Equal(t, *dummyServerCert, server.TLSConfig.Certificates[0])
+	assert.Equal(t, tls.RequestClientCert, server.TLSConfig.ClientAuth)
+	assert.Nil(t, server.TLSConfig.ClientCAs)
+	assert.Empty(t, server.TLSConfig.CipherSuites)
+	assert.Equal(t, true, server.TLSConfig.PreferServerCipherSuites)
+	assert.Equal(t, uint16(tls.VersionTLS12), server.TLSConfig.MinVersion)
+	assert.Equal(t, time.Second*60, server.WriteTimeout)
+	assert.Equal(t, time.Second*60, server.ReadTimeout)
+	assert.Equal(t, time.Second*180, server.IdleTimeout)
+
+	// verify
+	verifyAll(t)
+}
+
 func TestCreateServer_HTTPS_ValidateClientCert(t *testing.T) {
 	// arrange
 	var dummyServeHTTPS = true

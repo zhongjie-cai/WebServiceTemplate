@@ -42,4 +42,5 @@ var (
 	customizeRoundTripperFunc       = customizeRoundTripper
 	getHTTPTransportFunc            = getHTTPTransport
 	customizeHTTPRequestFunc        = customizeHTTPRequest
+	getClientForRequestFunc         = getClientForRequest
 )

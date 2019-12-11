@@ -122,7 +122,6 @@ func TestBootstrapApplication_CertError(t *testing.T) {
 	var dummyServerKeyContent = "some server key content"
 	var dummyValidateClientCert = rand.Intn(100) < 50
 	var dummyCaCertContent = "some CA cert content"
-	var dummySendClientCert = rand.Intn(100) < 50
 	var dummyClientCertContent = "some client cert content"
 	var dummyClientKeyContent = "some client key content"
 	var dummyCertError = errors.New("some cert error")
@@ -166,11 +165,6 @@ func TestBootstrapApplication_CertError(t *testing.T) {
 		configCaCertContentCalled++
 		return dummyCaCertContent
 	}
-	configSendClientCertExpected = 1
-	config.SendClientCert = func() bool {
-		configSendClientCertCalled++
-		return dummySendClientCert
-	}
 	configClientCertContentExpected = 1
 	config.ClientCertContent = func() string {
 		configClientCertContentCalled++
@@ -182,14 +176,13 @@ func TestBootstrapApplication_CertError(t *testing.T) {
 		return dummyClientKeyContent
 	}
 	certificateInitializeExpected = 1
-	certificateInitialize = func(serveHTTPS bool, serverCertContent string, serverKeyContent string, validateClientCert bool, caCertContent string, sendClientCert bool, clientCertContent string, clientKeyContent string) error {
+	certificateInitialize = func(serveHTTPS bool, serverCertContent string, serverKeyContent string, validateClientCert bool, caCertContent string, clientCertContent string, clientKeyContent string) error {
 		certificateInitializeCalled++
 		assert.Equal(t, dummyServeHTTPS, serveHTTPS)
 		assert.Equal(t, dummyServerCertContent, serverCertContent)
 		assert.Equal(t, dummyServerKeyContent, serverKeyContent)
 		assert.Equal(t, dummyValidateClientCert, validateClientCert)
 		assert.Equal(t, dummyCaCertContent, caCertContent)
-		assert.Equal(t, dummySendClientCert, sendClientCert)
 		assert.Equal(t, dummyClientCertContent, clientCertContent)
 		assert.Equal(t, dummyClientKeyContent, clientKeyContent)
 		return dummyCertError
@@ -233,7 +226,6 @@ func TestBootstrapApplication_AppError(t *testing.T) {
 	var dummyServerKeyContent = "some server key content"
 	var dummyValidateClientCert = rand.Intn(100) < 50
 	var dummyCaCertContent = "some CA cert content"
-	var dummySendClientCert = rand.Intn(100) < 50
 	var dummyClientCertContent = "some client cert content"
 	var dummyClientKeyContent = "some client key content"
 	var dummyAppError = errors.New("some cert error")
@@ -277,11 +269,6 @@ func TestBootstrapApplication_AppError(t *testing.T) {
 		configCaCertContentCalled++
 		return dummyCaCertContent
 	}
-	configSendClientCertExpected = 1
-	config.SendClientCert = func() bool {
-		configSendClientCertCalled++
-		return dummySendClientCert
-	}
 	configClientCertContentExpected = 1
 	config.ClientCertContent = func() string {
 		configClientCertContentCalled++
@@ -293,14 +280,13 @@ func TestBootstrapApplication_AppError(t *testing.T) {
 		return dummyClientKeyContent
 	}
 	certificateInitializeExpected = 1
-	certificateInitialize = func(serveHTTPS bool, serverCertContent string, serverKeyContent string, validateClientCert bool, caCertContent string, sendClientCert bool, clientCertContent string, clientKeyContent string) error {
+	certificateInitialize = func(serveHTTPS bool, serverCertContent string, serverKeyContent string, validateClientCert bool, caCertContent string, clientCertContent string, clientKeyContent string) error {
 		certificateInitializeCalled++
 		assert.Equal(t, dummyServeHTTPS, serveHTTPS)
 		assert.Equal(t, dummyServerCertContent, serverCertContent)
 		assert.Equal(t, dummyServerKeyContent, serverKeyContent)
 		assert.Equal(t, dummyValidateClientCert, validateClientCert)
 		assert.Equal(t, dummyCaCertContent, caCertContent)
-		assert.Equal(t, dummySendClientCert, sendClientCert)
 		assert.Equal(t, dummyClientCertContent, clientCertContent)
 		assert.Equal(t, dummyClientKeyContent, clientKeyContent)
 		return nil
@@ -347,7 +333,6 @@ func TestBootstrapApplication_NoError(t *testing.T) {
 	var dummyServerKeyContent = "some server key content"
 	var dummyValidateClientCert = rand.Intn(100) < 50
 	var dummyCaCertContent = "some CA cert content"
-	var dummySendClientCert = rand.Intn(100) < 50
 	var dummyClientCertContent = "some client cert content"
 	var dummyClientKeyContent = "some client key content"
 	var dummyDefaultNetworkTimeout = time.Duration(rand.Int())
@@ -391,11 +376,6 @@ func TestBootstrapApplication_NoError(t *testing.T) {
 		configCaCertContentCalled++
 		return dummyCaCertContent
 	}
-	configSendClientCertExpected = 2
-	config.SendClientCert = func() bool {
-		configSendClientCertCalled++
-		return dummySendClientCert
-	}
 	configClientCertContentExpected = 1
 	config.ClientCertContent = func() string {
 		configClientCertContentCalled++
@@ -407,14 +387,13 @@ func TestBootstrapApplication_NoError(t *testing.T) {
 		return dummyClientKeyContent
 	}
 	certificateInitializeExpected = 1
-	certificateInitialize = func(serveHTTPS bool, serverCertContent string, serverKeyContent string, validateClientCert bool, caCertContent string, sendClientCert bool, clientCertContent string, clientKeyContent string) error {
+	certificateInitialize = func(serveHTTPS bool, serverCertContent string, serverKeyContent string, validateClientCert bool, caCertContent string, clientCertContent string, clientKeyContent string) error {
 		certificateInitializeCalled++
 		assert.Equal(t, dummyServeHTTPS, serveHTTPS)
 		assert.Equal(t, dummyServerCertContent, serverCertContent)
 		assert.Equal(t, dummyServerKeyContent, serverKeyContent)
 		assert.Equal(t, dummyValidateClientCert, validateClientCert)
 		assert.Equal(t, dummyCaCertContent, caCertContent)
-		assert.Equal(t, dummySendClientCert, sendClientCert)
 		assert.Equal(t, dummyClientCertContent, clientCertContent)
 		assert.Equal(t, dummyClientKeyContent, clientKeyContent)
 		return nil
@@ -430,9 +409,8 @@ func TestBootstrapApplication_NoError(t *testing.T) {
 		return dummyDefaultNetworkTimeout
 	}
 	networkInitializeExpected = 1
-	networkInitialize = func(sendClientCert bool, networkTimeout time.Duration) {
+	networkInitialize = func(networkTimeout time.Duration) {
 		networkInitializeCalled++
-		assert.Equal(t, dummySendClientCert, sendClientCert)
 		assert.Equal(t, dummyDefaultNetworkTimeout, networkTimeout)
 	}
 	loggerAppRootExpected = 1

@@ -343,7 +343,7 @@ var statusCode, responseHeader, responseError = networkRequest.Process(
 Network requests would send out client certificate for mTLS communications if the following customization is in place.
 
 ```golang
-customization.SendClientCert = func() bool { return true }
+customization.SendClientCert = func(url string) bool { return true }
 customization.ClientCertContent = func() string { return "your client certificate content" }
 customization.ClientKeyContent = func() string { return "your client key content" }
 ```

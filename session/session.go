@@ -558,14 +558,23 @@ func LogMethodExit(sessionID uuid.UUID) {
 	)
 }
 
+func shouldSendClientCert(url string) bool {
+	if customization.SendClientCert == nil {
+		return certificateHasClientCert()
+	}
+	return customization.SendClientCert(url)
+}
+
 // CreateNetworkRequest generates a network request object to the targeted external web service for the given session associated to the session ID
 func CreateNetworkRequest(sessionID uuid.UUID, method string, url string, payload string, header map[string]string) networkModel.NetworkRequest {
 	var session = getFunc(sessionID)
+	var sendClientCert = shouldSendClientCertFunc(url)
 	return networkNewNetworkRequest(
 		session,
 		method,
 		url,
 		payload,
 		header,
+		sendClientCert,
 	)
 }

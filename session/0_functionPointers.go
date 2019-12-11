@@ -10,6 +10,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
+	"github.com/zhongjie-cai/WebServiceTemplate/certificate"
 	"github.com/zhongjie-cai/WebServiceTemplate/jsonutil"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger"
 	"github.com/zhongjie-cai/WebServiceTemplate/network"
@@ -46,4 +47,6 @@ var (
 	networkNewNetworkRequest        = network.NewNetworkRequest
 	getAllowedLogTypeFunc           = getAllowedLogType
 	getAllowedLogLevelFunc          = getAllowedLogLevel
+	certificateHasClientCert        = certificate.HasClientCert
+	shouldSendClientCertFunc        = shouldSendClientCert
 )

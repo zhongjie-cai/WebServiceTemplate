@@ -166,11 +166,59 @@ func TestLoadX509CertPool_Success(t *testing.T) {
 	verifyAll(t)
 }
 
-func TestInitializeTLSCertiticate_NoServeHTTPS(t *testing.T) {
+func TestInitializeTLSCertiticate_NoLoading(t *testing.T) {
 	// arrange
 	var dummyShouldLoadCert = false
 	var dummyCertContent = "some cert content"
 	var dummyKeyContent = "some key content"
+
+	// mock
+	createMock(t)
+
+	// SUT + act
+	var result, err = initializeTLSCertiticate(
+		dummyShouldLoadCert,
+		dummyCertContent,
+		dummyKeyContent,
+	)
+
+	// assert
+	assert.Nil(t, result)
+	assert.NoError(t, err)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestInitializeTLSCertiticate_EmptyCertContent(t *testing.T) {
+	// arrange
+	var dummyShouldLoadCert = true
+	var dummyCertContent string
+	var dummyKeyContent = "some key content"
+
+	// mock
+	createMock(t)
+
+	// SUT + act
+	var result, err = initializeTLSCertiticate(
+		dummyShouldLoadCert,
+		dummyCertContent,
+		dummyKeyContent,
+	)
+
+	// assert
+	assert.Nil(t, result)
+	assert.NoError(t, err)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestInitializeTLSCertiticate_EmptyKeyContent(t *testing.T) {
+	// arrange
+	var dummyShouldLoadCert = true
+	var dummyCertContent = "some cert content"
+	var dummyKeyContent string
 
 	// mock
 	createMock(t)
@@ -292,6 +340,28 @@ func TestInitializeX509CertPool_NoValidateClientCert(t *testing.T) {
 	verifyAll(t)
 }
 
+func TestInitializeX509CertPool_EmptyClientCert(t *testing.T) {
+	// arrange
+	var dummyShouldLoadCert = true
+	var dummyCertContent string
+
+	// mock
+	createMock(t)
+
+	// SUT + act
+	var result, err = initializeX509CertPool(
+		dummyShouldLoadCert,
+		dummyCertContent,
+	)
+
+	// assert
+	assert.Nil(t, result)
+	assert.NoError(t, err)
+
+	// verify
+	verifyAll(t)
+}
+
 func TestInitializeX509CertPool_CaCertPoolError(t *testing.T) {
 	// arrange
 	var dummyShouldLoadCert = true
@@ -377,7 +447,7 @@ func TestInitialize_ErrorConsolidated(t *testing.T) {
 	var dummyCaCertContent = "some CA cert content"
 	var dummyCaCertPool = &x509.CertPool{}
 	var dummyCaCertPoolError = errors.New("some ca cert pool error")
-	var dummySendClientCert = rand.Intn(100) < 50
+	var dummySendClientCert = true
 	var dummyClientCertContent = "some client cert content"
 	var dummyClientKeyContent = "some client key content"
 	var dummyClientCert = &tls.Certificate{}
@@ -431,7 +501,6 @@ func TestInitialize_ErrorConsolidated(t *testing.T) {
 		dummyServerKeyContent,
 		dummyValidateClientCert,
 		dummyCaCertContent,
-		dummySendClientCert,
 		dummyClientCertContent,
 		dummyClientKeyContent,
 	)
@@ -492,6 +561,37 @@ func TestGetClientCertificate(t *testing.T) {
 
 	// assert
 	assert.Equal(t, dummyCert, cert)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestHasClientCert_False(t *testing.T) {
+	// stub
+	clientCertificate = nil
+
+	// SUT + act
+	var result = HasClientCert()
+
+	// assert
+	assert.False(t, result)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestHasClientCert_True(t *testing.T) {
+	// arrange
+	var dummyCert = &tls.Certificate{}
+
+	// stub
+	clientCertificate = dummyCert
+
+	// SUT + act
+	var result = HasClientCert()
+
+	// assert
+	assert.True(t, result)
 
 	// verify
 	verifyAll(t)
