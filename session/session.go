@@ -8,6 +8,7 @@ import (
 	cache "github.com/patrickmn/go-cache"
 	apperrorModel "github.com/zhongjie-cai/WebServiceTemplate/apperror/model"
 	"github.com/zhongjie-cai/WebServiceTemplate/config"
+	"github.com/zhongjie-cai/WebServiceTemplate/customization"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger/loglevel"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger/logtype"
 	networkModel "github.com/zhongjie-cai/WebServiceTemplate/network/model"
@@ -329,6 +330,20 @@ func isLoggingLevelMatch(session *session, logLevel loglevel.LogLevel) bool {
 	return allowedLogLevel <= logLevel
 }
 
+func getAllowedLogType(sessionID uuid.UUID) logtype.LogType {
+	if customization.SessionAllowedLogType == nil {
+		return config.DefaultAllowedLogType()
+	}
+	return customization.SessionAllowedLogType(sessionID)
+}
+
+func getAllowedLogLevel(sessionID uuid.UUID) loglevel.LogLevel {
+	if customization.SessionAllowedLogLevel == nil {
+		return config.DefaultAllowedLogLevel()
+	}
+	return customization.SessionAllowedLogLevel(sessionID)
+}
+
 // IsLoggingAllowed checks the passed in log type and level and determines whether they match the session log criteria or not
 func (session *session) IsLoggingAllowed(logType logtype.LogType, logLevel loglevel.LogLevel) bool {
 	if !config.IsLocalhost() {
@@ -351,25 +366,23 @@ func (session *session) IsLoggingAllowed(logType logtype.LogType, logLevel logle
 // Register registers the information of a session for given session ID
 func Register(
 	name string,
-	allowedLogType logtype.LogType,
-	allowedLogLevel loglevel.LogLevel,
 	httpRequest *http.Request,
 	responseWriter http.ResponseWriter,
 ) model.Session {
 	var sessionID = uuidNew()
 	var session = &session{
-		ID:              sessionID,
-		Name:            name,
-		AllowedLogType:  allowedLogType,
-		AllowedLogLevel: allowedLogLevel,
-		Request:         httpRequest,
-		ResponseWriter:  responseWriter,
-		attachment:      map[string]interface{}{},
+		ID:             sessionID,
+		Name:           name,
+		Request:        httpRequest,
+		ResponseWriter: responseWriter,
+		attachment:     map[string]interface{}{},
 	}
 	sessionCache.SetDefault(
 		sessionID.String(),
 		session,
 	)
+	session.AllowedLogType = getAllowedLogTypeFunc(sessionID)
+	session.AllowedLogLevel = getAllowedLogLevelFunc(sessionID)
 	return session
 }
 

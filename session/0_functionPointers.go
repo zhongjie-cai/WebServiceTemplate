@@ -16,7 +16,7 @@ import (
 	"github.com/zhongjie-cai/WebServiceTemplate/request"
 )
 
-// func pointers for injection / testing: logger.go
+// func pointers for injection / testing: session.go
 var (
 	uuidNew                         = uuid.New
 	jsonMarshal                     = json.Marshal
@@ -44,4 +44,6 @@ var (
 	loggerMethodReturn              = logger.MethodReturn
 	loggerMethodExit                = logger.MethodExit
 	networkNewNetworkRequest        = network.NewNetworkRequest
+	getAllowedLogTypeFunc           = getAllowedLogType
+	getAllowedLogLevelFunc          = getAllowedLogLevel
 )

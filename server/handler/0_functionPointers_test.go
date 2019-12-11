@@ -12,7 +12,6 @@ import (
 	"github.com/zhongjie-cai/WebServiceTemplate/logger"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger/loglevel"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger/logtype"
-	"github.com/zhongjie-cai/WebServiceTemplate/request"
 	"github.com/zhongjie-cai/WebServiceTemplate/response"
 	"github.com/zhongjie-cai/WebServiceTemplate/server/model"
 	"github.com/zhongjie-cai/WebServiceTemplate/server/panic"
@@ -30,10 +29,6 @@ var (
 	sessionUnregisterCalled               int
 	panicHandleExpected                   int
 	panicHandleCalled                     int
-	requestGetAllowedLogTypeExpected      int
-	requestGetAllowedLogTypeCalled        int
-	requestGetAllowedLogLevelExpected     int
-	requestGetAllowedLogLevelCalled       int
 	responseWriteExpected                 int
 	responseWriteCalled                   int
 	loggerAPIEnterExpected                int
@@ -59,7 +54,7 @@ func createMock(t *testing.T) {
 	}
 	sessionRegisterExpected = 0
 	sessionRegisterCalled = 0
-	sessionRegister = func(name string, allowedLogType logtype.LogType, allowedLogLevel loglevel.LogLevel, httpRequest *http.Request, responseWriter http.ResponseWriter) sessionModel.Session {
+	sessionRegister = func(name string, httpRequest *http.Request, responseWriter http.ResponseWriter) sessionModel.Session {
 		sessionRegisterCalled++
 		return nil
 	}
@@ -72,18 +67,6 @@ func createMock(t *testing.T) {
 	panicHandleCalled = 0
 	panicHandle = func(session sessionModel.Session, recoverResult interface{}) {
 		panicHandleCalled++
-	}
-	requestGetAllowedLogTypeExpected = 0
-	requestGetAllowedLogTypeCalled = 0
-	requestGetAllowedLogType = func(httpRequest *http.Request) logtype.LogType {
-		requestGetAllowedLogTypeCalled++
-		return 0
-	}
-	requestGetAllowedLogLevelExpected = 0
-	requestGetAllowedLogLevelCalled = 0
-	requestGetAllowedLogLevel = func(httpRequest *http.Request) loglevel.LogLevel {
-		requestGetAllowedLogLevelCalled++
-		return 0
 	}
 	responseWriteExpected = 0
 	responseWriteCalled = 0
@@ -135,10 +118,6 @@ func verifyAll(t *testing.T) {
 	assert.Equal(t, sessionUnregisterExpected, sessionUnregisterCalled, "Unexpected number of calls to sessionUnregister")
 	panicHandle = panic.Handle
 	assert.Equal(t, panicHandleExpected, panicHandleCalled, "Unexpected number of calls to panicHandle")
-	requestGetAllowedLogType = request.GetAllowedLogType
-	assert.Equal(t, requestGetAllowedLogTypeExpected, requestGetAllowedLogTypeCalled, "Unexpected number of calls to requestGetAllowedLogType")
-	requestGetAllowedLogLevel = request.GetAllowedLogLevel
-	assert.Equal(t, requestGetAllowedLogLevelExpected, requestGetAllowedLogLevelCalled, "Unexpected number of calls to requestGetAllowedLogLevel")
 	responseWrite = response.Write
 	assert.Equal(t, responseWriteExpected, responseWriteCalled, "Unexpected number of calls to responseWrite")
 	loggerAPIEnter = logger.APIEnter

@@ -23,20 +23,20 @@ do
 	rm -f $outFileName.cover.json
 
 	# Run test coverage
-	./gocov test $package > $outFileName.cover.json 2>> $allTestCoverResultFile
+	go test -coverprofile $outFileName.cover.profile -v $package 2>&1 >> $allTestCoverResultFile
 
-	# Create coverage report for JResultArchiver
-	cat $outFileName.cover.json | ./gocov-xml > $outFileName.cover.xml
-
-	# Create coverage report as html for local system
-	./gocov-html $outFileName.cover.json > $outFileName.cover.html
+	# Generate coverage report HTML
+	go tool cover -html=$outFileName.cover.profile -o $outFileName.cover.html
 done
 
 echo ""
 echo "Coverage result:"
+cat $allTestCoverResultFile
+
+echo "Analyzed result:"
 
 # Echo result for visibility
-FullReportLines=$(grep -e '/WebServiceTemplate' $allTestCoverResultFile)
+FullReportLines=$(grep -e 'github.com' $allTestCoverResultFile)
 
 FailedLines=$(echo "$FullReportLines" | grep -e 'FAIL')
 if [ -n "$FailedLines" ]

@@ -29,10 +29,10 @@ var DefaultAllowedLogType func() logtype.LogType
 var DefaultAllowedLogLevel func() loglevel.LogLevel
 
 // SessionAllowedLogType is to customize the allowed log type determination logic for every HTTP session
-var SessionAllowedLogType func(httpRequest *http.Request) logtype.LogType
+var SessionAllowedLogType func(sessionID uuid.UUID) logtype.LogType
 
 // SessionAllowedLogLevel is to customize the allowed log level determination logic for every HTTP session
-var SessionAllowedLogLevel func(httpRequest *http.Request) loglevel.LogLevel
+var SessionAllowedLogLevel func(sessionID uuid.UUID) loglevel.LogLevel
 
 // LoggingFunc is to customize the logging backend for the whole application
 var LoggingFunc func(session sessionModel.Session, logType logtype.LogType, logLevel loglevel.LogLevel, category, subcategory, description string)

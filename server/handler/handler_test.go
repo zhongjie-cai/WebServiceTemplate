@@ -3,7 +3,6 @@ package handler
 import (
 	"errors"
 	"fmt"
-	"math/rand"
 	"net/http"
 	"reflect"
 	"testing"
@@ -13,8 +12,6 @@ import (
 	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
 	apperrorModel "github.com/zhongjie-cai/WebServiceTemplate/apperror/model"
 	"github.com/zhongjie-cai/WebServiceTemplate/customization"
-	"github.com/zhongjie-cai/WebServiceTemplate/logger/loglevel"
-	"github.com/zhongjie-cai/WebServiceTemplate/logger/logtype"
 	"github.com/zhongjie-cai/WebServiceTemplate/server/model"
 	sessionModel "github.com/zhongjie-cai/WebServiceTemplate/session/model"
 )
@@ -96,8 +93,6 @@ func TestHandleInSession_RouteError(t *testing.T) {
 		dummyActionCalled++
 		return nil, nil
 	}
-	var dummyAllowedLogType = logtype.LogType(rand.Intn(256))
-	var dummyAllowedLogLevel = loglevel.LogLevel(rand.Intn(256))
 	var dummyRouteError = errors.New("some route error")
 	var dummyResponseError = apperror.GetCustomError(0, "some app error")
 
@@ -111,24 +106,10 @@ func TestHandleInSession_RouteError(t *testing.T) {
 		assert.Equal(t, dummyHTTPRequest, httpRequest)
 		return dummyEndpoint, dummyAction, dummyRouteError
 	}
-	requestGetAllowedLogTypeExpected = 1
-	requestGetAllowedLogType = func(httpRequest *http.Request) logtype.LogType {
-		requestGetAllowedLogTypeCalled++
-		assert.Equal(t, dummyHTTPRequest, httpRequest)
-		return dummyAllowedLogType
-	}
-	requestGetAllowedLogLevelExpected = 1
-	requestGetAllowedLogLevel = func(httpRequest *http.Request) loglevel.LogLevel {
-		requestGetAllowedLogLevelCalled++
-		assert.Equal(t, dummyHTTPRequest, httpRequest)
-		return dummyAllowedLogLevel
-	}
 	sessionRegisterExpected = 1
-	sessionRegister = func(name string, allowedLogType logtype.LogType, allowedLogLevel loglevel.LogLevel, httpRequest *http.Request, responseWriter http.ResponseWriter) sessionModel.Session {
+	sessionRegister = func(name string, httpRequest *http.Request, responseWriter http.ResponseWriter) sessionModel.Session {
 		sessionRegisterCalled++
 		assert.Equal(t, dummyEndpoint, name)
-		assert.Equal(t, dummyAllowedLogType, allowedLogType)
-		assert.Equal(t, dummyAllowedLogLevel, allowedLogLevel)
 		assert.Equal(t, dummyHTTPRequest, httpRequest)
 		assert.Equal(t, dummyResponseWriter, responseWriter)
 		return dummySessionObject
@@ -205,8 +186,6 @@ func TestHandleInSession_PreActionError(t *testing.T) {
 	var dummyAction func(uuid.UUID) (interface{}, error)
 	var dummyActionExpected int
 	var dummyActionCalled int
-	var dummyAllowedLogType = logtype.LogType(rand.Intn(256))
-	var dummyAllowedLogLevel = loglevel.LogLevel(rand.Intn(256))
 	var dummyPreActionError = errors.New("some pre-action error")
 
 	// mock
@@ -219,24 +198,10 @@ func TestHandleInSession_PreActionError(t *testing.T) {
 		assert.Equal(t, dummyHTTPRequest, httpRequest)
 		return dummyEndpoint, dummyAction, nil
 	}
-	requestGetAllowedLogTypeExpected = 1
-	requestGetAllowedLogType = func(httpRequest *http.Request) logtype.LogType {
-		requestGetAllowedLogTypeCalled++
-		assert.Equal(t, dummyHTTPRequest, httpRequest)
-		return dummyAllowedLogType
-	}
-	requestGetAllowedLogLevelExpected = 1
-	requestGetAllowedLogLevel = func(httpRequest *http.Request) loglevel.LogLevel {
-		requestGetAllowedLogLevelCalled++
-		assert.Equal(t, dummyHTTPRequest, httpRequest)
-		return dummyAllowedLogLevel
-	}
 	sessionRegisterExpected = 1
-	sessionRegister = func(endpoint string, allowedLogType logtype.LogType, allowedLogLevel loglevel.LogLevel, httpRequest *http.Request, responseWriter http.ResponseWriter) sessionModel.Session {
+	sessionRegister = func(endpoint string, httpRequest *http.Request, responseWriter http.ResponseWriter) sessionModel.Session {
 		sessionRegisterCalled++
 		assert.Equal(t, dummyEndpoint, endpoint)
-		assert.Equal(t, dummyAllowedLogType, allowedLogType)
-		assert.Equal(t, dummyAllowedLogLevel, allowedLogLevel)
 		assert.Equal(t, dummyHTTPRequest, httpRequest)
 		assert.Equal(t, dummyResponseWriter, responseWriter)
 		return dummySessionObject
@@ -315,8 +280,6 @@ func TestHandleInSession_PostActionError_WithResponseError(t *testing.T) {
 	var dummyAction func(uuid.UUID) (interface{}, error)
 	var dummyActionExpected int
 	var dummyActionCalled int
-	var dummyAllowedLogType = logtype.LogType(rand.Intn(256))
-	var dummyAllowedLogLevel = loglevel.LogLevel(rand.Intn(256))
 	var dummyResponseObject = "some response object"
 	var dummyResponseError = apperror.GetCustomError(0, "some app error")
 	var dummyPostActionError = errors.New("some post-action error")
@@ -331,24 +294,10 @@ func TestHandleInSession_PostActionError_WithResponseError(t *testing.T) {
 		assert.Equal(t, dummyHTTPRequest, httpRequest)
 		return dummyEndpoint, dummyAction, nil
 	}
-	requestGetAllowedLogTypeExpected = 1
-	requestGetAllowedLogType = func(httpRequest *http.Request) logtype.LogType {
-		requestGetAllowedLogTypeCalled++
-		assert.Equal(t, dummyHTTPRequest, httpRequest)
-		return dummyAllowedLogType
-	}
-	requestGetAllowedLogLevelExpected = 1
-	requestGetAllowedLogLevel = func(httpRequest *http.Request) loglevel.LogLevel {
-		requestGetAllowedLogLevelCalled++
-		assert.Equal(t, dummyHTTPRequest, httpRequest)
-		return dummyAllowedLogLevel
-	}
 	sessionRegisterExpected = 1
-	sessionRegister = func(endpoint string, allowedLogType logtype.LogType, allowedLogLevel loglevel.LogLevel, httpRequest *http.Request, responseWriter http.ResponseWriter) sessionModel.Session {
+	sessionRegister = func(endpoint string, httpRequest *http.Request, responseWriter http.ResponseWriter) sessionModel.Session {
 		sessionRegisterCalled++
 		assert.Equal(t, dummyEndpoint, endpoint)
-		assert.Equal(t, dummyAllowedLogType, allowedLogType)
-		assert.Equal(t, dummyAllowedLogLevel, allowedLogLevel)
 		assert.Equal(t, dummyHTTPRequest, httpRequest)
 		assert.Equal(t, dummyResponseWriter, responseWriter)
 		return dummySessionObject
@@ -446,8 +395,6 @@ func TestHandleInSession_PostActionError_NoResponseError(t *testing.T) {
 	var dummyAction func(uuid.UUID) (interface{}, error)
 	var dummyActionExpected int
 	var dummyActionCalled int
-	var dummyAllowedLogType = logtype.LogType(rand.Intn(256))
-	var dummyAllowedLogLevel = loglevel.LogLevel(rand.Intn(256))
 	var dummyResponseObject = "some response object"
 	var dummyPostActionError = errors.New("some post-action error")
 
@@ -461,24 +408,10 @@ func TestHandleInSession_PostActionError_NoResponseError(t *testing.T) {
 		assert.Equal(t, dummyHTTPRequest, httpRequest)
 		return dummyEndpoint, dummyAction, nil
 	}
-	requestGetAllowedLogTypeExpected = 1
-	requestGetAllowedLogType = func(httpRequest *http.Request) logtype.LogType {
-		requestGetAllowedLogTypeCalled++
-		assert.Equal(t, dummyHTTPRequest, httpRequest)
-		return dummyAllowedLogType
-	}
-	requestGetAllowedLogLevelExpected = 1
-	requestGetAllowedLogLevel = func(httpRequest *http.Request) loglevel.LogLevel {
-		requestGetAllowedLogLevelCalled++
-		assert.Equal(t, dummyHTTPRequest, httpRequest)
-		return dummyAllowedLogLevel
-	}
 	sessionRegisterExpected = 1
-	sessionRegister = func(endpoint string, allowedLogType logtype.LogType, allowedLogLevel loglevel.LogLevel, httpRequest *http.Request, responseWriter http.ResponseWriter) sessionModel.Session {
+	sessionRegister = func(endpoint string, httpRequest *http.Request, responseWriter http.ResponseWriter) sessionModel.Session {
 		sessionRegisterCalled++
 		assert.Equal(t, dummyEndpoint, endpoint)
-		assert.Equal(t, dummyAllowedLogType, allowedLogType)
-		assert.Equal(t, dummyAllowedLogLevel, allowedLogLevel)
 		assert.Equal(t, dummyHTTPRequest, httpRequest)
 		assert.Equal(t, dummyResponseWriter, responseWriter)
 		return dummySessionObject
@@ -570,8 +503,6 @@ func TestHandleInSession_Success(t *testing.T) {
 	var dummyAction func(uuid.UUID) (interface{}, error)
 	var dummyActionExpected int
 	var dummyActionCalled int
-	var dummyAllowedLogType = logtype.LogType(rand.Intn(256))
-	var dummyAllowedLogLevel = loglevel.LogLevel(rand.Intn(256))
 	var dummyResponseObject = "some response object"
 	var dummyResponseError = apperror.GetCustomError(0, "some app error")
 
@@ -585,24 +516,10 @@ func TestHandleInSession_Success(t *testing.T) {
 		assert.Equal(t, dummyHTTPRequest, httpRequest)
 		return dummyEndpoint, dummyAction, nil
 	}
-	requestGetAllowedLogTypeExpected = 1
-	requestGetAllowedLogType = func(httpRequest *http.Request) logtype.LogType {
-		requestGetAllowedLogTypeCalled++
-		assert.Equal(t, dummyHTTPRequest, httpRequest)
-		return dummyAllowedLogType
-	}
-	requestGetAllowedLogLevelExpected = 1
-	requestGetAllowedLogLevel = func(httpRequest *http.Request) loglevel.LogLevel {
-		requestGetAllowedLogLevelCalled++
-		assert.Equal(t, dummyHTTPRequest, httpRequest)
-		return dummyAllowedLogLevel
-	}
 	sessionRegisterExpected = 1
-	sessionRegister = func(endpoint string, allowedLogType logtype.LogType, allowedLogLevel loglevel.LogLevel, httpRequest *http.Request, responseWriter http.ResponseWriter) sessionModel.Session {
+	sessionRegister = func(endpoint string, httpRequest *http.Request, responseWriter http.ResponseWriter) sessionModel.Session {
 		sessionRegisterCalled++
 		assert.Equal(t, dummyEndpoint, endpoint)
-		assert.Equal(t, dummyAllowedLogType, allowedLogType)
-		assert.Equal(t, dummyAllowedLogLevel, allowedLogLevel)
 		assert.Equal(t, dummyHTTPRequest, httpRequest)
 		assert.Equal(t, dummyResponseWriter, responseWriter)
 		return dummySessionObject

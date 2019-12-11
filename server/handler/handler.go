@@ -29,12 +29,6 @@ func Session(
 	)
 	var session = sessionRegister(
 		endpoint,
-		requestGetAllowedLogType(
-			httpRequest,
-		),
-		requestGetAllowedLogLevel(
-			httpRequest,
-		),
 		httpRequest,
 		responseWriter,
 	)

@@ -17,6 +17,7 @@ import (
 	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
 	apperrorModel "github.com/zhongjie-cai/WebServiceTemplate/apperror/model"
 	"github.com/zhongjie-cai/WebServiceTemplate/config"
+	"github.com/zhongjie-cai/WebServiceTemplate/customization"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger/loglevel"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger/logtype"
 	networkModel "github.com/zhongjie-cai/WebServiceTemplate/network/model"
@@ -37,6 +38,116 @@ func TestInitialize(t *testing.T) {
 	// assert
 	assert.Nil(t, sessionModel.NilSession)
 	assert.IsType(t, defaultSession, sessionModel.NilSession)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestGetAllowedLogType_NoCustomization(t *testing.T) {
+	// arrange
+	var dummySessionID = uuid.New()
+	var dummyLogType = logtype.LogType(rand.Intn(255))
+
+	// mock
+	createMock(t)
+
+	// expect
+	configDefaultAllowedLogTypeExpected = 1
+	config.DefaultAllowedLogType = func() logtype.LogType {
+		configDefaultAllowedLogTypeCalled++
+		return dummyLogType
+	}
+
+	// SUT + act
+	var allowedLogType = getAllowedLogType(
+		dummySessionID,
+	)
+
+	// assert
+	assert.Equal(t, dummyLogType, allowedLogType)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestGetAllowedLogType_WithCustomization(t *testing.T) {
+	// arrange
+	var dummySessionID = uuid.New()
+	var dummyLogType = logtype.LogType(rand.Intn(255))
+
+	// mock
+	createMock(t)
+
+	// expect
+	customizationSessionAllowedLogTypeExpected = 1
+	customization.SessionAllowedLogType = func(sessionID uuid.UUID) logtype.LogType {
+		customizationSessionAllowedLogTypeCalled++
+		assert.Equal(t, dummySessionID, sessionID)
+		return dummyLogType
+	}
+
+	// SUT + act
+	var allowedLogType = getAllowedLogType(
+		dummySessionID,
+	)
+
+	// assert
+	assert.Equal(t, dummyLogType, allowedLogType)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestGetAllowedLogLevel_NoCustomization(t *testing.T) {
+	// arrange
+	var dummySessionID = uuid.New()
+	var dummyLogLevel = loglevel.LogLevel(rand.Intn(255))
+
+	// mock
+	createMock(t)
+
+	// expect
+	configDefaultAllowedLogLevelExpected = 1
+	config.DefaultAllowedLogLevel = func() loglevel.LogLevel {
+		configDefaultAllowedLogLevelCalled++
+		return dummyLogLevel
+	}
+
+	// SUT + act
+	var allowedLogLevel = getAllowedLogLevel(
+		dummySessionID,
+	)
+
+	// assert
+	assert.Equal(t, dummyLogLevel, allowedLogLevel)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestGetAllowedLogLevel_WithCustomization(t *testing.T) {
+	// arrange
+	var dummySessionID = uuid.New()
+	var dummyLogLevel = loglevel.LogLevel(rand.Intn(255))
+
+	// mock
+	createMock(t)
+
+	// expect
+	customizationSessionAllowedLogLevelExpected = 1
+	customization.SessionAllowedLogLevel = func(sessionID uuid.UUID) loglevel.LogLevel {
+		customizationSessionAllowedLogLevelCalled++
+		assert.Equal(t, dummySessionID, sessionID)
+		return dummyLogLevel
+	}
+
+	// SUT + act
+	var allowedLogLevel = getAllowedLogLevel(
+		dummySessionID,
+	)
+
+	// assert
+	assert.Equal(t, dummyLogLevel, allowedLogLevel)
 
 	// verify
 	verifyAll(t)
@@ -63,12 +174,22 @@ func TestRegister(t *testing.T) {
 		uuidNewCalled++
 		return dummySessionID
 	}
+	getAllowedLogTypeFuncExpected = 1
+	getAllowedLogTypeFunc = func(sessionID uuid.UUID) logtype.LogType {
+		getAllowedLogTypeFuncCalled++
+		assert.Equal(t, dummySessionID, sessionID)
+		return dummyAllowedLogType
+	}
+	getAllowedLogLevelFuncExpected = 1
+	getAllowedLogLevelFunc = func(sessionID uuid.UUID) loglevel.LogLevel {
+		getAllowedLogLevelFuncCalled++
+		assert.Equal(t, dummySessionID, sessionID)
+		return dummyAllowedLogLevel
+	}
 
 	// SUT
 	var result = Register(
 		dummyName,
-		dummyAllowedLogType,
-		dummyAllowedLogLevel,
 		dummyHTTPRequest,
 		dummyResponseWriter,
 	)

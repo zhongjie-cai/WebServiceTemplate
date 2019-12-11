@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"testing"
 
+	"github.com/zhongjie-cai/WebServiceTemplate/customization"
 	"github.com/zhongjie-cai/WebServiceTemplate/jsonutil"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger/logtype"
 	"github.com/zhongjie-cai/WebServiceTemplate/network"
@@ -27,64 +28,72 @@ import (
 )
 
 var (
-	uuidNewExpected                         int
-	uuidNewCalled                           int
-	jsonMarshalExpected                     int
-	jsonMarshalCalled                       int
-	jsonUnmarshalExpected                   int
-	jsonUnmarshalCalled                     int
-	fmtErrorfExpected                       int
-	fmtErrorfCalled                         int
-	muxVarsExpected                         int
-	muxVarsCalled                           int
-	loggerAPIRequestExpected                int
-	loggerAPIRequestCalled                  int
-	requestGetRequestBodyExpected           int
-	requestGetRequestBodyCalled             int
-	apperrorGetBadRequestErrorExpected      int
-	apperrorGetBadRequestErrorCalled        int
-	textprotoCanonicalMIMEHeaderKeyExpected int
-	textprotoCanonicalMIMEHeaderKeyCalled   int
-	getFuncExpected                         int
-	getFuncCalled                           int
-	jsonutilTryUnmarshalExpected            int
-	jsonutilTryUnmarshalCalled              int
-	getRequestFuncExpected                  int
-	getRequestFuncCalled                    int
-	getAllQueriesFuncExpected               int
-	getAllQueriesFuncCalled                 int
-	getAllHeadersFuncExpected               int
-	getAllHeadersFuncCalled                 int
-	isLoggingTypeMatchFuncExpected          int
-	isLoggingTypeMatchFuncCalled            int
-	isLoggingLevelMatchFuncExpected         int
-	isLoggingLevelMatchFuncCalled           int
-	configIsLocalhostExpected               int
-	configIsLocalhostCalled                 int
-	configDefaultAllowedLogTypeExpected     int
-	configDefaultAllowedLogTypeCalled       int
-	configDefaultAllowedLogLevelExpected    int
-	configDefaultAllowedLogLevelCalled      int
-	runtimeCallerExpected                   int
-	runtimeCallerCalled                     int
-	runtimeFuncForPCExpected                int
-	runtimeFuncForPCCalled                  int
-	getMethodNameFuncExpected               int
-	getMethodNameFuncCalled                 int
-	strconvItoaExpected                     int
-	strconvItoaCalled                       int
-	loggerMethodEnterExpected               int
-	loggerMethodEnterCalled                 int
-	loggerMethodParameterExpected           int
-	loggerMethodParameterCalled             int
-	loggerMethodLogicExpected               int
-	loggerMethodLogicCalled                 int
-	loggerMethodReturnExpected              int
-	loggerMethodReturnCalled                int
-	loggerMethodExitExpected                int
-	loggerMethodExitCalled                  int
-	networkNewNetworkRequestExpected        int
-	networkNewNetworkRequestCalled          int
+	uuidNewExpected                             int
+	uuidNewCalled                               int
+	jsonMarshalExpected                         int
+	jsonMarshalCalled                           int
+	jsonUnmarshalExpected                       int
+	jsonUnmarshalCalled                         int
+	fmtErrorfExpected                           int
+	fmtErrorfCalled                             int
+	muxVarsExpected                             int
+	muxVarsCalled                               int
+	loggerAPIRequestExpected                    int
+	loggerAPIRequestCalled                      int
+	requestGetRequestBodyExpected               int
+	requestGetRequestBodyCalled                 int
+	apperrorGetBadRequestErrorExpected          int
+	apperrorGetBadRequestErrorCalled            int
+	textprotoCanonicalMIMEHeaderKeyExpected     int
+	textprotoCanonicalMIMEHeaderKeyCalled       int
+	getFuncExpected                             int
+	getFuncCalled                               int
+	jsonutilTryUnmarshalExpected                int
+	jsonutilTryUnmarshalCalled                  int
+	getRequestFuncExpected                      int
+	getRequestFuncCalled                        int
+	getAllQueriesFuncExpected                   int
+	getAllQueriesFuncCalled                     int
+	getAllHeadersFuncExpected                   int
+	getAllHeadersFuncCalled                     int
+	isLoggingTypeMatchFuncExpected              int
+	isLoggingTypeMatchFuncCalled                int
+	isLoggingLevelMatchFuncExpected             int
+	isLoggingLevelMatchFuncCalled               int
+	configIsLocalhostExpected                   int
+	configIsLocalhostCalled                     int
+	configDefaultAllowedLogTypeExpected         int
+	configDefaultAllowedLogTypeCalled           int
+	configDefaultAllowedLogLevelExpected        int
+	configDefaultAllowedLogLevelCalled          int
+	customizationSessionAllowedLogTypeExpected  int
+	customizationSessionAllowedLogTypeCalled    int
+	customizationSessionAllowedLogLevelExpected int
+	customizationSessionAllowedLogLevelCalled   int
+	runtimeCallerExpected                       int
+	runtimeCallerCalled                         int
+	runtimeFuncForPCExpected                    int
+	runtimeFuncForPCCalled                      int
+	getMethodNameFuncExpected                   int
+	getMethodNameFuncCalled                     int
+	strconvItoaExpected                         int
+	strconvItoaCalled                           int
+	loggerMethodEnterExpected                   int
+	loggerMethodEnterCalled                     int
+	loggerMethodParameterExpected               int
+	loggerMethodParameterCalled                 int
+	loggerMethodLogicExpected                   int
+	loggerMethodLogicCalled                     int
+	loggerMethodReturnExpected                  int
+	loggerMethodReturnCalled                    int
+	loggerMethodExitExpected                    int
+	loggerMethodExitCalled                      int
+	networkNewNetworkRequestExpected            int
+	networkNewNetworkRequestCalled              int
+	getAllowedLogTypeFuncExpected               int
+	getAllowedLogTypeFuncCalled                 int
+	getAllowedLogLevelFuncExpected              int
+	getAllowedLogLevelFuncCalled                int
 )
 
 func createMock(t *testing.T) {
@@ -191,16 +200,16 @@ func createMock(t *testing.T) {
 	}
 	configDefaultAllowedLogTypeExpected = 0
 	configDefaultAllowedLogTypeCalled = 0
-	config.DefaultAllowedLogType = func() logtype.LogType {
-		configDefaultAllowedLogTypeCalled++
-		return 0
-	}
+	config.DefaultAllowedLogType = nil
 	configDefaultAllowedLogLevelExpected = 0
 	configDefaultAllowedLogLevelCalled = 0
-	config.DefaultAllowedLogLevel = func() loglevel.LogLevel {
-		configDefaultAllowedLogLevelCalled++
-		return 0
-	}
+	config.DefaultAllowedLogLevel = nil
+	customizationSessionAllowedLogTypeExpected = 0
+	customizationSessionAllowedLogTypeCalled = 0
+	customization.SessionAllowedLogType = nil
+	customizationSessionAllowedLogLevelExpected = 0
+	customizationSessionAllowedLogLevelCalled = 0
+	customization.SessionAllowedLogLevel = nil
 	runtimeCallerExpected = 0
 	runtimeCallerCalled = 0
 	runtimeCaller = func(skip int) (pc uintptr, file string, line int, ok bool) {
@@ -256,6 +265,18 @@ func createMock(t *testing.T) {
 		networkNewNetworkRequestCalled++
 		return nil
 	}
+	getAllowedLogTypeFuncExpected = 0
+	getAllowedLogTypeFuncCalled = 0
+	getAllowedLogTypeFunc = func(sessionID uuid.UUID) logtype.LogType {
+		getAllowedLogTypeFuncCalled++
+		return 0
+	}
+	getAllowedLogLevelFuncExpected = 0
+	getAllowedLogLevelFuncCalled = 0
+	getAllowedLogLevelFunc = func(sessionID uuid.UUID) loglevel.LogLevel {
+		getAllowedLogLevelFuncCalled++
+		return 0
+	}
 }
 
 func verifyAll(t *testing.T) {
@@ -295,6 +316,10 @@ func verifyAll(t *testing.T) {
 	assert.Equal(t, configDefaultAllowedLogTypeExpected, configDefaultAllowedLogTypeCalled, "Unexpected number of calls to configDefaultAllowedLogType")
 	config.DefaultAllowedLogLevel = nil
 	assert.Equal(t, configDefaultAllowedLogLevelExpected, configDefaultAllowedLogLevelCalled, "Unexpected number of calls to configDefaultAllowedLogLevel")
+	customization.SessionAllowedLogType = nil
+	assert.Equal(t, customizationSessionAllowedLogTypeExpected, customizationSessionAllowedLogTypeCalled, "Unexpected number of calls to customizationSessionAllowedLogType")
+	customization.SessionAllowedLogLevel = nil
+	assert.Equal(t, customizationSessionAllowedLogLevelExpected, customizationSessionAllowedLogLevelCalled, "Unexpected number of calls to customizationSessionAllowedLogLevel")
 	runtimeCaller = runtime.Caller
 	assert.Equal(t, runtimeCallerExpected, runtimeCallerCalled, "Unexpected number of calls to runtimeCaller")
 	runtimeFuncForPC = runtime.FuncForPC
@@ -315,6 +340,10 @@ func verifyAll(t *testing.T) {
 	assert.Equal(t, loggerMethodExitExpected, loggerMethodExitCalled, "Unexpected number of calls to loggerMethodExit")
 	networkNewNetworkRequest = network.NewNetworkRequest
 	assert.Equal(t, networkNewNetworkRequestExpected, networkNewNetworkRequestCalled, "Unexpected number of calls to networkNewNetworkRequest")
+	getAllowedLogTypeFunc = getAllowedLogType
+	assert.Equal(t, getAllowedLogTypeFuncExpected, getAllowedLogTypeFuncCalled, "Unexpected number of calls to getAllowedLogTypeFunc")
+	getAllowedLogLevelFunc = getAllowedLogLevel
+	assert.Equal(t, getAllowedLogLevelFuncExpected, getAllowedLogLevelFuncCalled, "Unexpected number of calls to getAllowedLogLevelFunc")
 
 	defaultSession = nil
 }

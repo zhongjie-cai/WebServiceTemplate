@@ -5,186 +5,16 @@ import (
 	"errors"
 	"io"
 	"io/ioutil"
-	"math/rand"
 	"net/http"
 	"strings"
 	"testing"
 
-	"github.com/zhongjie-cai/WebServiceTemplate/config"
-	"github.com/zhongjie-cai/WebServiceTemplate/customization"
-
 	"github.com/stretchr/testify/assert"
-	"github.com/zhongjie-cai/WebServiceTemplate/logger/loglevel"
-	"github.com/zhongjie-cai/WebServiceTemplate/logger/logtype"
 )
-
-func TestGetAllowedLogType_NilHTTPRequest(t *testing.T) {
-	// arrange
-	var dummyHTTPRequest *http.Request
-	var dummyLogType = logtype.LogType(rand.Intn(255))
-
-	// mock
-	createMock(t)
-
-	// expect
-	configDefaultAllowedLogTypeExpected = 1
-	config.DefaultAllowedLogType = func() logtype.LogType {
-		configDefaultAllowedLogTypeCalled++
-		return dummyLogType
-	}
-
-	// SUT + act
-	var allowedLogType = GetAllowedLogType(
-		dummyHTTPRequest,
-	)
-
-	// assert
-	assert.Equal(t, dummyLogType, allowedLogType)
-
-	// verify
-	verifyAll(t)
-}
-
-func TestGetAllowedLogType_NoCustomization(t *testing.T) {
-	// arrange
-	var dummyHTTPRequest = &http.Request{}
-	var dummyLogType = logtype.LogType(rand.Intn(255))
-
-	// mock
-	createMock(t)
-
-	// expect
-	configDefaultAllowedLogTypeExpected = 1
-	config.DefaultAllowedLogType = func() logtype.LogType {
-		configDefaultAllowedLogTypeCalled++
-		return dummyLogType
-	}
-
-	// SUT + act
-	var allowedLogType = GetAllowedLogType(
-		dummyHTTPRequest,
-	)
-
-	// assert
-	assert.Equal(t, dummyLogType, allowedLogType)
-
-	// verify
-	verifyAll(t)
-}
-
-func TestGetAllowedLogType_WithCustomization(t *testing.T) {
-	// arrange
-	var dummyHTTPRequest = &http.Request{}
-	var dummyLogType = logtype.LogType(rand.Intn(255))
-
-	// mock
-	createMock(t)
-
-	// expect
-	customizationSessionAllowedLogTypeExpected = 1
-	customization.SessionAllowedLogType = func(httpRequest *http.Request) logtype.LogType {
-		customizationSessionAllowedLogTypeCalled++
-		assert.Equal(t, dummyHTTPRequest, httpRequest)
-		return dummyLogType
-	}
-
-	// SUT + act
-	var allowedLogType = GetAllowedLogType(
-		dummyHTTPRequest,
-	)
-
-	// assert
-	assert.Equal(t, dummyLogType, allowedLogType)
-
-	// verify
-	verifyAll(t)
-}
-
-func TestGetAllowedLogLevel_NilHTTPRequest(t *testing.T) {
-	// arrange
-	var dummyHTTPRequest *http.Request
-	var dummyLogLevel = loglevel.LogLevel(rand.Intn(255))
-
-	// mock
-	createMock(t)
-
-	// expect
-	configDefaultAllowedLogLevelExpected = 1
-	config.DefaultAllowedLogLevel = func() loglevel.LogLevel {
-		configDefaultAllowedLogLevelCalled++
-		return dummyLogLevel
-	}
-
-	// SUT + act
-	var allowedLogLevel = GetAllowedLogLevel(
-		dummyHTTPRequest,
-	)
-
-	// assert
-	assert.Equal(t, dummyLogLevel, allowedLogLevel)
-
-	// verify
-	verifyAll(t)
-}
-
-func TestGetAllowedLogLevel_NoCustomization(t *testing.T) {
-	// arrange
-	var dummyHTTPRequest = &http.Request{}
-	var dummyLogLevel = loglevel.LogLevel(rand.Intn(255))
-
-	// mock
-	createMock(t)
-
-	// expect
-	configDefaultAllowedLogLevelExpected = 1
-	config.DefaultAllowedLogLevel = func() loglevel.LogLevel {
-		configDefaultAllowedLogLevelCalled++
-		return dummyLogLevel
-	}
-
-	// SUT + act
-	var allowedLogLevel = GetAllowedLogLevel(
-		dummyHTTPRequest,
-	)
-
-	// assert
-	assert.Equal(t, dummyLogLevel, allowedLogLevel)
-
-	// verify
-	verifyAll(t)
-}
-
-func TestGetAllowedLogLevel_WithCustomization(t *testing.T) {
-	// arrange
-	var dummyHTTPRequest = &http.Request{}
-	var dummyLogLevel = loglevel.LogLevel(rand.Intn(255))
-
-	// mock
-	createMock(t)
-
-	// expect
-	customizationSessionAllowedLogLevelExpected = 1
-	customization.SessionAllowedLogLevel = func(httpRequest *http.Request) loglevel.LogLevel {
-		customizationSessionAllowedLogLevelCalled++
-		assert.Equal(t, dummyHTTPRequest, httpRequest)
-		return dummyLogLevel
-	}
-
-	// SUT + act
-	var allowedLogLevel = GetAllowedLogLevel(
-		dummyHTTPRequest,
-	)
-
-	// assert
-	assert.Equal(t, dummyLogLevel, allowedLogLevel)
-
-	// verify
-	verifyAll(t)
-}
 
 func TestGetRequestBody_NilBody(t *testing.T) {
 	// arrange
-	var dummyHTTPRequest = &http.Request{
+	var dummySessionID = &http.Request{
 		Method:     http.MethodGet,
 		RequestURI: "http://localhost/",
 		Header:     map[string][]string{},
@@ -195,7 +25,7 @@ func TestGetRequestBody_NilBody(t *testing.T) {
 
 	// SUT + act
 	var result = GetRequestBody(
-		dummyHTTPRequest,
+		dummySessionID,
 	)
 
 	// assert
@@ -208,7 +38,7 @@ func TestGetRequestBody_NilBody(t *testing.T) {
 func TestGetRequestBody_ErrorBody(t *testing.T) {
 	// arrange
 	var bodyContent = "some body content"
-	var dummyHTTPRequest = &http.Request{
+	var dummySessionID = &http.Request{
 		Method:     http.MethodGet,
 		RequestURI: "http://localhost/",
 		Header:     map[string][]string{},
@@ -223,13 +53,13 @@ func TestGetRequestBody_ErrorBody(t *testing.T) {
 	ioutilReadAllExpected = 1
 	ioutilReadAll = func(r io.Reader) ([]byte, error) {
 		ioutilReadAllCalled++
-		assert.Equal(t, dummyHTTPRequest.Body, r)
+		assert.Equal(t, dummySessionID.Body, r)
 		return nil, dummyError
 	}
 
 	// SUT + act
 	var result = GetRequestBody(
-		dummyHTTPRequest,
+		dummySessionID,
 	)
 
 	// assert
@@ -242,7 +72,7 @@ func TestGetRequestBody_ErrorBody(t *testing.T) {
 func TestGetRequestBody_Success(t *testing.T) {
 	// arrange
 	var bodyContent = "some body content"
-	var dummyHTTPRequest = &http.Request{
+	var dummySessionID = &http.Request{
 		Method:     http.MethodGet,
 		RequestURI: "http://localhost/",
 		Header:     map[string][]string{},
@@ -275,12 +105,12 @@ func TestGetRequestBody_Success(t *testing.T) {
 
 	// SUT + act
 	var result = GetRequestBody(
-		dummyHTTPRequest,
+		dummySessionID,
 	)
 
 	// assert
 	assert.Equal(t, bodyContent, result)
-	assert.Equal(t, dummyReadCloser, dummyHTTPRequest.Body)
+	assert.Equal(t, dummyReadCloser, dummySessionID.Body)
 
 	// verify
 	verifyAll(t)

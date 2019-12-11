@@ -3,7 +3,6 @@ package handler
 import (
 	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger"
-	"github.com/zhongjie-cai/WebServiceTemplate/request"
 	"github.com/zhongjie-cai/WebServiceTemplate/response"
 	"github.com/zhongjie-cai/WebServiceTemplate/server/panic"
 	"github.com/zhongjie-cai/WebServiceTemplate/server/route"
@@ -16,8 +15,6 @@ var (
 	sessionRegister               = session.Register
 	sessionUnregister             = session.Unregister
 	panicHandle                   = panic.Handle
-	requestGetAllowedLogType      = request.GetAllowedLogType
-	requestGetAllowedLogLevel     = request.GetAllowedLogLevel
 	responseWrite                 = response.Write
 	loggerAPIEnter                = logger.APIEnter
 	loggerAPIExit                 = logger.APIExit

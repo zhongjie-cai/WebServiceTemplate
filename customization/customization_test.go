@@ -22,8 +22,8 @@ func TestReset(t *testing.T) {
 	AppClosingFunc = func() error { return nil }
 	DefaultAllowedLogType = func() logtype.LogType { return logtype.LogType(0) }
 	DefaultAllowedLogLevel = func() loglevel.LogLevel { return loglevel.LogLevel(0) }
-	SessionAllowedLogType = func(httpRequest *http.Request) logtype.LogType { return logtype.LogType(0) }
-	SessionAllowedLogLevel = func(httpRequest *http.Request) loglevel.LogLevel { return loglevel.LogLevel(0) }
+	SessionAllowedLogType = func(sessionID uuid.UUID) logtype.LogType { return logtype.LogType(0) }
+	SessionAllowedLogLevel = func(sessionID uuid.UUID) loglevel.LogLevel { return loglevel.LogLevel(0) }
 	LoggingFunc = func(session sessionModel.Session, logType logtype.LogType, logLevel loglevel.LogLevel, category, subcategory, description string) {
 	}
 	AppVersion = func() string { return "" }
