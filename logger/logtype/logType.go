@@ -125,6 +125,7 @@ func (logtype LogType) String() string {
 			result = append(result, value)
 		}
 	}
+	sortStrings(result)
 	return stringsJoin(result, "|")
 }
 

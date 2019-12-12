@@ -1,6 +1,7 @@
 package logtype
 
 import (
+	"sort"
 	"strings"
 	"testing"
 
@@ -8,6 +9,8 @@ import (
 )
 
 var (
+	sortStringsExpected  int
+	sortStringsCalled    int
 	stringsJoinExpected  int
 	stringsJoinCalled    int
 	stringsSplitExpected int
@@ -15,6 +18,11 @@ var (
 )
 
 func createMock(t *testing.T) {
+	sortStringsExpected = 0
+	sortStringsCalled = 0
+	sortStrings = func(a []string) {
+		sortStringsCalled++
+	}
 	stringsJoinExpected = 0
 	stringsJoinCalled = 0
 	stringsJoin = func(a []string, sep string) string {
@@ -30,6 +38,8 @@ func createMock(t *testing.T) {
 }
 
 func verifyAll(t *testing.T) {
+	sortStrings = sort.Strings
+	assert.Equal(t, sortStringsExpected, sortStringsCalled, "Unexpected number of calls to sortStrings")
 	stringsJoin = strings.Join
 	assert.Equal(t, stringsJoinExpected, stringsJoinCalled, "Unexpected number of calls to stringsJoin")
 	stringsSplit = strings.Split

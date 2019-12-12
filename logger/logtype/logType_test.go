@@ -1,6 +1,7 @@
 package logtype
 
 import (
+	"sort"
 	"strings"
 	"testing"
 
@@ -36,6 +37,11 @@ func TestString_NonSupportedLogTypes(t *testing.T) {
 	createMock(t)
 
 	// expect
+	sortStringsExpected = 1
+	sortStrings = func(a []string) {
+		sortStringsCalled++
+		sort.Strings(a)
+	}
 	stringsJoinExpected = 1
 	stringsJoin = func(a []string, sep string) string {
 		stringsJoinCalled++
@@ -60,6 +66,11 @@ func TestString_SingleSupportedLogType(t *testing.T) {
 	createMock(t)
 
 	// expect
+	sortStringsExpected = 1
+	sortStrings = func(a []string) {
+		sortStringsCalled++
+		sort.Strings(a)
+	}
 	stringsJoinExpected = 1
 	stringsJoin = func(a []string, sep string) string {
 		stringsJoinCalled++
@@ -87,6 +98,11 @@ func TestString_MultipleSupportedLogTypes(t *testing.T) {
 	createMock(t)
 
 	// expect
+	sortStringsExpected = 1
+	sortStrings = func(a []string) {
+		sortStringsCalled++
+		sort.Strings(a)
+	}
 	stringsJoinExpected = 1
 	stringsJoin = func(a []string, sep string) string {
 		stringsJoinCalled++
