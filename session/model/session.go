@@ -35,11 +35,14 @@ type SessionMeta interface {
 
 // SessionHTTP is a subset of Session interface, containing only HTTP request & response related methods
 type SessionHTTP interface {
+	SessionHTTPRequest
+	SessionHTTPResponse
+}
+
+// SessionHTTPRequest is a subset of Session interface, containing only HTTP request related methods
+type SessionHTTPRequest interface {
 	// GetRequest returns the HTTP request object from session object for given session ID
 	GetRequest() *http.Request
-
-	// GetResponseWriter returns the HTTP response writer object from session object for given session ID
-	GetResponseWriter() http.ResponseWriter
 
 	// GetRequestBody loads HTTP request body associated to session and unmarshals the content JSON to given data template
 	GetRequestBody(dataTemplate interface{}) apperrorModel.AppError
@@ -58,6 +61,12 @@ type SessionHTTP interface {
 
 	// GetRequestHeaders loads HTTP request header strings associated to session for given name and unmarshals the content to given data template; the fillCallback is called when each unmarshal operation succeeds, so consumer could fill in external arrays using data template during the process
 	GetRequestHeaders(name string, dataTemplate interface{}, fillCallback func()) apperrorModel.AppError
+}
+
+// SessionHTTPResponse is a subset of SessionHTTP interface, containing only HTTP response related methods
+type SessionHTTPResponse interface {
+	// GetResponseWriter returns the HTTP response writer object from session object for given session ID
+	GetResponseWriter() http.ResponseWriter
 }
 
 // SessionAttachment is a subset of Session interface, containing only attachment related methods
