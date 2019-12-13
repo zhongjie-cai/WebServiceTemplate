@@ -26,8 +26,6 @@ var (
 	routeGetRouteInfoCalled               int
 	sessionRegisterExpected               int
 	sessionRegisterCalled                 int
-	sessionUnregisterExpected             int
-	sessionUnregisterCalled               int
 	panicHandleExpected                   int
 	panicHandleCalled                     int
 	responseWriteExpected                 int
@@ -58,11 +56,6 @@ func createMock(t *testing.T) {
 	sessionRegister = func(name string, httpRequest *http.Request, responseWriter http.ResponseWriter) sessionModel.Session {
 		sessionRegisterCalled++
 		return nil
-	}
-	sessionUnregisterExpected = 0
-	sessionUnregisterCalled = 0
-	sessionUnregister = func(session sessionModel.Session) {
-		sessionUnregisterCalled++
 	}
 	panicHandleExpected = 0
 	panicHandleCalled = 0
@@ -115,8 +108,6 @@ func verifyAll(t *testing.T) {
 	assert.Equal(t, routeGetRouteInfoExpected, routeGetRouteInfoCalled, "Unexpected number of calls to routeGetRouteInfo")
 	sessionRegister = session.Register
 	assert.Equal(t, sessionRegisterExpected, sessionRegisterCalled, "Unexpected number of calls to sessionRegister")
-	sessionUnregister = session.Unregister
-	assert.Equal(t, sessionUnregisterExpected, sessionUnregisterCalled, "Unexpected number of calls to sessionUnregister")
 	panicHandle = panic.Handle
 	assert.Equal(t, panicHandleExpected, panicHandleCalled, "Unexpected number of calls to panicHandle")
 	responseWrite = response.Write

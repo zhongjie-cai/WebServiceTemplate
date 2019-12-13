@@ -13,7 +13,6 @@ import (
 var (
 	routeGetRouteInfo             = route.GetRouteInfo
 	sessionRegister               = session.Register
-	sessionUnregister             = session.Unregister
 	panicHandle                   = panic.Handle
 	responseWrite                 = response.Write
 	loggerAPIEnter                = logger.APIEnter

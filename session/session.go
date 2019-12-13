@@ -2,10 +2,8 @@ package session
 
 import (
 	"net/http"
-	"time"
 
 	"github.com/google/uuid"
-	cache "github.com/patrickmn/go-cache"
 	apperrorModel "github.com/zhongjie-cai/WebServiceTemplate/apperror/model"
 	"github.com/zhongjie-cai/WebServiceTemplate/config"
 	"github.com/zhongjie-cai/WebServiceTemplate/customization"
@@ -16,7 +14,6 @@ import (
 )
 
 var (
-	sessionCache          = cache.New(15*time.Minute, 30*time.Minute)
 	defaultRequest        = &http.Request{}
 	defaultResponseWriter = &nilResponseWriter{}
 	defaultName           = "AppRoot"
@@ -42,21 +39,9 @@ func Register(
 		ResponseWriter: responseWriter,
 		attachment:     map[string]interface{}{},
 	}
-	sessionCache.SetDefault(
-		sessionID.String(),
-		session,
-	)
 	session.AllowedLogType = getAllowedLogTypeFunc(session)
 	session.AllowedLogLevel = getAllowedLogLevelFunc(session)
 	return session
-}
-
-// Unregister unregisters the information of a session for given session ID
-func Unregister(session model.Session) {
-	var sessionID = session.GetID()
-	sessionCache.Delete(
-		sessionID.String(),
-	)
 }
 
 type session struct {

@@ -12,7 +12,6 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
-	"github.com/patrickmn/go-cache"
 	"github.com/stretchr/testify/assert"
 	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
 	apperrorModel "github.com/zhongjie-cai/WebServiceTemplate/apperror/model"
@@ -51,9 +50,6 @@ func TestRegister(t *testing.T) {
 	var dummyHTTPRequest = &http.Request{}
 	var dummyResponseWriter = dummyResponseWriter{}
 
-	// stub
-	sessionCache.Delete(dummySessionID.String())
-
 	// mock
 	createMock(t)
 
@@ -84,12 +80,9 @@ func TestRegister(t *testing.T) {
 	)
 
 	// act
-	var cacheItem, cacheOK = sessionCache.Get(dummySessionID.String())
-	var session, typeOK = cacheItem.(*session)
+	var session, typeOK = result.(*session)
 
 	// assert
-	assert.Equal(t, dummySessionID, result.GetID())
-	assert.True(t, cacheOK)
 	assert.True(t, typeOK)
 	assert.Equal(t, dummySessionID, session.ID)
 	assert.Equal(t, dummyName, session.Name)
@@ -100,34 +93,6 @@ func TestRegister(t *testing.T) {
 
 	// verify
 	verifyAll(t)
-	sessionCache.Delete(dummySessionID.String())
-}
-
-func TestUnregister(t *testing.T) {
-	// arrange
-	var dummySessionID = uuid.New()
-	var dummySessionObject = &session{
-		ID: dummySessionID,
-	}
-
-	// stub
-	sessionCache.Set(dummySessionID.String(), 123, cache.NoExpiration)
-
-	// mock
-	createMock(t)
-
-	// SUT
-	Unregister(dummySessionObject)
-
-	// act
-	var _, cacheOK = sessionCache.Get(dummySessionID.String())
-
-	// assert
-	assert.False(t, cacheOK)
-
-	// verify
-	verifyAll(t)
-	sessionCache.Delete(dummySessionID.String())
 }
 
 func TestGetID_NilSessionObject(t *testing.T) {

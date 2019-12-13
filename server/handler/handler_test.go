@@ -147,11 +147,6 @@ func TestHandleInSession_RouteError(t *testing.T) {
 		assert.Equal(t, dummySessionObject, session)
 		assert.Equal(t, recover(), recoverResult)
 	}
-	sessionUnregisterExpected = 1
-	sessionUnregister = func(session sessionModel.Session) {
-		sessionUnregisterCalled++
-		assert.Equal(t, dummySessionObject, session)
-	}
 
 	// SUT + act
 	Session(
@@ -236,11 +231,6 @@ func TestHandleInSession_PreActionError(t *testing.T) {
 		panicHandleCalled++
 		assert.Equal(t, dummySessionObject, session)
 		assert.Equal(t, recover(), recoverResult)
-	}
-	sessionUnregisterExpected = 1
-	sessionUnregister = func(session sessionModel.Session) {
-		sessionUnregisterCalled++
-		assert.Equal(t, dummySessionObject, session)
 	}
 
 	// SUT + act
@@ -348,11 +338,6 @@ func TestHandleInSession_PostActionError_WithResponseError(t *testing.T) {
 		assert.Equal(t, dummySessionObject, session)
 		assert.Equal(t, recover(), recoverResult)
 	}
-	sessionUnregisterExpected = 1
-	sessionUnregister = func(session sessionModel.Session) {
-		sessionUnregisterCalled++
-		assert.Equal(t, dummySessionObject, session)
-	}
 
 	// SUT + act
 	Session(
@@ -452,11 +437,6 @@ func TestHandleInSession_PostActionError_NoResponseError(t *testing.T) {
 		assert.Equal(t, dummySessionObject, session)
 		assert.Equal(t, recover(), recoverResult)
 	}
-	sessionUnregisterExpected = 1
-	sessionUnregister = func(session sessionModel.Session) {
-		sessionUnregisterCalled++
-		assert.Equal(t, dummySessionObject, session)
-	}
 
 	// SUT + act
 	Session(
@@ -553,11 +533,6 @@ func TestHandleInSession_Success(t *testing.T) {
 		panicHandleCalled++
 		assert.Equal(t, dummySessionObject, session)
 		assert.Equal(t, recover(), recoverResult)
-	}
-	sessionUnregisterExpected = 1
-	sessionUnregister = func(session sessionModel.Session) {
-		sessionUnregisterCalled++
-		assert.Equal(t, dummySessionObject, session)
 	}
 
 	// SUT + act

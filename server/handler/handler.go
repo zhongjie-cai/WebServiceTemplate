@@ -37,9 +37,6 @@ func Session(
 			session,
 			recover(),
 		)
-		sessionUnregister(
-			session,
-		)
 	}()
 	if routeError != nil {
 		loggerAPIEnter(

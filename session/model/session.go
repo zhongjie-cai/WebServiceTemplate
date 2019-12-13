@@ -17,12 +17,24 @@ var (
 
 // Session is the storage for the current HTTP request session, containing information needed for logging, monitoring, etc.
 type Session interface {
+	SessionMeta
+	SessionHTTP
+	SessionAttachment
+	SessionLogging
+	SessionNetwork
+}
+
+// SessionMeta is a subset of Session interface, containing only meta data related methods
+type SessionMeta interface {
 	// GetID returns the ID of this registered session object
 	GetID() uuid.UUID
 
 	// GetName returns the name registered to session object for given session ID
 	GetName() string
+}
 
+// SessionHTTP is a subset of Session interface, containing only HTTP request & response related methods
+type SessionHTTP interface {
 	// GetRequest returns the HTTP request object from session object for given session ID
 	GetRequest() *http.Request
 
@@ -46,7 +58,10 @@ type Session interface {
 
 	// GetRequestHeaders loads HTTP request header strings associated to session for given name and unmarshals the content to given data template; the fillCallback is called when each unmarshal operation succeeds, so consumer could fill in external arrays using data template during the process
 	GetRequestHeaders(name string, dataTemplate interface{}, fillCallback func()) apperrorModel.AppError
+}
 
+// SessionAttachment is a subset of Session interface, containing only attachment related methods
+type SessionAttachment interface {
 	// Attach attaches any value object into the given session associated to the session ID
 	Attach(name string, value interface{}) bool
 
@@ -55,7 +70,10 @@ type Session interface {
 
 	// GetAttachment retrieves any value object from the given session associated to the session ID and unmarshals the content to given data template
 	GetAttachment(name string, dataTemplate interface{}) bool
+}
 
+// SessionLogging is a subset of Session interface, containing only logging related methods
+type SessionLogging interface {
 	// IsLoggingAllowed checks the passed in log type and level and determines whether they match the session log criteria or not
 	IsLoggingAllowed(logType logtype.LogType, logLevel loglevel.LogLevel) bool
 
@@ -73,7 +91,10 @@ type Session interface {
 
 	// LogMethodExit sends a logging entry of MethodExit log type for the given session associated to the session ID
 	LogMethodExit()
+}
 
+// SessionNetwork is a subset of Session interface, containing only network related methods
+type SessionNetwork interface {
 	// CreateNetworkRequest generates a network request object to the targeted external web service for the given session associated to the session ID
 	CreateNetworkRequest(method string, url string, payload string, header map[string]string) networkModel.NetworkRequest
 }
