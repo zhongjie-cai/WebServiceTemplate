@@ -4,10 +4,10 @@ import (
 	"net/http"
 
 	"github.com/google/uuid"
-
 	apperrorModel "github.com/zhongjie-cai/WebServiceTemplate/apperror/model"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger/loglevel"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger/logtype"
+	networkModel "github.com/zhongjie-cai/WebServiceTemplate/network/model"
 )
 
 var (
@@ -58,4 +58,22 @@ type Session interface {
 
 	// IsLoggingAllowed checks the passed in log type and level and determines whether they match the session log criteria or not
 	IsLoggingAllowed(logType logtype.LogType, logLevel loglevel.LogLevel) bool
+
+	// LogMethodEnter sends a logging entry of MethodEnter log type for the given session associated to the session ID
+	LogMethodEnter()
+
+	// LogMethodParameter sends a logging entry of MethodParameter log type for the given session associated to the session ID
+	LogMethodParameter(parameters ...interface{})
+
+	// LogMethodLogic sends a logging entry of MethodLogic log type for the given session associated to the session ID
+	LogMethodLogic(logLevel loglevel.LogLevel, category string, subcategory string, messageFormat string, parameters ...interface{})
+
+	// LogMethodReturn sends a logging entry of MethodReturn log type for the given session associated to the session ID
+	LogMethodReturn(returns ...interface{})
+
+	// LogMethodExit sends a logging entry of MethodExit log type for the given session associated to the session ID
+	LogMethodExit()
+
+	// CreateNetworkRequest generates a network request object to the targeted external web service for the given session associated to the session ID
+	CreateNetworkRequest(method string, url string, payload string, header map[string]string) networkModel.NetworkRequest
 }

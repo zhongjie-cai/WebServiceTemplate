@@ -16,6 +16,7 @@ import (
 	"github.com/zhongjie-cai/WebServiceTemplate/jsonutil"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger/loglevel"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger/logtype"
+	networkModel "github.com/zhongjie-cai/WebServiceTemplate/network/model"
 	sessionModel "github.com/zhongjie-cai/WebServiceTemplate/session/model"
 	"github.com/zhongjie-cai/WebServiceTemplate/timeutil"
 )
@@ -222,4 +223,35 @@ func (session *dummySession) IsLoggingAllowed(logType logtype.LogType, logLevel 
 		assert.Fail(session.t, "Unexpected call to IsLoggingAllowed")
 	}
 	return *session.isLogAllowed
+}
+
+// LogMethodEnter sends a logging entry of MethodEnter log type for the given session associated to the session ID
+func (session *dummySession) LogMethodEnter() {
+	assert.Fail(session.t, "Unexpected call to LogMethodEnter")
+}
+
+// LogMethodParameter sends a logging entry of MethodParameter log type for the given session associated to the session ID
+func (session *dummySession) LogMethodParameter(parameters ...interface{}) {
+	assert.Fail(session.t, "Unexpected call to LogMethodParameter")
+}
+
+// LogMethodLogic sends a logging entry of MethodLogic log type for the given session associated to the session ID
+func (session *dummySession) LogMethodLogic(logLevel loglevel.LogLevel, category string, subcategory string, messageFormat string, parameters ...interface{}) {
+	assert.Fail(session.t, "Unexpected call to LogMethodLogic")
+}
+
+// LogMethodReturn sends a logging entry of MethodReturn log type for the given session associated to the session ID
+func (session *dummySession) LogMethodReturn(returns ...interface{}) {
+	assert.Fail(session.t, "Unexpected call to LogMethodReturn")
+}
+
+// LogMethodExit sends a logging entry of MethodExit log type for the given session associated to the session ID
+func (session *dummySession) LogMethodExit() {
+	assert.Fail(session.t, "Unexpected call to LogMethodExit")
+}
+
+// CreateNetworkRequest generates a network request object to the targeted external web service for the given session associated to the session ID
+func (session *dummySession) CreateNetworkRequest(method string, url string, payload string, header map[string]string) networkModel.NetworkRequest {
+	assert.Fail(session.t, "Unexpected call to CreateNetworkRequest")
+	return nil
 }

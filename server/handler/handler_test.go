@@ -7,7 +7,6 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
 	apperrorModel "github.com/zhongjie-cai/WebServiceTemplate/apperror/model"
@@ -18,7 +17,7 @@ import (
 
 func TestExecuteCustomizedFunction_NoCustomization(t *testing.T) {
 	// arrange
-	var dummySessionID = uuid.New()
+	var dummySessionObject = &dummySession{t}
 
 	// mock
 	createMock(t)
@@ -26,11 +25,11 @@ func TestExecuteCustomizedFunction_NoCustomization(t *testing.T) {
 	// expect
 	var dummyCustomFuncExpected = 0
 	var dummyCustomFuncCalled = 0
-	var dummyCustomFunc func(sessionID uuid.UUID) error
+	var dummyCustomFunc func(session sessionModel.Session) error
 
 	// SUT + act
 	var err = executeCustomizedFunction(
-		dummySessionID,
+		dummySessionObject,
 		dummyCustomFunc,
 	)
 
@@ -44,7 +43,7 @@ func TestExecuteCustomizedFunction_NoCustomization(t *testing.T) {
 
 func TestExecuteCustomizedFunction_WithCustomization(t *testing.T) {
 	// arrange
-	var dummySessionID = uuid.New()
+	var dummySessionObject = &dummySession{t}
 	var dummyError = errors.New("some error")
 
 	// mock
@@ -53,15 +52,15 @@ func TestExecuteCustomizedFunction_WithCustomization(t *testing.T) {
 	// expect
 	var dummyCustomFuncExpected = 1
 	var dummyCustomFuncCalled = 0
-	var dummyCustomFunc = func(sessionID uuid.UUID) error {
+	var dummyCustomFunc = func(session sessionModel.Session) error {
 		dummyCustomFuncCalled++
-		assert.Equal(t, dummySessionID, sessionID)
+		assert.Equal(t, dummySessionObject, session)
 		return dummyError
 	}
 
 	// SUT + act
 	var err = executeCustomizedFunction(
-		dummySessionID,
+		dummySessionObject,
 		dummyCustomFunc,
 	)
 
@@ -82,14 +81,10 @@ func TestHandleInSession_RouteError(t *testing.T) {
 	}
 	var dummyResponseWriter = &dummyResponseWriter{t}
 	var dummyEndpoint = "some endpoint"
-	var dummySessionID = uuid.New()
-	var dummySessionObject = &dummySession{
-		t,
-		&dummySessionID,
-	}
+	var dummySessionObject = &dummySession{t}
 	var dummyActionExpected = 0
 	var dummyActionCalled = 0
-	var dummyAction = func(sessionID uuid.UUID) (interface{}, error) {
+	var dummyAction = func(session sessionModel.Session) (interface{}, error) {
 		dummyActionCalled++
 		return nil, nil
 	}
@@ -178,12 +173,8 @@ func TestHandleInSession_PreActionError(t *testing.T) {
 	}
 	var dummyResponseWriter = &dummyResponseWriter{t}
 	var dummyEndpoint = "some endpoint"
-	var dummySessionID = uuid.New()
-	var dummySessionObject = &dummySession{
-		t,
-		&dummySessionID,
-	}
-	var dummyAction func(uuid.UUID) (interface{}, error)
+	var dummySessionObject = &dummySession{t}
+	var dummyAction func(sessionModel.Session) (interface{}, error)
 	var dummyActionExpected int
 	var dummyActionCalled int
 	var dummyPreActionError = errors.New("some pre-action error")
@@ -216,9 +207,9 @@ func TestHandleInSession_PreActionError(t *testing.T) {
 		assert.Equal(t, 0, len(parameters))
 	}
 	executeCustomizedFunctionFuncExpected = 1
-	executeCustomizedFunctionFunc = func(sessionID uuid.UUID, customFunc func(uuid.UUID) error) error {
+	executeCustomizedFunctionFunc = func(session sessionModel.Session, customFunc func(sessionModel.Session) error) error {
 		executeCustomizedFunctionFuncCalled++
-		assert.Equal(t, dummySessionID, sessionID)
+		assert.Equal(t, dummySessionObject, session)
 		var pointerExpect = fmt.Sprintf("%v", reflect.ValueOf(customization.PreActionFunc))
 		var pointerActual = fmt.Sprintf("%v", reflect.ValueOf(customFunc))
 		assert.Equal(t, pointerExpect, pointerActual)
@@ -272,12 +263,8 @@ func TestHandleInSession_PostActionError_WithResponseError(t *testing.T) {
 	}
 	var dummyResponseWriter = &dummyResponseWriter{t}
 	var dummyEndpoint = "some endpoint"
-	var dummySessionID = uuid.New()
-	var dummySessionObject = &dummySession{
-		t,
-		&dummySessionID,
-	}
-	var dummyAction func(uuid.UUID) (interface{}, error)
+	var dummySessionObject = &dummySession{t}
+	var dummyAction func(sessionModel.Session) (interface{}, error)
 	var dummyActionExpected int
 	var dummyActionCalled int
 	var dummyResponseObject = "some response object"
@@ -312,9 +299,9 @@ func TestHandleInSession_PostActionError_WithResponseError(t *testing.T) {
 		assert.Equal(t, 0, len(parameters))
 	}
 	executeCustomizedFunctionFuncExpected = 2
-	executeCustomizedFunctionFunc = func(sessionID uuid.UUID, customFunc func(uuid.UUID) error) error {
+	executeCustomizedFunctionFunc = func(session sessionModel.Session, customFunc func(sessionModel.Session) error) error {
 		executeCustomizedFunctionFuncCalled++
-		assert.Equal(t, dummySessionID, sessionID)
+		assert.Equal(t, dummySessionObject, session)
 		var pointerActual = fmt.Sprintf("%v", reflect.ValueOf(customFunc))
 		if executeCustomizedFunctionFuncCalled == 1 {
 			var pointerExpect = fmt.Sprintf("%v", reflect.ValueOf(customization.PreActionFunc))
@@ -328,9 +315,9 @@ func TestHandleInSession_PostActionError_WithResponseError(t *testing.T) {
 		return nil
 	}
 	dummyActionExpected = 1
-	dummyAction = func(sessionID uuid.UUID) (interface{}, error) {
+	dummyAction = func(session sessionModel.Session) (interface{}, error) {
 		dummyActionCalled++
-		assert.Equal(t, dummySessionID, sessionID)
+		assert.Equal(t, dummySessionObject, session)
 		return dummyResponseObject, dummyResponseError
 	}
 	responseWriteExpected = 1
@@ -387,12 +374,8 @@ func TestHandleInSession_PostActionError_NoResponseError(t *testing.T) {
 	}
 	var dummyResponseWriter = &dummyResponseWriter{t}
 	var dummyEndpoint = "some endpoint"
-	var dummySessionID = uuid.New()
-	var dummySessionObject = &dummySession{
-		t,
-		&dummySessionID,
-	}
-	var dummyAction func(uuid.UUID) (interface{}, error)
+	var dummySessionObject = &dummySession{t}
+	var dummyAction func(sessionModel.Session) (interface{}, error)
 	var dummyActionExpected int
 	var dummyActionCalled int
 	var dummyResponseObject = "some response object"
@@ -426,9 +409,9 @@ func TestHandleInSession_PostActionError_NoResponseError(t *testing.T) {
 		assert.Equal(t, 0, len(parameters))
 	}
 	executeCustomizedFunctionFuncExpected = 2
-	executeCustomizedFunctionFunc = func(sessionID uuid.UUID, customFunc func(uuid.UUID) error) error {
+	executeCustomizedFunctionFunc = func(session sessionModel.Session, customFunc func(sessionModel.Session) error) error {
 		executeCustomizedFunctionFuncCalled++
-		assert.Equal(t, dummySessionID, sessionID)
+		assert.Equal(t, dummySessionObject, session)
 		var pointerActual = fmt.Sprintf("%v", reflect.ValueOf(customFunc))
 		if executeCustomizedFunctionFuncCalled == 1 {
 			var pointerExpect = fmt.Sprintf("%v", reflect.ValueOf(customization.PreActionFunc))
@@ -442,9 +425,9 @@ func TestHandleInSession_PostActionError_NoResponseError(t *testing.T) {
 		return nil
 	}
 	dummyActionExpected = 1
-	dummyAction = func(sessionID uuid.UUID) (interface{}, error) {
+	dummyAction = func(session sessionModel.Session) (interface{}, error) {
 		dummyActionCalled++
-		assert.Equal(t, dummySessionID, sessionID)
+		assert.Equal(t, dummySessionObject, session)
 		return dummyResponseObject, nil
 	}
 	responseWriteExpected = 1
@@ -495,12 +478,8 @@ func TestHandleInSession_Success(t *testing.T) {
 	}
 	var dummyResponseWriter = &dummyResponseWriter{t}
 	var dummyEndpoint = "some endpoint"
-	var dummySessionID = uuid.New()
-	var dummySessionObject = &dummySession{
-		t,
-		&dummySessionID,
-	}
-	var dummyAction func(uuid.UUID) (interface{}, error)
+	var dummySessionObject = &dummySession{t}
+	var dummyAction func(sessionModel.Session) (interface{}, error)
 	var dummyActionExpected int
 	var dummyActionCalled int
 	var dummyResponseObject = "some response object"
@@ -534,9 +513,9 @@ func TestHandleInSession_Success(t *testing.T) {
 		assert.Equal(t, 0, len(parameters))
 	}
 	executeCustomizedFunctionFuncExpected = 2
-	executeCustomizedFunctionFunc = func(sessionID uuid.UUID, customFunc func(uuid.UUID) error) error {
+	executeCustomizedFunctionFunc = func(session sessionModel.Session, customFunc func(sessionModel.Session) error) error {
 		executeCustomizedFunctionFuncCalled++
-		assert.Equal(t, dummySessionID, sessionID)
+		assert.Equal(t, dummySessionObject, session)
 		var pointerActual = fmt.Sprintf("%v", reflect.ValueOf(customFunc))
 		if executeCustomizedFunctionFuncCalled == 1 {
 			var pointerExpect = fmt.Sprintf("%v", reflect.ValueOf(customization.PreActionFunc))
@@ -548,9 +527,9 @@ func TestHandleInSession_Success(t *testing.T) {
 		return nil
 	}
 	dummyActionExpected = 1
-	dummyAction = func(sessionID uuid.UUID) (interface{}, error) {
+	dummyAction = func(session sessionModel.Session) (interface{}, error) {
 		dummyActionCalled++
-		assert.Equal(t, dummySessionID, sessionID)
+		assert.Equal(t, dummySessionObject, session)
 		return dummyResponseObject, dummyResponseError
 	}
 	responseWriteExpected = 1

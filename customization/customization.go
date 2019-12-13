@@ -4,7 +4,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	apperrorEnum "github.com/zhongjie-cai/WebServiceTemplate/apperror/enum"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger/loglevel"
@@ -29,10 +28,10 @@ var DefaultAllowedLogType func() logtype.LogType
 var DefaultAllowedLogLevel func() loglevel.LogLevel
 
 // SessionAllowedLogType is to customize the allowed log type determination logic for every HTTP session
-var SessionAllowedLogType func(sessionID uuid.UUID) logtype.LogType
+var SessionAllowedLogType func(session sessionModel.Session) logtype.LogType
 
 // SessionAllowedLogLevel is to customize the allowed log level determination logic for every HTTP session
-var SessionAllowedLogLevel func(sessionID uuid.UUID) loglevel.LogLevel
+var SessionAllowedLogLevel func(session sessionModel.Session) loglevel.LogLevel
 
 // LoggingFunc is to customize the logging backend for the whole application
 var LoggingFunc func(session sessionModel.Session, logType logtype.LogType, logLevel loglevel.LogLevel, category, subcategory, description string)
@@ -77,10 +76,10 @@ var ClientCertContent func() string
 var ClientKeyContent func() string
 
 // PreActionFunc is to customize the pre-action function used before each route action takes place, e.g. authorization, etc.
-var PreActionFunc func(sessionID uuid.UUID) error
+var PreActionFunc func(session sessionModel.Session) error
 
 // PostActionFunc is to customize the post-action function used after each route action takes place, e.g. finalization, etc.
-var PostActionFunc func(sessionID uuid.UUID) error
+var PostActionFunc func(session sessionModel.Session) error
 
 // CreateErrorResponseFunc is to customize the generation of HTTP error response
 var CreateErrorResponseFunc func(err error) (responseMessage string, statusCode int)

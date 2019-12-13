@@ -5,7 +5,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
 	apperrorEnum "github.com/zhongjie-cai/WebServiceTemplate/apperror/enum"
@@ -22,8 +21,8 @@ func TestReset(t *testing.T) {
 	AppClosingFunc = func() error { return nil }
 	DefaultAllowedLogType = func() logtype.LogType { return logtype.LogType(0) }
 	DefaultAllowedLogLevel = func() loglevel.LogLevel { return loglevel.LogLevel(0) }
-	SessionAllowedLogType = func(sessionID uuid.UUID) logtype.LogType { return logtype.LogType(0) }
-	SessionAllowedLogLevel = func(sessionID uuid.UUID) loglevel.LogLevel { return loglevel.LogLevel(0) }
+	SessionAllowedLogType = func(session sessionModel.Session) logtype.LogType { return logtype.LogType(0) }
+	SessionAllowedLogLevel = func(session sessionModel.Session) loglevel.LogLevel { return loglevel.LogLevel(0) }
 	LoggingFunc = func(session sessionModel.Session, logType logtype.LogType, logLevel loglevel.LogLevel, category, subcategory, description string) {
 	}
 	AppVersion = func() string { return "" }
@@ -39,8 +38,8 @@ func TestReset(t *testing.T) {
 	SendClientCert = func(url string) bool { return false }
 	ClientCertContent = func() string { return "" }
 	ClientKeyContent = func() string { return "" }
-	PreActionFunc = func(sessionID uuid.UUID) error { return nil }
-	PostActionFunc = func(sessionID uuid.UUID) error { return nil }
+	PreActionFunc = func(session sessionModel.Session) error { return nil }
+	PostActionFunc = func(session sessionModel.Session) error { return nil }
 	CreateErrorResponseFunc = func(err error) (responseMessage string, statusCode int) { return "", 0 }
 	Routes = func() []serverModel.Route { return nil }
 	Statics = func() []serverModel.Static { return nil }

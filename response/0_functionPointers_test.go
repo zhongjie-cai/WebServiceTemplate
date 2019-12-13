@@ -14,7 +14,7 @@ import (
 	"github.com/zhongjie-cai/WebServiceTemplate/logger"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger/loglevel"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger/logtype"
-	"github.com/zhongjie-cai/WebServiceTemplate/session"
+	networkModel "github.com/zhongjie-cai/WebServiceTemplate/network/model"
 	sessionModel "github.com/zhongjie-cai/WebServiceTemplate/session/model"
 )
 
@@ -27,10 +27,6 @@ var (
 	apperrorGetGeneralFailureErrorCalled         int
 	loggerAPIResponseExpected                    int
 	loggerAPIResponseCalled                      int
-	sessionGetRequestExpected                    int
-	sessionGetRequestCalled                      int
-	sessionGetResponseWriterExpected             int
-	sessionGetResponseWriterCalled               int
 	writeResponseFuncExpected                    int
 	writeResponseFuncCalled                      int
 	getAppErrorFuncExpected                      int
@@ -70,18 +66,6 @@ func createMock(t *testing.T) {
 	loggerAPIResponseCalled = 0
 	loggerAPIResponse = func(session sessionModel.Session, category string, subcategory string, messageFormat string, parameters ...interface{}) {
 		loggerAPIResponseCalled++
-	}
-	sessionGetRequestExpected = 0
-	sessionGetRequestCalled = 0
-	sessionGetRequest = func(sessionID uuid.UUID) *http.Request {
-		sessionGetRequestCalled++
-		return nil
-	}
-	sessionGetResponseWriterExpected = 0
-	sessionGetResponseWriterCalled = 0
-	sessionGetResponseWriter = func(sessionID uuid.UUID) http.ResponseWriter {
-		sessionGetResponseWriterCalled++
-		return nil
 	}
 	writeResponseFuncExpected = 0
 	writeResponseFuncCalled = 0
@@ -132,10 +116,6 @@ func verifyAll(t *testing.T) {
 	assert.Equal(t, apperrorGetGeneralFailureErrorExpected, apperrorGetGeneralFailureErrorCalled, "Unexpected number of calls to apperrorGetGeneralFailureError")
 	loggerAPIResponse = logger.APIResponse
 	assert.Equal(t, loggerAPIResponseExpected, loggerAPIResponseCalled, "Unexpected number of calls to loggerAPIResponse")
-	sessionGetRequest = session.GetRequest
-	assert.Equal(t, sessionGetRequestExpected, sessionGetRequestCalled, "Unexpected number of calls to sessionGetRequest")
-	sessionGetResponseWriter = session.GetResponseWriter
-	assert.Equal(t, sessionGetResponseWriterExpected, sessionGetResponseWriterCalled, "Unexpected number of calls to sessionGetResponseWriter")
 	writeResponseFunc = writeResponse
 	assert.Equal(t, writeResponseFuncExpected, writeResponseFuncCalled, "Unexpected number of calls to writeResponseFunc")
 	getAppErrorFunc = getAppError
@@ -245,6 +225,7 @@ func (dae *dummyAppError) Attach(name string, value interface{}) {
 
 type dummySession struct {
 	t              *testing.T
+	httpRequest    *http.Request
 	responseWriter *dummyResponseWriter
 }
 
@@ -259,8 +240,11 @@ func (session *dummySession) GetName() string {
 }
 
 func (session *dummySession) GetRequest() *http.Request {
-	assert.Fail(session.t, "Unexpected call to GetRequest")
-	return nil
+	if session.httpRequest == nil {
+		assert.Fail(session.t, "Unexpected call to GetRequest")
+		return nil
+	}
+	return session.httpRequest
 }
 
 func (session *dummySession) GetResponseWriter() http.ResponseWriter {
@@ -319,4 +303,35 @@ func (session *dummySession) GetAttachment(name string, dataTemplate interface{}
 func (session *dummySession) IsLoggingAllowed(logType logtype.LogType, logLevel loglevel.LogLevel) bool {
 	assert.Fail(session.t, "Unexpected call to IsLoggingAllowed")
 	return false
+}
+
+// LogMethodEnter sends a logging entry of MethodEnter log type for the given session associated to the session ID
+func (session *dummySession) LogMethodEnter() {
+	assert.Fail(session.t, "Unexpected call to LogMethodEnter")
+}
+
+// LogMethodParameter sends a logging entry of MethodParameter log type for the given session associated to the session ID
+func (session *dummySession) LogMethodParameter(parameters ...interface{}) {
+	assert.Fail(session.t, "Unexpected call to LogMethodParameter")
+}
+
+// LogMethodLogic sends a logging entry of MethodLogic log type for the given session associated to the session ID
+func (session *dummySession) LogMethodLogic(logLevel loglevel.LogLevel, category string, subcategory string, messageFormat string, parameters ...interface{}) {
+	assert.Fail(session.t, "Unexpected call to LogMethodLogic")
+}
+
+// LogMethodReturn sends a logging entry of MethodReturn log type for the given session associated to the session ID
+func (session *dummySession) LogMethodReturn(returns ...interface{}) {
+	assert.Fail(session.t, "Unexpected call to LogMethodReturn")
+}
+
+// LogMethodExit sends a logging entry of MethodExit log type for the given session associated to the session ID
+func (session *dummySession) LogMethodExit() {
+	assert.Fail(session.t, "Unexpected call to LogMethodExit")
+}
+
+// CreateNetworkRequest generates a network request object to the targeted external web service for the given session associated to the session ID
+func (session *dummySession) CreateNetworkRequest(method string, url string, payload string, header map[string]string) networkModel.NetworkRequest {
+	assert.Fail(session.t, "Unexpected call to CreateNetworkRequest")
+	return nil
 }

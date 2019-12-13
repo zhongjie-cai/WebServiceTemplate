@@ -28,9 +28,7 @@ var (
 	requestGetRequestBody           = request.GetRequestBody
 	apperrorGetBadRequestError      = apperror.GetBadRequestError
 	textprotoCanonicalMIMEHeaderKey = textproto.CanonicalMIMEHeaderKey
-	getFunc                         = Get
 	jsonutilTryUnmarshal            = jsonutil.TryUnmarshal
-	getRequestFunc                  = GetRequest
 	getAllQueriesFunc               = getAllQueries
 	getAllHeadersFunc               = getAllHeaders
 	isLoggingTypeMatchFunc          = isLoggingTypeMatch

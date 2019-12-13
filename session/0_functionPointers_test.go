@@ -24,7 +24,6 @@ import (
 	"github.com/zhongjie-cai/WebServiceTemplate/logger"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger/loglevel"
 	"github.com/zhongjie-cai/WebServiceTemplate/request"
-	"github.com/zhongjie-cai/WebServiceTemplate/session/model"
 	sessionModel "github.com/zhongjie-cai/WebServiceTemplate/session/model"
 )
 
@@ -47,12 +46,8 @@ var (
 	apperrorGetBadRequestErrorCalled            int
 	textprotoCanonicalMIMEHeaderKeyExpected     int
 	textprotoCanonicalMIMEHeaderKeyCalled       int
-	getFuncExpected                             int
-	getFuncCalled                               int
 	jsonutilTryUnmarshalExpected                int
 	jsonutilTryUnmarshalCalled                  int
-	getRequestFuncExpected                      int
-	getRequestFuncCalled                        int
 	getAllQueriesFuncExpected                   int
 	getAllQueriesFuncCalled                     int
 	getAllHeadersFuncExpected                   int
@@ -157,22 +152,10 @@ func createMock(t *testing.T) {
 		textprotoCanonicalMIMEHeaderKeyCalled++
 		return ""
 	}
-	getFuncExpected = 0
-	getFuncCalled = 0
-	getFunc = func(sessionID uuid.UUID) model.Session {
-		getFuncCalled++
-		return nil
-	}
 	jsonutilTryUnmarshalExpected = 0
 	jsonutilTryUnmarshalCalled = 0
 	jsonutilTryUnmarshal = func(value string, dataTemplate interface{}) error {
 		jsonutilTryUnmarshalCalled++
-		return nil
-	}
-	getRequestFuncExpected = 0
-	getRequestFuncCalled = 0
-	getRequestFunc = func(sessionID uuid.UUID) *http.Request {
-		getRequestFuncCalled++
 		return nil
 	}
 	getAllQueriesFuncExpected = 0
@@ -274,13 +257,13 @@ func createMock(t *testing.T) {
 	}
 	getAllowedLogTypeFuncExpected = 0
 	getAllowedLogTypeFuncCalled = 0
-	getAllowedLogTypeFunc = func(sessionID uuid.UUID) logtype.LogType {
+	getAllowedLogTypeFunc = func(session *session) logtype.LogType {
 		getAllowedLogTypeFuncCalled++
 		return 0
 	}
 	getAllowedLogLevelFuncExpected = 0
 	getAllowedLogLevelFuncCalled = 0
-	getAllowedLogLevelFunc = func(sessionID uuid.UUID) loglevel.LogLevel {
+	getAllowedLogLevelFunc = func(session *session) loglevel.LogLevel {
 		getAllowedLogLevelFuncCalled++
 		return 0
 	}
@@ -318,12 +301,8 @@ func verifyAll(t *testing.T) {
 	assert.Equal(t, apperrorGetBadRequestErrorExpected, apperrorGetBadRequestErrorCalled, "Unexpected number of calls to apperrorGetBadRequestError")
 	textprotoCanonicalMIMEHeaderKey = textproto.CanonicalMIMEHeaderKey
 	assert.Equal(t, textprotoCanonicalMIMEHeaderKeyExpected, textprotoCanonicalMIMEHeaderKeyCalled, "Unexpected number of calls to textprotoCanonicalMIMEHeaderKey")
-	getFunc = Get
-	assert.Equal(t, getFuncExpected, getFuncCalled, "Unexpected number of calls to getFunc")
 	jsonutilTryUnmarshal = jsonutil.TryUnmarshal
 	assert.Equal(t, jsonutilTryUnmarshalExpected, jsonutilTryUnmarshalCalled, "Unexpected number of calls to jsonutilTryUnmarshal")
-	getRequestFunc = GetRequest
-	assert.Equal(t, getRequestFuncExpected, getRequestFuncCalled, "Unexpected number of calls to getRequestFunc")
 	getAllQueriesFunc = getAllQueries
 	assert.Equal(t, getAllQueriesFuncExpected, getAllQueriesFuncCalled, "Unexpected number of calls to getAllQueriesFunc")
 	getAllHeadersFunc = getAllHeaders

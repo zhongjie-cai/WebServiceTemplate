@@ -3,7 +3,6 @@ package response
 import (
 	"net/http"
 
-	"github.com/google/uuid"
 	apperrorModel "github.com/zhongjie-cai/WebServiceTemplate/apperror/model"
 	"github.com/zhongjie-cai/WebServiceTemplate/customization"
 	sessionModel "github.com/zhongjie-cai/WebServiceTemplate/session/model"
@@ -131,15 +130,11 @@ func Write(
 
 // Override overrides the default response.Write functionality by the given callback function; consumers must manually deal with response writer accordingly
 func Override(
-	sessionID uuid.UUID,
+	session sessionModel.Session,
 	callback func(*http.Request, http.ResponseWriter),
 ) (interface{}, error) {
-	var httpRequest = sessionGetRequest(
-		sessionID,
-	)
-	var responseWriter = sessionGetResponseWriter(
-		sessionID,
-	)
+	var httpRequest = session.GetRequest()
+	var responseWriter = session.GetResponseWriter()
 	callback(
 		httpRequest,
 		responseWriter,

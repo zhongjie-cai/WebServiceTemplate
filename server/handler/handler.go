@@ -3,19 +3,19 @@ package handler
 import (
 	"net/http"
 
-	"github.com/google/uuid"
 	"github.com/zhongjie-cai/WebServiceTemplate/customization"
+	sessionModel "github.com/zhongjie-cai/WebServiceTemplate/session/model"
 )
 
 func executeCustomizedFunction(
-	sessionID uuid.UUID,
-	customFunc func(uuid.UUID) error,
+	session sessionModel.Session,
+	customFunc func(sessionModel.Session) error,
 ) error {
 	if customFunc == nil {
 		return nil
 	}
 	return customFunc(
-		sessionID,
+		session,
 	)
 }
 
@@ -32,7 +32,6 @@ func Session(
 		httpRequest,
 		responseWriter,
 	)
-	var sessionID = session.GetID()
 	defer func() {
 		panicHandle(
 			session,
@@ -70,7 +69,7 @@ func Session(
 			"",
 		)
 		var preActionError = executeCustomizedFunctionFunc(
-			sessionID,
+			session,
 			customization.PreActionFunc,
 		)
 		if preActionError != nil {
@@ -81,10 +80,10 @@ func Session(
 			)
 		} else {
 			var responseObject, responseError = action(
-				sessionID,
+				session,
 			)
 			var postActionError = executeCustomizedFunctionFunc(
-				sessionID,
+				session,
 				customization.PostActionFunc,
 			)
 			if postActionError != nil {

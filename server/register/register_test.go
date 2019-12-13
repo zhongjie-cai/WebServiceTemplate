@@ -8,13 +8,13 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
 	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
 	apperrorModel "github.com/zhongjie-cai/WebServiceTemplate/apperror/model"
 	"github.com/zhongjie-cai/WebServiceTemplate/customization"
 	"github.com/zhongjie-cai/WebServiceTemplate/server/model"
+	sessionModel "github.com/zhongjie-cai/WebServiceTemplate/session/model"
 )
 
 func TestDoParameterReplacement_EmptyParameterType(t *testing.T) {
@@ -267,7 +267,7 @@ func TestRegisterRoutes_ValidRoutes(t *testing.T) {
 	var dummyQueries1 = map[string]model.ParameterType{
 		"test1": model.ParameterType("me1"),
 	}
-	var dummyActionFunc1 = func(uuid.UUID) (interface{}, error) {
+	var dummyActionFunc1 = func(sessionModel.Session) (interface{}, error) {
 		return nil, nil
 	}
 	var dummyActionFunc1Pointer = fmt.Sprintf("%v", reflect.ValueOf(dummyActionFunc1))
@@ -280,7 +280,7 @@ func TestRegisterRoutes_ValidRoutes(t *testing.T) {
 	var dummyQueries2 = map[string]model.ParameterType{
 		"test2": model.ParameterType("me2"),
 	}
-	var dummyActionFunc2 = func(uuid.UUID) (interface{}, error) {
+	var dummyActionFunc2 = func(sessionModel.Session) (interface{}, error) {
 		return nil, nil
 	}
 	var dummyActionFunc2Pointer = fmt.Sprintf("%v", reflect.ValueOf(dummyActionFunc2))

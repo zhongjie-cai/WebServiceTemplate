@@ -28,6 +28,37 @@ func Initialize() {
 	model.NilSession = defaultSession
 }
 
+// Register registers the information of a session for given session ID
+func Register(
+	name string,
+	httpRequest *http.Request,
+	responseWriter http.ResponseWriter,
+) model.Session {
+	var sessionID = uuidNew()
+	var session = &session{
+		ID:             sessionID,
+		Name:           name,
+		Request:        httpRequest,
+		ResponseWriter: responseWriter,
+		attachment:     map[string]interface{}{},
+	}
+	sessionCache.SetDefault(
+		sessionID.String(),
+		session,
+	)
+	session.AllowedLogType = getAllowedLogTypeFunc(session)
+	session.AllowedLogLevel = getAllowedLogLevelFunc(session)
+	return session
+}
+
+// Unregister unregisters the information of a session for given session ID
+func Unregister(session model.Session) {
+	var sessionID = session.GetID()
+	sessionCache.Delete(
+		sessionID.String(),
+	)
+}
+
 type session struct {
 	ID              uuid.UUID
 	Name            string
@@ -330,18 +361,18 @@ func isLoggingLevelMatch(session *session, logLevel loglevel.LogLevel) bool {
 	return allowedLogLevel <= logLevel
 }
 
-func getAllowedLogType(sessionID uuid.UUID) logtype.LogType {
+func getAllowedLogType(session *session) logtype.LogType {
 	if customization.SessionAllowedLogType == nil {
 		return config.DefaultAllowedLogType()
 	}
-	return customization.SessionAllowedLogType(sessionID)
+	return customization.SessionAllowedLogType(session)
 }
 
-func getAllowedLogLevel(sessionID uuid.UUID) loglevel.LogLevel {
+func getAllowedLogLevel(session *session) loglevel.LogLevel {
 	if customization.SessionAllowedLogLevel == nil {
 		return config.DefaultAllowedLogLevel()
 	}
-	return customization.SessionAllowedLogLevel(sessionID)
+	return customization.SessionAllowedLogLevel(session)
 }
 
 // IsLoggingAllowed checks the passed in log type and level and determines whether they match the session log criteria or not
@@ -363,125 +394,6 @@ func (session *session) IsLoggingAllowed(logType logtype.LogType, logLevel logle
 	return true
 }
 
-// Register registers the information of a session for given session ID
-func Register(
-	name string,
-	httpRequest *http.Request,
-	responseWriter http.ResponseWriter,
-) model.Session {
-	var sessionID = uuidNew()
-	var session = &session{
-		ID:             sessionID,
-		Name:           name,
-		Request:        httpRequest,
-		ResponseWriter: responseWriter,
-		attachment:     map[string]interface{}{},
-	}
-	sessionCache.SetDefault(
-		sessionID.String(),
-		session,
-	)
-	session.AllowedLogType = getAllowedLogTypeFunc(sessionID)
-	session.AllowedLogLevel = getAllowedLogLevelFunc(sessionID)
-	return session
-}
-
-// Unregister unregisters the information of a session for given session ID
-func Unregister(session model.Session) {
-	var sessionID = session.GetID()
-	sessionCache.Delete(
-		sessionID.String(),
-	)
-}
-
-// Get retrieves a registered session for given session ID
-func Get(sessionID uuid.UUID) model.Session {
-	var cacheItem, sessionLoaded = sessionCache.Get(sessionID.String())
-	if !sessionLoaded {
-		return defaultSession
-	}
-	var session, ok = cacheItem.(model.Session)
-	if !ok {
-		return defaultSession
-	}
-	return session
-}
-
-// GetName returns the name registered to session object for given session ID
-func GetName(sessionID uuid.UUID) string {
-	var session = getFunc(sessionID)
-	return session.GetName()
-}
-
-// GetRequest returns the HTTP request object from session object for given session ID
-func GetRequest(sessionID uuid.UUID) *http.Request {
-	var session = getFunc(sessionID)
-	return session.GetRequest()
-}
-
-// GetResponseWriter returns the HTTP response writer object from session object for given session ID
-func GetResponseWriter(sessionID uuid.UUID) http.ResponseWriter {
-	var session = getFunc(sessionID)
-	return session.GetResponseWriter()
-}
-
-// GetRequestBody loads HTTP request body associated to session and unmarshals the content JSON to given data template
-func GetRequestBody(sessionID uuid.UUID, dataTemplate interface{}) apperrorModel.AppError {
-	var session = getFunc(sessionID)
-	return session.GetRequestBody(dataTemplate)
-}
-
-// GetRequestParameter loads HTTP request parameter associated to session for given name and unmarshals the content to given data template
-func GetRequestParameter(sessionID uuid.UUID, name string, dataTemplate interface{}) apperrorModel.AppError {
-	var session = getFunc(sessionID)
-	return session.GetRequestParameter(name, dataTemplate)
-}
-
-// GetRequestQuery loads HTTP request single query string associated to session for given name and unmarshals the content to given data template
-func GetRequestQuery(sessionID uuid.UUID, name string, dataTemplate interface{}) apperrorModel.AppError {
-	var session = getFunc(sessionID)
-	return session.GetRequestQuery(name, dataTemplate)
-}
-
-// GetRequestQueries loads HTTP request query strings associated to session for given name and unmarshals the content to given data template; the fillCallback is called when each unmarshal operation succeeds, so consumer could fill in external arrays using data template during the process
-func GetRequestQueries(sessionID uuid.UUID, name string, dataTemplate interface{}, fillCallback func()) apperrorModel.AppError {
-	var session = getFunc(sessionID)
-	return session.GetRequestQueries(name, dataTemplate, fillCallback)
-}
-
-// GetRequestHeader loads HTTP request single header string associated to session for given name and unmarshals the content to given data template
-func GetRequestHeader(sessionID uuid.UUID, name string, dataTemplate interface{}) apperrorModel.AppError {
-	var session = getFunc(sessionID)
-	return session.GetRequestHeader(name, dataTemplate)
-}
-
-// GetRequestHeaders loads HTTP request header strings associated to session for given name and unmarshals the content to given data template; the fillCallback is called when each unmarshal operation succeeds, so consumer could fill in external arrays using data template during the process
-func GetRequestHeaders(sessionID uuid.UUID, name string, dataTemplate interface{}, fillCallback func()) apperrorModel.AppError {
-	var session = getFunc(sessionID)
-	return session.GetRequestHeaders(name, dataTemplate, fillCallback)
-}
-
-// Attach attaches any value object into the given session associated to the session ID
-func Attach(sessionID uuid.UUID, name string, value interface{}) bool {
-	var session = getFunc(sessionID)
-	return session.Attach(name, value)
-}
-
-// Detach detaches any value object from the given session associated to the session ID
-func Detach(sessionID uuid.UUID, name string) bool {
-	var session = getFunc(sessionID)
-	return session.Detach(name)
-}
-
-// GetAttachment retrieves any value object from the given session associated to the session ID and unmarshals the content to given data template
-func GetAttachment(sessionID uuid.UUID, name string, dataTemplate interface{}) bool {
-	var session = getFunc(sessionID)
-	return session.GetAttachment(
-		name,
-		dataTemplate,
-	)
-}
-
 func getMethodName() string {
 	var pc, _, _, ok = runtimeCaller(3)
 	if !ok {
@@ -492,8 +404,7 @@ func getMethodName() string {
 }
 
 // LogMethodEnter sends a logging entry of MethodEnter log type for the given session associated to the session ID
-func LogMethodEnter(sessionID uuid.UUID) {
-	var session = getFunc(sessionID)
+func (session *session) LogMethodEnter() {
 	var methodName = getMethodNameFunc()
 	loggerMethodEnter(
 		session,
@@ -504,8 +415,7 @@ func LogMethodEnter(sessionID uuid.UUID) {
 }
 
 // LogMethodParameter sends a logging entry of MethodParameter log type for the given session associated to the session ID
-func LogMethodParameter(sessionID uuid.UUID, parameters ...interface{}) {
-	var session = getFunc(sessionID)
+func (session *session) LogMethodParameter(parameters ...interface{}) {
 	var methodName = getMethodNameFunc()
 	for index, parameter := range parameters {
 		loggerMethodParameter(
@@ -519,8 +429,7 @@ func LogMethodParameter(sessionID uuid.UUID, parameters ...interface{}) {
 }
 
 // LogMethodLogic sends a logging entry of MethodLogic log type for the given session associated to the session ID
-func LogMethodLogic(sessionID uuid.UUID, logLevel loglevel.LogLevel, category string, subcategory string, messageFormat string, parameters ...interface{}) {
-	var session = getFunc(sessionID)
+func (session *session) LogMethodLogic(logLevel loglevel.LogLevel, category string, subcategory string, messageFormat string, parameters ...interface{}) {
 	loggerMethodLogic(
 		session,
 		logLevel,
@@ -532,8 +441,7 @@ func LogMethodLogic(sessionID uuid.UUID, logLevel loglevel.LogLevel, category st
 }
 
 // LogMethodReturn sends a logging entry of MethodReturn log type for the given session associated to the session ID
-func LogMethodReturn(sessionID uuid.UUID, returns ...interface{}) {
-	var session = getFunc(sessionID)
+func (session *session) LogMethodReturn(returns ...interface{}) {
 	var methodName = getMethodNameFunc()
 	for index, returnValue := range returns {
 		loggerMethodReturn(
@@ -547,8 +455,7 @@ func LogMethodReturn(sessionID uuid.UUID, returns ...interface{}) {
 }
 
 // LogMethodExit sends a logging entry of MethodExit log type for the given session associated to the session ID
-func LogMethodExit(sessionID uuid.UUID) {
-	var session = getFunc(sessionID)
+func (session *session) LogMethodExit() {
 	var methodName = getMethodNameFunc()
 	loggerMethodExit(
 		session,
@@ -566,8 +473,7 @@ func shouldSendClientCert(url string) bool {
 }
 
 // CreateNetworkRequest generates a network request object to the targeted external web service for the given session associated to the session ID
-func CreateNetworkRequest(sessionID uuid.UUID, method string, url string, payload string, header map[string]string) networkModel.NetworkRequest {
-	var session = getFunc(sessionID)
+func (session *session) CreateNetworkRequest(method string, url string, payload string, header map[string]string) networkModel.NetworkRequest {
 	var sendClientCert = shouldSendClientCertFunc(url)
 	return networkNewNetworkRequest(
 		session,

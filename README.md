@@ -73,11 +73,10 @@ func main() {
 
 // getHealth is an example of how a normal HTTP handling method is written with this template library
 func getHealth(
-	sessionID uuid.UUID,
+	session sessionModel.Session,
 ) (interface{}, error) {
 	var appVersion = "some application version"
 	session.LogMethodLogic(
-		sessionID,
 		loglevel.Warn,
 		"Health",
 		"Summary",
@@ -89,10 +88,10 @@ func getHealth(
 
 // swaggerRedirect is an example of how a special HTTP handling method, which overrides the default library behavior, is written with this template library
 func swaggerRedirect(
-	sessionID uuid.UUID,
+	session sessionModel.Session,
 ) (interface{}, error) {
 	return response.Override(
-		sessionID,
+		session,
 		func(httpRequest *http.Request, responseWriter http.ResponseWriter) {
 			http.Redirect(
 				responseWriter,
@@ -138,29 +137,29 @@ var body struct {
 	Foo string `json:"foo"`
 	Test int `json:"test"`
 }
-var bodyError = session.GetRequestBody(sessionID, &body)
+var bodyError = session.GetRequestBody(&body)
 
 // parameters: "id"=456
 var id int
-var idError = session.GetRequestParameter(sessionID, "id", &id)
+var idError = session.GetRequestParameter("id", &id)
 
 // query strigns: "uuid"="123456-1234-1234-1234-123456789abc"
 var uuid uuid.UUID
-var uuidError = session.GetRequestQueryString(sessionID, "uuid", &uuid)
+var uuidError = session.GetRequestQueryString("uuid", &uuid)
 ```
 
-However, if specific data is needed from request, one could always retrieve request from session through following function call using sessionID:
+However, if specific data is needed from request, one could always retrieve request from session through following function call using session object:
 
 ```golang
-var httpRequest = session.GetRequest(sessionID)
+var httpRequest = session.GetRequest()
 ```
 
 The response functions accept the session ID and internally load the response writer accordingly, thus it is normally not necessary to load response writer from session.
 
-However, if specific operation is needed for response, one could always retrieve response writer through following function call using sessionID:
+However, if specific operation is needed for response, one could always retrieve response writer through following function call using session object:
 
 ```golang
-var responseWriter = session.GetResponseWriter(sessionID)
+var responseWriter = session.GetResponseWriter()
 ```
 
 # Error Handling
@@ -221,7 +220,7 @@ In this way, a customized error can be specified using apperror package methods,
 ...
 
 func sampleError(
-	sessionID uuid.UUID,
+	session sessionModel.Session,
 ) (interface{}, error) {
 	return nil,
 		apperror.GetCustomError(
@@ -262,11 +261,11 @@ To configure the `AllowedLogType`, the user can:
 
 The registered session allows the user to add manual logging to its codebase, through several listed methods as
 ```golang
-session.LogMethodEnter(sessionID uuid.UUID)
-session.LogMethodParameter(sessionID uuid.UUID, parameters ...interface{})
-session.LogMethodLogic(sessionID uuid.UUID, logLevel loglevel.LogLevel, category string, subcategory string, messageFormat string, parameters ...interface{})
-session.LogMethodReturn(sessionID uuid.UUID, returns ...interface{})
-session.LogMethodExit(sessionID uuid.UUID)
+session.LogMethodEnter()
+session.LogMethodParameter(parameters ...interface{})
+session.LogMethodLogic(logLevel loglevel.LogLevel, category string, subcategory string, messageFormat string, parameters ...interface{})
+session.LogMethodReturn(returns ...interface{})
+session.LogMethodExit()
 ```
 
 The `Enter`, `Parameter`, `Return` and `Exit` are limited to the scope of method boundary area loggings. 
@@ -281,7 +280,7 @@ var myAttachmentName = "my attachment name"
 var myAttachmentObject = anyJSONSerializableStruct {
 	...
 }
-var success = session.Attach(sessionID, myAttachmentName, myAttachmentObject)
+var success = session.Attach(myAttachmentName, myAttachmentObject)
 if !success {
 	// failed to attach an object: add your customized logic here if needed
 } else {
@@ -294,7 +293,7 @@ To retrieve a previously attached object from session, simply use the following 
 ```golang
 var myAttachmentName = "my attachment name"
 var retrievedAttachment anyJSONSerializableStruct
-var success = session.GetAttachment(sessionID, myAttachmentName, &retrievedAttachment)
+var success = session.GetAttachment(myAttachmentName, &retrievedAttachment)
 if !success {
 	// failed to retrieve an attachment: add your customized logic here if needed
 } else {
@@ -306,7 +305,7 @@ In some situations, it is good to detach a certain attachment, especially if it 
 
 ```golang
 var myAttachmentName = "my attachment name"
-var success = session.Detach(sessionID, myAttachmentName)
+var success = session.Detach(myAttachmentName)
 if !success {
 	// failed to detach an attachment: add your customized logic here if needed
 } else {
@@ -323,7 +322,6 @@ Using this provided feature ensures the logging of the web service requests into
 ...
 
 var networkRequest = session.CreateNetworkRequest(
-	sessionID,
 	HTTP.POST,                       // Method
 	"https://www.example.com/tests", // URL
 	"{\"foo\":\"bar\"}",             // Payload
@@ -331,6 +329,7 @@ var networkRequest = session.CreateNetworkRequest(
 		"Content-Type": "application/json",
 		"Accept": "application/json",
 	},
+	true,                            // SendClientCert
 )
 var testSample testSampleStruct
 var statusCode, responseHeader, responseError = networkRequest.Process(

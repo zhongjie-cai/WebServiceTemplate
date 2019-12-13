@@ -9,7 +9,6 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
 	apperrorEnum "github.com/zhongjie-cai/WebServiceTemplate/apperror/enum"
@@ -263,8 +262,8 @@ func TestWriteResponse(t *testing.T) {
 		&dummyResponseBytes,
 	}
 	var dummySessionObject = &dummySession{
-		t,
-		dummyResponseWriter,
+		t:              t,
+		responseWriter: dummyResponseWriter,
 	}
 
 	// mock
@@ -397,10 +396,7 @@ func TestWrite_NotOverrided(t *testing.T) {
 	// arrange
 	var dummyResponseObject = "some response content"
 	var dummyResponseError = errors.New("some response error")
-	var dummySessionObject = &dummySession{
-		t,
-		nil,
-	}
+	var dummySessionObject = &dummySession{t: t}
 	var dummyResponseMessage = "some response message"
 	var dummyStatusCode = rand.Int()
 
@@ -438,10 +434,7 @@ func TestWrite_Overrided(t *testing.T) {
 	// arrange
 	var dummyResponseObject = overrideResponse{}
 	var dummyResponseError = errors.New("some response error")
-	var dummySessionObject = &dummySession{
-		t,
-		nil,
-	}
+	var dummySessionObject = &dummySession{t: t}
 	var dummyResponseMessage = "some response message"
 	var dummyStatusCode = rand.Int()
 
@@ -470,7 +463,6 @@ func TestWrite_Overrided(t *testing.T) {
 
 func TestOverride(t *testing.T) {
 	// arrange
-	var dummySessionID = uuid.New()
 	var dummyHTTPRequest = &http.Request{
 		Method:     http.MethodGet,
 		RequestURI: "http://localhost/",
@@ -482,6 +474,11 @@ func TestOverride(t *testing.T) {
 		nil,
 		nil,
 	}
+	var dummySessionObject = &dummySession{
+		t,
+		dummyHTTPRequest,
+		dummyResponseWriter,
+	}
 	var dummyCallbackExpected int
 	var dummyCallbackCalled int
 	var dummyCallback func(*http.Request, http.ResponseWriter)
@@ -490,18 +487,6 @@ func TestOverride(t *testing.T) {
 	createMock(t)
 
 	// expect
-	sessionGetRequestExpected = 1
-	sessionGetRequest = func(sessionID uuid.UUID) *http.Request {
-		sessionGetRequestCalled++
-		assert.Equal(t, dummySessionID, sessionID)
-		return dummyHTTPRequest
-	}
-	sessionGetResponseWriterExpected = 1
-	sessionGetResponseWriter = func(sessionID uuid.UUID) http.ResponseWriter {
-		sessionGetResponseWriterCalled++
-		assert.Equal(t, dummySessionID, sessionID)
-		return dummyResponseWriter
-	}
 	dummyCallbackExpected = 1
 	dummyCallback = func(httpRequest *http.Request, responseWriter http.ResponseWriter) {
 		dummyCallbackCalled++
@@ -511,7 +496,7 @@ func TestOverride(t *testing.T) {
 
 	// SUT + act
 	var result, err = Override(
-		dummySessionID,
+		dummySessionObject,
 		dummyCallback,
 	)
 

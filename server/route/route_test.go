@@ -8,13 +8,13 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
 	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
 	apperrorEnum "github.com/zhongjie-cai/WebServiceTemplate/apperror/enum"
 	apperrorModel "github.com/zhongjie-cai/WebServiceTemplate/apperror/model"
 	"github.com/zhongjie-cai/WebServiceTemplate/server/model"
+	sessionModel "github.com/zhongjie-cai/WebServiceTemplate/session/model"
 )
 
 func TestGetName_Undefined(t *testing.T) {
@@ -650,7 +650,7 @@ func TestHandleFunc(t *testing.T) {
 	}
 	var dummyActionFuncExpected = 0
 	var dummyActionFuncCalled = 0
-	var dummyActionFunc = func(uuid.UUID) (interface{}, error) {
+	var dummyActionFunc = func(sessionModel.Session) (interface{}, error) {
 		dummyActionFuncCalled++
 		return nil, nil
 	}
@@ -736,7 +736,7 @@ func TestAddMiddleware(t *testing.T) {
 
 func TestDefaultActionFunc(t *testing.T) {
 	// arrange
-	var dummySessionID = uuid.New()
+	var dummySessionObject = &dummySession{t}
 	var dummyAppError = apperror.GetCustomError(0, "some app error")
 
 	// mock
@@ -752,7 +752,7 @@ func TestDefaultActionFunc(t *testing.T) {
 
 	// SUT + act
 	var result, err = defaultActionFunc(
-		dummySessionID,
+		dummySessionObject,
 	)
 
 	// assert
@@ -766,7 +766,7 @@ func TestDefaultActionFunc(t *testing.T) {
 func TestGetActionByName_NotFound(t *testing.T) {
 	// arrange
 	var dummyName = "some name"
-	var dummyAction func(uuid.UUID) (interface{}, error)
+	var dummyAction func(sessionModel.Session) (interface{}, error)
 	var dummyOtherName = "some other name"
 	var expectedActionPointer = fmt.Sprintf("%v", reflect.ValueOf(defaultActionFunc))
 
@@ -795,7 +795,7 @@ func TestGetActionByName_Found(t *testing.T) {
 	var dummyName = "some name"
 	var dummyActionExpected = 0
 	var dummyActionCalled = 0
-	var dummyAction = func(uuid.UUID) (interface{}, error) {
+	var dummyAction = func(sessionModel.Session) (interface{}, error) {
 		dummyActionCalled++
 		return nil, nil
 	}
@@ -877,7 +877,7 @@ func TestGetRouteInfo_ValidRoute(t *testing.T) {
 	var dummyName = "some name"
 	var dummyActionExpected = 0
 	var dummyActionCalled = 0
-	var dummyAction = func(uuid.UUID) (interface{}, error) {
+	var dummyAction = func(sessionModel.Session) (interface{}, error) {
 		dummyActionCalled++
 		return nil, nil
 	}

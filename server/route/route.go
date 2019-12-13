@@ -3,10 +3,10 @@ package route
 import (
 	"net/http"
 
-	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	apperrorEnum "github.com/zhongjie-cai/WebServiceTemplate/apperror/enum"
 	"github.com/zhongjie-cai/WebServiceTemplate/server/model"
+	sessionModel "github.com/zhongjie-cai/WebServiceTemplate/session/model"
 )
 
 const (
@@ -155,7 +155,7 @@ func AddMiddleware(
 	router.Use((func(http.Handler) http.Handler)(middleware))
 }
 
-func defaultActionFunc(sessionID uuid.UUID) (interface{}, error) {
+func defaultActionFunc(session sessionModel.Session) (interface{}, error) {
 	return nil, apperrorGetNotImplementedError()
 }
 
