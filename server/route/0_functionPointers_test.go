@@ -28,6 +28,8 @@ var (
 	apperrorGetCustomErrorCalled            int
 	stringsJoinExpected                     int
 	stringsJoinCalled                       int
+	stringsSplitExpected                    int
+	stringsSplitCalled                      int
 	fmtSprintfExpected                      int
 	fmtSprintfCalled                        int
 	loggerAppRootExpected                   int
@@ -50,6 +52,8 @@ var (
 	getMethodsFuncCalled                    int
 	getActionByNameFuncExpected             int
 	getActionByNameFuncCalled               int
+	getEndpointByNameFuncExpected           int
+	getEndpointByNameFuncCalled             int
 	printRegisteredRouteDetailsFuncExpected int
 	printRegisteredRouteDetailsFuncCalled   int
 )
@@ -78,6 +82,12 @@ func createMock(t *testing.T) {
 	stringsJoin = func(a []string, sep string) string {
 		stringsJoinCalled++
 		return ""
+	}
+	stringsSplitExpected = 0
+	stringsSplitCalled = 0
+	stringsSplit = func(s string, sep string) []string {
+		stringsSplitCalled++
+		return nil
 	}
 	fmtSprintfExpected = 0
 	fmtSprintfCalled = 0
@@ -144,6 +154,12 @@ func createMock(t *testing.T) {
 		getActionByNameFuncCalled++
 		return nil
 	}
+	getEndpointByNameFuncExpected = 0
+	getEndpointByNameFuncCalled = 0
+	getEndpointByNameFunc = func(name string) string {
+		getEndpointByNameFuncCalled++
+		return ""
+	}
 	printRegisteredRouteDetailsFuncExpected = 0
 	printRegisteredRouteDetailsFuncCalled = 0
 	printRegisteredRouteDetailsFunc = func(route *mux.Route, router *mux.Router, ancestors []*mux.Route) error {
@@ -161,6 +177,8 @@ func verifyAll(t *testing.T) {
 	assert.Equal(t, apperrorGetCustomErrorExpected, apperrorGetCustomErrorCalled, "Unexpected number of calls to apperrorGetCustomError")
 	stringsJoin = strings.Join
 	assert.Equal(t, stringsJoinExpected, stringsJoinCalled, "Unexpected number of calls to stringsJoin")
+	stringsSplit = strings.Split
+	assert.Equal(t, stringsSplitExpected, stringsSplitCalled, "Unexpected number of calls to stringsSplit")
 	fmtSprintf = fmt.Sprintf
 	assert.Equal(t, fmtSprintfExpected, fmtSprintfCalled, "Unexpected number of calls to fmtSprintf")
 	loggerAppRoot = logger.AppRoot
@@ -183,6 +201,8 @@ func verifyAll(t *testing.T) {
 	assert.Equal(t, getMethodsFuncExpected, getMethodsFuncCalled, "Unexpected number of calls to getMethodsFunc")
 	getActionByNameFunc = getActionByName
 	assert.Equal(t, getActionByNameFuncExpected, getActionByNameFuncCalled, "Unexpected number of calls to getActionByNameFunc")
+	getEndpointByNameFunc = getEndpointByName
+	assert.Equal(t, getEndpointByNameFuncExpected, getEndpointByNameFuncCalled, "Unexpected number of calls to getEndpointByNameFunc")
 	printRegisteredRouteDetailsFunc = printRegisteredRouteDetails
 	assert.Equal(t, printRegisteredRouteDetailsFuncExpected, printRegisteredRouteDetailsFuncCalled, "Unexpected number of calls to printRegisteredRouteDetailsFunc")
 }

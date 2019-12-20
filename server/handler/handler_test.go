@@ -113,8 +113,8 @@ func TestHandleInSession_RouteError(t *testing.T) {
 	loggerAPIEnter = func(session sessionModel.Session, category string, subcategory string, messageFormat string, parameters ...interface{}) {
 		loggerAPIEnterCalled++
 		assert.Equal(t, dummySessionObject, session)
-		assert.Equal(t, dummyHTTPRequest.Method, category)
-		assert.Equal(t, dummyEndpoint, subcategory)
+		assert.Equal(t, dummyHTTPRequest.Method, subcategory)
+		assert.Equal(t, dummyEndpoint, category)
 		assert.Zero(t, messageFormat)
 		assert.Equal(t, 0, len(parameters))
 	}
@@ -136,8 +136,8 @@ func TestHandleInSession_RouteError(t *testing.T) {
 	loggerAPIExit = func(session sessionModel.Session, category string, subcategory string, messageFormat string, parameters ...interface{}) {
 		loggerAPIExitCalled++
 		assert.Equal(t, dummySessionObject, session)
-		assert.Equal(t, dummyHTTPRequest.Method, category)
-		assert.Equal(t, dummyEndpoint, subcategory)
+		assert.Equal(t, dummyHTTPRequest.Method, subcategory)
+		assert.Equal(t, dummyEndpoint, category)
 		assert.Zero(t, messageFormat)
 		assert.Equal(t, 0, len(parameters))
 	}
@@ -196,8 +196,8 @@ func TestHandleInSession_PreActionError(t *testing.T) {
 	loggerAPIEnter = func(session sessionModel.Session, category string, subcategory string, messageFormat string, parameters ...interface{}) {
 		loggerAPIEnterCalled++
 		assert.Equal(t, dummySessionObject, session)
-		assert.Equal(t, dummyHTTPRequest.Method, category)
-		assert.Equal(t, dummyEndpoint, subcategory)
+		assert.Equal(t, dummyHTTPRequest.Method, subcategory)
+		assert.Equal(t, dummyEndpoint, category)
 		assert.Zero(t, messageFormat)
 		assert.Equal(t, 0, len(parameters))
 	}
@@ -221,8 +221,8 @@ func TestHandleInSession_PreActionError(t *testing.T) {
 	loggerAPIExit = func(session sessionModel.Session, category string, subcategory string, messageFormat string, parameters ...interface{}) {
 		loggerAPIExitCalled++
 		assert.Equal(t, dummySessionObject, session)
-		assert.Equal(t, dummyHTTPRequest.Method, category)
-		assert.Equal(t, dummyEndpoint, subcategory)
+		assert.Equal(t, dummyHTTPRequest.Method, subcategory)
+		assert.Equal(t, dummyEndpoint, category)
 		assert.Zero(t, messageFormat)
 		assert.Equal(t, 0, len(parameters))
 	}
@@ -283,8 +283,8 @@ func TestHandleInSession_PostActionError_WithResponseError(t *testing.T) {
 	loggerAPIEnter = func(session sessionModel.Session, category string, subcategory string, messageFormat string, parameters ...interface{}) {
 		loggerAPIEnterCalled++
 		assert.Equal(t, dummySessionObject, session)
-		assert.Equal(t, dummyHTTPRequest.Method, category)
-		assert.Equal(t, dummyEndpoint, subcategory)
+		assert.Equal(t, dummyHTTPRequest.Method, subcategory)
+		assert.Equal(t, dummyEndpoint, category)
 		assert.Zero(t, messageFormat)
 		assert.Equal(t, 0, len(parameters))
 	}
@@ -321,8 +321,8 @@ func TestHandleInSession_PostActionError_WithResponseError(t *testing.T) {
 	loggerAPIExit = func(session sessionModel.Session, category string, subcategory string, messageFormat string, parameters ...interface{}) {
 		loggerAPIExitCalled++
 		assert.Equal(t, dummySessionObject, session)
-		assert.Equal(t, dummyHTTPRequest.Method, category)
-		assert.Equal(t, dummyEndpoint, subcategory)
+		assert.Equal(t, dummyHTTPRequest.Method, subcategory)
+		assert.Equal(t, dummyEndpoint, category)
 		if loggerAPIExitCalled == 1 {
 			assert.Equal(t, "Post-action error: %v", messageFormat)
 			assert.Equal(t, 1, len(parameters))
@@ -388,8 +388,8 @@ func TestHandleInSession_PostActionError_NoResponseError(t *testing.T) {
 	loggerAPIEnter = func(session sessionModel.Session, category string, subcategory string, messageFormat string, parameters ...interface{}) {
 		loggerAPIEnterCalled++
 		assert.Equal(t, dummySessionObject, session)
-		assert.Equal(t, dummyHTTPRequest.Method, category)
-		assert.Equal(t, dummyEndpoint, subcategory)
+		assert.Equal(t, dummyHTTPRequest.Method, subcategory)
+		assert.Equal(t, dummyEndpoint, category)
 		assert.Zero(t, messageFormat)
 		assert.Equal(t, 0, len(parameters))
 	}
@@ -426,8 +426,8 @@ func TestHandleInSession_PostActionError_NoResponseError(t *testing.T) {
 	loggerAPIExit = func(session sessionModel.Session, category string, subcategory string, messageFormat string, parameters ...interface{}) {
 		loggerAPIExitCalled++
 		assert.Equal(t, dummySessionObject, session)
-		assert.Equal(t, dummyHTTPRequest.Method, category)
-		assert.Equal(t, dummyEndpoint, subcategory)
+		assert.Equal(t, dummyHTTPRequest.Method, subcategory)
+		assert.Equal(t, dummyEndpoint, category)
 		assert.Zero(t, messageFormat)
 		assert.Equal(t, 0, len(parameters))
 	}
@@ -487,8 +487,8 @@ func TestHandleInSession_Success(t *testing.T) {
 	loggerAPIEnter = func(session sessionModel.Session, category string, subcategory string, messageFormat string, parameters ...interface{}) {
 		loggerAPIEnterCalled++
 		assert.Equal(t, dummySessionObject, session)
-		assert.Equal(t, dummyHTTPRequest.Method, category)
-		assert.Equal(t, dummyEndpoint, subcategory)
+		assert.Equal(t, dummyHTTPRequest.Method, subcategory)
+		assert.Equal(t, dummyEndpoint, category)
 		assert.Zero(t, messageFormat)
 		assert.Equal(t, 0, len(parameters))
 	}
@@ -523,8 +523,8 @@ func TestHandleInSession_Success(t *testing.T) {
 	loggerAPIExit = func(session sessionModel.Session, category string, subcategory string, messageFormat string, parameters ...interface{}) {
 		loggerAPIExitCalled++
 		assert.Equal(t, dummySessionObject, session)
-		assert.Equal(t, dummyHTTPRequest.Method, category)
-		assert.Equal(t, dummyEndpoint, subcategory)
+		assert.Equal(t, dummyHTTPRequest.Method, subcategory)
+		assert.Equal(t, dummyEndpoint, category)
 		assert.Zero(t, messageFormat)
 		assert.Equal(t, 0, len(parameters))
 	}

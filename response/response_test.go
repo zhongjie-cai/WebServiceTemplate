@@ -253,6 +253,7 @@ func TestWriteResponse(t *testing.T) {
 	var dummyHeader = make(http.Header)
 	var dummyStatusCode = rand.Int()
 	var dummyStatusCodeString = strconv.Itoa(dummyStatusCode)
+	var dummyStatusName = "some status name"
 	var dummyResponseMessage = "some response message"
 	var dummyResponseBytes = []byte(dummyResponseMessage)
 	var dummyResponseWriter = &dummyResponseWriter{
@@ -275,12 +276,18 @@ func TestWriteResponse(t *testing.T) {
 		strconvItoaCalled++
 		return strconv.Itoa(i)
 	}
+	httpStatusTextExpected = 1
+	httpStatusText = func(code int) string {
+		httpStatusTextCalled++
+		assert.Equal(t, dummyStatusCode, code)
+		return dummyStatusName
+	}
 	loggerAPIResponseExpected = 1
 	loggerAPIResponse = func(session sessionModel.Session, category string, subcategory string, messageFormat string, parameters ...interface{}) {
 		loggerAPIResponseCalled++
 		assert.Equal(t, dummySessionObject, session)
-		assert.Equal(t, dummyStatusCodeString, category)
-		assert.Zero(t, subcategory)
+		assert.Equal(t, dummyStatusCodeString, subcategory)
+		assert.Equal(t, dummyStatusName, category)
 		assert.Equal(t, dummyResponseMessage, messageFormat)
 		assert.Equal(t, 0, len(parameters))
 	}

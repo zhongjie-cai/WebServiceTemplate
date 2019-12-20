@@ -763,6 +763,63 @@ func TestDefaultActionFunc(t *testing.T) {
 	verifyAll(t)
 }
 
+func TestGetEndpointByName_NoSeparator(t *testing.T) {
+	// arrange
+	var dummyName = "some name"
+
+	// mock
+	createMock(t)
+
+	// expect
+	stringsSplitExpected = 1
+	stringsSplit = func(s string, sep string) []string {
+		stringsSplitCalled++
+		assert.Equal(t, dummyName, s)
+		assert.Equal(t, ":", sep)
+		return strings.Split(s, sep)
+	}
+
+	// SUT + act
+	result := getEndpointByName(
+		dummyName,
+	)
+
+	// assert
+	assert.Equal(t, dummyName, result)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestGetEndpointByName_WithSeparator(t *testing.T) {
+	// arrange
+	var dummyEndpoint = "some endpoint"
+	var dummyName = dummyEndpoint + ":some name"
+
+	// mock
+	createMock(t)
+
+	// expect
+	stringsSplitExpected = 1
+	stringsSplit = func(s string, sep string) []string {
+		stringsSplitCalled++
+		assert.Equal(t, dummyName, s)
+		assert.Equal(t, ":", sep)
+		return strings.Split(s, sep)
+	}
+
+	// SUT + act
+	result := getEndpointByName(
+		dummyName,
+	)
+
+	// assert
+	assert.Equal(t, dummyEndpoint, result)
+
+	// verify
+	verifyAll(t)
+}
+
 func TestGetActionByName_NotFound(t *testing.T) {
 	// arrange
 	var dummyName = "some name"
@@ -882,6 +939,7 @@ func TestGetRouteInfo_ValidRoute(t *testing.T) {
 		return nil, nil
 	}
 	var dummyActionPointer = fmt.Sprintf("%v", reflect.ValueOf(dummyAction))
+	var dummyEndpoint = "some endpoint"
 
 	// mock
 	createMock(t)
@@ -899,6 +957,12 @@ func TestGetRouteInfo_ValidRoute(t *testing.T) {
 		assert.Equal(t, dummyRoute, route)
 		return dummyName
 	}
+	getEndpointByNameFuncExpected = 1
+	getEndpointByNameFunc = func(name string) string {
+		getEndpointByNameFuncCalled++
+		assert.Equal(t, dummyName, name)
+		return dummyEndpoint
+	}
 	getActionByNameFuncExpected = 1
 	getActionByNameFunc = func(name string) model.ActionFunc {
 		getActionByNameFuncCalled++
@@ -907,12 +971,12 @@ func TestGetRouteInfo_ValidRoute(t *testing.T) {
 	}
 
 	// SUT + act
-	var name, action, err = GetRouteInfo(
+	var endpoint, action, err = GetRouteInfo(
 		dummyHTTPRequest,
 	)
 
 	// assert
-	assert.Equal(t, dummyName, name)
+	assert.Equal(t, dummyEndpoint, endpoint)
 	assert.Equal(t, dummyActionPointer, fmt.Sprintf("%v", reflect.ValueOf(action)))
 	assert.NoError(t, err)
 

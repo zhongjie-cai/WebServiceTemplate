@@ -159,6 +159,17 @@ func defaultActionFunc(session sessionModel.Session) (interface{}, error) {
 	return nil, apperrorGetNotImplementedError()
 }
 
+func getEndpointByName(name string) string {
+	var splitSubs = stringsSplit(
+		name,
+		":",
+	)
+	if len(splitSubs) < 2 {
+		return name
+	}
+	return splitSubs[0]
+}
+
 func getActionByName(name string) model.ActionFunc {
 	var actionFunc, found = registeredRouteActionFuncs[name]
 	if !found {
@@ -179,6 +190,7 @@ func GetRouteInfo(httpRequest *http.Request) (string, model.ActionFunc, error) {
 			)
 	}
 	var name = getNameFunc(route)
+	var endpoint = getEndpointByNameFunc(name)
 	var action = getActionByNameFunc(name)
-	return name, action, nil
+	return endpoint, action, nil
 }

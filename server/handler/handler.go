@@ -41,8 +41,8 @@ func Session(
 	if routeError != nil {
 		loggerAPIEnter(
 			session,
-			httpRequest.Method,
 			endpoint,
+			httpRequest.Method,
 			"",
 		)
 		responseWrite(
@@ -54,15 +54,15 @@ func Session(
 		)
 		loggerAPIExit(
 			session,
-			httpRequest.Method,
 			endpoint,
+			httpRequest.Method,
 			"",
 		)
 	} else {
 		loggerAPIEnter(
 			session,
-			httpRequest.Method,
 			endpoint,
+			httpRequest.Method,
 			"",
 		)
 		var preActionError = executeCustomizedFunctionFunc(
@@ -87,8 +87,8 @@ func Session(
 				if responseError != nil {
 					loggerAPIExit(
 						session,
-						httpRequest.Method,
 						endpoint,
+						httpRequest.Method,
 						"Post-action error: %v",
 						postActionError,
 					)
@@ -114,8 +114,8 @@ func Session(
 		}
 		loggerAPIExit(
 			session,
-			httpRequest.Method,
 			endpoint,
+			httpRequest.Method,
 			"",
 		)
 	}

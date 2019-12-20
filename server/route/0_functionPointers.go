@@ -16,6 +16,7 @@ var (
 	apperrorGetNotImplementedError  = apperror.GetNotImplementedError
 	apperrorGetCustomError          = apperror.GetCustomError
 	stringsJoin                     = strings.Join
+	stringsSplit                    = strings.Split
 	fmtSprintf                      = fmt.Sprintf
 	loggerAppRoot                   = logger.AppRoot
 	muxNewRouter                    = mux.NewRouter
@@ -27,6 +28,7 @@ var (
 	getQueriesTemplatesFunc         = getQueriesTemplates
 	getQueriesRegexpFunc            = getQueriesRegexp
 	getMethodsFunc                  = getMethods
+	getEndpointByNameFunc           = getEndpointByName
 	getActionByNameFunc             = getActionByName
 	printRegisteredRouteDetailsFunc = printRegisteredRouteDetails
 )

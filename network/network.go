@@ -216,18 +216,18 @@ func createHTTPRequest(networkRequest *networkRequest) (*http.Request, error) {
 }
 
 func logErrorResponse(session sessionModel.Session, responseError error) {
-	loggerNetworkFinish(
-		session,
-		"Error",
-		"",
-		"",
-	)
 	loggerNetworkResponse(
 		session,
 		"Message",
 		"",
 		"%v",
 		responseError,
+	)
+	loggerNetworkFinish(
+		session,
+		"Error",
+		"",
+		"",
 	)
 }
 
@@ -247,18 +247,6 @@ func logHTTPResponse(session sessionModel.Session, response *http.Response) {
 			responseBody,
 		),
 	)
-	loggerNetworkFinish(
-		session,
-		responseStatus,
-		strconvItoa(responseStatusCode),
-		"",
-	)
-	loggerNetworkResponse(
-		session,
-		"Body",
-		"",
-		string(responseBody),
-	)
 	for name, values := range responseHeaders {
 		for _, value := range values {
 			loggerNetworkResponse(
@@ -269,6 +257,18 @@ func logHTTPResponse(session sessionModel.Session, response *http.Response) {
 			)
 		}
 	}
+	loggerNetworkResponse(
+		session,
+		"Body",
+		"",
+		string(responseBody),
+	)
+	loggerNetworkFinish(
+		session,
+		responseStatus,
+		strconvItoa(responseStatusCode),
+		"",
+	)
 }
 
 func doRequestProcessing(networkRequest *networkRequest) (*http.Response, error) {

@@ -79,8 +79,8 @@ func writeResponse(
 ) {
 	loggerAPIResponse(
 		session,
+		httpStatusText(statusCode),
 		strconvItoa(statusCode),
-		"",
 		responseMessage,
 	)
 	var responseWriter = session.GetResponseWriter()

@@ -27,6 +27,8 @@ var (
 	apperrorGetGeneralFailureErrorCalled         int
 	loggerAPIResponseExpected                    int
 	loggerAPIResponseCalled                      int
+	httpStatusTextExpected                       int
+	httpStatusTextCalled                         int
 	writeResponseFuncExpected                    int
 	writeResponseFuncCalled                      int
 	getAppErrorFuncExpected                      int
@@ -66,6 +68,12 @@ func createMock(t *testing.T) {
 	loggerAPIResponseCalled = 0
 	loggerAPIResponse = func(session sessionModel.Session, category string, subcategory string, messageFormat string, parameters ...interface{}) {
 		loggerAPIResponseCalled++
+	}
+	httpStatusTextExpected = 0
+	httpStatusTextCalled = 0
+	httpStatusText = func(code int) string {
+		httpStatusTextCalled++
+		return ""
 	}
 	writeResponseFuncExpected = 0
 	writeResponseFuncCalled = 0
@@ -116,6 +124,8 @@ func verifyAll(t *testing.T) {
 	assert.Equal(t, apperrorGetGeneralFailureErrorExpected, apperrorGetGeneralFailureErrorCalled, "Unexpected number of calls to apperrorGetGeneralFailureError")
 	loggerAPIResponse = logger.APIResponse
 	assert.Equal(t, loggerAPIResponseExpected, loggerAPIResponseCalled, "Unexpected number of calls to loggerAPIResponse")
+	httpStatusText = http.StatusText
+	assert.Equal(t, httpStatusTextExpected, httpStatusTextCalled, "Unexpected number of calls to httpStatusText")
 	writeResponseFunc = writeResponse
 	assert.Equal(t, writeResponseFuncExpected, writeResponseFuncCalled, "Unexpected number of calls to writeResponseFunc")
 	getAppErrorFunc = getAppError

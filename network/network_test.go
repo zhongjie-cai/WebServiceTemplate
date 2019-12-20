@@ -918,15 +918,6 @@ func TestLogErrorResponse(t *testing.T) {
 	createMock(t)
 
 	// expect
-	loggerNetworkFinishExpected = 1
-	loggerNetworkFinish = func(session sessionModel.Session, category string, subcategory string, messageFormat string, parameters ...interface{}) {
-		loggerNetworkFinishCalled++
-		assert.Equal(t, dummySessionObject, session)
-		assert.Equal(t, "Error", category)
-		assert.Zero(t, subcategory)
-		assert.Zero(t, messageFormat)
-		assert.Empty(t, parameters)
-	}
 	loggerNetworkResponseExpected = 1
 	loggerNetworkResponse = func(session sessionModel.Session, category string, subcategory string, messageFormat string, parameters ...interface{}) {
 		loggerNetworkResponseCalled++
@@ -936,6 +927,15 @@ func TestLogErrorResponse(t *testing.T) {
 		assert.Equal(t, "%v", messageFormat)
 		assert.Equal(t, 1, len(parameters))
 		assert.Equal(t, dummyError, parameters[0])
+	}
+	loggerNetworkFinishExpected = 1
+	loggerNetworkFinish = func(session sessionModel.Session, category string, subcategory string, messageFormat string, parameters ...interface{}) {
+		loggerNetworkFinishCalled++
+		assert.Equal(t, dummySessionObject, session)
+		assert.Equal(t, "Error", category)
+		assert.Zero(t, subcategory)
+		assert.Zero(t, messageFormat)
+		assert.Empty(t, parameters)
 	}
 
 	// SUT + act
@@ -1016,21 +1016,12 @@ func TestLogHTTPResponse_ValidResponse(t *testing.T) {
 		assert.Equal(t, dummyStatusCode, i)
 		return strconv.Itoa(i)
 	}
-	loggerNetworkFinishExpected = 1
-	loggerNetworkFinish = func(session sessionModel.Session, category string, subcategory string, messageFormat string, parameters ...interface{}) {
-		loggerNetworkFinishCalled++
-		assert.Equal(t, dummySessionObject, session)
-		assert.Equal(t, dummyStatus, category)
-		assert.Equal(t, strconv.Itoa(dummyStatusCode), subcategory)
-		assert.Zero(t, messageFormat)
-		assert.Empty(t, parameters)
-	}
 	loggerNetworkResponseExpected = 5
 	loggerNetworkResponse = func(session sessionModel.Session, category string, subcategory string, messageFormat string, parameters ...interface{}) {
 		loggerNetworkResponseCalled++
 		assert.Equal(t, dummySessionObject, session)
 		assert.Empty(t, parameters)
-		if loggerNetworkResponseCalled == 1 {
+		if loggerNetworkResponseCalled == loggerNetworkResponseExpected {
 			assert.Equal(t, "Body", category)
 			assert.Zero(t, subcategory)
 			assert.Equal(t, dummyResponseBody, messageFormat)
@@ -1042,6 +1033,15 @@ func TestLogHTTPResponse_ValidResponse(t *testing.T) {
 				assert.Contains(t, []string{"123", "456", "789"}, messageFormat)
 			}
 		}
+	}
+	loggerNetworkFinishExpected = 1
+	loggerNetworkFinish = func(session sessionModel.Session, category string, subcategory string, messageFormat string, parameters ...interface{}) {
+		loggerNetworkFinishCalled++
+		assert.Equal(t, dummySessionObject, session)
+		assert.Equal(t, dummyStatus, category)
+		assert.Equal(t, strconv.Itoa(dummyStatusCode), subcategory)
+		assert.Zero(t, messageFormat)
+		assert.Empty(t, parameters)
 	}
 
 	// SUT + act

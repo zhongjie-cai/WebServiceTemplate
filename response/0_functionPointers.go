@@ -1,6 +1,7 @@
 package response
 
 import (
+	"net/http"
 	"strconv"
 
 	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
@@ -14,7 +15,7 @@ var (
 	jsonutilMarshalIgnoreError     = jsonutil.MarshalIgnoreError
 	apperrorGetGeneralFailureError = apperror.GetGeneralFailureError
 	loggerAPIResponse              = logger.APIResponse
-	loggerAPIExit                  = logger.APIExit
+	httpStatusText                 = http.StatusText
 	writeResponseFunc              = writeResponse
 	getAppErrorFunc                = getAppError
 	generateErrorResponseFunc      = generateErrorResponse
