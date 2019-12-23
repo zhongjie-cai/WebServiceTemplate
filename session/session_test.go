@@ -1041,6 +1041,13 @@ func TestGetRequestHeaders_EmptyList(t *testing.T) {
 	dummyFillCallback = func() {
 		dummyFillCallbackCalled++
 	}
+	headerutilLogHTTPHeaderForNameExpected = 1
+	headerutilLogHTTPHeaderForName = func(session sessionModel.Session, name string, values []string) {
+		headerutilLogHTTPHeaderForNameCalled++
+		assert.Equal(t, dummySessionObject, session)
+		assert.Equal(t, dummyName, name)
+		assert.Equal(t, dummyHeaders, values)
+	}
 	apperrorGetBadRequestErrorExpected = 1
 	apperrorGetBadRequestError = func(innerErrors ...error) apperrorModel.AppError {
 		apperrorGetBadRequestErrorCalled++
@@ -1101,15 +1108,6 @@ func TestGetRequestHeaders_HappyPath(t *testing.T) {
 		assert.Equal(t, dummyName, name)
 		return dummyHeaders
 	}
-	loggerAPIRequestExpected = 3
-	loggerAPIRequest = func(session sessionModel.Session, category string, subcategory string, messageFormat string, parameters ...interface{}) {
-		loggerAPIRequestCalled++
-		assert.Equal(t, dummySessionObject, session)
-		assert.Equal(t, "Header", category)
-		assert.Equal(t, dummyName, subcategory)
-		assert.Contains(t, dummyHeaders, messageFormat)
-		assert.Equal(t, 0, len(parameters))
-	}
 	jsonutilTryUnmarshalExpected = 3
 	jsonutilTryUnmarshal = func(value string, dataTemplate interface{}) error {
 		jsonutilTryUnmarshalCalled++
@@ -1120,6 +1118,13 @@ func TestGetRequestHeaders_HappyPath(t *testing.T) {
 	dummyFillCallbackExpected = 2
 	dummyFillCallback = func() {
 		dummyFillCallbackCalled++
+	}
+	headerutilLogHTTPHeaderForNameExpected = 1
+	headerutilLogHTTPHeaderForName = func(session sessionModel.Session, name string, values []string) {
+		headerutilLogHTTPHeaderForNameCalled++
+		assert.Equal(t, dummySessionObject, session)
+		assert.Equal(t, dummyName, name)
+		assert.Equal(t, dummyHeaders, values)
 	}
 	apperrorGetBadRequestErrorExpected = 1
 	apperrorGetBadRequestError = func(innerErrors ...error) apperrorModel.AppError {

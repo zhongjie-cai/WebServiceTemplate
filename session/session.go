@@ -259,12 +259,6 @@ func (session *session) GetRequestHeaders(name string, dataTemplate interface{},
 	)
 	var unmarshalErrors = []error{}
 	for _, header := range headers {
-		loggerAPIRequest(
-			session,
-			"Header",
-			name,
-			header,
-		)
 		var unmarshalError = jsonutilTryUnmarshal(
 			header,
 			dataTemplate,
@@ -278,6 +272,11 @@ func (session *session) GetRequestHeaders(name string, dataTemplate interface{},
 			fillCallback()
 		}
 	}
+	headerutilLogHTTPHeaderForName(
+		session,
+		name,
+		headers,
+	)
 	return apperrorGetBadRequestError(
 		unmarshalErrors...,
 	)

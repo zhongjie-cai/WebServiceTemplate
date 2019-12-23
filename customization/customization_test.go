@@ -5,6 +5,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/zhongjie-cai/WebServiceTemplate/headerutil/headerstyle"
+
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
 	apperrorEnum "github.com/zhongjie-cai/WebServiceTemplate/apperror/enum"
@@ -21,8 +23,10 @@ func TestReset(t *testing.T) {
 	AppClosingFunc = func() error { return nil }
 	DefaultAllowedLogType = func() logtype.LogType { return logtype.LogType(0) }
 	DefaultAllowedLogLevel = func() loglevel.LogLevel { return loglevel.LogLevel(0) }
+	DefaultHTTPHeaderLogStyle = func() headerstyle.HeaderStyle { return headerstyle.HeaderStyle(0) }
 	SessionAllowedLogType = func(session sessionModel.Session) logtype.LogType { return logtype.LogType(0) }
 	SessionAllowedLogLevel = func(session sessionModel.Session) loglevel.LogLevel { return loglevel.LogLevel(0) }
+	SessionHTTPHeaderLogStyle = func(session sessionModel.Session) headerstyle.HeaderStyle { return headerstyle.HeaderStyle(0) }
 	LoggingFunc = func(session sessionModel.Session, logType logtype.LogType, logLevel loglevel.LogLevel, category, subcategory, description string) {
 	}
 	AppVersion = func() string { return "" }
@@ -63,8 +67,10 @@ func TestReset(t *testing.T) {
 	assert.Nil(t, AppClosingFunc)
 	assert.Nil(t, DefaultAllowedLogType)
 	assert.Nil(t, DefaultAllowedLogLevel)
+	assert.Nil(t, DefaultHTTPHeaderLogStyle)
 	assert.Nil(t, SessionAllowedLogType)
 	assert.Nil(t, SessionAllowedLogLevel)
+	assert.Nil(t, SessionHTTPHeaderLogStyle)
 	assert.Nil(t, LoggingFunc)
 	assert.Nil(t, AppVersion)
 	assert.Nil(t, AppPort)

@@ -17,6 +17,7 @@ import (
 	apperrorModel "github.com/zhongjie-cai/WebServiceTemplate/apperror/model"
 	"github.com/zhongjie-cai/WebServiceTemplate/certificate"
 	"github.com/zhongjie-cai/WebServiceTemplate/customization"
+	"github.com/zhongjie-cai/WebServiceTemplate/headerutil"
 	"github.com/zhongjie-cai/WebServiceTemplate/jsonutil"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger/loglevel"
@@ -44,6 +45,8 @@ var (
 	loggerAppRootCalled                           int
 	ioutilReadAllExpected                         int
 	ioutilReadAllCalled                           int
+	httpStatusTextExpected                        int
+	httpStatusTextCalled                          int
 	strconvItoaExpected                           int
 	strconvItoaCalled                             int
 	ioutilNopCloserExpected                       int
@@ -52,6 +55,8 @@ var (
 	bytesNewBufferCalled                          int
 	timeSleepExpected                             int
 	timeSleepCalled                               int
+	headerutilLogHTTPHeaderExpected               int
+	headerutilLogHTTPHeaderCalled                 int
 	customizationDefaultNetworkRetryDelayExpected int
 	customizationDefaultNetworkRetryDelayCalled   int
 	createHTTPRequestFuncExpected                 int
@@ -138,6 +143,12 @@ func createMock(t *testing.T) {
 		ioutilReadAllCalled++
 		return nil, nil
 	}
+	httpStatusTextExpected = 0
+	httpStatusTextCalled = 0
+	httpStatusText = func(code int) string {
+		httpStatusTextCalled++
+		return ""
+	}
 	strconvItoaExpected = 0
 	strconvItoaCalled = 0
 	strconvItoa = func(i int) string {
@@ -160,6 +171,11 @@ func createMock(t *testing.T) {
 	timeSleepCalled = 0
 	timeSleep = func(d time.Duration) {
 		timeSleepCalled++
+	}
+	headerutilLogHTTPHeaderExpected = 0
+	headerutilLogHTTPHeaderCalled = 0
+	headerutilLogHTTPHeader = func(session sessionModel.Session, header http.Header) {
+		headerutilLogHTTPHeaderCalled++
 	}
 	createHTTPRequestFuncExpected = 0
 	createHTTPRequestFuncCalled = 0
@@ -272,6 +288,8 @@ func verifyAll(t *testing.T) {
 	assert.Equal(t, loggerAppRootExpected, loggerAppRootCalled, "Unexpected number of calls to method loggerAppRoot")
 	ioutilReadAll = ioutil.ReadAll
 	assert.Equal(t, ioutilReadAllExpected, ioutilReadAllCalled, "Unexpected number of calls to method ioutilReadAll")
+	httpStatusText = http.StatusText
+	assert.Equal(t, httpStatusTextExpected, httpStatusTextCalled, "Unexpected number of calls to method httpStatusText")
 	strconvItoa = strconv.Itoa
 	assert.Equal(t, strconvItoaExpected, strconvItoaCalled, "Unexpected number of calls to method strconvItoa")
 	ioutilNopCloser = ioutil.NopCloser
@@ -279,9 +297,11 @@ func verifyAll(t *testing.T) {
 	bytesNewBuffer = bytes.NewBuffer
 	assert.Equal(t, bytesNewBufferExpected, bytesNewBufferCalled, "Unexpected number of calls to method bytesNewBuffer")
 	customization.DefaultNetworkRetryDelay = nil
-	assert.Equal(t, customizationDefaultNetworkRetryDelayExpected, customizationDefaultNetworkRetryDelayCalled, "Unexpected number of calls to method timeSleep")
+	assert.Equal(t, customizationDefaultNetworkRetryDelayExpected, customizationDefaultNetworkRetryDelayCalled, "Unexpected number of calls to method customization.DefaultNetworkRetryDelay")
 	timeSleep = time.Sleep
-	assert.Equal(t, timeSleepExpected, timeSleepCalled, "Unexpected number of calls to method customization.DefaultNetworkRetryDelay")
+	assert.Equal(t, timeSleepExpected, timeSleepCalled, "Unexpected number of calls to method timeSleep")
+	headerutilLogHTTPHeader = headerutil.LogHTTPHeader
+	assert.Equal(t, headerutilLogHTTPHeaderExpected, headerutilLogHTTPHeaderCalled, "Unexpected number of calls to method headerutilLogHTTPHeader")
 	createHTTPRequestFunc = createHTTPRequest
 	assert.Equal(t, createHTTPRequestFuncExpected, createHTTPRequestFuncCalled, "Unexpected number of calls to method createHTTPRequestFunc")
 	clientDoFunc = clientDo

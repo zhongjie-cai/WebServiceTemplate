@@ -6,6 +6,7 @@ import (
 
 	"github.com/gorilla/mux"
 	apperrorEnum "github.com/zhongjie-cai/WebServiceTemplate/apperror/enum"
+	"github.com/zhongjie-cai/WebServiceTemplate/headerutil/headerstyle"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger/loglevel"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger/logtype"
 	serverModel "github.com/zhongjie-cai/WebServiceTemplate/server/model"
@@ -27,11 +28,17 @@ var DefaultAllowedLogType func() logtype.LogType
 // DefaultAllowedLogLevel is to customize the default allowed log type loading logic for the whole application
 var DefaultAllowedLogLevel func() loglevel.LogLevel
 
+// DefaultHTTPHeaderLogStyle is to customize the log style for HTTP headers for the whole application
+var DefaultHTTPHeaderLogStyle func() headerstyle.HeaderStyle
+
 // SessionAllowedLogType is to customize the allowed log type determination logic for every HTTP session
 var SessionAllowedLogType func(session sessionModel.Session) logtype.LogType
 
 // SessionAllowedLogLevel is to customize the allowed log level determination logic for every HTTP session
 var SessionAllowedLogLevel func(session sessionModel.Session) loglevel.LogLevel
+
+// SessionHTTPHeaderLogStyle is to customize the log style for HTTP headers for every HTTP session
+var SessionHTTPHeaderLogStyle func(session sessionModel.Session) headerstyle.HeaderStyle
 
 // LoggingFunc is to customize the logging backend for the whole application
 var LoggingFunc func(session sessionModel.Session, logType logtype.LogType, logLevel loglevel.LogLevel, category, subcategory, description string)
@@ -118,8 +125,10 @@ func Reset() {
 	AppClosingFunc = nil
 	DefaultAllowedLogType = nil
 	DefaultAllowedLogLevel = nil
+	DefaultHTTPHeaderLogStyle = nil
 	SessionAllowedLogType = nil
 	SessionAllowedLogLevel = nil
+	SessionHTTPHeaderLogStyle = nil
 	LoggingFunc = nil
 	AppVersion = nil
 	AppPort = nil

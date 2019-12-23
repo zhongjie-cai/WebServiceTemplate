@@ -874,19 +874,21 @@ func TestCreateHTTPRequest_Success(t *testing.T) {
 		assert.Zero(t, messageFormat)
 		assert.Empty(t, parameters)
 	}
-	loggerNetworkRequestExpected = 3
+	loggerNetworkRequestExpected = 1
 	loggerNetworkRequest = func(session sessionModel.Session, category string, subcategory string, messageFormat string, parameters ...interface{}) {
 		loggerNetworkRequestCalled++
 		assert.Equal(t, dummySessionObject, session)
+		assert.Equal(t, "Payload", category)
+		assert.Zero(t, subcategory)
+		assert.Equal(t, dummyPayload, messageFormat)
 		assert.Empty(t, parameters)
-		if loggerNetworkRequestCalled == 1 {
-			assert.Equal(t, "Payload", category)
-			assert.Zero(t, subcategory)
-			assert.Equal(t, dummyPayload, messageFormat)
-		} else {
-			assert.Equal(t, "Header", category)
-			assert.Equal(t, dummyHeader[subcategory], messageFormat)
-		}
+	}
+	headerutilLogHTTPHeaderExpected = 1
+	headerutilLogHTTPHeader = func(session sessionModel.Session, header http.Header) {
+		headerutilLogHTTPHeaderCalled++
+		assert.Equal(t, dummySessionObject, session)
+		assert.Equal(t, dummyHeader["foo"], header["Foo"][0])
+		assert.Equal(t, dummyHeader["test"], header["Test"][0])
 	}
 	customizeHTTPRequestFuncExpected = 1
 	customizeHTTPRequestFunc = func(session sessionModel.Session, httpRequest *http.Request) *http.Request {
@@ -972,12 +974,11 @@ func TestLogHTTPResponse_ValidResponse(t *testing.T) {
 	var dummyStatus = "some status"
 	var dummyStatusCode = rand.Intn(1000)
 	var dummyBody = ioutil.NopCloser(bytes.NewBufferString("some body"))
-	var dummyHeader = map[string][]string{
+	var dummyHeader = http.Header{
 		"foo":  []string{"bar"},
 		"test": []string{"123", "456", "789"},
 	}
 	var dummyResponse = &http.Response{
-		Status:     dummyStatus,
 		StatusCode: dummyStatusCode,
 		Body:       dummyBody,
 		Header:     dummyHeader,
@@ -1010,29 +1011,32 @@ func TestLogHTTPResponse_ValidResponse(t *testing.T) {
 		assert.Equal(t, dummyBuffer, r)
 		return dummyNewBody
 	}
+	httpStatusTextExpected = 1
+	httpStatusText = func(code int) string {
+		httpStatusTextCalled++
+		assert.Equal(t, dummyStatusCode, code)
+		return dummyStatus
+	}
 	strconvItoaExpected = 1
 	strconvItoa = func(i int) string {
 		strconvItoaCalled++
 		assert.Equal(t, dummyStatusCode, i)
 		return strconv.Itoa(i)
 	}
-	loggerNetworkResponseExpected = 5
+	loggerNetworkResponseExpected = 1
 	loggerNetworkResponse = func(session sessionModel.Session, category string, subcategory string, messageFormat string, parameters ...interface{}) {
 		loggerNetworkResponseCalled++
 		assert.Equal(t, dummySessionObject, session)
+		assert.Equal(t, "Body", category)
+		assert.Zero(t, subcategory)
+		assert.Equal(t, dummyResponseBody, messageFormat)
 		assert.Empty(t, parameters)
-		if loggerNetworkResponseCalled == loggerNetworkResponseExpected {
-			assert.Equal(t, "Body", category)
-			assert.Zero(t, subcategory)
-			assert.Equal(t, dummyResponseBody, messageFormat)
-		} else {
-			assert.Equal(t, "Header", category)
-			if subcategory == "foo" {
-				assert.Equal(t, "bar", messageFormat)
-			} else {
-				assert.Contains(t, []string{"123", "456", "789"}, messageFormat)
-			}
-		}
+	}
+	headerutilLogHTTPHeaderExpected = 1
+	headerutilLogHTTPHeader = func(session sessionModel.Session, header http.Header) {
+		headerutilLogHTTPHeaderCalled++
+		assert.Equal(t, dummySessionObject, session)
+		assert.Equal(t, dummyHeader, header)
 	}
 	loggerNetworkFinishExpected = 1
 	loggerNetworkFinish = func(session sessionModel.Session, category string, subcategory string, messageFormat string, parameters ...interface{}) {

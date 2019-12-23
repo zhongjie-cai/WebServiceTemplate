@@ -201,14 +201,12 @@ func createHTTPRequest(networkRequest *networkRequest) (*http.Request, error) {
 	)
 	requestObject.Header = make(http.Header)
 	for name, value := range networkRequest.header {
-		loggerNetworkRequest(
-			networkRequest.session,
-			"Header",
-			name,
-			value,
-		)
 		requestObject.Header.Add(name, value)
 	}
+	headerutilLogHTTPHeader(
+		networkRequest.session,
+		requestObject.Header,
+	)
 	return customizeHTTPRequestFunc(
 		networkRequest.session,
 		requestObject,
@@ -236,7 +234,6 @@ func logHTTPResponse(session sessionModel.Session, response *http.Response) {
 		return
 	}
 	var (
-		responseStatus     = response.Status
 		responseStatusCode = response.StatusCode
 		responseBody, _    = ioutilReadAll(response.Body)
 		responseHeaders    = response.Header
@@ -247,16 +244,10 @@ func logHTTPResponse(session sessionModel.Session, response *http.Response) {
 			responseBody,
 		),
 	)
-	for name, values := range responseHeaders {
-		for _, value := range values {
-			loggerNetworkResponse(
-				session,
-				"Header",
-				name,
-				value,
-			)
-		}
-	}
+	headerutilLogHTTPHeader(
+		session,
+		responseHeaders,
+	)
 	loggerNetworkResponse(
 		session,
 		"Body",
@@ -265,7 +256,7 @@ func logHTTPResponse(session sessionModel.Session, response *http.Response) {
 	)
 	loggerNetworkFinish(
 		session,
-		responseStatus,
+		httpStatusText(responseStatusCode),
 		strconvItoa(responseStatusCode),
 		"",
 	)

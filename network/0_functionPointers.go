@@ -10,6 +10,7 @@ import (
 
 	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
 	"github.com/zhongjie-cai/WebServiceTemplate/certificate"
+	"github.com/zhongjie-cai/WebServiceTemplate/headerutil"
 	"github.com/zhongjie-cai/WebServiceTemplate/jsonutil"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger"
 )
@@ -25,10 +26,12 @@ var (
 	loggerNetworkFinish             = logger.NetworkFinish
 	loggerAppRoot                   = logger.AppRoot
 	ioutilReadAll                   = ioutil.ReadAll
+	httpStatusText                  = http.StatusText
 	strconvItoa                     = strconv.Itoa
 	ioutilNopCloser                 = ioutil.NopCloser
 	bytesNewBuffer                  = bytes.NewBuffer
 	timeSleep                       = time.Sleep
+	headerutilLogHTTPHeader         = headerutil.LogHTTPHeader
 	createHTTPRequestFunc           = createHTTPRequest
 	clientDoFunc                    = clientDo
 	delayForRetryFunc               = delayForRetry

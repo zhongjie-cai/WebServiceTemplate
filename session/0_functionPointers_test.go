@@ -10,6 +10,7 @@ import (
 
 	"github.com/zhongjie-cai/WebServiceTemplate/certificate"
 	"github.com/zhongjie-cai/WebServiceTemplate/customization"
+	"github.com/zhongjie-cai/WebServiceTemplate/headerutil"
 	"github.com/zhongjie-cai/WebServiceTemplate/jsonutil"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger/logtype"
 	"github.com/zhongjie-cai/WebServiceTemplate/network"
@@ -48,6 +49,8 @@ var (
 	textprotoCanonicalMIMEHeaderKeyCalled       int
 	jsonutilTryUnmarshalExpected                int
 	jsonutilTryUnmarshalCalled                  int
+	headerutilLogHTTPHeaderForNameExpected      int
+	headerutilLogHTTPHeaderForNameCalled        int
 	getAllQueriesFuncExpected                   int
 	getAllQueriesFuncCalled                     int
 	getAllHeadersFuncExpected                   int
@@ -157,6 +160,11 @@ func createMock(t *testing.T) {
 	jsonutilTryUnmarshal = func(value string, dataTemplate interface{}) error {
 		jsonutilTryUnmarshalCalled++
 		return nil
+	}
+	headerutilLogHTTPHeaderForNameExpected = 0
+	headerutilLogHTTPHeaderForNameCalled = 0
+	headerutilLogHTTPHeaderForName = func(session sessionModel.Session, name string, values []string) {
+		headerutilLogHTTPHeaderForNameCalled++
 	}
 	getAllQueriesFuncExpected = 0
 	getAllQueriesFuncCalled = 0
@@ -303,6 +311,8 @@ func verifyAll(t *testing.T) {
 	assert.Equal(t, textprotoCanonicalMIMEHeaderKeyExpected, textprotoCanonicalMIMEHeaderKeyCalled, "Unexpected number of calls to textprotoCanonicalMIMEHeaderKey")
 	jsonutilTryUnmarshal = jsonutil.TryUnmarshal
 	assert.Equal(t, jsonutilTryUnmarshalExpected, jsonutilTryUnmarshalCalled, "Unexpected number of calls to jsonutilTryUnmarshal")
+	headerutilLogHTTPHeaderForName = headerutil.LogHTTPHeaderForName
+	assert.Equal(t, headerutilLogHTTPHeaderForNameExpected, headerutilLogHTTPHeaderForNameCalled, "Unexpected number of calls to headerutilLogHTTPHeaderForName")
 	getAllQueriesFunc = getAllQueries
 	assert.Equal(t, getAllQueriesFuncExpected, getAllQueriesFuncCalled, "Unexpected number of calls to getAllQueriesFunc")
 	getAllHeadersFunc = getAllHeaders

@@ -11,6 +11,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
 	"github.com/zhongjie-cai/WebServiceTemplate/certificate"
+	"github.com/zhongjie-cai/WebServiceTemplate/headerutil"
 	"github.com/zhongjie-cai/WebServiceTemplate/jsonutil"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger"
 	"github.com/zhongjie-cai/WebServiceTemplate/network"
@@ -29,6 +30,7 @@ var (
 	apperrorGetBadRequestError      = apperror.GetBadRequestError
 	textprotoCanonicalMIMEHeaderKey = textproto.CanonicalMIMEHeaderKey
 	jsonutilTryUnmarshal            = jsonutil.TryUnmarshal
+	headerutilLogHTTPHeaderForName  = headerutil.LogHTTPHeaderForName
 	getAllQueriesFunc               = getAllQueries
 	getAllHeadersFunc               = getAllHeaders
 	isLoggingTypeMatchFunc          = isLoggingTypeMatch
