@@ -870,8 +870,8 @@ func TestCreateHTTPRequest_Success(t *testing.T) {
 		loggerNetworkCallCalled++
 		assert.Equal(t, dummySessionObject, session)
 		assert.Equal(t, dummyMethod, category)
-		assert.Equal(t, dummyURL, subcategory)
-		assert.Zero(t, messageFormat)
+		assert.Equal(t, dummyURL, messageFormat)
+		assert.Zero(t, subcategory)
 		assert.Empty(t, parameters)
 	}
 	loggerNetworkRequestExpected = 1

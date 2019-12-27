@@ -190,8 +190,8 @@ func createHTTPRequest(networkRequest *networkRequest) (*http.Request, error) {
 	loggerNetworkCall(
 		networkRequest.session,
 		networkRequest.method,
-		networkRequest.url,
 		"",
+		networkRequest.url,
 	)
 	loggerNetworkRequest(
 		networkRequest.session,
