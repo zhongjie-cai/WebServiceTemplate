@@ -4,10 +4,12 @@ import (
 	"bytes"
 	"crypto/tls"
 	"errors"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"math/rand"
 	"net/http"
+	"reflect"
 	"strconv"
 	"strings"
 	"testing"
@@ -17,6 +19,7 @@ import (
 	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
 	apperrorModel "github.com/zhongjie-cai/WebServiceTemplate/apperror/model"
 	"github.com/zhongjie-cai/WebServiceTemplate/customization"
+	"github.com/zhongjie-cai/WebServiceTemplate/logger"
 	sessionModel "github.com/zhongjie-cai/WebServiceTemplate/session/model"
 )
 
@@ -884,11 +887,12 @@ func TestCreateHTTPRequest_Success(t *testing.T) {
 		assert.Empty(t, parameters)
 	}
 	headerutilLogHTTPHeaderExpected = 1
-	headerutilLogHTTPHeader = func(session sessionModel.Session, header http.Header) {
+	headerutilLogHTTPHeader = func(session sessionModel.Session, header http.Header, logFunc logger.LogFunc) {
 		headerutilLogHTTPHeaderCalled++
 		assert.Equal(t, dummySessionObject, session)
 		assert.Equal(t, dummyHeader["foo"], header["Foo"][0])
 		assert.Equal(t, dummyHeader["test"], header["Test"][0])
+		assert.Equal(t, fmt.Sprintf("%v", reflect.ValueOf(loggerNetworkRequest)), fmt.Sprintf("%v", reflect.ValueOf(logFunc)))
 	}
 	customizeHTTPRequestFuncExpected = 1
 	customizeHTTPRequestFunc = func(session sessionModel.Session, httpRequest *http.Request) *http.Request {
@@ -1033,10 +1037,11 @@ func TestLogHTTPResponse_ValidResponse(t *testing.T) {
 		assert.Empty(t, parameters)
 	}
 	headerutilLogHTTPHeaderExpected = 1
-	headerutilLogHTTPHeader = func(session sessionModel.Session, header http.Header) {
+	headerutilLogHTTPHeader = func(session sessionModel.Session, header http.Header, logFunc logger.LogFunc) {
 		headerutilLogHTTPHeaderCalled++
 		assert.Equal(t, dummySessionObject, session)
 		assert.Equal(t, dummyHeader, header)
+		assert.Equal(t, fmt.Sprintf("%v", reflect.ValueOf(loggerNetworkResponse)), fmt.Sprintf("%v", reflect.ValueOf(logFunc)))
 	}
 	loggerNetworkFinishExpected = 1
 	loggerNetworkFinish = func(session sessionModel.Session, category string, subcategory string, messageFormat string, parameters ...interface{}) {

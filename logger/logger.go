@@ -12,6 +12,9 @@ import (
 	sessionModel "github.com/zhongjie-cai/WebServiceTemplate/session/model"
 )
 
+// LogFunc is the function signature of majority of logging functions
+type LogFunc func(session sessionModel.Session, category string, subcategory string, messageFormat string, parameters ...interface{})
+
 type logEntry struct {
 	Application string            `json:"application"`
 	Version     string            `json:"version"`

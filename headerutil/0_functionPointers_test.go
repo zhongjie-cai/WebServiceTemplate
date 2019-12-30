@@ -23,8 +23,8 @@ var (
 	jsonutilMarshalIgnoreErrorCalled               int
 	stringsJoinExpected                            int
 	stringsJoinCalled                              int
-	loggerAPIRequestExpected                       int
-	loggerAPIRequestCalled                         int
+	loggerLogFuncExpected                          int
+	loggerLogFuncCalled                            int
 	getHeaderLogStyleFuncExpected                  int
 	getHeaderLogStyleFuncCalled                    int
 	logCombinedHTTPHeaderFuncExpected              int
@@ -54,11 +54,11 @@ func createMock(t *testing.T) {
 		stringsJoinCalled++
 		return ""
 	}
-	loggerAPIRequestExpected = 0
-	loggerAPIRequestCalled = 0
-	loggerAPIRequest = func(session sessionModel.Session, category string, subcategory string, messageFormat string, parameters ...interface{}) {
-		loggerAPIRequestCalled++
-	}
+	loggerLogFuncExpected = 0
+	loggerLogFuncCalled = 0
+	// loggerLogFunc = func(session sessionModel.Session, category string, subcategory string, messageFormat string, parameters ...interface{}) {
+	// 	loggerLogFuncCalled++
+	// }
 	getHeaderLogStyleFuncExpected = 0
 	getHeaderLogStyleFuncCalled = 0
 	getHeaderLogStyleFunc = func(session sessionModel.Session) headerstyle.HeaderStyle {
@@ -67,22 +67,22 @@ func createMock(t *testing.T) {
 	}
 	logCombinedHTTPHeaderFuncExpected = 0
 	logCombinedHTTPHeaderFuncCalled = 0
-	logCombinedHTTPHeaderFunc = func(session sessionModel.Session, header http.Header) {
+	logCombinedHTTPHeaderFunc = func(session sessionModel.Session, header http.Header, logFunc logger.LogFunc) {
 		logCombinedHTTPHeaderFuncCalled++
 	}
 	logPerNameHTTPHeaderFuncExpected = 0
 	logPerNameHTTPHeaderFuncCalled = 0
-	logPerNameHTTPHeaderFunc = func(session sessionModel.Session, header http.Header) {
+	logPerNameHTTPHeaderFunc = func(session sessionModel.Session, header http.Header, logFunc logger.LogFunc) {
 		logPerNameHTTPHeaderFuncCalled++
 	}
 	logPerValueHTTPHeaderFuncExpected = 0
 	logPerValueHTTPHeaderFuncCalled = 0
-	logPerValueHTTPHeaderFunc = func(session sessionModel.Session, header http.Header) {
+	logPerValueHTTPHeaderFunc = func(session sessionModel.Session, header http.Header, logFunc logger.LogFunc) {
 		logPerValueHTTPHeaderFuncCalled++
 	}
 	logHTTPHeaderFuncExpected = 0
 	logHTTPHeaderFuncCalled = 0
-	logHTTPHeaderFunc = func(session sessionModel.Session, header http.Header) {
+	logHTTPHeaderFunc = func(session sessionModel.Session, header http.Header, logFunc logger.LogFunc) {
 		logHTTPHeaderFuncCalled++
 	}
 	customizationSessionHTTPHeaderLogStyleExpected = 0
@@ -98,8 +98,8 @@ func verifyAll(t *testing.T) {
 	assert.Equal(t, jsonutilMarshalIgnoreErrorExpected, jsonutilMarshalIgnoreErrorCalled, "Unexpected number of calls to jsonutilMarshalIgnoreError")
 	stringsJoin = strings.Join
 	assert.Equal(t, stringsJoinExpected, stringsJoinCalled, "Unexpected number of calls to stringsJoin")
-	loggerAPIRequest = logger.APIRequest
-	assert.Equal(t, loggerAPIRequestExpected, loggerAPIRequestCalled, "Unexpected number of calls to loggerAPIRequest")
+	// loggerLogFunc = logger.APIRequest
+	assert.Equal(t, loggerLogFuncExpected, loggerLogFuncCalled, "Unexpected number of calls to loggerLogFunc")
 	getHeaderLogStyleFunc = getHeaderLogStyle
 	assert.Equal(t, getHeaderLogStyleFuncExpected, getHeaderLogStyleFuncCalled, "Unexpected number of calls to getHeaderLogStyleFunc")
 	logCombinedHTTPHeaderFunc = logCombinedHTTPHeader

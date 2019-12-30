@@ -1,14 +1,17 @@
 package headerutil
 
 import (
+	"fmt"
 	"math/rand"
 	"net/http"
+	"reflect"
 	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/zhongjie-cai/WebServiceTemplate/customization"
 	"github.com/zhongjie-cai/WebServiceTemplate/headerutil/headerstyle"
+	"github.com/zhongjie-cai/WebServiceTemplate/logger"
 	sessionModel "github.com/zhongjie-cai/WebServiceTemplate/session/model"
 )
 
@@ -97,6 +100,7 @@ func TestLogCombinedHTTPHeader(t *testing.T) {
 
 	// mock
 	createMock(t)
+	var loggerLogFunc func(session sessionModel.Session, category string, subcategory string, messageFormat string, parameters ...interface{})
 
 	// expect
 	jsonutilMarshalIgnoreErrorExpected = 1
@@ -105,9 +109,9 @@ func TestLogCombinedHTTPHeader(t *testing.T) {
 		assert.Equal(t, dummyHeader, v)
 		return dummyContent
 	}
-	loggerAPIRequestExpected = 1
-	loggerAPIRequest = func(session sessionModel.Session, category string, subcategory string, messageFormat string, parameters ...interface{}) {
-		loggerAPIRequestCalled++
+	loggerLogFuncExpected = 1
+	loggerLogFunc = func(session sessionModel.Session, category string, subcategory string, messageFormat string, parameters ...interface{}) {
+		loggerLogFuncCalled++
 		assert.Equal(t, dummySessionObject, session)
 		assert.Equal(t, "Header", category)
 		assert.Zero(t, subcategory)
@@ -119,6 +123,7 @@ func TestLogCombinedHTTPHeader(t *testing.T) {
 	logCombinedHTTPHeader(
 		dummySessionObject,
 		dummyHeader,
+		loggerLogFunc,
 	)
 
 	// verify
@@ -135,6 +140,7 @@ func TestLogPerNameHTTPHeader(t *testing.T) {
 
 	// mock
 	createMock(t)
+	var loggerLogFunc func(session sessionModel.Session, category string, subcategory string, messageFormat string, parameters ...interface{})
 
 	// expect
 	stringsJoinExpected = 2
@@ -143,9 +149,9 @@ func TestLogPerNameHTTPHeader(t *testing.T) {
 		assert.Equal(t, ",", sep)
 		return strings.Join(a, sep)
 	}
-	loggerAPIRequestExpected = 2
-	loggerAPIRequest = func(session sessionModel.Session, category string, subcategory string, messageFormat string, parameters ...interface{}) {
-		loggerAPIRequestCalled++
+	loggerLogFuncExpected = 2
+	loggerLogFunc = func(session sessionModel.Session, category string, subcategory string, messageFormat string, parameters ...interface{}) {
+		loggerLogFuncCalled++
 		assert.Equal(t, dummySessionObject, session)
 		assert.Equal(t, "Header", category)
 		if subcategory == "foo" {
@@ -160,6 +166,7 @@ func TestLogPerNameHTTPHeader(t *testing.T) {
 	logPerNameHTTPHeader(
 		dummySessionObject,
 		dummyHeader,
+		loggerLogFunc,
 	)
 
 	// verify
@@ -176,11 +183,12 @@ func TestLogPerValueHTTPHeader(t *testing.T) {
 
 	// mock
 	createMock(t)
+	var loggerLogFunc func(session sessionModel.Session, category string, subcategory string, messageFormat string, parameters ...interface{})
 
 	// expect
-	loggerAPIRequestExpected = 3
-	loggerAPIRequest = func(session sessionModel.Session, category string, subcategory string, messageFormat string, parameters ...interface{}) {
-		loggerAPIRequestCalled++
+	loggerLogFuncExpected = 3
+	loggerLogFunc = func(session sessionModel.Session, category string, subcategory string, messageFormat string, parameters ...interface{}) {
+		loggerLogFuncCalled++
 		assert.Equal(t, dummySessionObject, session)
 		assert.Equal(t, "Header", category)
 		if messageFormat == "bar1" {
@@ -197,6 +205,7 @@ func TestLogPerValueHTTPHeader(t *testing.T) {
 	logPerValueHTTPHeader(
 		dummySessionObject,
 		dummyHeader,
+		loggerLogFunc,
 	)
 
 	// verify
@@ -211,6 +220,9 @@ func TestLogHTTPHeader_DoNotLog(t *testing.T) {
 		"test": []string{"123"},
 	}
 	var dummyHeaderLogStyle = headerstyle.DoNotLog
+	var loggerLogFunc = func(session sessionModel.Session, category string, subcategory string, messageFormat string, parameters ...interface{}) {
+		loggerLogFuncCalled++
+	}
 
 	// mock
 	createMock(t)
@@ -227,6 +239,7 @@ func TestLogHTTPHeader_DoNotLog(t *testing.T) {
 	LogHTTPHeader(
 		dummySessionObject,
 		dummyHeader,
+		loggerLogFunc,
 	)
 
 	// verify
@@ -241,6 +254,9 @@ func TestLogHTTPHeader_LogCombined(t *testing.T) {
 		"test": []string{"123"},
 	}
 	var dummyHeaderLogStyle = headerstyle.LogCombined
+	var loggerLogFunc = func(session sessionModel.Session, category string, subcategory string, messageFormat string, parameters ...interface{}) {
+		loggerLogFuncCalled++
+	}
 
 	// mock
 	createMock(t)
@@ -253,16 +269,18 @@ func TestLogHTTPHeader_LogCombined(t *testing.T) {
 		return dummyHeaderLogStyle
 	}
 	logCombinedHTTPHeaderFuncExpected = 1
-	logCombinedHTTPHeaderFunc = func(session sessionModel.Session, header http.Header) {
+	logCombinedHTTPHeaderFunc = func(session sessionModel.Session, header http.Header, logFunc logger.LogFunc) {
 		logCombinedHTTPHeaderFuncCalled++
 		assert.Equal(t, dummySessionObject, session)
 		assert.Equal(t, dummyHeader, header)
+		assert.Equal(t, fmt.Sprintf("%v", reflect.ValueOf(loggerLogFunc)), fmt.Sprintf("%v", reflect.ValueOf(logFunc)))
 	}
 
 	// SUT + act
 	LogHTTPHeader(
 		dummySessionObject,
 		dummyHeader,
+		loggerLogFunc,
 	)
 
 	// verify
@@ -277,6 +295,9 @@ func TestLogHTTPHeader_LogPerName(t *testing.T) {
 		"test": []string{"123"},
 	}
 	var dummyHeaderLogStyle = headerstyle.LogPerName
+	var loggerLogFunc = func(session sessionModel.Session, category string, subcategory string, messageFormat string, parameters ...interface{}) {
+		loggerLogFuncCalled++
+	}
 
 	// mock
 	createMock(t)
@@ -289,16 +310,18 @@ func TestLogHTTPHeader_LogPerName(t *testing.T) {
 		return dummyHeaderLogStyle
 	}
 	logPerNameHTTPHeaderFuncExpected = 1
-	logPerNameHTTPHeaderFunc = func(session sessionModel.Session, header http.Header) {
+	logPerNameHTTPHeaderFunc = func(session sessionModel.Session, header http.Header, logFunc logger.LogFunc) {
 		logPerNameHTTPHeaderFuncCalled++
 		assert.Equal(t, dummySessionObject, session)
 		assert.Equal(t, dummyHeader, header)
+		assert.Equal(t, fmt.Sprintf("%v", reflect.ValueOf(loggerLogFunc)), fmt.Sprintf("%v", reflect.ValueOf(logFunc)))
 	}
 
 	// SUT + act
 	LogHTTPHeader(
 		dummySessionObject,
 		dummyHeader,
+		loggerLogFunc,
 	)
 
 	// verify
@@ -313,6 +336,9 @@ func TestLogHTTPHeader_LogPerValue(t *testing.T) {
 		"test": []string{"123"},
 	}
 	var dummyHeaderLogStyle = headerstyle.LogPerValue
+	var loggerLogFunc = func(session sessionModel.Session, category string, subcategory string, messageFormat string, parameters ...interface{}) {
+		loggerLogFuncCalled++
+	}
 
 	// mock
 	createMock(t)
@@ -325,16 +351,18 @@ func TestLogHTTPHeader_LogPerValue(t *testing.T) {
 		return dummyHeaderLogStyle
 	}
 	logPerValueHTTPHeaderFuncExpected = 1
-	logPerValueHTTPHeaderFunc = func(session sessionModel.Session, header http.Header) {
+	logPerValueHTTPHeaderFunc = func(session sessionModel.Session, header http.Header, logFunc logger.LogFunc) {
 		logPerValueHTTPHeaderFuncCalled++
 		assert.Equal(t, dummySessionObject, session)
 		assert.Equal(t, dummyHeader, header)
+		assert.Equal(t, fmt.Sprintf("%v", reflect.ValueOf(loggerLogFunc)), fmt.Sprintf("%v", reflect.ValueOf(logFunc)))
 	}
 
 	// SUT + act
 	LogHTTPHeader(
 		dummySessionObject,
 		dummyHeader,
+		loggerLogFunc,
 	)
 
 	// verify
@@ -349,6 +377,9 @@ func TestLogHTTPHeader_Other(t *testing.T) {
 		"test": []string{"123"},
 	}
 	var dummyHeaderLogStyle = headerstyle.HeaderStyle(100 + rand.Intn(100))
+	var loggerLogFunc = func(session sessionModel.Session, category string, subcategory string, messageFormat string, parameters ...interface{}) {
+		loggerLogFuncCalled++
+	}
 
 	// mock
 	createMock(t)
@@ -365,6 +396,7 @@ func TestLogHTTPHeader_Other(t *testing.T) {
 	LogHTTPHeader(
 		dummySessionObject,
 		dummyHeader,
+		loggerLogFunc,
 	)
 
 	// verify
@@ -376,16 +408,20 @@ func TestLogHTTPHeaderForName(t *testing.T) {
 	var dummySessionObject = &dummySession{t}
 	var dummyName = "some name"
 	var dummyValues = []string{"some value 1", "some value 2"}
+	var loggerLogFunc = func(session sessionModel.Session, category string, subcategory string, messageFormat string, parameters ...interface{}) {
+		loggerLogFuncCalled++
+	}
 
 	// mock
 	createMock(t)
 
 	// expect
 	logHTTPHeaderFuncExpected = 1
-	logHTTPHeaderFunc = func(session sessionModel.Session, header http.Header) {
+	logHTTPHeaderFunc = func(session sessionModel.Session, header http.Header, logFunc logger.LogFunc) {
 		logHTTPHeaderFuncCalled++
 		assert.Equal(t, dummySessionObject, session)
 		assert.Equal(t, dummyValues, header[dummyName])
+		assert.Equal(t, fmt.Sprintf("%v", reflect.ValueOf(loggerLogFunc)), fmt.Sprintf("%v", reflect.ValueOf(logFunc)))
 	}
 
 	// SUT + act
@@ -393,6 +429,7 @@ func TestLogHTTPHeaderForName(t *testing.T) {
 		dummySessionObject,
 		dummyName,
 		dummyValues,
+		loggerLogFunc,
 	)
 
 	// verify

@@ -163,7 +163,7 @@ func createMock(t *testing.T) {
 	}
 	headerutilLogHTTPHeaderForNameExpected = 0
 	headerutilLogHTTPHeaderForNameCalled = 0
-	headerutilLogHTTPHeaderForName = func(session sessionModel.Session, name string, values []string) {
+	headerutilLogHTTPHeaderForName = func(session sessionModel.Session, name string, values []string, logFunc logger.LogFunc) {
 		headerutilLogHTTPHeaderForNameCalled++
 	}
 	getAllQueriesFuncExpected = 0

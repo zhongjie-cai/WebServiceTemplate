@@ -3,10 +3,12 @@ package session
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"math"
 	"math/rand"
 	"net/http"
 	"net/url"
+	"reflect"
 	"runtime"
 	"strconv"
 	"testing"
@@ -17,6 +19,7 @@ import (
 	apperrorModel "github.com/zhongjie-cai/WebServiceTemplate/apperror/model"
 	"github.com/zhongjie-cai/WebServiceTemplate/config"
 	"github.com/zhongjie-cai/WebServiceTemplate/customization"
+	"github.com/zhongjie-cai/WebServiceTemplate/logger"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger/loglevel"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger/logtype"
 	networkModel "github.com/zhongjie-cai/WebServiceTemplate/network/model"
@@ -1042,11 +1045,12 @@ func TestGetRequestHeaders_EmptyList(t *testing.T) {
 		dummyFillCallbackCalled++
 	}
 	headerutilLogHTTPHeaderForNameExpected = 1
-	headerutilLogHTTPHeaderForName = func(session sessionModel.Session, name string, values []string) {
+	headerutilLogHTTPHeaderForName = func(session sessionModel.Session, name string, values []string, logFunc logger.LogFunc) {
 		headerutilLogHTTPHeaderForNameCalled++
 		assert.Equal(t, dummySessionObject, session)
 		assert.Equal(t, dummyName, name)
 		assert.Equal(t, dummyHeaders, values)
+		assert.Equal(t, fmt.Sprintf("%v", reflect.ValueOf(loggerAPIRequest)), fmt.Sprintf("%v", reflect.ValueOf(logFunc)))
 	}
 	apperrorGetBadRequestErrorExpected = 1
 	apperrorGetBadRequestError = func(innerErrors ...error) apperrorModel.AppError {
@@ -1120,11 +1124,12 @@ func TestGetRequestHeaders_HappyPath(t *testing.T) {
 		dummyFillCallbackCalled++
 	}
 	headerutilLogHTTPHeaderForNameExpected = 1
-	headerutilLogHTTPHeaderForName = func(session sessionModel.Session, name string, values []string) {
+	headerutilLogHTTPHeaderForName = func(session sessionModel.Session, name string, values []string, logFunc logger.LogFunc) {
 		headerutilLogHTTPHeaderForNameCalled++
 		assert.Equal(t, dummySessionObject, session)
 		assert.Equal(t, dummyName, name)
 		assert.Equal(t, dummyHeaders, values)
+		assert.Equal(t, fmt.Sprintf("%v", reflect.ValueOf(loggerAPIRequest)), fmt.Sprintf("%v", reflect.ValueOf(logFunc)))
 	}
 	apperrorGetBadRequestErrorExpected = 1
 	apperrorGetBadRequestError = func(innerErrors ...error) apperrorModel.AppError {

@@ -276,6 +276,7 @@ func (session *session) GetRequestHeaders(name string, dataTemplate interface{},
 		session,
 		name,
 		headers,
+		loggerAPIRequest,
 	)
 	return apperrorGetBadRequestError(
 		unmarshalErrors...,

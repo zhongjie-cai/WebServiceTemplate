@@ -174,7 +174,7 @@ func createMock(t *testing.T) {
 	}
 	headerutilLogHTTPHeaderExpected = 0
 	headerutilLogHTTPHeaderCalled = 0
-	headerutilLogHTTPHeader = func(session sessionModel.Session, header http.Header) {
+	headerutilLogHTTPHeader = func(session sessionModel.Session, header http.Header, logFunc logger.LogFunc) {
 		headerutilLogHTTPHeaderCalled++
 	}
 	createHTTPRequestFuncExpected = 0

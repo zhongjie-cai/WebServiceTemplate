@@ -206,6 +206,7 @@ func createHTTPRequest(networkRequest *networkRequest) (*http.Request, error) {
 	headerutilLogHTTPHeader(
 		networkRequest.session,
 		requestObject.Header,
+		loggerNetworkRequest,
 	)
 	return customizeHTTPRequestFunc(
 		networkRequest.session,
@@ -247,6 +248,7 @@ func logHTTPResponse(session sessionModel.Session, response *http.Response) {
 	headerutilLogHTTPHeader(
 		session,
 		responseHeaders,
+		loggerNetworkResponse,
 	)
 	loggerNetworkResponse(
 		session,
