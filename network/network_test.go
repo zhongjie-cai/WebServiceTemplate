@@ -919,6 +919,8 @@ func TestLogErrorResponse(t *testing.T) {
 	// arrange
 	var dummySessionObject = &dummySession{t}
 	var dummyError = errors.New("some error")
+	var dummyStartTime = time.Now()
+	var dummyTimeSince = time.Duration(rand.Intn(1000))
 
 	// mock
 	createMock(t)
@@ -934,20 +936,28 @@ func TestLogErrorResponse(t *testing.T) {
 		assert.Equal(t, 1, len(parameters))
 		assert.Equal(t, dummyError, parameters[0])
 	}
+	timeSinceExpected = 1
+	timeSince = func(ts time.Time) time.Duration {
+		timeSinceCalled++
+		assert.Equal(t, dummyStartTime, ts)
+		return dummyTimeSince
+	}
 	loggerNetworkFinishExpected = 1
 	loggerNetworkFinish = func(session sessionModel.Session, category string, subcategory string, messageFormat string, parameters ...interface{}) {
 		loggerNetworkFinishCalled++
 		assert.Equal(t, dummySessionObject, session)
 		assert.Equal(t, "Error", category)
 		assert.Zero(t, subcategory)
-		assert.Zero(t, messageFormat)
-		assert.Empty(t, parameters)
+		assert.Equal(t, "%s", messageFormat)
+		assert.Equal(t, 1, len(parameters))
+		assert.Equal(t, dummyTimeSince, parameters[0])
 	}
 
 	// SUT + act
 	logErrorResponse(
 		dummySessionObject,
 		dummyError,
+		dummyStartTime,
 	)
 
 	// verify
@@ -958,6 +968,7 @@ func TestLogHTTPResponse_NilResponse(t *testing.T) {
 	// arrange
 	var dummySessionObject = &dummySession{t}
 	var dummyResponse *http.Response
+	var dummyStartTime = time.Now()
 
 	// mock
 	createMock(t)
@@ -966,6 +977,7 @@ func TestLogHTTPResponse_NilResponse(t *testing.T) {
 	logHTTPResponse(
 		dummySessionObject,
 		dummyResponse,
+		dummyStartTime,
 	)
 
 	// verify
@@ -992,6 +1004,8 @@ func TestLogHTTPResponse_ValidResponse(t *testing.T) {
 	var dummyError = errors.New("some error")
 	var dummyBuffer = &bytes.Buffer{}
 	var dummyNewBody = ioutil.NopCloser(bytes.NewBufferString("some new body"))
+	var dummyStartTime = time.Now()
+	var dummyTimeSince = time.Duration(rand.Intn(1000))
 
 	// mock
 	createMock(t)
@@ -1043,20 +1057,28 @@ func TestLogHTTPResponse_ValidResponse(t *testing.T) {
 		assert.Equal(t, dummyHeader, header)
 		assert.Equal(t, fmt.Sprintf("%v", reflect.ValueOf(loggerNetworkResponse)), fmt.Sprintf("%v", reflect.ValueOf(logFunc)))
 	}
+	timeSinceExpected = 1
+	timeSince = func(ts time.Time) time.Duration {
+		timeSinceCalled++
+		assert.Equal(t, dummyStartTime, ts)
+		return dummyTimeSince
+	}
 	loggerNetworkFinishExpected = 1
 	loggerNetworkFinish = func(session sessionModel.Session, category string, subcategory string, messageFormat string, parameters ...interface{}) {
 		loggerNetworkFinishCalled++
 		assert.Equal(t, dummySessionObject, session)
 		assert.Equal(t, dummyStatus, category)
 		assert.Equal(t, strconv.Itoa(dummyStatusCode), subcategory)
-		assert.Zero(t, messageFormat)
-		assert.Empty(t, parameters)
+		assert.Equal(t, "%s", messageFormat)
+		assert.Equal(t, 1, len(parameters))
+		assert.Equal(t, dummyTimeSince, parameters[0])
 	}
 
 	// SUT + act
 	logHTTPResponse(
 		dummySessionObject,
 		dummyResponse,
+		dummyStartTime,
 	)
 
 	// assert
@@ -1115,6 +1137,7 @@ func TestDoRequestProcessing_ResponseError(t *testing.T) {
 	var dummyRequestObject = &http.Request{}
 	var dummyResponseObject *http.Response
 	var dummyResponseError = errors.New("some error")
+	var dummyStartTime = time.Now()
 
 	// mock
 	createMock(t)
@@ -1132,6 +1155,11 @@ func TestDoRequestProcessing_ResponseError(t *testing.T) {
 		assert.Equal(t, dummySendClientCert, sendClientCert)
 		return dummyHTTPClient
 	}
+	timeutilGetTimeNowUTCExpected = 1
+	timeutilGetTimeNowUTC = func() time.Time {
+		timeutilGetTimeNowUTCCalled++
+		return dummyStartTime
+	}
 	clientDoWithRetryFuncExpected = 1
 	clientDoWithRetryFunc = func(client *http.Client, request *http.Request, connRetry int, httpRetry map[int]int) (*http.Response, error) {
 		clientDoWithRetryFuncCalled++
@@ -1142,10 +1170,11 @@ func TestDoRequestProcessing_ResponseError(t *testing.T) {
 		return dummyResponseObject, dummyResponseError
 	}
 	logErrorResponseFuncExpected = 1
-	logErrorResponseFunc = func(session sessionModel.Session, responseError error) {
+	logErrorResponseFunc = func(session sessionModel.Session, responseError error, startTime time.Time) {
 		logErrorResponseFuncCalled++
 		assert.Equal(t, dummySessionObject, session)
 		assert.Equal(t, dummyResponseError, responseError)
+		assert.Equal(t, dummyStartTime, startTime)
 	}
 
 	// SUT + act
@@ -1179,6 +1208,7 @@ func TestDoRequestProcessing_ResponseSuccess(t *testing.T) {
 	var dummyHTTPClient = &http.Client{}
 	var dummyRequestObject = &http.Request{}
 	var dummyResponseObject = &http.Response{}
+	var dummyStartTime = time.Now()
 
 	// mock
 	createMock(t)
@@ -1196,6 +1226,11 @@ func TestDoRequestProcessing_ResponseSuccess(t *testing.T) {
 		assert.Equal(t, dummySendClientCert, sendClientCert)
 		return dummyHTTPClient
 	}
+	timeutilGetTimeNowUTCExpected = 1
+	timeutilGetTimeNowUTC = func() time.Time {
+		timeutilGetTimeNowUTCCalled++
+		return dummyStartTime
+	}
 	clientDoWithRetryFuncExpected = 1
 	clientDoWithRetryFunc = func(client *http.Client, request *http.Request, connRetry int, httpRetry map[int]int) (*http.Response, error) {
 		clientDoWithRetryFuncCalled++
@@ -1206,10 +1241,11 @@ func TestDoRequestProcessing_ResponseSuccess(t *testing.T) {
 		return dummyResponseObject, nil
 	}
 	logHTTPResponseFuncExpected = 1
-	logHTTPResponseFunc = func(session sessionModel.Session, response *http.Response) {
+	logHTTPResponseFunc = func(session sessionModel.Session, response *http.Response, startTime time.Time) {
 		logHTTPResponseFuncCalled++
 		assert.Equal(t, dummySessionObject, session)
 		assert.Equal(t, dummyResponseObject, response)
+		assert.Equal(t, dummyStartTime, startTime)
 	}
 
 	// SUT + act

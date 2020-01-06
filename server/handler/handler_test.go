@@ -3,9 +3,11 @@ package handler
 import (
 	"errors"
 	"fmt"
+	"math/rand"
 	"net/http"
 	"reflect"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
@@ -90,6 +92,8 @@ func TestHandleInSession_RouteError(t *testing.T) {
 	}
 	var dummyRouteError = errors.New("some route error")
 	var dummyResponseError = apperror.GetCustomError(0, "some app error")
+	var dummyStartTime = time.Now()
+	var dummyTimeSince = time.Duration(rand.Intn(1000))
 
 	// mock
 	createMock(t)
@@ -108,6 +112,11 @@ func TestHandleInSession_RouteError(t *testing.T) {
 		assert.Equal(t, dummyHTTPRequest, httpRequest)
 		assert.Equal(t, dummyResponseWriter, responseWriter)
 		return dummySessionObject
+	}
+	timeutilGetTimeNowUTCExpected = 1
+	timeutilGetTimeNowUTC = func() time.Time {
+		timeutilGetTimeNowUTCCalled++
+		return dummyStartTime
 	}
 	loggerAPIEnterExpected = 1
 	loggerAPIEnter = func(session sessionModel.Session, category string, subcategory string, messageFormat string, parameters ...interface{}) {
@@ -132,14 +141,21 @@ func TestHandleInSession_RouteError(t *testing.T) {
 		assert.Nil(t, responseObject)
 		assert.Equal(t, dummyResponseError, responseError)
 	}
+	timeSinceExpected = 1
+	timeSince = func(ts time.Time) time.Duration {
+		timeSinceCalled++
+		assert.Equal(t, dummyStartTime, ts)
+		return dummyTimeSince
+	}
 	loggerAPIExitExpected = 1
 	loggerAPIExit = func(session sessionModel.Session, category string, subcategory string, messageFormat string, parameters ...interface{}) {
 		loggerAPIExitCalled++
 		assert.Equal(t, dummySessionObject, session)
 		assert.Equal(t, dummyHTTPRequest.Method, subcategory)
 		assert.Equal(t, dummyEndpoint, category)
-		assert.Zero(t, messageFormat)
-		assert.Equal(t, 0, len(parameters))
+		assert.Equal(t, "%s", messageFormat)
+		assert.Equal(t, 1, len(parameters))
+		assert.Equal(t, dummyTimeSince, parameters[0])
 	}
 	panicHandleExpected = 1
 	panicHandle = func(session sessionModel.Session, recoverResult interface{}) {
@@ -173,6 +189,8 @@ func TestHandleInSession_PreActionError(t *testing.T) {
 	var dummyActionExpected int
 	var dummyActionCalled int
 	var dummyPreActionError = errors.New("some pre-action error")
+	var dummyStartTime = time.Now()
+	var dummyTimeSince = time.Duration(rand.Intn(1000))
 
 	// mock
 	createMock(t)
@@ -191,6 +209,11 @@ func TestHandleInSession_PreActionError(t *testing.T) {
 		assert.Equal(t, dummyHTTPRequest, httpRequest)
 		assert.Equal(t, dummyResponseWriter, responseWriter)
 		return dummySessionObject
+	}
+	timeutilGetTimeNowUTCExpected = 1
+	timeutilGetTimeNowUTC = func() time.Time {
+		timeutilGetTimeNowUTCCalled++
+		return dummyStartTime
 	}
 	loggerAPIEnterExpected = 1
 	loggerAPIEnter = func(session sessionModel.Session, category string, subcategory string, messageFormat string, parameters ...interface{}) {
@@ -217,14 +240,21 @@ func TestHandleInSession_PreActionError(t *testing.T) {
 		assert.Nil(t, responseObject)
 		assert.Equal(t, dummyPreActionError, responseError)
 	}
+	timeSinceExpected = 1
+	timeSince = func(ts time.Time) time.Duration {
+		timeSinceCalled++
+		assert.Equal(t, dummyStartTime, ts)
+		return dummyTimeSince
+	}
 	loggerAPIExitExpected = 1
 	loggerAPIExit = func(session sessionModel.Session, category string, subcategory string, messageFormat string, parameters ...interface{}) {
 		loggerAPIExitCalled++
 		assert.Equal(t, dummySessionObject, session)
 		assert.Equal(t, dummyHTTPRequest.Method, subcategory)
 		assert.Equal(t, dummyEndpoint, category)
-		assert.Zero(t, messageFormat)
-		assert.Equal(t, 0, len(parameters))
+		assert.Equal(t, "%s", messageFormat)
+		assert.Equal(t, 1, len(parameters))
+		assert.Equal(t, dummyTimeSince, parameters[0])
 	}
 	panicHandleExpected = 1
 	panicHandle = func(session sessionModel.Session, recoverResult interface{}) {
@@ -260,6 +290,8 @@ func TestHandleInSession_PostActionError_WithResponseError(t *testing.T) {
 	var dummyResponseObject = "some response object"
 	var dummyResponseError = apperror.GetCustomError(0, "some app error")
 	var dummyPostActionError = errors.New("some post-action error")
+	var dummyStartTime = time.Now()
+	var dummyTimeSince = time.Duration(rand.Intn(1000))
 
 	// mock
 	createMock(t)
@@ -278,6 +310,11 @@ func TestHandleInSession_PostActionError_WithResponseError(t *testing.T) {
 		assert.Equal(t, dummyHTTPRequest, httpRequest)
 		assert.Equal(t, dummyResponseWriter, responseWriter)
 		return dummySessionObject
+	}
+	timeutilGetTimeNowUTCExpected = 1
+	timeutilGetTimeNowUTC = func() time.Time {
+		timeutilGetTimeNowUTCCalled++
+		return dummyStartTime
 	}
 	loggerAPIEnterExpected = 1
 	loggerAPIEnter = func(session sessionModel.Session, category string, subcategory string, messageFormat string, parameters ...interface{}) {
@@ -317,6 +354,12 @@ func TestHandleInSession_PostActionError_WithResponseError(t *testing.T) {
 		assert.Nil(t, responseObject)
 		assert.Equal(t, dummyResponseError, responseError)
 	}
+	timeSinceExpected = 1
+	timeSince = func(ts time.Time) time.Duration {
+		timeSinceCalled++
+		assert.Equal(t, dummyStartTime, ts)
+		return dummyTimeSince
+	}
 	loggerAPIExitExpected = 2
 	loggerAPIExit = func(session sessionModel.Session, category string, subcategory string, messageFormat string, parameters ...interface{}) {
 		loggerAPIExitCalled++
@@ -328,8 +371,9 @@ func TestHandleInSession_PostActionError_WithResponseError(t *testing.T) {
 			assert.Equal(t, 1, len(parameters))
 			assert.Equal(t, dummyPostActionError, parameters[0])
 		} else if loggerAPIExitCalled == 2 {
-			assert.Zero(t, messageFormat)
-			assert.Equal(t, 0, len(parameters))
+			assert.Equal(t, "%s", messageFormat)
+			assert.Equal(t, 1, len(parameters))
+			assert.Equal(t, dummyTimeSince, parameters[0])
 		}
 	}
 	panicHandleExpected = 1
@@ -365,6 +409,8 @@ func TestHandleInSession_PostActionError_NoResponseError(t *testing.T) {
 	var dummyActionCalled int
 	var dummyResponseObject = "some response object"
 	var dummyPostActionError = errors.New("some post-action error")
+	var dummyStartTime = time.Now()
+	var dummyTimeSince = time.Duration(rand.Intn(1000))
 
 	// mock
 	createMock(t)
@@ -383,6 +429,11 @@ func TestHandleInSession_PostActionError_NoResponseError(t *testing.T) {
 		assert.Equal(t, dummyHTTPRequest, httpRequest)
 		assert.Equal(t, dummyResponseWriter, responseWriter)
 		return dummySessionObject
+	}
+	timeutilGetTimeNowUTCExpected = 1
+	timeutilGetTimeNowUTC = func() time.Time {
+		timeutilGetTimeNowUTCCalled++
+		return dummyStartTime
 	}
 	loggerAPIEnterExpected = 1
 	loggerAPIEnter = func(session sessionModel.Session, category string, subcategory string, messageFormat string, parameters ...interface{}) {
@@ -422,14 +473,21 @@ func TestHandleInSession_PostActionError_NoResponseError(t *testing.T) {
 		assert.Nil(t, responseObject)
 		assert.Equal(t, dummyPostActionError, responseError)
 	}
+	timeSinceExpected = 1
+	timeSince = func(ts time.Time) time.Duration {
+		timeSinceCalled++
+		assert.Equal(t, dummyStartTime, ts)
+		return dummyTimeSince
+	}
 	loggerAPIExitExpected = 1
 	loggerAPIExit = func(session sessionModel.Session, category string, subcategory string, messageFormat string, parameters ...interface{}) {
 		loggerAPIExitCalled++
 		assert.Equal(t, dummySessionObject, session)
 		assert.Equal(t, dummyHTTPRequest.Method, subcategory)
 		assert.Equal(t, dummyEndpoint, category)
-		assert.Zero(t, messageFormat)
-		assert.Equal(t, 0, len(parameters))
+		assert.Equal(t, "%s", messageFormat)
+		assert.Equal(t, 1, len(parameters))
+		assert.Equal(t, dummyTimeSince, parameters[0])
 	}
 	panicHandleExpected = 1
 	panicHandle = func(session sessionModel.Session, recoverResult interface{}) {
@@ -464,6 +522,8 @@ func TestHandleInSession_Success(t *testing.T) {
 	var dummyActionCalled int
 	var dummyResponseObject = "some response object"
 	var dummyResponseError = apperror.GetCustomError(0, "some app error")
+	var dummyStartTime = time.Now()
+	var dummyTimeSince = time.Duration(rand.Intn(1000))
 
 	// mock
 	createMock(t)
@@ -482,6 +542,11 @@ func TestHandleInSession_Success(t *testing.T) {
 		assert.Equal(t, dummyHTTPRequest, httpRequest)
 		assert.Equal(t, dummyResponseWriter, responseWriter)
 		return dummySessionObject
+	}
+	timeutilGetTimeNowUTCExpected = 1
+	timeutilGetTimeNowUTC = func() time.Time {
+		timeutilGetTimeNowUTCCalled++
+		return dummyStartTime
 	}
 	loggerAPIEnterExpected = 1
 	loggerAPIEnter = func(session sessionModel.Session, category string, subcategory string, messageFormat string, parameters ...interface{}) {
@@ -519,14 +584,21 @@ func TestHandleInSession_Success(t *testing.T) {
 		assert.Equal(t, dummyResponseObject, responseObject)
 		assert.Equal(t, dummyResponseError, responseError)
 	}
+	timeSinceExpected = 1
+	timeSince = func(ts time.Time) time.Duration {
+		timeSinceCalled++
+		assert.Equal(t, dummyStartTime, ts)
+		return dummyTimeSince
+	}
 	loggerAPIExitExpected = 1
 	loggerAPIExit = func(session sessionModel.Session, category string, subcategory string, messageFormat string, parameters ...interface{}) {
 		loggerAPIExitCalled++
 		assert.Equal(t, dummySessionObject, session)
 		assert.Equal(t, dummyHTTPRequest.Method, subcategory)
 		assert.Equal(t, dummyEndpoint, category)
-		assert.Zero(t, messageFormat)
-		assert.Equal(t, 0, len(parameters))
+		assert.Equal(t, "%s", messageFormat)
+		assert.Equal(t, 1, len(parameters))
+		assert.Equal(t, dummyTimeSince, parameters[0])
 	}
 	panicHandleExpected = 1
 	panicHandle = func(session sessionModel.Session, recoverResult interface{}) {

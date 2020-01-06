@@ -214,7 +214,7 @@ func createHTTPRequest(networkRequest *networkRequest) (*http.Request, error) {
 	), nil
 }
 
-func logErrorResponse(session sessionModel.Session, responseError error) {
+func logErrorResponse(session sessionModel.Session, responseError error, startTime time.Time) {
 	loggerNetworkResponse(
 		session,
 		"Message",
@@ -226,11 +226,12 @@ func logErrorResponse(session sessionModel.Session, responseError error) {
 		session,
 		"Error",
 		"",
-		"",
+		"%s",
+		timeSince(startTime),
 	)
 }
 
-func logHTTPResponse(session sessionModel.Session, response *http.Response) {
+func logHTTPResponse(session sessionModel.Session, response *http.Response, startTime time.Time) {
 	if response == nil {
 		return
 	}
@@ -260,7 +261,8 @@ func logHTTPResponse(session sessionModel.Session, response *http.Response) {
 		session,
 		httpStatusText(responseStatusCode),
 		strconvItoa(responseStatusCode),
-		"",
+		"%s",
+		timeSince(startTime),
 	)
 }
 
@@ -274,6 +276,7 @@ func doRequestProcessing(networkRequest *networkRequest) (*http.Response, error)
 	var httpClient = getClientForRequestFunc(
 		networkRequest.sendClientCert,
 	)
+	var startTime = timeutilGetTimeNowUTC()
 	var responseObject, responseError = clientDoWithRetryFunc(
 		httpClient,
 		requestObject,
@@ -284,11 +287,13 @@ func doRequestProcessing(networkRequest *networkRequest) (*http.Response, error)
 		logErrorResponseFunc(
 			networkRequest.session,
 			responseError,
+			startTime,
 		)
 	} else {
 		logHTTPResponseFunc(
 			networkRequest.session,
 			responseObject,
+			startTime,
 		)
 	}
 	return responseObject, responseError

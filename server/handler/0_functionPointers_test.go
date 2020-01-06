@@ -3,6 +3,7 @@ package handler
 import (
 	"net/http"
 	"testing"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
@@ -19,6 +20,7 @@ import (
 	"github.com/zhongjie-cai/WebServiceTemplate/server/route"
 	"github.com/zhongjie-cai/WebServiceTemplate/session"
 	sessionModel "github.com/zhongjie-cai/WebServiceTemplate/session/model"
+	"github.com/zhongjie-cai/WebServiceTemplate/timeutil"
 )
 
 var (
@@ -36,6 +38,10 @@ var (
 	loggerAPIExitCalled                   int
 	apperrorGetInvalidOperationExpected   int
 	apperrorGetInvalidOperationCalled     int
+	timeutilGetTimeNowUTCExpected         int
+	timeutilGetTimeNowUTCCalled           int
+	timeSinceExpected                     int
+	timeSinceCalled                       int
 	executeCustomizedFunctionFuncExpected int
 	executeCustomizedFunctionFuncCalled   int
 	customizationPreActionFuncExpected    int
@@ -83,6 +89,18 @@ func createMock(t *testing.T) {
 		apperrorGetInvalidOperationCalled++
 		return nil
 	}
+	timeutilGetTimeNowUTCExpected = 0
+	timeutilGetTimeNowUTCCalled = 0
+	timeutilGetTimeNowUTC = func() time.Time {
+		timeutilGetTimeNowUTCCalled++
+		return time.Time{}
+	}
+	timeSinceExpected = 0
+	timeSinceCalled = 0
+	timeSince = func(ts time.Time) time.Duration {
+		timeSinceCalled++
+		return 0
+	}
 	executeCustomizedFunctionFuncExpected = 0
 	executeCustomizedFunctionFuncCalled = 0
 	executeCustomizedFunctionFunc = func(session sessionModel.Session, customFunc func(sessionModel.Session) error) error {
@@ -118,6 +136,10 @@ func verifyAll(t *testing.T) {
 	assert.Equal(t, loggerAPIExitExpected, loggerAPIExitCalled, "Unexpected number of calls to loggerAPIExit")
 	apperrorGetInvalidOperation = apperror.GetInvalidOperation
 	assert.Equal(t, apperrorGetInvalidOperationExpected, apperrorGetInvalidOperationCalled, "Unexpected number of calls to apperrorGetInvalidOperation")
+	timeutilGetTimeNowUTC = timeutil.GetTimeNowUTC
+	assert.Equal(t, timeutilGetTimeNowUTCExpected, timeutilGetTimeNowUTCCalled, "Unexpected number of calls to timeutilGetTimeNowUTC")
+	timeSince = time.Since
+	assert.Equal(t, timeSinceExpected, timeSinceCalled, "Unexpected number of calls to timeSince")
 	executeCustomizedFunctionFunc = executeCustomizedFunction
 	assert.Equal(t, executeCustomizedFunctionFuncExpected, executeCustomizedFunctionFuncCalled, "Unexpected number of calls to executeCustomizedFunctionFunc")
 	customization.PreActionFunc = nil

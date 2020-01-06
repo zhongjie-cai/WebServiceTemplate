@@ -13,6 +13,7 @@ import (
 	"github.com/zhongjie-cai/WebServiceTemplate/headerutil"
 	"github.com/zhongjie-cai/WebServiceTemplate/jsonutil"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger"
+	"github.com/zhongjie-cai/WebServiceTemplate/timeutil"
 )
 
 // func pointers for injection / testing: logCategory.go
@@ -30,6 +31,8 @@ var (
 	strconvItoa                     = strconv.Itoa
 	ioutilNopCloser                 = ioutil.NopCloser
 	bytesNewBuffer                  = bytes.NewBuffer
+	timeutilGetTimeNowUTC           = timeutil.GetTimeNowUTC
+	timeSince                       = time.Since
 	timeSleep                       = time.Sleep
 	headerutilLogHTTPHeader         = headerutil.LogHTTPHeader
 	createHTTPRequestFunc           = createHTTPRequest

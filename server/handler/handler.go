@@ -38,6 +38,7 @@ func Session(
 			recover(),
 		)
 	}()
+	var startTime = timeutilGetTimeNowUTC()
 	if routeError != nil {
 		loggerAPIEnter(
 			session,
@@ -56,7 +57,8 @@ func Session(
 			session,
 			endpoint,
 			httpRequest.Method,
-			"",
+			"%s",
+			timeSince(startTime),
 		)
 	} else {
 		loggerAPIEnter(
@@ -116,7 +118,8 @@ func Session(
 			session,
 			endpoint,
 			httpRequest.Method,
-			"",
+			"%s",
+			timeSince(startTime),
 		)
 	}
 }
