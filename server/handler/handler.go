@@ -32,26 +32,17 @@ func Session(
 		httpRequest,
 		responseWriter,
 	)
+	loggerAPIEnter(
+		session,
+		endpoint,
+		httpRequest.Method,
+		"",
+	)
+	var startTime = timeutilGetTimeNowUTC()
 	defer func() {
 		panicHandle(
 			session,
 			recover(),
-		)
-	}()
-	var startTime = timeutilGetTimeNowUTC()
-	if routeError != nil {
-		loggerAPIEnter(
-			session,
-			endpoint,
-			httpRequest.Method,
-			"",
-		)
-		responseWrite(
-			session,
-			nil,
-			apperrorGetInvalidOperation(
-				routeError,
-			),
 		)
 		loggerAPIExit(
 			session,
@@ -60,13 +51,16 @@ func Session(
 			"%s",
 			timeSince(startTime),
 		)
-	} else {
-		loggerAPIEnter(
+	}()
+	if routeError != nil {
+		responseWrite(
 			session,
-			endpoint,
-			httpRequest.Method,
-			"",
+			nil,
+			apperrorGetInvalidOperation(
+				routeError,
+			),
 		)
+	} else {
 		var preActionError = executeCustomizedFunctionFunc(
 			session,
 			customization.PreActionFunc,
@@ -114,12 +108,5 @@ func Session(
 				)
 			}
 		}
-		loggerAPIExit(
-			session,
-			endpoint,
-			httpRequest.Method,
-			"%s",
-			timeSince(startTime),
-		)
 	}
 }
