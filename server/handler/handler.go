@@ -32,13 +32,13 @@ func Session(
 		httpRequest,
 		responseWriter,
 	)
+	var startTime = timeutilGetTimeNowUTC()
 	loggerAPIEnter(
 		session,
 		endpoint,
 		httpRequest.Method,
 		"",
 	)
-	var startTime = timeutilGetTimeNowUTC()
 	defer func() {
 		panicHandle(
 			session,
