@@ -40,12 +40,9 @@ func createServer(
 		}
 	}
 	return &http.Server{
-		Addr:         ":" + appPort,
-		TLSConfig:    tlsConfig,
-		Handler:      router,
-		WriteTimeout: time.Second * 60,
-		ReadTimeout:  time.Second * 60,
-		IdleTimeout:  time.Second * 180,
+		Addr:      ":" + appPort,
+		TLSConfig: tlsConfig,
+		Handler:   router,
 	}
 }
 

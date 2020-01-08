@@ -45,9 +45,9 @@ func TestCreateServer_NoHTTPS(t *testing.T) {
 	assert.Empty(t, server.TLSConfig.CipherSuites)
 	assert.Equal(t, true, server.TLSConfig.PreferServerCipherSuites)
 	assert.Equal(t, uint16(tls.VersionTLS12), server.TLSConfig.MinVersion)
-	assert.Equal(t, time.Second*60, server.WriteTimeout)
-	assert.Equal(t, time.Second*60, server.ReadTimeout)
-	assert.Equal(t, time.Second*180, server.IdleTimeout)
+	assert.Zero(t, server.WriteTimeout)
+	assert.Zero(t, server.ReadTimeout)
+	assert.Zero(t, server.IdleTimeout)
 
 	// verify
 	verifyAll(t)
@@ -90,9 +90,9 @@ func TestCreateServer_HTTPS_NoValidateClientCert(t *testing.T) {
 	assert.Empty(t, server.TLSConfig.CipherSuites)
 	assert.Equal(t, true, server.TLSConfig.PreferServerCipherSuites)
 	assert.Equal(t, uint16(tls.VersionTLS12), server.TLSConfig.MinVersion)
-	assert.Equal(t, time.Second*60, server.WriteTimeout)
-	assert.Equal(t, time.Second*60, server.ReadTimeout)
-	assert.Equal(t, time.Second*180, server.IdleTimeout)
+	assert.Zero(t, server.WriteTimeout)
+	assert.Zero(t, server.ReadTimeout)
+	assert.Zero(t, server.IdleTimeout)
 
 	// verify
 	verifyAll(t)
@@ -140,9 +140,9 @@ func TestCreateServer_HTTPS_NoCaCert(t *testing.T) {
 	assert.Empty(t, server.TLSConfig.CipherSuites)
 	assert.Equal(t, true, server.TLSConfig.PreferServerCipherSuites)
 	assert.Equal(t, uint16(tls.VersionTLS12), server.TLSConfig.MinVersion)
-	assert.Equal(t, time.Second*60, server.WriteTimeout)
-	assert.Equal(t, time.Second*60, server.ReadTimeout)
-	assert.Equal(t, time.Second*180, server.IdleTimeout)
+	assert.Zero(t, server.WriteTimeout)
+	assert.Zero(t, server.ReadTimeout)
+	assert.Zero(t, server.IdleTimeout)
 
 	// verify
 	verifyAll(t)
@@ -191,9 +191,9 @@ func TestCreateServer_HTTPS_ValidateClientCert(t *testing.T) {
 	assert.Empty(t, server.TLSConfig.CipherSuites)
 	assert.Equal(t, true, server.TLSConfig.PreferServerCipherSuites)
 	assert.Equal(t, uint16(tls.VersionTLS12), server.TLSConfig.MinVersion)
-	assert.Equal(t, time.Second*60, server.WriteTimeout)
-	assert.Equal(t, time.Second*60, server.ReadTimeout)
-	assert.Equal(t, time.Second*180, server.IdleTimeout)
+	assert.Zero(t, server.WriteTimeout)
+	assert.Zero(t, server.ReadTimeout)
+	assert.Zero(t, server.IdleTimeout)
 
 	// verify
 	verifyAll(t)
