@@ -231,6 +231,11 @@ func (session *dummySession) Detach(name string) bool {
 	return false
 }
 
+func (session *dummySession) GetRawAttachment(name string) (interface{}, bool) {
+	assert.Fail(session.t, "Unexpected call to GetRawAttachment")
+	return nil, false
+}
+
 func (session *dummySession) GetAttachment(name string, dataTemplate interface{}) bool {
 	assert.Fail(session.t, "Unexpected call to GetAttachment")
 	return false

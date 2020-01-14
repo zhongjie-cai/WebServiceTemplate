@@ -306,12 +306,21 @@ func (session *session) Detach(name string) bool {
 	return true
 }
 
-// GetAttachment retrieves any value object from the given session associated to the session ID and unmarshals the content to given data template
-func (session *session) GetAttachment(name string, dataTemplate interface{}) bool {
+// GetRawAttachment retrieves any value object from the given session associated to the session ID and returns the raw interface (consumer needs to manually cast, but works for struct with private fields)
+func (session *session) GetRawAttachment(name string) (interface{}, bool) {
 	if session == nil {
-		return false
+		return nil, false
 	}
 	var attachment, found = session.attachment[name]
+	if !found {
+		return nil, false
+	}
+	return attachment, true
+}
+
+// GetAttachment retrieves any value object from the given session associated to the session ID and unmarshals the content to given data template
+func (session *session) GetAttachment(name string, dataTemplate interface{}) bool {
+	var attachment, found = session.GetRawAttachment(name)
 	if !found {
 		return false
 	}

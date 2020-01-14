@@ -1323,6 +1323,84 @@ func TestDetach_WithAttachment(t *testing.T) {
 	verifyAll(t)
 }
 
+func TestGetRawAttachment_NoSession(t *testing.T) {
+	// arrange
+	var dummyName = "some name"
+
+	// mock
+	createMock(t)
+
+	// SUT
+	var dummySessionObject *session
+
+	// act
+	var result, found = dummySessionObject.GetRawAttachment(
+		dummyName,
+	)
+
+	// assert
+	assert.Nil(t, result)
+	assert.False(t, found)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestGetRawAttachment_NoAttachment(t *testing.T) {
+	// arrange
+	var dummyName = "some name"
+
+	// mock
+	createMock(t)
+
+	// SUT
+	var dummySessionObject = &session{}
+
+	// act
+	var result, found = dummySessionObject.GetRawAttachment(
+		dummyName,
+	)
+
+	// assert
+	assert.Nil(t, result)
+	assert.False(t, found)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestGetRawAttachment_Success(t *testing.T) {
+	// arrange
+	var dummyName = "some name"
+	var dummyValue = dummyAttachment{
+		Foo:  "bar",
+		Test: rand.Intn(100),
+		ID:   uuid.New(),
+	}
+
+	// mock
+	createMock(t)
+
+	// SUT
+	var dummySessionObject = &session{
+		attachment: map[string]interface{}{
+			dummyName: dummyValue,
+		},
+	}
+
+	// act
+	var result, found = dummySessionObject.GetRawAttachment(
+		dummyName,
+	)
+
+	// assert
+	assert.Equal(t, dummyValue, result)
+	assert.True(t, found)
+
+	// verify
+	verifyAll(t)
+}
+
 func TestGetAttachment_NoSession(t *testing.T) {
 	// arrange
 	var dummyName = "some name"

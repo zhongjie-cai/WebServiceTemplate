@@ -77,7 +77,10 @@ type SessionAttachment interface {
 	// Detach detaches any value object from the given session associated to the session ID
 	Detach(name string) bool
 
-	// GetAttachment retrieves any value object from the given session associated to the session ID and unmarshals the content to given data template
+	// GetRawAttachment retrieves any value object from the given session associated to the session ID and returns the raw interface (consumer needs to manually cast, but works for struct with private fields)
+	GetRawAttachment(name string) (interface{}, bool)
+
+	// GetAttachment retrieves any value object from the given session associated to the session ID and unmarshals the content to given data template (only works for structs with exported fields)
 	GetAttachment(name string, dataTemplate interface{}) bool
 }
 
