@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"net/http"
 	"time"
 
 	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
@@ -12,7 +13,7 @@ import (
 	"github.com/zhongjie-cai/WebServiceTemplate/timeutil"
 )
 
-// func pointers for injection / testing: common.go
+// func pointers for injection / testing: handler.go
 var (
 	routeGetRouteInfo             = route.GetRouteInfo
 	sessionRegister               = session.Register
@@ -24,4 +25,10 @@ var (
 	timeutilGetTimeNowUTC         = timeutil.GetTimeNowUTC
 	timeSince                     = time.Since
 	executeCustomizedFunctionFunc = executeCustomizedFunction
+)
+
+// func pointers for injection / testing: methodNotAllowed.go
+var (
+	loggerAppRoot = logger.AppRoot
+	httpError     = http.Error
 )

@@ -8,6 +8,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/zhongjie-cai/WebServiceTemplate/server/handler"
+
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
 	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
@@ -601,6 +603,26 @@ func TestRegisterMiddlewares_ValidMiddlewares(t *testing.T) {
 	assert.Equal(t, MiddlewaresExpected, MiddlewaresCalled, "Unexpected number of calls to Middlewares")
 }
 
+func TestRegisterErrorHandlers(t *testing.T) {
+	// arrange
+	var dummyRouter = &mux.Router{}
+
+	// mock
+	createMock(t)
+
+	// SUT + act
+	registerErrorHandlers(
+		dummyRouter,
+	)
+
+	// assert
+	assert.IsType(t, &handler.MethodNotAllowedHandler{}, dummyRouter.MethodNotAllowedHandler)
+	assert.IsType(t, &handler.NotFoundHandler{}, dummyRouter.NotFoundHandler)
+
+	// verify
+	verifyAll(t)
+}
+
 func TestInstrumentRouter_NoCustomization(t *testing.T) {
 	// arrange
 	var dummyRouter = &mux.Router{}
@@ -740,6 +762,11 @@ func TestInstantiate_Success(t *testing.T) {
 		routeWalkRegisteredRoutesCalled++
 		assert.Equal(t, dummyRouter, router)
 		return nil
+	}
+	registerErrorHandlersFuncExpected = 1
+	registerErrorHandlersFunc = func(router *mux.Router) {
+		registerErrorHandlersFuncCalled++
+		assert.Equal(t, dummyRouter, router)
 	}
 	instrumentRouterFuncExpected = 1
 	instrumentRouterFunc = func(router *mux.Router) *mux.Router {

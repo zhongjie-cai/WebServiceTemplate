@@ -28,5 +28,6 @@ var (
 	registerRoutesFunc             = registerRoutes
 	registerStaticsFunc            = registerStatics
 	registerMiddlewaresFunc        = registerMiddlewares
+	registerErrorHandlersFunc      = registerErrorHandlers
 	instrumentRouterFunc           = instrumentRouter
 )

@@ -3,6 +3,7 @@ package register
 import (
 	"github.com/gorilla/mux"
 	"github.com/zhongjie-cai/WebServiceTemplate/customization"
+	"github.com/zhongjie-cai/WebServiceTemplate/server/handler"
 	"github.com/zhongjie-cai/WebServiceTemplate/server/model"
 )
 
@@ -181,6 +182,11 @@ func registerMiddlewares(
 	}
 }
 
+func registerErrorHandlers(router *mux.Router) {
+	router.MethodNotAllowedHandler = &handler.MethodNotAllowedHandler{}
+	router.NotFoundHandler = &handler.NotFoundHandler{}
+}
+
 func instrumentRouter(router *mux.Router) *mux.Router {
 	if customization.InstrumentRouter == nil {
 		return router
@@ -210,5 +216,8 @@ func Instantiate() (*mux.Router, error) {
 				"Failed to instantiate routes",
 			)
 	}
+	registerErrorHandlersFunc(
+		router,
+	)
 	return instrumentRouterFunc(router), nil
 }

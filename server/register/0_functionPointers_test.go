@@ -50,6 +50,8 @@ var (
 	registerStaticsFuncCalled              int
 	registerMiddlewaresFuncExpected        int
 	registerMiddlewaresFuncCalled          int
+	registerErrorHandlersFuncExpected      int
+	registerErrorHandlersFuncCalled        int
 	instrumentRouterFuncExpected           int
 	instrumentRouterFuncCalled             int
 	customizationInstrumentRouterExpected  int
@@ -147,6 +149,11 @@ func createMock(t *testing.T) {
 	registerMiddlewaresFunc = func(router *mux.Router) {
 		registerMiddlewaresFuncCalled++
 	}
+	registerErrorHandlersFuncExpected = 0
+	registerErrorHandlersFuncCalled = 0
+	registerErrorHandlersFunc = func(router *mux.Router) {
+		registerErrorHandlersFuncCalled++
+	}
 	instrumentRouterFuncExpected = 0
 	instrumentRouterFuncCalled = 0
 	instrumentRouterFunc = func(router *mux.Router) *mux.Router {
@@ -191,6 +198,8 @@ func verifyAll(t *testing.T) {
 	assert.Equal(t, registerStaticsFuncExpected, registerStaticsFuncCalled, "Unexpected number of calls to registerStaticsFunc")
 	registerMiddlewaresFunc = registerMiddlewares
 	assert.Equal(t, registerMiddlewaresFuncExpected, registerMiddlewaresFuncCalled, "Unexpected number of calls to registerMiddlewaresFunc")
+	registerErrorHandlersFunc = registerErrorHandlers
+	assert.Equal(t, registerErrorHandlersFuncExpected, registerErrorHandlersFuncCalled, "Unexpected number of calls to registerErrorHandlersFunc")
 	instrumentRouterFunc = instrumentRouter
 	assert.Equal(t, instrumentRouterFuncExpected, instrumentRouterFuncCalled, "Unexpected number of calls to instrumentRouterFunc")
 	customization.InstrumentRouter = nil

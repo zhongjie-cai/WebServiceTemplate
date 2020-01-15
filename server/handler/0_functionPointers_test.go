@@ -48,6 +48,10 @@ var (
 	customizationPreActionFuncCalled      int
 	customizationPostActionFuncExpected   int
 	customizationPostActionFuncCalled     int
+	loggerAppRootExpected                 int
+	loggerAppRootCalled                   int
+	httpErrorExpected                     int
+	httpErrorCalled                       int
 )
 
 func createMock(t *testing.T) {
@@ -119,6 +123,16 @@ func createMock(t *testing.T) {
 		customizationPostActionFuncCalled++
 		return nil
 	}
+	loggerAppRootExpected = 0
+	loggerAppRootCalled = 0
+	loggerAppRoot = func(category string, subcategory string, messageFormat string, parameters ...interface{}) {
+		loggerAppRootCalled++
+	}
+	httpErrorExpected = 0
+	httpErrorCalled = 0
+	httpError = func(w http.ResponseWriter, error string, code int) {
+		httpErrorCalled++
+	}
 }
 
 func verifyAll(t *testing.T) {
@@ -146,6 +160,10 @@ func verifyAll(t *testing.T) {
 	assert.Equal(t, customizationPreActionFuncExpected, customizationPreActionFuncCalled, "Unexpected number of calls to customization.PreActionFunc")
 	customization.PostActionFunc = nil
 	assert.Equal(t, customizationPostActionFuncExpected, customizationPostActionFuncCalled, "Unexpected number of calls to customization.PostActionFunc")
+	loggerAppRoot = logger.AppRoot
+	assert.Equal(t, loggerAppRootExpected, loggerAppRootCalled, "Unexpected number of calls to loggerAppRoot")
+	httpError = http.Error
+	assert.Equal(t, httpErrorExpected, httpErrorCalled, "Unexpected number of calls to httpError")
 }
 
 // mock structs
