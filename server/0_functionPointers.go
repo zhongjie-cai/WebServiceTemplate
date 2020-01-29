@@ -13,7 +13,7 @@ import (
 // func pointers for injection / testing: server.go
 var (
 	certificateGetServerCertificate = certificate.GetServerCertificate
-	certificateGetCaCertPool    = certificate.GetCaCertPool
+	certificateGetCaCertPool        = certificate.GetCaCertPool
 	apperrorWrapSimpleError         = apperror.WrapSimpleError
 	registerInstantiate             = register.Instantiate
 	loggerAppRoot                   = logger.AppRoot

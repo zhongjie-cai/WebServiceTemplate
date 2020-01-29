@@ -1439,8 +1439,8 @@ func TestNetworkRequestProcess_Error_ValidObject(t *testing.T) {
 	// arrange
 	var dummyStatusCode = rand.Int()
 	var dummyHeader = map[string][]string{
-		"foo":  []string{"bar"},
-		"test": []string{"123", "456", "789"},
+		"foo":  {"bar"},
+		"test": {"123", "456", "789"},
 	}
 	var dummyResponseObject = &http.Response{
 		StatusCode: dummyStatusCode,
@@ -1517,8 +1517,8 @@ func TestNetworkRequestProcess_Success_ValidObject(t *testing.T) {
 	// arrange
 	var dummyStatusCode = rand.Int()
 	var dummyHeader = map[string][]string{
-		"foo":  []string{"bar"},
-		"test": []string{"123", "456", "789"},
+		"foo":  {"bar"},
+		"test": {"123", "456", "789"},
 	}
 	var dummyBody = ioutil.NopCloser(bytes.NewBufferString("some body"))
 	var dummyResponseObject = &http.Response{

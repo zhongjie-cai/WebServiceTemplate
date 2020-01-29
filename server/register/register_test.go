@@ -108,11 +108,11 @@ func TestEvaluatePathWithParameters(t *testing.T) {
 	// arrange
 	var dummyOriginalPath = "some original path"
 	var dummyParameterName1 = "some parameter name 1"
-	var dummyParameterType1 = model.ParameterType("some paramter type 1")
+	var dummyParameterType1 = model.ParameterType("some parameter type 1")
 	var dummyParameterName2 = "some parameter name 2"
-	var dummyParameterType2 = model.ParameterType("some paramter type 2")
+	var dummyParameterType2 = model.ParameterType("some parameter type 2")
 	var dummyParameterName3 = "some parameter name 3"
-	var dummyParameterType3 = model.ParameterType("some paramter type 3")
+	var dummyParameterType3 = model.ParameterType("some parameter type 3")
 	var dummyParameters = map[string]model.ParameterType{
 		dummyParameterName1: dummyParameterType1,
 		dummyParameterName2: dummyParameterType2,
@@ -158,7 +158,7 @@ func TestEvaluateQueries(t *testing.T) {
 	var dummyQueryName1 = "some query name 1"
 	var dummyParameterType1 model.ParameterType
 	var dummyQueryName2 = "some query name 2"
-	var dummyParameterType2 = model.ParameterType("some paramter type 2")
+	var dummyParameterType2 = model.ParameterType("some parameter type 2")
 	var dummyQueries = map[string]model.ParameterType{
 		dummyQueryName1: dummyParameterType1,
 		dummyQueryName2: dummyParameterType2,
@@ -287,7 +287,7 @@ func TestRegisterRoutes_ValidRoutes(t *testing.T) {
 	}
 	var dummyActionFunc2Pointer = fmt.Sprintf("%v", reflect.ValueOf(dummyActionFunc2))
 	var dummyRoutes = []model.Route{
-		model.Route{
+		{
 			Endpoint:   dummyEndpoint1,
 			Method:     dummyMethod1,
 			Path:       dummyPath1,
@@ -295,7 +295,7 @@ func TestRegisterRoutes_ValidRoutes(t *testing.T) {
 			Queries:    dummyQueries1,
 			ActionFunc: dummyActionFunc1,
 		},
-		model.Route{
+		{
 			Endpoint:   dummyEndpoint2,
 			Method:     dummyMethod2,
 			Path:       dummyPath2,
@@ -447,12 +447,12 @@ func TestRegisterStatics_ValidStatics(t *testing.T) {
 	var dummyPathPrefix2 = "some path prefix 2"
 	var dummyHandler2 = dummyHandler{t}
 	var dummyStatics = []model.Static{
-		model.Static{
+		{
 			Name:       dummyName1,
 			PathPrefix: dummyPathPrefix1,
 			Handler:    dummyHandler1,
 		},
-		model.Static{
+		{
 			Name:       dummyName2,
 			PathPrefix: dummyPathPrefix2,
 			Handler:    dummyHandler2,

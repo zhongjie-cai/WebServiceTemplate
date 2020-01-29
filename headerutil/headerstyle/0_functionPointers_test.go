@@ -4,8 +4,6 @@ import (
 	"testing"
 )
 
-var ()
-
 func createMock(t *testing.T) {
 }
 

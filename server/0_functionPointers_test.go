@@ -22,8 +22,8 @@ import (
 var (
 	certificateGetServerCertificateExpected int
 	certificateGetServerCertificateCalled   int
-	certificateGetCaCertPoolExpected    int
-	certificateGetCaCertPoolCalled      int
+	certificateGetCaCertPoolExpected        int
+	certificateGetCaCertPoolCalled          int
 	apperrorWrapSimpleErrorExpected         int
 	apperrorWrapSimpleErrorCalled           int
 	registerInstantiateExpected             int

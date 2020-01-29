@@ -813,7 +813,7 @@ func TestGetRequestQueries_HappyPath(t *testing.T) {
 func TestGetAllHeaders_NotFound(t *testing.T) {
 	// arrange
 	var dummyName = "some name"
-	var dummyCanonicalName = "some conanical name"
+	var dummyCanonicalName = "some canonical name"
 	var dummyHTTPRequest = &http.Request{
 		Header: http.Header{},
 	}
@@ -852,7 +852,7 @@ func TestGetAllHeaders_NotFound(t *testing.T) {
 func TestGetAllHeaders_HappyPath(t *testing.T) {
 	// arrange
 	var dummyName = "some name"
-	var dummyCanonicalName = "some conanical name"
+	var dummyCanonicalName = "some canonical name"
 	var dummyHTTPRequest = &http.Request{
 		Header: http.Header{},
 	}
