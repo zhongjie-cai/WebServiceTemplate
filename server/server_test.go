@@ -135,7 +135,7 @@ func TestCreateServer_HTTPS_NoCaCert(t *testing.T) {
 	assert.NotNil(t, server.TLSConfig)
 	assert.Equal(t, 1, len(server.TLSConfig.Certificates))
 	assert.Equal(t, *dummyServerCert, server.TLSConfig.Certificates[0])
-	assert.Equal(t, tls.RequestClientCert, server.TLSConfig.ClientAuth)
+	assert.Equal(t, tls.RequireAnyClientCert, server.TLSConfig.ClientAuth)
 	assert.Nil(t, server.TLSConfig.ClientCAs)
 	assert.Empty(t, server.TLSConfig.CipherSuites)
 	assert.Equal(t, true, server.TLSConfig.PreferServerCipherSuites)
