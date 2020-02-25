@@ -54,6 +54,9 @@ var DefaultAllowedLogLevel = defaultAllowedLogLevel
 // DefaultNetworkTimeout returns the default network timeout value of the application
 var DefaultNetworkTimeout = defaultNetworkTimeout
 
+// SkipServerCertVerification returns the choice whether or not skipping the server certificate verification for network communications
+var SkipServerCertVerification = defaultSkipServerCertVerification
+
 func defaultAppVersion() string {
 	return "0.0.0.0"
 }
@@ -112,6 +115,10 @@ func defaultAllowedLogLevel() loglevel.LogLevel {
 
 func defaultNetworkTimeout() time.Duration {
 	return 3 * time.Minute
+}
+
+func defaultSkipServerCertVerification() bool {
+	return false
 }
 
 func functionPointerEquals(left, right interface{}) bool {
@@ -249,6 +256,7 @@ func Initialize() error {
 		defaultAllowedLogTypeError  error
 		defaultAllowedLogLevelError error
 		defaultNetworkTimeoutError  error
+		skipServerCertVerifyError   error
 	)
 	AppVersion, appVersionError = validateStringFunctionFunc(
 		customization.AppVersion,
@@ -334,6 +342,12 @@ func Initialize() error {
 		customization.DefaultNetworkTimeout,
 		defaultNetworkTimeout,
 	)
+	SkipServerCertVerification, skipServerCertVerifyError = validateBooleanFunctionFunc(
+		customization.SkipServerCertVerification,
+		"SkipServerCertVerification",
+		defaultSkipServerCertVerification,
+		noForceToDefault,
+	)
 	return apperrorWrapSimpleError(
 		[]error{
 			appVersionError,
@@ -351,6 +365,7 @@ func Initialize() error {
 			defaultAllowedLogTypeError,
 			defaultAllowedLogLevelError,
 			defaultNetworkTimeoutError,
+			skipServerCertVerifyError,
 		},
 		"Unexpected errors occur during configuration initialization",
 	)

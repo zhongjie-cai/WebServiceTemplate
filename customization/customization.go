@@ -118,6 +118,9 @@ var DefaultNetworkRetryDelay func() time.Duration
 // DefaultNetworkTimeout is to customize the default timeout for any network communications through HTTP/HTTPS by session
 var DefaultNetworkTimeout func() time.Duration
 
+// SkipServerCertVerification is to customize the skip of server certificate verification for any network communications through HTTP/HTTPS by session
+var SkipServerCertVerification func() bool
+
 // Reset clears all customization of functions for the whole application
 func Reset() {
 	PreBootstrapFunc = nil
@@ -155,4 +158,5 @@ func Reset() {
 	WrapHTTPRequest = nil
 	DefaultNetworkRetryDelay = nil
 	DefaultNetworkTimeout = nil
+	SkipServerCertVerification = nil
 }

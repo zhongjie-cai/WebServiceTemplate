@@ -478,6 +478,7 @@ func TestCustomizeRoundTripper_WithCustomization(t *testing.T) {
 func TestGetHTTPTransport_NoSendClientCert(t *testing.T) {
 	// arrange
 	var dummySendClientCert = false
+	var dummySkipServerCertVerification = rand.Intn(100) < 50
 	var dummyRoundTripper = &http.Transport{}
 
 	// mock
@@ -494,6 +495,7 @@ func TestGetHTTPTransport_NoSendClientCert(t *testing.T) {
 	// SUT + act
 	var result = getHTTPTransport(
 		dummySendClientCert,
+		dummySkipServerCertVerification,
 	)
 
 	// assert
@@ -506,6 +508,7 @@ func TestGetHTTPTransport_NoSendClientCert(t *testing.T) {
 func TestGetHTTPTransport_SendClientCert_NoCertFound(t *testing.T) {
 	// arrange
 	var dummySendClientCert = true
+	var dummySkipServerCertVerification = rand.Intn(100) < 50
 	var dummyClientCert *tls.Certificate
 	var dummyRoundTripper = &http.Transport{}
 
@@ -536,6 +539,7 @@ func TestGetHTTPTransport_SendClientCert_NoCertFound(t *testing.T) {
 	// SUT + act
 	var result = getHTTPTransport(
 		dummySendClientCert,
+		dummySkipServerCertVerification,
 	)
 
 	// assert
@@ -548,6 +552,7 @@ func TestGetHTTPTransport_SendClientCert_NoCertFound(t *testing.T) {
 func TestGetHTTPTransport_SendClientCert_CertFound(t *testing.T) {
 	// arrange
 	var dummySendClientCert = true
+	var dummySkipServerCertVerification = rand.Intn(100) < 50
 	var dummyClientCert = &tls.Certificate{}
 	var dummyRoundTripper = &http.Transport{}
 
@@ -570,6 +575,7 @@ func TestGetHTTPTransport_SendClientCert_CertFound(t *testing.T) {
 	// SUT + act
 	var result = getHTTPTransport(
 		dummySendClientCert,
+		dummySkipServerCertVerification,
 	)
 
 	// assert
@@ -582,6 +588,7 @@ func TestGetHTTPTransport_SendClientCert_CertFound(t *testing.T) {
 func TestInitialize(t *testing.T) {
 	// arrange
 	var dummyNetworkTimeout = time.Duration(rand.Int())
+	var dummySkipServerCertVerification = rand.Intn(100) < 50
 	var dummyHTTPTransport1 = &http.Transport{MaxConnsPerHost: rand.Int()}
 	var dummyHTTPTransport2 = &http.Transport{MaxConnsPerHost: rand.Int()}
 
@@ -590,8 +597,9 @@ func TestInitialize(t *testing.T) {
 
 	// expect
 	getHTTPTransportFuncExpected = 2
-	getHTTPTransportFunc = func(sendClientCert bool) http.RoundTripper {
+	getHTTPTransportFunc = func(sendClientCert bool, skipServerCertVerification bool) http.RoundTripper {
 		getHTTPTransportFuncCalled++
+		assert.Equal(t, dummySkipServerCertVerification, skipServerCertVerification)
 		if getHTTPTransportFuncCalled == 1 {
 			assert.True(t, sendClientCert)
 			return dummyHTTPTransport1
@@ -605,6 +613,7 @@ func TestInitialize(t *testing.T) {
 	// SUT + act
 	Initialize(
 		dummyNetworkTimeout,
+		dummySkipServerCertVerification,
 	)
 
 	// assert

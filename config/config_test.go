@@ -272,6 +272,23 @@ func TestDefaultNetworkTimeout(t *testing.T) {
 	verifyAll(t)
 }
 
+func TestSkipServerCertVerification(t *testing.T) {
+	// arrange
+	var expectedResult = false
+
+	// mock
+	createMock(t)
+
+	// SUT + act
+	var result = defaultSkipServerCertVerification()
+
+	// assert
+	assert.Equal(t, expectedResult, result)
+
+	// verify
+	verifyAll(t)
+}
+
 func TestFunctionPointerEquals_AllDifferent(t *testing.T) {
 	// arrange
 	var dummyLeft = func(foo int) string { return "bar" }
@@ -1332,35 +1349,39 @@ func TestInitialize(t *testing.T) {
 		fmt.Sprintf("%v", reflect.ValueOf(customization.IsLocalhost)),
 		fmt.Sprintf("%v", reflect.ValueOf(customization.ServeHTTPS)),
 		fmt.Sprintf("%v", reflect.ValueOf(customization.ValidateClientCert)),
+		fmt.Sprintf("%v", reflect.ValueOf(customization.SkipServerCertVerification)),
 	}
 	var expectedValidateBooleanFunctionFuncParameter2 = []string{
 		"IsLocalhost",
 		"ServeHTTPS",
 		"ValidateClientCert",
+		"SkipServerCertVerification",
 	}
 	var expectedValidateBooleanFunctionFuncParameter3 = []string{
 		fmt.Sprintf("%v", reflect.ValueOf(defaultIsLocalhost)),
 		fmt.Sprintf("%v", reflect.ValueOf(defaultServeHTTPS)),
 		fmt.Sprintf("%v", reflect.ValueOf(defaultValidateClientCert)),
+		fmt.Sprintf("%v", reflect.ValueOf(defaultSkipServerCertVerification)),
 	}
 	var dummyIsServerCertificateAvailable = rand.Intn(100) < 50
 	var dummyIsCaCertificateAvailable = rand.Intn(100) < 50
-	var dummyIsClientCertificateAvailable = rand.Intn(100) < 50
 	var expectedValidateBooleanFunctionFuncParameter4 = []bool{
 		false,
 		!dummyIsServerCertificateAvailable,
 		!dummyIsCaCertificateAvailable,
-		!dummyIsClientCertificateAvailable,
+		false,
 	}
 	var expectedValidateBooleanFunctionFuncReturn1 = []func() bool{
 		defaultIsLocalhost,
 		defaultServeHTTPS,
 		defaultValidateClientCert,
+		defaultSkipServerCertVerification,
 	}
 	var expectedValidateBooleanFunctionFuncReturn2 = []error{
 		errors.New("some IsLocalhost error"),
 		errors.New("some ServeHTTPS error"),
 		errors.New("some ValidateClientCert error"),
+		errors.New("some SkipServerCertVerification error"),
 	}
 	var expectedDefaultAllowedLogTypeError = errors.New("some default allowed log type error")
 	var expectedDefaultAllowedLogLevelError = errors.New("some default allowed log level error")
@@ -1382,7 +1403,7 @@ func TestInitialize(t *testing.T) {
 		return expectedValidateStringFunctionFuncReturn1[validateStringFunctionFuncCalled-1],
 			expectedValidateStringFunctionFuncReturn2[validateStringFunctionFuncCalled-1]
 	}
-	validateBooleanFunctionFuncExpected = 3
+	validateBooleanFunctionFuncExpected = 4
 	validateBooleanFunctionFunc = func(booleanFunc func() bool, name string, defaultFunc func() bool, forceToDefault bool) (func() bool, error) {
 		validateBooleanFunctionFuncCalled++
 		assert.Equal(t, expectedValidateBooleanFunctionFuncParameter1[validateBooleanFunctionFuncCalled-1], fmt.Sprintf("%v", reflect.ValueOf(booleanFunc)))
@@ -1426,7 +1447,7 @@ func TestInitialize(t *testing.T) {
 	apperrorWrapSimpleErrorExpected = 1
 	apperrorWrapSimpleError = func(innerErrors []error, messageFormat string, parameters ...interface{}) apperrorModel.AppError {
 		apperrorWrapSimpleErrorCalled++
-		assert.Equal(t, 15, len(innerErrors))
+		assert.Equal(t, 16, len(innerErrors))
 		assert.Equal(t, expectedValidateStringFunctionFuncReturn2[0], innerErrors[0])
 		assert.Equal(t, expectedValidateStringFunctionFuncReturn2[1], innerErrors[1])
 		assert.Equal(t, expectedValidateStringFunctionFuncReturn2[2], innerErrors[2])
@@ -1442,6 +1463,7 @@ func TestInitialize(t *testing.T) {
 		assert.Equal(t, expectedDefaultAllowedLogTypeError, innerErrors[12])
 		assert.Equal(t, expectedDefaultAllowedLogLevelError, innerErrors[13])
 		assert.Equal(t, expectedDefaultNetworkTimeoutError, innerErrors[14])
+		assert.Equal(t, expectedValidateBooleanFunctionFuncReturn2[3], innerErrors[15])
 		assert.Equal(t, dummyMessageFormat, messageFormat)
 		assert.Equal(t, 0, len(parameters))
 		return dummyAppError

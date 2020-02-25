@@ -40,4 +40,5 @@ func verifyAll(t *testing.T) {
 	WrapHTTPRequest = nil
 	DefaultNetworkRetryDelay = nil
 	DefaultNetworkTimeout = nil
+	SkipServerCertVerification = nil
 }

@@ -81,7 +81,7 @@ func customizeRoundTripper(original http.RoundTripper) http.RoundTripper {
 	)
 }
 
-func getHTTPTransport(sendClientCert bool) http.RoundTripper {
+func getHTTPTransport(sendClientCert bool, skipServerCertVerification bool) http.RoundTripper {
 	var httpTransport = http.DefaultTransport
 	if sendClientCert {
 		var clientCert = certificateGetClientCertificate()
@@ -90,6 +90,7 @@ func getHTTPTransport(sendClientCert bool) http.RoundTripper {
 				Certificates: []tls.Certificate{
 					*clientCert,
 				},
+				InsecureSkipVerify: skipServerCertVerification,
 			}
 			httpTransport = &http.Transport{
 				TLSClientConfig: tlsConfig,
@@ -111,13 +112,14 @@ func getHTTPTransport(sendClientCert bool) http.RoundTripper {
 // Initialize creates a singleton instance for the network package to make HTTP request to external web services
 func Initialize(
 	networkTimeout time.Duration,
+	skipServerCertVerification bool,
 ) {
 	httpClientWithCert = &http.Client{
-		Transport: getHTTPTransportFunc(true),
+		Transport: getHTTPTransportFunc(true, skipServerCertVerification),
 		Timeout:   networkTimeout,
 	}
 	httpClientNoCert = &http.Client{
-		Transport: getHTTPTransportFunc(false),
+		Transport: getHTTPTransportFunc(false, skipServerCertVerification),
 		Timeout:   networkTimeout,
 	}
 }

@@ -16,52 +16,54 @@ import (
 )
 
 var (
-	sessionInitializeExpected           int
-	sessionInitializeCalled             int
-	configAppPortExpected               int
-	configAppPortCalled                 int
-	configAppVersionExpected            int
-	configAppVersionCalled              int
-	configInitializeExpected            int
-	configInitializeCalled              int
-	configServeHTTPSExpected            int
-	configServeHTTPSCalled              int
-	configServerCertContentExpected     int
-	configServerCertContentCalled       int
-	configServerKeyContentExpected      int
-	configServerKeyContentCalled        int
-	configValidateClientCertExpected    int
-	configValidateClientCertCalled      int
-	configCaCertContentExpected         int
-	configCaCertContentCalled           int
-	configClientCertContentExpected     int
-	configClientCertContentCalled       int
-	configClientKeyContentExpected      int
-	configClientKeyContentCalled        int
-	configDefaultNetworkTimeoutExpected int
-	configDefaultNetworkTimeoutCalled   int
-	certificateInitializeExpected       int
-	certificateInitializeCalled         int
-	apperrorInitializeExpected          int
-	apperrorInitializeCalled            int
-	networkInitializeExpected           int
-	networkInitializeCalled             int
-	loggerInitializeExpected            int
-	loggerInitializeCalled              int
-	loggerAppRootExpected               int
-	loggerAppRootCalled                 int
-	serverHostExpected                  int
-	serverHostCalled                    int
-	doPreBootstrapingFuncExpected       int
-	doPreBootstrapingFuncCalled         int
-	bootstrapApplicationFuncExpected    int
-	bootstrapApplicationFuncCalled      int
-	doPostBootstrapingFuncExpected      int
-	doPostBootstrapingFuncCalled        int
-	doApplicationStartingFuncExpected   int
-	doApplicationStartingFuncCalled     int
-	doApplicationClosingFuncExpected    int
-	doApplicationClosingFuncCalled      int
+	sessionInitializeExpected                int
+	sessionInitializeCalled                  int
+	configAppPortExpected                    int
+	configAppPortCalled                      int
+	configAppVersionExpected                 int
+	configAppVersionCalled                   int
+	configInitializeExpected                 int
+	configInitializeCalled                   int
+	configServeHTTPSExpected                 int
+	configServeHTTPSCalled                   int
+	configServerCertContentExpected          int
+	configServerCertContentCalled            int
+	configServerKeyContentExpected           int
+	configServerKeyContentCalled             int
+	configValidateClientCertExpected         int
+	configValidateClientCertCalled           int
+	configCaCertContentExpected              int
+	configCaCertContentCalled                int
+	configClientCertContentExpected          int
+	configClientCertContentCalled            int
+	configClientKeyContentExpected           int
+	configClientKeyContentCalled             int
+	configDefaultNetworkTimeoutExpected      int
+	configDefaultNetworkTimeoutCalled        int
+	configSkipServerCertVerificationExpected int
+	configSkipServerCertVerificationCalled   int
+	certificateInitializeExpected            int
+	certificateInitializeCalled              int
+	apperrorInitializeExpected               int
+	apperrorInitializeCalled                 int
+	networkInitializeExpected                int
+	networkInitializeCalled                  int
+	loggerInitializeExpected                 int
+	loggerInitializeCalled                   int
+	loggerAppRootExpected                    int
+	loggerAppRootCalled                      int
+	serverHostExpected                       int
+	serverHostCalled                         int
+	doPreBootstrapingFuncExpected            int
+	doPreBootstrapingFuncCalled              int
+	bootstrapApplicationFuncExpected         int
+	bootstrapApplicationFuncCalled           int
+	doPostBootstrapingFuncExpected           int
+	doPostBootstrapingFuncCalled             int
+	doApplicationStartingFuncExpected        int
+	doApplicationStartingFuncCalled          int
+	doApplicationClosingFuncExpected         int
+	doApplicationClosingFuncCalled           int
 )
 
 func createMock(t *testing.T) {
@@ -136,6 +138,12 @@ func createMock(t *testing.T) {
 		configDefaultNetworkTimeoutCalled++
 		return 0
 	}
+	configSkipServerCertVerificationExpected = 0
+	configSkipServerCertVerificationCalled = 0
+	config.SkipServerCertVerification = func() bool {
+		configSkipServerCertVerificationCalled++
+		return false
+	}
 	certificateInitializeExpected = 0
 	certificateInitializeCalled = 0
 	certificateInitialize = func(serveHTTPS bool, serverCertContent string, serverKeyContent string, validateClientCert bool, caCertContent string, clientCertContent string, clientKeyContent string) error {
@@ -150,7 +158,7 @@ func createMock(t *testing.T) {
 	}
 	networkInitializeExpected = 0
 	networkInitializeCalled = 0
-	networkInitialize = func(networkTimeout time.Duration) {
+	networkInitialize = func(networkTimeout time.Duration, skipServerCertVerification bool) {
 		networkInitializeCalled++
 	}
 	loggerInitializeExpected = 0
@@ -223,6 +231,8 @@ func verifyAll(t *testing.T) {
 	assert.Equal(t, configClientKeyContentExpected, configClientKeyContentCalled, "Unexpected number of calls to configClientKeyContent")
 	config.DefaultNetworkTimeout = func() time.Duration { return 0 }
 	assert.Equal(t, configDefaultNetworkTimeoutExpected, configDefaultNetworkTimeoutCalled, "Unexpected number of calls to configDefaultNetworkTimeout")
+	config.SkipServerCertVerification = func() bool { return false }
+	assert.Equal(t, configSkipServerCertVerificationExpected, configSkipServerCertVerificationCalled, "Unexpected number of calls to configSkipServerCertVerification")
 	sessionInitialize = session.Initialize
 	assert.Equal(t, sessionInitializeExpected, sessionInitializeCalled, "Unexpected number of calls to sessionInitialize")
 	certificateInitialize = certificate.Initialize

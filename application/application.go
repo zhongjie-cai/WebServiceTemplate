@@ -81,6 +81,7 @@ func bootstrapApplication() bool {
 	}
 	networkInitialize(
 		config.DefaultNetworkTimeout(),
+		config.SkipServerCertVerification(),
 	)
 	loggerAppRoot(
 		"application",

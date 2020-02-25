@@ -336,6 +336,7 @@ func TestBootstrapApplication_NoError(t *testing.T) {
 	var dummyClientCertContent = "some client cert content"
 	var dummyClientKeyContent = "some client key content"
 	var dummyDefaultNetworkTimeout = time.Duration(rand.Int())
+	var dummySkipServerCertVerification = rand.Intn(100) < 50
 
 	// mock
 	createMock(t)
@@ -408,10 +409,16 @@ func TestBootstrapApplication_NoError(t *testing.T) {
 		configDefaultNetworkTimeoutCalled++
 		return dummyDefaultNetworkTimeout
 	}
+	configSkipServerCertVerificationExpected = 1
+	config.SkipServerCertVerification = func() bool {
+		configSkipServerCertVerificationCalled++
+		return dummySkipServerCertVerification
+	}
 	networkInitializeExpected = 1
-	networkInitialize = func(networkTimeout time.Duration) {
+	networkInitialize = func(networkTimeout time.Duration, skipServerCertVerification bool) {
 		networkInitializeCalled++
 		assert.Equal(t, dummyDefaultNetworkTimeout, networkTimeout)
+		assert.Equal(t, dummySkipServerCertVerification, skipServerCertVerification)
 	}
 	loggerAppRootExpected = 1
 	loggerAppRoot = func(category string, subcategory string, messageFormat string, parameters ...interface{}) {

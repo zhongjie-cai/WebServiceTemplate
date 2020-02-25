@@ -5,11 +5,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/zhongjie-cai/WebServiceTemplate/headerutil/headerstyle"
-
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
 	apperrorEnum "github.com/zhongjie-cai/WebServiceTemplate/apperror/enum"
+	"github.com/zhongjie-cai/WebServiceTemplate/headerutil/headerstyle"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger/loglevel"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger/logtype"
 	serverModel "github.com/zhongjie-cai/WebServiceTemplate/server/model"
@@ -54,6 +53,7 @@ func TestReset(t *testing.T) {
 	WrapHTTPRequest = func(session sessionModel.Session, httpRequest *http.Request) *http.Request { return nil }
 	DefaultNetworkRetryDelay = func() time.Duration { return 0 }
 	DefaultNetworkTimeout = func() time.Duration { return 0 }
+	SkipServerCertVerification = func() bool { return false }
 
 	// mock
 	createMock(t)
@@ -97,6 +97,7 @@ func TestReset(t *testing.T) {
 	assert.Nil(t, WrapHTTPRequest)
 	assert.Nil(t, DefaultNetworkRetryDelay)
 	assert.Nil(t, DefaultNetworkTimeout)
+	assert.Nil(t, SkipServerCertVerification)
 
 	// verify
 	verifyAll(t)

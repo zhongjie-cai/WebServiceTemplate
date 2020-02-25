@@ -262,7 +262,7 @@ func createMock(t *testing.T) {
 	}
 	getHTTPTransportFuncExpected = 0
 	getHTTPTransportFuncCalled = 0
-	getHTTPTransportFunc = func(sendClientCert bool) http.RoundTripper {
+	getHTTPTransportFunc = func(sendClientCert bool, skipServerCertVerification bool) http.RoundTripper {
 		getHTTPTransportFuncCalled++
 		return nil
 	}
