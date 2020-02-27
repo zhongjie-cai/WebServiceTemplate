@@ -74,7 +74,8 @@ func prepareLogging(
 	subcategory,
 	description string,
 ) {
-	if !session.IsLoggingAllowed(logType, logLevel) {
+	if session == nil ||
+		!session.IsLoggingAllowed(logType, logLevel) {
 		return
 	}
 	if customization.LoggingFunc == nil {

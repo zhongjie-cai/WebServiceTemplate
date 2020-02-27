@@ -144,6 +144,31 @@ func TestDefaultLogging(t *testing.T) {
 	verifyAll(t)
 }
 
+func TestPrepareLogging_NilSession(t *testing.T) {
+	// arrange
+	var dummyLogType = logtype.AppRoot
+	var dummyLogLevel = loglevel.Debug
+	var dummyCategory = "some category"
+	var dummySubCategory = "some sub category"
+	var dummyDescription = "some description"
+
+	// mock
+	createMock(t)
+
+	// SUT + act
+	prepareLogging(
+		nil,
+		dummyLogType,
+		dummyLogLevel,
+		dummyCategory,
+		dummySubCategory,
+		dummyDescription,
+	)
+
+	// verify
+	verifyAll(t)
+}
+
 func TestPrepareLogging_LoggingNotAllowed(t *testing.T) {
 	// arrange
 	var dummyIsLoggingAllowed = false
