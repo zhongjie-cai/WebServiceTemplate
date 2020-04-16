@@ -274,6 +274,76 @@ func TestShutDown(t *testing.T) {
 	verifyAll(t)
 }
 
+func TestConsolidateError_SkipServerClosedErrors(t *testing.T) {
+	// arrange
+	var dummyHostError = http.ErrServerClosed
+	var dummyShutDownError = http.ErrServerClosed
+	var dummyMessageFormat = "One or more errors have occurred during server hosting"
+	var dummyAppError = apperror.GetCustomError(0, "some app error")
+
+	// mock
+	createMock(t)
+
+	// expect
+	apperrorWrapSimpleErrorExpected = 1
+	apperrorWrapSimpleError = func(innerErrors []error, messageFormat string, parameters ...interface{}) apperrorModel.AppError {
+		apperrorWrapSimpleErrorCalled++
+		assert.Equal(t, 2, len(innerErrors))
+		assert.Nil(t, innerErrors[0])
+		assert.Nil(t, innerErrors[1])
+		assert.Equal(t, dummyMessageFormat, messageFormat)
+		assert.Equal(t, 0, len(parameters))
+		return dummyAppError
+	}
+
+	// SUT + act
+	var err = consolidateError(
+		dummyHostError,
+		dummyShutDownError,
+	)
+
+	// assert
+	assert.Equal(t, dummyAppError, err)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestConsolidateError_NoSkipOtherErrors(t *testing.T) {
+	// arrange
+	var dummyHostError = errors.New("some host error")
+	var dummyShutDownError = errors.New("some shutdown error")
+	var dummyMessageFormat = "One or more errors have occurred during server hosting"
+	var dummyAppError = apperror.GetCustomError(0, "some app error")
+
+	// mock
+	createMock(t)
+
+	// expect
+	apperrorWrapSimpleErrorExpected = 1
+	apperrorWrapSimpleError = func(innerErrors []error, messageFormat string, parameters ...interface{}) apperrorModel.AppError {
+		apperrorWrapSimpleErrorCalled++
+		assert.Equal(t, 2, len(innerErrors))
+		assert.Equal(t, dummyHostError, innerErrors[0])
+		assert.Equal(t, dummyShutDownError, innerErrors[1])
+		assert.Equal(t, dummyMessageFormat, messageFormat)
+		assert.Equal(t, 0, len(parameters))
+		return dummyAppError
+	}
+
+	// SUT + act
+	var err = consolidateError(
+		dummyHostError,
+		dummyShutDownError,
+	)
+
+	// assert
+	assert.Equal(t, dummyAppError, err)
+
+	// verify
+	verifyAll(t)
+}
+
 func TestRunServer_HappyPath(t *testing.T) {
 	// arrange
 	var dummyServeHTTPS = rand.Intn(100) < 50
@@ -286,8 +356,7 @@ func TestRunServer_HappyPath(t *testing.T) {
 	var dummyRuntimeContext = context.TODO()
 	var dummyGraceShutdownWaitTime = time.Duration(rand.Intn(100)) * time.Second
 	var dummyShutDownError = errors.New("some shut down error message")
-	var dummyMessageFormat = "One or more errors have occurred during server hosting"
-	var dummyAppError = apperror.GetCustomError(0, "some app error")
+	var dummyAppError = errors.New("some app error")
 
 	// mock
 	createMock(t)
@@ -314,6 +383,14 @@ func TestRunServer_HappyPath(t *testing.T) {
 		assert.Equal(t, dummyServer, server)
 		assert.Equal(t, dummyServeHTTPS, serveHTTPS)
 		return dummyHostError
+	}
+	loggerAppRootExpected = 1
+	loggerAppRoot = func(category string, subcategory string, messageFormat string, parameters ...interface{}) {
+		loggerAppRootCalled++
+		assert.Equal(t, "server", category)
+		assert.Equal(t, "Host", subcategory)
+		assert.Equal(t, "Interrupt signal received. Terminating server.", messageFormat)
+		assert.Empty(t, parameters)
 	}
 	contextBackgroundExpected = 1
 	contextBackground = func() context.Context {
@@ -344,14 +421,11 @@ func TestRunServer_HappyPath(t *testing.T) {
 		assert.Equal(t, dummyServer, server)
 		return dummyShutDownError
 	}
-	apperrorWrapSimpleErrorExpected = 1
-	apperrorWrapSimpleError = func(innerErrors []error, messageFormat string, parameters ...interface{}) apperrorModel.AppError {
-		apperrorWrapSimpleErrorCalled++
-		assert.Equal(t, 2, len(innerErrors))
-		assert.Equal(t, dummyHostError, innerErrors[0])
-		assert.Equal(t, dummyShutDownError, innerErrors[1])
-		assert.Equal(t, dummyMessageFormat, messageFormat)
-		assert.Equal(t, 0, len(parameters))
+	consolidateErrorFuncExpected = 1
+	consolidateErrorFunc = func(hostError error, shutdownError error) error {
+		consolidateErrorFuncCalled++
+		assert.Equal(t, dummyHostError, hostError)
+		assert.Equal(t, dummyShutDownError, shutdownError)
 		return dummyAppError
 	}
 

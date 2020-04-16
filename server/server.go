@@ -64,6 +64,25 @@ func shutDown(
 	)
 }
 
+func consolidateError(
+	hostError error,
+	shutdownError error,
+) error {
+	if hostError == http.ErrServerClosed {
+		hostError = nil
+	}
+	if shutdownError == http.ErrServerClosed {
+		shutdownError = nil
+	}
+	return apperrorWrapSimpleError(
+		[]error{
+			hostError,
+			shutdownError,
+		},
+		"One or more errors have occurred during server hosting",
+	)
+}
+
 func runServer(
 	serveHTTPS bool,
 	validateClientCert bool,
@@ -93,6 +112,13 @@ func runServer(
 	}()
 
 	<-signalInterrupt
+
+	loggerAppRoot(
+		"server",
+		"Host",
+		"Interrupt signal received. Terminating server.",
+	)
+
 	var runtimeContext, cancelCallback = contextWithTimeout(
 		contextBackground(),
 		configGraceShutdownWaitTime(),
@@ -104,12 +130,9 @@ func runServer(
 		server,
 	)
 
-	return apperrorWrapSimpleError(
-		[]error{
-			hostError,
-			shutdownError,
-		},
-		"One or more errors have occurred during server hosting",
+	return consolidateErrorFunc(
+		hostError,
+		shutdownError,
 	)
 }
 

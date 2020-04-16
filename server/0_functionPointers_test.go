@@ -45,6 +45,8 @@ var (
 	listenAndServeFuncCalled                int
 	shutDownFuncExpected                    int
 	shutDownFuncCalled                      int
+	consolidateErrorFuncExpected            int
+	consolidateErrorFuncCalled              int
 	runServerFuncExpected                   int
 	runServerFuncCalled                     int
 )
@@ -120,6 +122,12 @@ func createMock(t *testing.T) {
 		shutDownFuncCalled++
 		return nil
 	}
+	consolidateErrorFuncExpected = 0
+	consolidateErrorFuncCalled = 0
+	consolidateErrorFunc = func(hostError error, shutdownError error) error {
+		consolidateErrorFuncCalled++
+		return nil
+	}
 	runServerFuncExpected = 0
 	runServerFuncCalled = 0
 	runServerFunc = func(serveHTTPS bool, validateClientCert bool, appPort string, router *mux.Router) error {
@@ -153,6 +161,8 @@ func verifyAll(t *testing.T) {
 	assert.Equal(t, listenAndServeFuncExpected, listenAndServeFuncCalled, "Unexpected number of calls to listenAndServeFunc")
 	shutDownFunc = shutDown
 	assert.Equal(t, shutDownFuncExpected, shutDownFuncCalled, "Unexpected number of calls to shutDownFunc")
+	consolidateErrorFunc = consolidateError
+	assert.Equal(t, consolidateErrorFuncExpected, consolidateErrorFuncCalled, "Unexpected number of calls to consolidateErrorFunc")
 	runServerFunc = runServer
 	assert.Equal(t, runServerFuncExpected, runServerFuncCalled, "Unexpected number of calls to runServerFunc")
 }

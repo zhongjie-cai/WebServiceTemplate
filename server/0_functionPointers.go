@@ -25,5 +25,6 @@ var (
 	createServerFunc                = createServer
 	listenAndServeFunc              = listenAndServe
 	shutDownFunc                    = shutDown
+	consolidateErrorFunc            = consolidateError
 	runServerFunc                   = runServer
 )
