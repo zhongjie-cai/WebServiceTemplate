@@ -15,6 +15,7 @@ import (
 	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
 	apperrorModel "github.com/zhongjie-cai/WebServiceTemplate/apperror/model"
 	"github.com/zhongjie-cai/WebServiceTemplate/certificate"
+	"github.com/zhongjie-cai/WebServiceTemplate/config"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger"
 	"github.com/zhongjie-cai/WebServiceTemplate/server/register"
 )
@@ -36,6 +37,8 @@ var (
 	contextWithTimeoutCalled                int
 	contextBackgroundExpected               int
 	contextBackgroundCalled                 int
+	configGraceShutdownWaitTimeExpected     int
+	configGraceShutdownWaitTimeCalled       int
 	createServerFuncExpected                int
 	createServerFuncCalled                  int
 	listenAndServeFuncExpected              int
@@ -93,6 +96,12 @@ func createMock(t *testing.T) {
 		contextBackgroundCalled++
 		return nil
 	}
+	configGraceShutdownWaitTimeExpected = 0
+	configGraceShutdownWaitTimeCalled = 0
+	configGraceShutdownWaitTime = func() time.Duration {
+		configGraceShutdownWaitTimeCalled++
+		return 0
+	}
 	createServerFuncExpected = 0
 	createServerFuncCalled = 0
 	createServerFunc = func(serveHTTPS bool, validateClientCert bool, appPort string, router *mux.Router) *http.Server {
@@ -136,6 +145,8 @@ func verifyAll(t *testing.T) {
 	assert.Equal(t, contextWithTimeoutExpected, contextWithTimeoutCalled, "Unexpected number of calls to contextWithTimeout")
 	contextBackground = context.Background
 	assert.Equal(t, contextBackgroundExpected, contextBackgroundCalled, "Unexpected number of calls to contextBackground")
+	configGraceShutdownWaitTime = config.GraceShutdownWaitTime
+	assert.Equal(t, configGraceShutdownWaitTimeExpected, configGraceShutdownWaitTimeCalled, "Unexpected number of calls to configGraceShutdownWaitTime")
 	createServerFunc = createServer
 	assert.Equal(t, createServerFuncExpected, createServerFuncCalled, "Unexpected number of calls to createServerFunc")
 	listenAndServeFunc = listenAndServe

@@ -54,6 +54,7 @@ func TestReset(t *testing.T) {
 	DefaultNetworkRetryDelay = func() time.Duration { return 0 }
 	DefaultNetworkTimeout = func() time.Duration { return 0 }
 	SkipServerCertVerification = func() bool { return false }
+	GraceShutdownWaitTime = func() time.Duration { return 0 }
 
 	// mock
 	createMock(t)
@@ -98,6 +99,7 @@ func TestReset(t *testing.T) {
 	assert.Nil(t, DefaultNetworkRetryDelay)
 	assert.Nil(t, DefaultNetworkTimeout)
 	assert.Nil(t, SkipServerCertVerification)
+	assert.Nil(t, GraceShutdownWaitTime)
 
 	// verify
 	verifyAll(t)

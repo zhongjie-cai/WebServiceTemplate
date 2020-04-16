@@ -44,6 +44,8 @@ var (
 	validateDefaultAllowedLogLevelFuncCalled   int
 	validateDefaultNetworkTimeoutFuncExpected  int
 	validateDefaultNetworkTimeoutFuncCalled    int
+	validateGraceShutdownWaitTimeFuncExpected  int
+	validateGraceShutdownWaitTimeFuncCalled    int
 )
 
 func createMock(t *testing.T) {
@@ -131,6 +133,12 @@ func createMock(t *testing.T) {
 		validateDefaultNetworkTimeoutFuncCalled++
 		return nil, nil
 	}
+	validateGraceShutdownWaitTimeFuncExpected = 0
+	validateGraceShutdownWaitTimeFuncCalled = 0
+	validateGraceShutdownWaitTimeFunc = func(customizedFunc func() time.Duration, defaultFunc func() time.Duration) (func() time.Duration, error) {
+		validateGraceShutdownWaitTimeFuncCalled++
+		return nil, nil
+	}
 }
 
 func verifyAll(t *testing.T) {
@@ -162,6 +170,8 @@ func verifyAll(t *testing.T) {
 	assert.Equal(t, validateDefaultAllowedLogLevelFuncExpected, validateDefaultAllowedLogLevelFuncCalled, "Unexpected number of calls to validateDefaultAllowedLogLevelFunc")
 	validateDefaultNetworkTimeoutFunc = validateDefaultNetworkTimeout
 	assert.Equal(t, validateDefaultNetworkTimeoutFuncExpected, validateDefaultNetworkTimeoutFuncCalled, "Unexpected number of calls to validateDefaultNetworkTimeoutFunc")
+	validateGraceShutdownWaitTimeFunc = validateGraceShutdownWaitTime
+	assert.Equal(t, validateGraceShutdownWaitTimeFuncExpected, validateGraceShutdownWaitTimeFuncCalled, "Unexpected number of calls to validateGraceShutdownWaitTimeFunc")
 
 	AppVersion = defaultAppVersion
 	AppPort = defaultAppPort
@@ -178,4 +188,5 @@ func verifyAll(t *testing.T) {
 	DefaultAllowedLogType = defaultAllowedLogType
 	DefaultAllowedLogLevel = defaultAllowedLogLevel
 	DefaultNetworkTimeout = defaultNetworkTimeout
+	GraceShutdownWaitTime = graceShutdownWaitTime
 }

@@ -284,6 +284,7 @@ func TestRunServer_HappyPath(t *testing.T) {
 	var dummyHostError = errors.New("some host error message")
 	var dummyBackgroundContext = context.Background()
 	var dummyRuntimeContext = context.TODO()
+	var dummyGraceShutdownWaitTime = time.Duration(rand.Intn(100)) * time.Second
 	var dummyShutDownError = errors.New("some shut down error message")
 	var dummyMessageFormat = "One or more errors have occurred during server hosting"
 	var dummyAppError = apperror.GetCustomError(0, "some app error")
@@ -324,11 +325,16 @@ func TestRunServer_HappyPath(t *testing.T) {
 	var cancelCallback = func() {
 		cancelCallbackCalled++
 	}
+	configGraceShutdownWaitTimeExpected = 1
+	configGraceShutdownWaitTime = func() time.Duration {
+		configGraceShutdownWaitTimeCalled++
+		return dummyGraceShutdownWaitTime
+	}
 	contextWithTimeoutExpected = 1
 	contextWithTimeout = func(parent context.Context, timeout time.Duration) (context.Context, context.CancelFunc) {
 		contextWithTimeoutCalled++
 		assert.Equal(t, dummyBackgroundContext, parent)
-		assert.Equal(t, 15*time.Second, timeout)
+		assert.Equal(t, dummyGraceShutdownWaitTime, timeout)
 		return dummyRuntimeContext, cancelCallback
 	}
 	shutDownFuncExpected = 1

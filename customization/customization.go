@@ -121,6 +121,9 @@ var DefaultNetworkTimeout func() time.Duration
 // SkipServerCertVerification is to customize the skip of server certificate verification for any network communications through HTTP/HTTPS by session
 var SkipServerCertVerification func() bool
 
+// GraceShutdownWaitTime is to customize the graceful shutdown wait time for the application
+var GraceShutdownWaitTime func() time.Duration
+
 // Reset clears all customization of functions for the whole application
 func Reset() {
 	PreBootstrapFunc = nil
@@ -159,4 +162,5 @@ func Reset() {
 	DefaultNetworkRetryDelay = nil
 	DefaultNetworkTimeout = nil
 	SkipServerCertVerification = nil
+	GraceShutdownWaitTime = nil
 }

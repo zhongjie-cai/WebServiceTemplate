@@ -24,4 +24,5 @@ var (
 	validateDefaultAllowedLogTypeFunc  = validateDefaultAllowedLogType
 	validateDefaultAllowedLogLevelFunc = validateDefaultAllowedLogLevel
 	validateDefaultNetworkTimeoutFunc  = validateDefaultNetworkTimeout
+	validateGraceShutdownWaitTimeFunc  = validateGraceShutdownWaitTime
 )

@@ -5,7 +5,6 @@ import (
 	"crypto/tls"
 	"net/http"
 	"os"
-	"time"
 
 	"github.com/gorilla/mux"
 )
@@ -96,7 +95,7 @@ func runServer(
 	<-signalInterrupt
 	var runtimeContext, cancelCallback = contextWithTimeout(
 		contextBackground(),
-		15*time.Second,
+		configGraceShutdownWaitTime(),
 	)
 	defer cancelCallback()
 

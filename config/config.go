@@ -57,6 +57,9 @@ var DefaultNetworkTimeout = defaultNetworkTimeout
 // SkipServerCertVerification returns the choice whether or not skipping the server certificate verification for network communications
 var SkipServerCertVerification = defaultSkipServerCertVerification
 
+// GraceShutdownWaitTime returns the graceful shutdown wait time value of the application
+var GraceShutdownWaitTime = graceShutdownWaitTime
+
 func defaultAppVersion() string {
 	return "0.0.0.0"
 }
@@ -119,6 +122,10 @@ func defaultNetworkTimeout() time.Duration {
 
 func defaultSkipServerCertVerification() bool {
 	return false
+}
+
+func graceShutdownWaitTime() time.Duration {
+	return 15 * time.Second
 }
 
 func functionPointerEquals(left, right interface{}) bool {
@@ -229,6 +236,21 @@ func validateDefaultNetworkTimeout(
 	return customizedFunc, nil
 }
 
+func validateGraceShutdownWaitTime(
+	customizedFunc func() time.Duration,
+	defaultFunc func() time.Duration,
+) (func() time.Duration, error) {
+	if customizedFunc == nil {
+		return defaultFunc,
+			apperrorGetCustomError(
+				apperrorEnum.CodeGeneralFailure,
+				"customization.GraceShutdownWaitTime function is not configured; fallback to default [%v].",
+				defaultFunc(),
+			)
+	}
+	return customizedFunc, nil
+}
+
 func isServerCertificateAvailable() bool {
 	return len(ServerCertContent()) != 0 && len(ServerKeyContent()) != 0
 }
@@ -257,6 +279,7 @@ func Initialize() error {
 		defaultAllowedLogLevelError error
 		defaultNetworkTimeoutError  error
 		skipServerCertVerifyError   error
+		graceShutdownWaitTimeError  error
 	)
 	AppVersion, appVersionError = validateStringFunctionFunc(
 		customization.AppVersion,
@@ -348,6 +371,10 @@ func Initialize() error {
 		defaultSkipServerCertVerification,
 		noForceToDefault,
 	)
+	GraceShutdownWaitTime, graceShutdownWaitTimeError = validateGraceShutdownWaitTimeFunc(
+		customization.GraceShutdownWaitTime,
+		graceShutdownWaitTime,
+	)
 	return apperrorWrapSimpleError(
 		[]error{
 			appVersionError,
@@ -366,6 +393,7 @@ func Initialize() error {
 			defaultAllowedLogLevelError,
 			defaultNetworkTimeoutError,
 			skipServerCertVerifyError,
+			graceShutdownWaitTimeError,
 		},
 		"Unexpected errors occur during configuration initialization",
 	)

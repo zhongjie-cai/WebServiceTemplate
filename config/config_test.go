@@ -272,6 +272,23 @@ func TestDefaultNetworkTimeout(t *testing.T) {
 	verifyAll(t)
 }
 
+func TestGraceShutdownWaitTime(t *testing.T) {
+	// arrange
+	var expectedResult = 15 * time.Second
+
+	// mock
+	createMock(t)
+
+	// SUT + act
+	var result = graceShutdownWaitTime()
+
+	// assert
+	assert.Equal(t, expectedResult, result)
+
+	// verify
+	verifyAll(t)
+}
+
 func TestSkipServerCertVerification(t *testing.T) {
 	// arrange
 	var expectedResult = false
@@ -1139,6 +1156,88 @@ func TestValidateDefaultNetworkTimeout_ValidFunc(t *testing.T) {
 	assert.Equal(t, dummyDefaultFuncExpected, dummyDefaultFuncCalled, "Unexpected number of calls to dummyDefaultFunc")
 }
 
+func TestValidateGraceShutdownWaitTime_NilFunc(t *testing.T) {
+	// arrange
+	var dummyCustomizedFuncExpected int
+	var dummyCustomizedFuncCalled int
+	var dummyCustomizedFunc func() time.Duration
+	var dummyDefaultFuncExpected int
+	var dummyDefaultFuncCalled int
+	var dummyDefaultFuncReturn = time.Duration(rand.Intn(255))
+	var dummyMessageFormat = "customization.GraceShutdownWaitTime function is not configured; fallback to default [%v]."
+	var dummyAppError = apperror.GetCustomError(0, "some app error")
+
+	// mock
+	createMock(t)
+
+	// expect
+	dummyDefaultFuncExpected = 1
+	var dummyDefaultFunc = func() time.Duration {
+		dummyDefaultFuncCalled++
+		return dummyDefaultFuncReturn
+	}
+	apperrorGetCustomErrorExpected = 1
+	apperrorGetCustomError = func(errorCode apperrorEnum.Code, messageFormat string, parameters ...interface{}) apperrorModel.AppError {
+		apperrorGetCustomErrorCalled++
+		assert.Equal(t, apperrorEnum.CodeGeneralFailure, errorCode)
+		assert.Equal(t, dummyMessageFormat, messageFormat)
+		assert.Equal(t, 1, len(parameters))
+		assert.Equal(t, dummyDefaultFuncReturn, parameters[0])
+		return dummyAppError
+	}
+
+	// SUT + act
+	var result, err = validateGraceShutdownWaitTime(
+		dummyCustomizedFunc,
+		dummyDefaultFunc,
+	)
+
+	// assert
+	assert.Equal(t, fmt.Sprintf("%v", reflect.ValueOf(dummyDefaultFunc)), fmt.Sprintf("%v", reflect.ValueOf(result)))
+	assert.Equal(t, dummyAppError, err)
+
+	// verify
+	verifyAll(t)
+	assert.Equal(t, dummyCustomizedFuncExpected, dummyCustomizedFuncCalled, "Unexpected number of calls to dummyCustomizedFunc")
+	assert.Equal(t, dummyDefaultFuncExpected, dummyDefaultFuncCalled, "Unexpected number of calls to dummyDefaultFunc")
+}
+
+func TestValidateGraceShutdownWaitTime_ValidFunc(t *testing.T) {
+	// arrange
+	var dummyCustomizedFuncExpected int
+	var dummyCustomizedFuncCalled int
+	var dummyCustomizedFuncReturn = time.Duration(rand.Intn(255))
+	var dummyCustomizedFunc = func() time.Duration {
+		dummyCustomizedFuncCalled++
+		return dummyCustomizedFuncReturn
+	}
+	var dummyDefaultFuncExpected int
+	var dummyDefaultFuncCalled int
+	var dummyDefaultFuncReturn = time.Duration(rand.Intn(255))
+	var dummyDefaultFunc = func() time.Duration {
+		dummyDefaultFuncCalled++
+		return dummyDefaultFuncReturn
+	}
+
+	// mock
+	createMock(t)
+
+	// SUT + act
+	var result, err = validateGraceShutdownWaitTime(
+		dummyCustomizedFunc,
+		dummyDefaultFunc,
+	)
+
+	// assert
+	assert.Equal(t, fmt.Sprintf("%v", reflect.ValueOf(dummyCustomizedFunc)), fmt.Sprintf("%v", reflect.ValueOf(result)))
+	assert.NoError(t, err)
+
+	// verify
+	verifyAll(t)
+	assert.Equal(t, dummyCustomizedFuncExpected, dummyCustomizedFuncCalled, "Unexpected number of calls to dummyCustomizedFunc")
+	assert.Equal(t, dummyDefaultFuncExpected, dummyDefaultFuncCalled, "Unexpected number of calls to dummyDefaultFunc")
+}
+
 func TestIsServerCertificateAvailable_CertEmpty(t *testing.T) {
 	// arrange
 	var serverCertContentExpected int
@@ -1386,6 +1485,7 @@ func TestInitialize(t *testing.T) {
 	var expectedDefaultAllowedLogTypeError = errors.New("some default allowed log type error")
 	var expectedDefaultAllowedLogLevelError = errors.New("some default allowed log level error")
 	var expectedDefaultNetworkTimeoutError = errors.New("some default network timeout error")
+	var expectedGraceShutdownWaitTimeError = errors.New("some grace shutdown wait time error")
 	var dummyMessageFormat = "Unexpected errors occur during configuration initialization"
 	var dummyAppError = apperror.GetCustomError(0, "some app error")
 
@@ -1444,10 +1544,17 @@ func TestInitialize(t *testing.T) {
 		assert.Equal(t, fmt.Sprintf("%v", reflect.ValueOf(defaultNetworkTimeout)), fmt.Sprintf("%v", reflect.ValueOf(defaultFunc)))
 		return defaultNetworkTimeout, expectedDefaultNetworkTimeoutError
 	}
+	validateGraceShutdownWaitTimeFuncExpected = 1
+	validateGraceShutdownWaitTimeFunc = func(customizedFunc func() time.Duration, defaultFunc func() time.Duration) (func() time.Duration, error) {
+		validateGraceShutdownWaitTimeFuncCalled++
+		assert.Equal(t, fmt.Sprintf("%v", reflect.ValueOf(customization.GraceShutdownWaitTime)), fmt.Sprintf("%v", reflect.ValueOf(customizedFunc)))
+		assert.Equal(t, fmt.Sprintf("%v", reflect.ValueOf(graceShutdownWaitTime)), fmt.Sprintf("%v", reflect.ValueOf(defaultFunc)))
+		return graceShutdownWaitTime, expectedGraceShutdownWaitTimeError
+	}
 	apperrorWrapSimpleErrorExpected = 1
 	apperrorWrapSimpleError = func(innerErrors []error, messageFormat string, parameters ...interface{}) apperrorModel.AppError {
 		apperrorWrapSimpleErrorCalled++
-		assert.Equal(t, 16, len(innerErrors))
+		assert.Equal(t, 17, len(innerErrors))
 		assert.Equal(t, expectedValidateStringFunctionFuncReturn2[0], innerErrors[0])
 		assert.Equal(t, expectedValidateStringFunctionFuncReturn2[1], innerErrors[1])
 		assert.Equal(t, expectedValidateStringFunctionFuncReturn2[2], innerErrors[2])
@@ -1464,6 +1571,7 @@ func TestInitialize(t *testing.T) {
 		assert.Equal(t, expectedDefaultAllowedLogLevelError, innerErrors[13])
 		assert.Equal(t, expectedDefaultNetworkTimeoutError, innerErrors[14])
 		assert.Equal(t, expectedValidateBooleanFunctionFuncReturn2[3], innerErrors[15])
+		assert.Equal(t, expectedGraceShutdownWaitTimeError, innerErrors[16])
 		assert.Equal(t, dummyMessageFormat, messageFormat)
 		assert.Equal(t, 0, len(parameters))
 		return dummyAppError
