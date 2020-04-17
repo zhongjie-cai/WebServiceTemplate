@@ -167,6 +167,11 @@ func Host(
 		appPort,
 		router,
 	)
+	loggerAppRoot(
+		"server",
+		"Host",
+		"Server terminated",
+	)
 	if hostError != nil {
 		return apperrorWrapSimpleError(
 			[]error{hostError},
