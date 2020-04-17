@@ -4,7 +4,6 @@ import (
 	"context"
 	"crypto/tls"
 	"net/http"
-	"os"
 
 	"github.com/gorilla/mux"
 )
@@ -96,27 +95,9 @@ func runServer(
 		router,
 	)
 
-	var signalInterrupt = make(chan os.Signal, 1)
-	signalNotify(
-		signalInterrupt,
-		os.Interrupt,
-	)
-
-	var hostError error
-	go func() {
-		hostError = listenAndServeFunc(
-			server,
-			serveHTTPS,
-		)
-		signalInterrupt <- os.Interrupt
-	}()
-
-	<-signalInterrupt
-
-	loggerAppRoot(
-		"server",
-		"Host",
-		"Interrupt signal received. Terminating server.",
+	var hostError = listenAndServeFunc(
+		server,
+		serveHTTPS,
 	)
 
 	var runtimeContext, cancelCallback = contextWithTimeout(
@@ -163,6 +144,11 @@ func Host(
 		validateClientCert,
 		appPort,
 		router,
+	)
+	loggerAppRoot(
+		"server",
+		"Host",
+		"Server terminated",
 	)
 	if hostError != nil {
 		return apperrorWrapSimpleError(

@@ -7,7 +7,6 @@ import (
 	"errors"
 	"math/rand"
 	"net/http"
-	"os"
 	"testing"
 	"time"
 
@@ -371,26 +370,12 @@ func TestRunServer_HappyPath(t *testing.T) {
 		assert.Equal(t, dummyRouter, router)
 		return dummyServer
 	}
-	signalNotifyExpected = 1
-	signalNotify = func(c chan<- os.Signal, sig ...os.Signal) {
-		signalNotifyCalled++
-		assert.Equal(t, 1, len(sig))
-		assert.Equal(t, os.Interrupt, sig[0])
-	}
 	listenAndServeFuncExpected = 1
 	listenAndServeFunc = func(server *http.Server, serveHTTPS bool) error {
 		listenAndServeFuncCalled++
 		assert.Equal(t, dummyServer, server)
 		assert.Equal(t, dummyServeHTTPS, serveHTTPS)
 		return dummyHostError
-	}
-	loggerAppRootExpected = 1
-	loggerAppRoot = func(category string, subcategory string, messageFormat string, parameters ...interface{}) {
-		loggerAppRootCalled++
-		assert.Equal(t, "server", category)
-		assert.Equal(t, "Host", subcategory)
-		assert.Equal(t, "Interrupt signal received. Terminating server.", messageFormat)
-		assert.Empty(t, parameters)
 	}
 	contextBackgroundExpected = 1
 	contextBackground = func() context.Context {
@@ -508,16 +493,21 @@ func TestHost_ErrorRunServer(t *testing.T) {
 		registerInstantiateCalled++
 		return dummyRouter, nil
 	}
-	loggerAppRootExpected = 1
+	loggerAppRootExpected = 2
 	loggerAppRoot = func(category string, subcategory string, messageFormat string, parameters ...interface{}) {
 		loggerAppRootCalled++
 		assert.Equal(t, "server", category)
 		assert.Equal(t, "Host", subcategory)
-		assert.Equal(t, "Targeting port [%v] HTTPS [%v] mTLS [%v]", messageFormat)
-		assert.Equal(t, 3, len(parameters))
-		assert.Equal(t, dummyAppPort, parameters[0])
-		assert.Equal(t, dummyServeHTTPS, parameters[1])
-		assert.Equal(t, dummyValidateClientCert, parameters[2])
+		if loggerAppRootCalled == 1 {
+			assert.Equal(t, "Targeting port [%v] HTTPS [%v] mTLS [%v]", messageFormat)
+			assert.Equal(t, 3, len(parameters))
+			assert.Equal(t, dummyAppPort, parameters[0])
+			assert.Equal(t, dummyServeHTTPS, parameters[1])
+			assert.Equal(t, dummyValidateClientCert, parameters[2])
+		} else {
+			assert.Equal(t, "Server terminated", messageFormat)
+			assert.Empty(t, parameters)
+		}
 	}
 	runServerFuncExpected = 1
 	runServerFunc = func(serveHTTPS bool, validateClientCert bool, appPort string, router *mux.Router) error {
@@ -569,16 +559,21 @@ func TestHost_Success(t *testing.T) {
 		registerInstantiateCalled++
 		return dummyRouter, nil
 	}
-	loggerAppRootExpected = 1
+	loggerAppRootExpected = 2
 	loggerAppRoot = func(category string, subcategory string, messageFormat string, parameters ...interface{}) {
 		loggerAppRootCalled++
 		assert.Equal(t, "server", category)
 		assert.Equal(t, "Host", subcategory)
-		assert.Equal(t, "Targeting port [%v] HTTPS [%v] mTLS [%v]", messageFormat)
-		assert.Equal(t, 3, len(parameters))
-		assert.Equal(t, dummyAppPort, parameters[0])
-		assert.Equal(t, dummyServeHTTPS, parameters[1])
-		assert.Equal(t, dummyValidateClientCert, parameters[2])
+		if loggerAppRootCalled == 1 {
+			assert.Equal(t, "Targeting port [%v] HTTPS [%v] mTLS [%v]", messageFormat)
+			assert.Equal(t, 3, len(parameters))
+			assert.Equal(t, dummyAppPort, parameters[0])
+			assert.Equal(t, dummyServeHTTPS, parameters[1])
+			assert.Equal(t, dummyValidateClientCert, parameters[2])
+		} else {
+			assert.Equal(t, "Server terminated", messageFormat)
+			assert.Empty(t, parameters)
+		}
 	}
 	runServerFuncExpected = 1
 	runServerFunc = func(serveHTTPS bool, validateClientCert bool, appPort string, router *mux.Router) error {

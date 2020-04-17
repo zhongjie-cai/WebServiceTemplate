@@ -2,7 +2,6 @@ package server
 
 import (
 	"context"
-	"os/signal"
 
 	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
 	"github.com/zhongjie-cai/WebServiceTemplate/certificate"
@@ -18,7 +17,6 @@ var (
 	apperrorWrapSimpleError         = apperror.WrapSimpleError
 	registerInstantiate             = register.Instantiate
 	loggerAppRoot                   = logger.AppRoot
-	signalNotify                    = signal.Notify
 	contextWithTimeout              = context.WithTimeout
 	contextBackground               = context.Background
 	configGraceShutdownWaitTime     = config.GraceShutdownWaitTime

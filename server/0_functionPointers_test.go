@@ -5,8 +5,6 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"net/http"
-	"os"
-	"os/signal"
 	"testing"
 	"time"
 
@@ -31,8 +29,6 @@ var (
 	registerInstantiateCalled               int
 	loggerAppRootExpected                   int
 	loggerAppRootCalled                     int
-	signalNotifyExpected                    int
-	signalNotifyCalled                      int
 	contextWithTimeoutExpected              int
 	contextWithTimeoutCalled                int
 	contextBackgroundExpected               int
@@ -80,11 +76,6 @@ func createMock(t *testing.T) {
 	loggerAppRootCalled = 0
 	loggerAppRoot = func(category string, subcategory string, messageFormat string, parameters ...interface{}) {
 		loggerAppRootCalled++
-	}
-	signalNotifyExpected = 0
-	signalNotifyCalled = 0
-	signalNotify = func(c chan<- os.Signal, sig ...os.Signal) {
-		signalNotifyCalled++
 	}
 	contextWithTimeoutExpected = 0
 	contextWithTimeoutCalled = 0
@@ -147,8 +138,6 @@ func verifyAll(t *testing.T) {
 	assert.Equal(t, registerInstantiateExpected, registerInstantiateCalled, "Unexpected number of calls to registerInstantiate")
 	loggerAppRoot = logger.AppRoot
 	assert.Equal(t, loggerAppRootExpected, loggerAppRootCalled, "Unexpected number of calls to loggerAppRoot")
-	signalNotify = signal.Notify
-	assert.Equal(t, signalNotifyExpected, signalNotifyCalled, "Unexpected number of calls to signalNotify")
 	contextWithTimeout = context.WithTimeout
 	assert.Equal(t, contextWithTimeoutExpected, contextWithTimeoutCalled, "Unexpected number of calls to contextWithTimeout")
 	contextBackground = context.Background
