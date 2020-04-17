@@ -8,6 +8,7 @@ import (
 	"math/rand"
 	"net/http"
 	"os"
+	"syscall"
 	"testing"
 	"time"
 
@@ -374,8 +375,10 @@ func TestRunServer_HappyPath(t *testing.T) {
 	signalNotifyExpected = 1
 	signalNotify = func(c chan<- os.Signal, sig ...os.Signal) {
 		signalNotifyCalled++
-		assert.Equal(t, 1, len(sig))
-		assert.Equal(t, os.Interrupt, sig[0])
+		assert.Equal(t, 3, len(sig))
+		assert.Equal(t, syscall.SIGINT, sig[0])
+		assert.Equal(t, syscall.SIGKILL, sig[1])
+		assert.Equal(t, syscall.SIGTERM, sig[2])
 	}
 	listenAndServeFuncExpected = 1
 	listenAndServeFunc = func(server *http.Server, serveHTTPS bool) error {
@@ -389,7 +392,7 @@ func TestRunServer_HappyPath(t *testing.T) {
 		loggerAppRootCalled++
 		assert.Equal(t, "server", category)
 		assert.Equal(t, "Host", subcategory)
-		assert.Equal(t, "Interrupt signal received. Terminating server.", messageFormat)
+		assert.Equal(t, "Interrupt signal received: Terminating server", messageFormat)
 		assert.Empty(t, parameters)
 	}
 	contextBackgroundExpected = 1

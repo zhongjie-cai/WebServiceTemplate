@@ -5,6 +5,7 @@ import (
 	"crypto/tls"
 	"net/http"
 	"os"
+	"syscall"
 
 	"github.com/gorilla/mux"
 )
@@ -99,7 +100,9 @@ func runServer(
 	var signalInterrupt = make(chan os.Signal, 1)
 	signalNotify(
 		signalInterrupt,
-		os.Interrupt,
+		syscall.SIGINT,
+		syscall.SIGKILL,
+		syscall.SIGTERM,
 	)
 
 	var hostError error
@@ -116,7 +119,7 @@ func runServer(
 	loggerAppRoot(
 		"server",
 		"Host",
-		"Interrupt signal received. Terminating server.",
+		"Interrupt signal received: Terminating server",
 	)
 
 	var runtimeContext, cancelCallback = contextWithTimeout(
