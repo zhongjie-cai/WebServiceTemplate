@@ -877,3 +877,20 @@ func TestStart_RunApplication(t *testing.T) {
 	// verify
 	verifyAll(t)
 }
+
+func TestStop(t *testing.T) {
+	// mock
+	createMock(t)
+
+	// expect
+	serverHaltExpected = 1
+	serverHalt = func() {
+		serverHaltCalled++
+	}
+
+	// SUT + act
+	Stop()
+
+	// verify
+	verifyAll(t)
+}

@@ -54,6 +54,8 @@ var (
 	loggerAppRootCalled                      int
 	serverHostExpected                       int
 	serverHostCalled                         int
+	serverHaltExpected                       int
+	serverHaltCalled                         int
 	doPreBootstrapingFuncExpected            int
 	doPreBootstrapingFuncCalled              int
 	bootstrapApplicationFuncExpected         int
@@ -178,6 +180,11 @@ func createMock(t *testing.T) {
 		serverHostCalled++
 		return nil
 	}
+	serverHaltExpected = 0
+	serverHaltCalled = 0
+	serverHalt = func() {
+		serverHaltCalled++
+	}
 	doPreBootstrapingFuncExpected = 0
 	doPreBootstrapingFuncCalled = 0
 	doPreBootstrapingFunc = func() bool {
@@ -247,6 +254,8 @@ func verifyAll(t *testing.T) {
 	assert.Equal(t, loggerAppRootExpected, loggerAppRootCalled, "Unexpected number of calls to loggerAppRoot")
 	serverHost = server.Host
 	assert.Equal(t, serverHostExpected, serverHostCalled, "Unexpected number of calls to serverHost")
+	serverHalt = server.Halt
+	assert.Equal(t, serverHaltExpected, serverHaltCalled, "Unexpected number of calls to serverHalt")
 	doPreBootstrapingFunc = doPreBootstraping
 	assert.Equal(t, doPreBootstrapingFuncExpected, doPreBootstrapingFuncCalled, "Unexpected number of calls to doPreBootstrapingFunc")
 	bootstrapApplicationFunc = bootstrapApplication

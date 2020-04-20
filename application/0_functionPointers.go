@@ -20,6 +20,7 @@ var (
 	loggerInitialize          = logger.Initialize
 	loggerAppRoot             = logger.AppRoot
 	serverHost                = server.Host
+	serverHalt                = server.Halt
 	doPreBootstrapingFunc     = doPreBootstraping
 	bootstrapApplicationFunc  = bootstrapApplication
 	doPostBootstrapingFunc    = doPostBootstraping

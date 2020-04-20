@@ -187,3 +187,8 @@ func Start() {
 	defer doApplicationClosingFunc()
 	doApplicationStartingFunc()
 }
+
+// Stop terminates the application web server and waits for a graceful shutdown
+func Stop() {
+	serverHalt()
+}

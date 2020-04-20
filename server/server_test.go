@@ -375,10 +375,13 @@ func TestRunServer_HappyPath(t *testing.T) {
 	signalNotifyExpected = 1
 	signalNotify = func(c chan<- os.Signal, sig ...os.Signal) {
 		signalNotifyCalled++
-		assert.Equal(t, 3, len(sig))
-		assert.Equal(t, syscall.SIGINT, sig[0])
-		assert.Equal(t, syscall.SIGKILL, sig[1])
-		assert.Equal(t, syscall.SIGTERM, sig[2])
+		assert.Equal(t, 6, len(sig))
+		assert.Equal(t, syscall.SIGABRT, sig[0])
+		assert.Equal(t, syscall.SIGINT, sig[1])
+		assert.Equal(t, syscall.SIGKILL, sig[2])
+		assert.Equal(t, syscall.SIGQUIT, sig[3])
+		assert.Equal(t, syscall.SIGSTOP, sig[4])
+		assert.Equal(t, syscall.SIGTERM, sig[5])
 	}
 	listenAndServeFuncExpected = 1
 	listenAndServeFunc = func(server *http.Server, serveHTTPS bool) error {
@@ -386,6 +389,11 @@ func TestRunServer_HappyPath(t *testing.T) {
 		assert.Equal(t, dummyServer, server)
 		assert.Equal(t, dummyServeHTTPS, serveHTTPS)
 		return dummyHostError
+	}
+	haltFuncExpected = 1
+	haltFunc = func() {
+		haltFuncCalled++
+		shutdownSignal <- os.Interrupt
 	}
 	loggerAppRootExpected = 1
 	loggerAppRoot = func(category string, subcategory string, messageFormat string, parameters ...interface{}) {
@@ -612,6 +620,24 @@ func TestHost_Success(t *testing.T) {
 
 	// assert
 	assert.NoError(t, err)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestHalt(t *testing.T) {
+	// mock
+	createMock(t)
+
+	// SUT
+	Halt()
+
+	// act
+	var result, ok = <-shutdownSignal
+
+	// assert
+	assert.True(t, ok)
+	assert.Equal(t, os.Interrupt, result)
 
 	// verify
 	verifyAll(t)

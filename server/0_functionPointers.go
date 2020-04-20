@@ -27,4 +27,5 @@ var (
 	shutDownFunc                    = shutDown
 	consolidateErrorFunc            = consolidateError
 	runServerFunc                   = runServer
+	haltFunc                        = Halt
 )

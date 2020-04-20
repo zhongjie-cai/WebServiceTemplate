@@ -10,6 +10,10 @@ import (
 	"github.com/gorilla/mux"
 )
 
+var (
+	shutdownSignal = make(chan os.Signal, 1)
+)
+
 func createServer(
 	serveHTTPS bool,
 	validateClientCert bool,
@@ -97,11 +101,13 @@ func runServer(
 		router,
 	)
 
-	var signalInterrupt = make(chan os.Signal, 1)
 	signalNotify(
-		signalInterrupt,
+		shutdownSignal,
+		syscall.SIGABRT,
 		syscall.SIGINT,
 		syscall.SIGKILL,
+		syscall.SIGQUIT,
+		syscall.SIGSTOP,
 		syscall.SIGTERM,
 	)
 
@@ -111,10 +117,10 @@ func runServer(
 			server,
 			serveHTTPS,
 		)
-		signalInterrupt <- os.Interrupt
+		haltFunc()
 	}()
 
-	<-signalInterrupt
+	<-shutdownSignal
 
 	loggerAppRoot(
 		"server",
@@ -180,4 +186,9 @@ func Host(
 		)
 	}
 	return nil
+}
+
+// Halt emits the signal interrupt to the server to conduct a graceful shutdown
+func Halt() {
+	shutdownSignal <- os.Interrupt
 }

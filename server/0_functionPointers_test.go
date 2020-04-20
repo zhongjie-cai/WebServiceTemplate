@@ -49,6 +49,8 @@ var (
 	consolidateErrorFuncCalled              int
 	runServerFuncExpected                   int
 	runServerFuncCalled                     int
+	haltFuncExpected                        int
+	haltFuncCalled                          int
 )
 
 func createMock(t *testing.T) {
@@ -134,6 +136,11 @@ func createMock(t *testing.T) {
 		runServerFuncCalled++
 		return nil
 	}
+	haltFuncExpected = 0
+	haltFuncCalled = 0
+	haltFunc = func() {
+		haltFuncCalled++
+	}
 }
 
 func verifyAll(t *testing.T) {
@@ -165,4 +172,6 @@ func verifyAll(t *testing.T) {
 	assert.Equal(t, consolidateErrorFuncExpected, consolidateErrorFuncCalled, "Unexpected number of calls to consolidateErrorFunc")
 	runServerFunc = runServer
 	assert.Equal(t, runServerFuncExpected, runServerFuncCalled, "Unexpected number of calls to runServerFunc")
+	haltFunc = Halt
+	assert.Equal(t, haltFuncExpected, haltFuncCalled, "Unexpected number of calls to haltFunc")
 }
