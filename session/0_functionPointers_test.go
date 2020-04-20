@@ -363,6 +363,9 @@ func verifyAll(t *testing.T) {
 	assert.Equal(t, shouldSendClientCertFuncExpected, shouldSendClientCertFuncCalled, "Unexpected number of calls to shouldSendClientCertFunc")
 
 	defaultSession = nil
+	defaultSessionID = uuid.Nil
+	defaultRequest = nil
+	defaultResponseWriter = nil
 }
 
 // mock structs

@@ -13,15 +13,22 @@ import (
 	"github.com/zhongjie-cai/WebServiceTemplate/session/model"
 )
 
+const (
+	defaultName = "AppRoot"
+)
+
 var (
-	defaultRequest        = &http.Request{}
-	defaultResponseWriter = &nilResponseWriter{}
-	defaultName           = "AppRoot"
+	defaultSessionID      uuid.UUID
+	defaultRequest        *http.Request
+	defaultResponseWriter http.ResponseWriter
 	defaultSession        *session
 )
 
 // Initialize ensures the NilSession is set for the AppRoot function
 func Initialize() {
+	defaultSessionID = uuidNew()
+	defaultRequest = &http.Request{}
+	defaultResponseWriter = &nilResponseWriter{}
 	model.NilSession = defaultSession
 }
 
@@ -57,7 +64,7 @@ type session struct {
 // GetID returns the ID of this registered session object
 func (session *session) GetID() uuid.UUID {
 	if session == nil {
-		return uuid.Nil
+		return defaultSessionID
 	}
 	return session.ID
 }
