@@ -28,10 +28,18 @@ import (
 
 func TestInitialize(t *testing.T) {
 	// arrange
+	var dummySessionID = uuid.New()
 	assert.IsType(t, nil, sessionModel.NilSession)
 
 	// mock
 	createMock(t)
+
+	// expect
+	uuidNewExpected = 1
+	uuidNew = func() uuid.UUID {
+		uuidNewCalled++
+		return dummySessionID
+	}
 
 	// SUT + act
 	Initialize()
@@ -39,6 +47,7 @@ func TestInitialize(t *testing.T) {
 	// assert
 	assert.Nil(t, sessionModel.NilSession)
 	assert.IsType(t, defaultSession, sessionModel.NilSession)
+	assert.Equal(t, dummySessionID, defaultSessionID)
 
 	// verify
 	verifyAll(t)
