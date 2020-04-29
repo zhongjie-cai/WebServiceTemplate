@@ -2,6 +2,7 @@ package session
 
 import (
 	"net/http"
+	"reflect"
 
 	"github.com/google/uuid"
 	apperrorModel "github.com/zhongjie-cai/WebServiceTemplate/apperror/model"
@@ -32,6 +33,17 @@ func Initialize() {
 	model.NilSession = defaultSession
 }
 
+func isInterfaceValueNil(i interface{}) bool {
+	if i == nil {
+		return true
+	}
+	var v = reflectValueOf(i)
+	if v.Kind() == reflect.Ptr {
+		return v.IsNil()
+	}
+	return !v.IsValid()
+}
+
 // Register registers the information of a session for given session ID
 func Register(
 	name string,
@@ -39,6 +51,12 @@ func Register(
 	responseWriter http.ResponseWriter,
 ) model.Session {
 	var sessionID = uuidNew()
+	if httpRequest == nil {
+		httpRequest = defaultRequest
+	}
+	if isInterfaceValueNilFunc(responseWriter) {
+		responseWriter = defaultResponseWriter
+	}
 	var session = &session{
 		ID:             sessionID,
 		Name:           name,
@@ -79,7 +97,8 @@ func (session *session) GetName() string {
 
 // GetRequest returns the HTTP request object from session object for given session ID
 func (session *session) GetRequest() *http.Request {
-	if session == nil {
+	if session == nil ||
+		session.Request == nil {
 		return defaultRequest
 	}
 	return session.Request
@@ -87,7 +106,8 @@ func (session *session) GetRequest() *http.Request {
 
 // GetResponseWriter returns the HTTP response writer object from session object for given session ID
 func (session *session) GetResponseWriter() http.ResponseWriter {
-	if session == nil {
+	if session == nil ||
+		isInterfaceValueNilFunc(session.ResponseWriter) {
 		return defaultResponseWriter
 	}
 	return session.ResponseWriter

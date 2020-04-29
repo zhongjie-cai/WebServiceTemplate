@@ -375,13 +375,14 @@ func TestRunServer_HappyPath(t *testing.T) {
 	signalNotifyExpected = 1
 	signalNotify = func(c chan<- os.Signal, sig ...os.Signal) {
 		signalNotifyCalled++
-		assert.Equal(t, 6, len(sig))
+		assert.Equal(t, 7, len(sig))
 		assert.Equal(t, syscall.SIGABRT, sig[0])
 		assert.Equal(t, syscall.SIGINT, sig[1])
 		assert.Equal(t, syscall.SIGKILL, sig[2])
 		assert.Equal(t, syscall.SIGQUIT, sig[3])
 		assert.Equal(t, syscall.SIGSTOP, sig[4])
 		assert.Equal(t, syscall.SIGTERM, sig[5])
+		assert.Equal(t, syscall.SIGSEGV, sig[6])
 	}
 	listenAndServeFuncExpected = 1
 	listenAndServeFunc = func(server *http.Server, serveHTTPS bool) error {

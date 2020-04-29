@@ -4,31 +4,35 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/textproto"
+	"reflect"
 	"runtime"
 	"strconv"
 	"testing"
-
-	"github.com/zhongjie-cai/WebServiceTemplate/certificate"
-	"github.com/zhongjie-cai/WebServiceTemplate/customization"
-	"github.com/zhongjie-cai/WebServiceTemplate/headerutil"
-	"github.com/zhongjie-cai/WebServiceTemplate/jsonutil"
-	"github.com/zhongjie-cai/WebServiceTemplate/logger/logtype"
-	"github.com/zhongjie-cai/WebServiceTemplate/network"
-	networkModel "github.com/zhongjie-cai/WebServiceTemplate/network/model"
 
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
 	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
 	apperrorModel "github.com/zhongjie-cai/WebServiceTemplate/apperror/model"
+	"github.com/zhongjie-cai/WebServiceTemplate/certificate"
 	"github.com/zhongjie-cai/WebServiceTemplate/config"
+	"github.com/zhongjie-cai/WebServiceTemplate/customization"
+	"github.com/zhongjie-cai/WebServiceTemplate/headerutil"
+	"github.com/zhongjie-cai/WebServiceTemplate/jsonutil"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger/loglevel"
+	"github.com/zhongjie-cai/WebServiceTemplate/logger/logtype"
+	"github.com/zhongjie-cai/WebServiceTemplate/network"
+	networkModel "github.com/zhongjie-cai/WebServiceTemplate/network/model"
 	"github.com/zhongjie-cai/WebServiceTemplate/request"
 	sessionModel "github.com/zhongjie-cai/WebServiceTemplate/session/model"
 )
 
 var (
+	reflectValueOfExpected                      int
+	reflectValueOfCalled                        int
+	isInterfaceValueNilFuncExpected             int
+	isInterfaceValueNilFuncCalled               int
 	uuidNewExpected                             int
 	uuidNewCalled                               int
 	jsonMarshalExpected                         int
@@ -102,6 +106,18 @@ var (
 )
 
 func createMock(t *testing.T) {
+	reflectValueOfExpected = 0
+	reflectValueOfCalled = 0
+	reflectValueOf = func(i interface{}) reflect.Value {
+		reflectValueOfCalled++
+		return reflect.Value{}
+	}
+	isInterfaceValueNilFuncExpected = 0
+	isInterfaceValueNilFuncCalled = 0
+	isInterfaceValueNilFunc = func(i interface{}) bool {
+		isInterfaceValueNilFuncCalled++
+		return false
+	}
 	uuidNewExpected = 0
 	uuidNewCalled = 0
 	uuidNew = func() uuid.UUID {
@@ -293,6 +309,10 @@ func createMock(t *testing.T) {
 }
 
 func verifyAll(t *testing.T) {
+	reflectValueOf = reflect.ValueOf
+	assert.Equal(t, reflectValueOfExpected, reflectValueOfCalled, "Unexpected number of calls to reflectValueOf")
+	isInterfaceValueNilFunc = isInterfaceValueNil
+	assert.Equal(t, isInterfaceValueNilFuncExpected, isInterfaceValueNilFuncCalled, "Unexpected number of calls to isInterfaceValueNilFunc")
 	uuidNew = uuid.New
 	assert.Equal(t, uuidNewExpected, uuidNewCalled, "Unexpected number of calls to uuidNew")
 	jsonMarshal = json.Marshal

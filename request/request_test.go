@@ -12,6 +12,25 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestGetRequestBody_NilRequest(t *testing.T) {
+	// arrange
+	var dummySessionID *http.Request
+
+	// mock
+	createMock(t)
+
+	// SUT + act
+	var result = GetRequestBody(
+		dummySessionID,
+	)
+
+	// assert
+	assert.Zero(t, result)
+
+	// verify
+	verifyAll(t)
+}
+
 func TestGetRequestBody_NilBody(t *testing.T) {
 	// arrange
 	var dummySessionID = &http.Request{

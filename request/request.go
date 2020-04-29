@@ -10,7 +10,8 @@ func GetRequestBody(
 ) string {
 	var bodyBytes []byte
 	var bodyError error
-	if httpRequest.Body != nil {
+	if httpRequest != nil &&
+		httpRequest.Body != nil {
 		defer httpRequest.Body.Close()
 		bodyBytes, bodyError = ioutilReadAll(
 			httpRequest.Body,

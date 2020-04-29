@@ -53,14 +53,116 @@ func TestInitialize(t *testing.T) {
 	verifyAll(t)
 }
 
-func TestRegister(t *testing.T) {
+func TestIsInterfaceValueNil_NilInterface(t *testing.T) {
+	// arrange
+	var dummyInterface http.ResponseWriter
+
+	// mock
+	createMock(t)
+
+	// expect
+
+	// SUT + act
+	var result = isInterfaceValueNil(
+		dummyInterface,
+	)
+
+	// assert
+	assert.True(t, result)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestIsInterfaceValueNil_NilValue(t *testing.T) {
+	// arrange
+	var dummyInterface *dummyResponseWriter
+
+	// mock
+	createMock(t)
+
+	// expect
+	reflectValueOfExpected = 1
+	reflectValueOf = func(i interface{}) reflect.Value {
+		reflectValueOfCalled++
+		assert.Equal(t, dummyInterface, i)
+		return reflect.ValueOf(i)
+	}
+
+	// SUT + act
+	var result = isInterfaceValueNil(
+		dummyInterface,
+	)
+
+	// assert
+	assert.True(t, result)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestIsInterfaceValueNil_EmptyValue(t *testing.T) {
+	// arrange
+	var dummyInterface = 0
+
+	// mock
+	createMock(t)
+
+	// expect
+	reflectValueOfExpected = 1
+	reflectValueOf = func(i interface{}) reflect.Value {
+		reflectValueOfCalled++
+		assert.Equal(t, dummyInterface, i)
+		return reflect.Value{}
+	}
+
+	// SUT + act
+	var result = isInterfaceValueNil(
+		dummyInterface,
+	)
+
+	// assert
+	assert.True(t, result)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestIsInterfaceValueNil_ValidValue(t *testing.T) {
+	// arrange
+	var dummyInterface = 0
+
+	// mock
+	createMock(t)
+
+	// expect
+	reflectValueOfExpected = 1
+	reflectValueOf = func(i interface{}) reflect.Value {
+		reflectValueOfCalled++
+		assert.Equal(t, dummyInterface, i)
+		return reflect.ValueOf(dummyInterface)
+	}
+
+	// SUT + act
+	var result = isInterfaceValueNil(
+		dummyInterface,
+	)
+
+	// assert
+	assert.False(t, result)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestRegister_InvalidValues(t *testing.T) {
 	// arrange
 	var dummySessionID = uuid.New()
 	var dummyName = "dummy name"
 	var dummyAllowedLogType = logtype.LogType(rand.Intn(math.MaxInt8))
 	var dummyAllowedLogLevel = loglevel.LogLevel(rand.Intn(math.MaxInt8))
-	var dummyHTTPRequest = &http.Request{}
-	var dummyResponseWriter = dummyResponseWriter{}
+	var dummyHTTPRequest *http.Request
+	var dummyResponseWriterObject http.ResponseWriter
 
 	// mock
 	createMock(t)
@@ -70,6 +172,12 @@ func TestRegister(t *testing.T) {
 	uuidNew = func() uuid.UUID {
 		uuidNewCalled++
 		return dummySessionID
+	}
+	isInterfaceValueNilFuncExpected = 1
+	isInterfaceValueNilFunc = func(i interface{}) bool {
+		isInterfaceValueNilFuncCalled++
+		assert.Equal(t, dummyResponseWriterObject, i)
+		return true
 	}
 	getAllowedLogTypeFuncExpected = 1
 	getAllowedLogTypeFunc = func(session *session) logtype.LogType {
@@ -88,7 +196,67 @@ func TestRegister(t *testing.T) {
 	var result = Register(
 		dummyName,
 		dummyHTTPRequest,
-		dummyResponseWriter,
+		dummyResponseWriterObject,
+	)
+
+	// act
+	var session, typeOK = result.(*session)
+
+	// assert
+	assert.True(t, typeOK)
+	assert.Equal(t, dummySessionID, session.ID)
+	assert.Equal(t, dummyName, session.Name)
+	assert.Equal(t, dummyAllowedLogType, session.AllowedLogType)
+	assert.Equal(t, dummyAllowedLogLevel, session.AllowedLogLevel)
+	assert.Equal(t, defaultRequest, session.Request)
+	assert.Equal(t, dummyResponseWriterObject, session.ResponseWriter)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestRegister_ValidValues(t *testing.T) {
+	// arrange
+	var dummySessionID = uuid.New()
+	var dummyName = "dummy name"
+	var dummyAllowedLogType = logtype.LogType(rand.Intn(math.MaxInt8))
+	var dummyAllowedLogLevel = loglevel.LogLevel(rand.Intn(math.MaxInt8))
+	var dummyHTTPRequest = &http.Request{}
+	var dummyResponseWriterObject = &dummyResponseWriter{}
+
+	// mock
+	createMock(t)
+
+	// expect
+	uuidNewExpected = 1
+	uuidNew = func() uuid.UUID {
+		uuidNewCalled++
+		return dummySessionID
+	}
+	isInterfaceValueNilFuncExpected = 1
+	isInterfaceValueNilFunc = func(i interface{}) bool {
+		isInterfaceValueNilFuncCalled++
+		assert.Equal(t, dummyResponseWriterObject, i)
+		return false
+	}
+	getAllowedLogTypeFuncExpected = 1
+	getAllowedLogTypeFunc = func(session *session) logtype.LogType {
+		getAllowedLogTypeFuncCalled++
+		assert.Equal(t, dummySessionID, session.ID)
+		return dummyAllowedLogType
+	}
+	getAllowedLogLevelFuncExpected = 1
+	getAllowedLogLevelFunc = func(session *session) loglevel.LogLevel {
+		getAllowedLogLevelFuncCalled++
+		assert.Equal(t, dummySessionID, session.ID)
+		return dummyAllowedLogLevel
+	}
+
+	// SUT
+	var result = Register(
+		dummyName,
+		dummyHTTPRequest,
+		dummyResponseWriterObject,
 	)
 
 	// act
@@ -101,7 +269,7 @@ func TestRegister(t *testing.T) {
 	assert.Equal(t, dummyAllowedLogType, session.AllowedLogType)
 	assert.Equal(t, dummyAllowedLogLevel, session.AllowedLogLevel)
 	assert.Equal(t, dummyHTTPRequest, session.Request)
-	assert.Equal(t, dummyResponseWriter, session.ResponseWriter)
+	assert.Equal(t, dummyResponseWriterObject, session.ResponseWriter)
 
 	// verify
 	verifyAll(t)
@@ -202,7 +370,29 @@ func TestGetRequest_NilSessionObject(t *testing.T) {
 	verifyAll(t)
 }
 
-func TestGetRequest_ValidSessionObject(t *testing.T) {
+func TestGetRequest_NilRequest(t *testing.T) {
+	// arrange
+	var dummyHTTPRequest *http.Request
+
+	// mock
+	createMock(t)
+
+	// SUT
+	var dummySessionObject = &session{
+		Request: dummyHTTPRequest,
+	}
+
+	// act
+	var result = dummySessionObject.GetRequest()
+
+	// assert
+	assert.Equal(t, defaultRequest, result)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestGetRequest_ValidRequest(t *testing.T) {
 	// arrange
 	var dummyHTTPRequest = &http.Request{
 		Method:     http.MethodGet,
@@ -245,23 +435,61 @@ func TestGetResponseWriter_NilSessionObject(t *testing.T) {
 	verifyAll(t)
 }
 
-func TestGetResponseWriter_ValidSessionObject(t *testing.T) {
+func TestGetResponseWriter_NilResponseWriter(t *testing.T) {
 	// arrange
-	var dummyResponseWriter = dummyResponseWriter{}
+	var dummyResponseWriterObject *dummyResponseWriter
 
 	// mock
 	createMock(t)
 
+	// expect
+	isInterfaceValueNilFuncExpected = 1
+	isInterfaceValueNilFunc = func(i interface{}) bool {
+		isInterfaceValueNilFuncCalled++
+		assert.Equal(t, dummyResponseWriterObject, i)
+		return true
+	}
+
 	// SUT
 	var dummySessionObject = &session{
-		ResponseWriter: &dummyResponseWriter,
+		ResponseWriter: dummyResponseWriterObject,
 	}
 
 	// act
 	var result = dummySessionObject.GetResponseWriter()
 
 	// assert
-	assert.Equal(t, &dummyResponseWriter, result)
+	assert.Equal(t, defaultResponseWriter, result)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestGetResponseWriter_ValidResponseWriter(t *testing.T) {
+	// arrange
+	var dummyResponseWriterObject = &dummyResponseWriter{}
+
+	// mock
+	createMock(t)
+
+	// expect
+	isInterfaceValueNilFuncExpected = 1
+	isInterfaceValueNilFunc = func(i interface{}) bool {
+		isInterfaceValueNilFuncCalled++
+		assert.Equal(t, dummyResponseWriterObject, i)
+		return false
+	}
+
+	// SUT
+	var dummySessionObject = &session{
+		ResponseWriter: dummyResponseWriterObject,
+	}
+
+	// act
+	var result = dummySessionObject.GetResponseWriter()
+
+	// assert
+	assert.Equal(t, dummyResponseWriterObject, result)
 
 	// verify
 	verifyAll(t)

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/textproto"
+	"reflect"
 	"runtime"
 	"strconv"
 
@@ -20,6 +21,8 @@ import (
 
 // func pointers for injection / testing: session.go
 var (
+	reflectValueOf                  = reflect.ValueOf
+	isInterfaceValueNilFunc         = isInterfaceValueNil
 	uuidNew                         = uuid.New
 	jsonMarshal                     = json.Marshal
 	jsonUnmarshal                   = json.Unmarshal

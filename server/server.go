@@ -109,6 +109,7 @@ func runServer(
 		syscall.SIGQUIT,
 		syscall.SIGSTOP,
 		syscall.SIGTERM,
+		syscall.SIGSEGV,
 	)
 
 	var hostError error
