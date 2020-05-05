@@ -10,6 +10,7 @@ import (
 	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
 	apperrorModel "github.com/zhongjie-cai/WebServiceTemplate/apperror/model"
 	"github.com/zhongjie-cai/WebServiceTemplate/customization"
+	"github.com/zhongjie-cai/WebServiceTemplate/jsonutil"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger/loglevel"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger/logtype"
@@ -48,6 +49,8 @@ var (
 	customizationPreActionFuncCalled      int
 	customizationPostActionFuncExpected   int
 	customizationPostActionFuncCalled     int
+	jsonutilMarshalIgnoreErrorExpected    int
+	jsonutilMarshalIgnoreErrorCalled      int
 	loggerAppRootExpected                 int
 	loggerAppRootCalled                   int
 	httpErrorExpected                     int
@@ -123,6 +126,12 @@ func createMock(t *testing.T) {
 		customizationPostActionFuncCalled++
 		return nil
 	}
+	jsonutilMarshalIgnoreErrorExpected = 0
+	jsonutilMarshalIgnoreErrorCalled = 0
+	jsonutilMarshalIgnoreError = func(v interface{}) string {
+		jsonutilMarshalIgnoreErrorCalled++
+		return ""
+	}
 	loggerAppRootExpected = 0
 	loggerAppRootCalled = 0
 	loggerAppRoot = func(category string, subcategory string, messageFormat string, parameters ...interface{}) {
@@ -160,6 +169,8 @@ func verifyAll(t *testing.T) {
 	assert.Equal(t, customizationPreActionFuncExpected, customizationPreActionFuncCalled, "Unexpected number of calls to customization.PreActionFunc")
 	customization.PostActionFunc = nil
 	assert.Equal(t, customizationPostActionFuncExpected, customizationPostActionFuncCalled, "Unexpected number of calls to customization.PostActionFunc")
+	jsonutilMarshalIgnoreError = jsonutil.MarshalIgnoreError
+	assert.Equal(t, jsonutilMarshalIgnoreErrorExpected, jsonutilMarshalIgnoreErrorCalled, "Unexpected number of calls to jsonutilMarshalIgnoreError")
 	loggerAppRoot = logger.AppRoot
 	assert.Equal(t, loggerAppRootExpected, loggerAppRootCalled, "Unexpected number of calls to loggerAppRoot")
 	httpError = http.Error
