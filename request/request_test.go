@@ -134,3 +134,87 @@ func TestGetRequestBody_Success(t *testing.T) {
 	// verify
 	verifyAll(t)
 }
+
+func TestFullDump_DumpError(t *testing.T) {
+	// arrange
+	var dummyHTTPRequest = &http.Request{}
+	var dummyRequestBytes = []byte("some request bytes")
+	var dummyDumpError = errors.New("some dump error")
+	var dummyFormat = "FullDump Failed: %v\r\nSimpleDump: %v\r\n"
+	var dummyResult = "some result"
+
+	// mock
+	createMock(t)
+
+	// expect
+	httputilDumpRequestExpected = 1
+	httputilDumpRequest = func(req *http.Request, body bool) ([]byte, error) {
+		httputilDumpRequestCalled++
+		assert.Equal(t, dummyHTTPRequest, req)
+		assert.True(t, body)
+		return dummyRequestBytes, dummyDumpError
+	}
+	fmtSprintfExpected = 1
+	fmtSprintf = func(format string, a ...interface{}) string {
+		fmtSprintfCalled++
+		assert.Equal(t, dummyFormat, format)
+		assert.Equal(t, 2, len(a))
+		assert.Equal(t, dummyDumpError, a[0])
+		assert.Equal(t, dummyHTTPRequest, a[1])
+		return dummyResult
+	}
+
+	// SUT + act
+	var result = FullDump(
+		dummyHTTPRequest,
+	)
+
+	// assert
+	assert.Equal(t, dummyResult, result)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestFullDump_Success(t *testing.T) {
+	// arrange
+	var dummyRemoteAddress = "some remote address"
+	var dummyHTTPRequest = &http.Request{
+		RemoteAddr: dummyRemoteAddress,
+	}
+	var dummyRequestBytes = []byte("some request bytes")
+	var dummyFormat = "%vRemote Address: %v\r\n"
+	var dummyResult = "some result"
+
+	// mock
+	createMock(t)
+
+	// expect
+	httputilDumpRequestExpected = 1
+	httputilDumpRequest = func(req *http.Request, body bool) ([]byte, error) {
+		httputilDumpRequestCalled++
+		assert.Equal(t, dummyHTTPRequest, req)
+		assert.True(t, body)
+		return dummyRequestBytes, nil
+	}
+	fmtSprintfExpected = 1
+	fmtSprintf = func(format string, a ...interface{}) string {
+		fmtSprintfCalled++
+		assert.Equal(t, dummyFormat, format)
+		assert.Equal(t, 2, len(a))
+		assert.Equal(t, string(dummyRequestBytes), a[0])
+		assert.Equal(t, dummyRemoteAddress, a[1])
+		return dummyResult
+	}
+
+	// SUT + act
+	var result = FullDump(
+		dummyHTTPRequest,
+	)
+
+	// assert
+	assert.Equal(t, dummyResult, result)
+
+	// verify
+	verifyAll(t)
+}

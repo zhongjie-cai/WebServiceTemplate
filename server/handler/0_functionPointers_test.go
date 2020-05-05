@@ -10,11 +10,11 @@ import (
 	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
 	apperrorModel "github.com/zhongjie-cai/WebServiceTemplate/apperror/model"
 	"github.com/zhongjie-cai/WebServiceTemplate/customization"
-	"github.com/zhongjie-cai/WebServiceTemplate/jsonutil"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger/loglevel"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger/logtype"
 	networkModel "github.com/zhongjie-cai/WebServiceTemplate/network/model"
+	"github.com/zhongjie-cai/WebServiceTemplate/request"
 	"github.com/zhongjie-cai/WebServiceTemplate/response"
 	"github.com/zhongjie-cai/WebServiceTemplate/server/model"
 	"github.com/zhongjie-cai/WebServiceTemplate/server/panic"
@@ -49,8 +49,8 @@ var (
 	customizationPreActionFuncCalled      int
 	customizationPostActionFuncExpected   int
 	customizationPostActionFuncCalled     int
-	jsonutilMarshalIgnoreErrorExpected    int
-	jsonutilMarshalIgnoreErrorCalled      int
+	requestFullDumpExpected               int
+	requestFullDumpCalled                 int
 	loggerAppRootExpected                 int
 	loggerAppRootCalled                   int
 	httpErrorExpected                     int
@@ -126,10 +126,10 @@ func createMock(t *testing.T) {
 		customizationPostActionFuncCalled++
 		return nil
 	}
-	jsonutilMarshalIgnoreErrorExpected = 0
-	jsonutilMarshalIgnoreErrorCalled = 0
-	jsonutilMarshalIgnoreError = func(v interface{}) string {
-		jsonutilMarshalIgnoreErrorCalled++
+	requestFullDumpExpected = 0
+	requestFullDumpCalled = 0
+	requestFullDump = func(httpRequest *http.Request) string {
+		requestFullDumpCalled++
 		return ""
 	}
 	loggerAppRootExpected = 0
@@ -169,8 +169,8 @@ func verifyAll(t *testing.T) {
 	assert.Equal(t, customizationPreActionFuncExpected, customizationPreActionFuncCalled, "Unexpected number of calls to customization.PreActionFunc")
 	customization.PostActionFunc = nil
 	assert.Equal(t, customizationPostActionFuncExpected, customizationPostActionFuncCalled, "Unexpected number of calls to customization.PostActionFunc")
-	jsonutilMarshalIgnoreError = jsonutil.MarshalIgnoreError
-	assert.Equal(t, jsonutilMarshalIgnoreErrorExpected, jsonutilMarshalIgnoreErrorCalled, "Unexpected number of calls to jsonutilMarshalIgnoreError")
+	requestFullDump = request.FullDump
+	assert.Equal(t, requestFullDumpExpected, requestFullDumpCalled, "Unexpected number of calls to requestFullDump")
 	loggerAppRoot = logger.AppRoot
 	assert.Equal(t, loggerAppRootExpected, loggerAppRootCalled, "Unexpected number of calls to loggerAppRoot")
 	httpError = http.Error

@@ -8,7 +8,7 @@ import (
 type NotFoundHandler struct{}
 
 func (handler *NotFoundHandler) ServeHTTP(responseWriter http.ResponseWriter, httpRequest *http.Request) {
-	var requestString = jsonutilMarshalIgnoreError(
+	var requestString = requestFullDump(
 		httpRequest,
 	)
 	loggerAppRoot(

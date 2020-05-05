@@ -8,7 +8,7 @@ import (
 type MethodNotAllowedHandler struct{}
 
 func (handler *MethodNotAllowedHandler) ServeHTTP(responseWriter http.ResponseWriter, httpRequest *http.Request) {
-	var requestString = jsonutilMarshalIgnoreError(
+	var requestString = requestFullDump(
 		httpRequest,
 	)
 	loggerAppRoot(

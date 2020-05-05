@@ -2,7 +2,9 @@ package request
 
 import (
 	"bytes"
+	"fmt"
 	"io/ioutil"
+	"net/http/httputil"
 
 	"github.com/google/uuid"
 	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
@@ -16,4 +18,6 @@ var (
 	ioutilReadAll          = ioutil.ReadAll
 	ioutilNopCloser        = ioutil.NopCloser
 	bytesNewBuffer         = bytes.NewBuffer
+	httputilDumpRequest    = httputil.DumpRequest
+	fmtSprintf             = fmt.Sprintf
 )

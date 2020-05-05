@@ -21,10 +21,10 @@ func TestServeHTTP_MethodNotAllowed(t *testing.T) {
 	createMock(t)
 
 	// expect
-	jsonutilMarshalIgnoreErrorExpected = 1
-	jsonutilMarshalIgnoreError = func(v interface{}) string {
-		jsonutilMarshalIgnoreErrorCalled++
-		assert.Equal(t, dummyHTTPRequest, v)
+	requestFullDumpExpected = 1
+	requestFullDump = func(httpRequest *http.Request) string {
+		requestFullDumpCalled++
+		assert.Equal(t, dummyHTTPRequest, httpRequest)
 		return dummyRequestString
 	}
 	loggerAppRootExpected = 1

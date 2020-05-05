@@ -4,8 +4,9 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/zhongjie-cai/WebServiceTemplate/request"
+
 	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
-	"github.com/zhongjie-cai/WebServiceTemplate/jsonutil"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger"
 	"github.com/zhongjie-cai/WebServiceTemplate/response"
 	"github.com/zhongjie-cai/WebServiceTemplate/server/panic"
@@ -30,7 +31,7 @@ var (
 
 // func pointers for injection / testing: methodNotAllowed.go
 var (
-	jsonutilMarshalIgnoreError = jsonutil.MarshalIgnoreError
-	loggerAppRoot              = logger.AppRoot
-	httpError                  = http.Error
+	requestFullDump = request.FullDump
+	loggerAppRoot   = logger.AppRoot
+	httpError       = http.Error
 )

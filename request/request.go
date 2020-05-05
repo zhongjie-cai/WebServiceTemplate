@@ -28,3 +28,25 @@ func GetRequestBody(
 	var bodyContent = string(bodyBytes)
 	return bodyContent
 }
+
+// FullDump dumps the complete content of a given HTTP request, including its method, URL, body, headers and caller address
+func FullDump(
+	httpRequest *http.Request,
+) string {
+	var requestBytes, dumpError = httputilDumpRequest(
+		httpRequest,
+		true,
+	)
+	if dumpError != nil {
+		return fmtSprintf(
+			"FullDump Failed: %v\r\nSimpleDump: %v\r\n",
+			dumpError,
+			httpRequest,
+		)
+	}
+	return fmtSprintf(
+		"%vRemote Address: %v\r\n",
+		string(requestBytes),
+		httpRequest.RemoteAddr,
+	)
+}
