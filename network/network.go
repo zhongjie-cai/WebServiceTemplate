@@ -90,6 +90,7 @@ func getHTTPTransport(sendClientCert bool, skipServerCertVerification bool) http
 				Certificates: []tls.Certificate{
 					*clientCert,
 				},
+				MinVersion:         tls.VersionTLS12, // TLS 1.2 as minimum requirement
 				InsecureSkipVerify: skipServerCertVerification,
 			}
 			httpTransport = &http.Transport{
