@@ -5,7 +5,6 @@ import (
 	"crypto/tls"
 	"net/http"
 	"os"
-	"syscall"
 
 	"github.com/gorilla/mux"
 )
@@ -103,13 +102,8 @@ func runServer(
 
 	signalNotify(
 		shutdownSignal,
-		syscall.SIGABRT,
-		syscall.SIGINT,
-		syscall.SIGKILL,
-		syscall.SIGQUIT,
-		syscall.SIGSTOP,
-		syscall.SIGTERM,
-		syscall.SIGSEGV,
+		os.Interrupt,
+		os.Kill,
 	)
 
 	var hostError error
