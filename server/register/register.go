@@ -183,8 +183,16 @@ func registerMiddlewares(
 }
 
 func registerErrorHandlers(router *mux.Router) {
-	router.MethodNotAllowedHandler = &handler.MethodNotAllowedHandler{}
-	router.NotFoundHandler = &handler.NotFoundHandler{}
+	if customization.MethodNotAllowedHandler == nil {
+		router.MethodNotAllowedHandler = &handler.MethodNotAllowedHandler{}
+	} else {
+		router.MethodNotAllowedHandler = customization.MethodNotAllowedHandler()
+	}
+	if customization.NotFoundHandler == nil {
+		router.NotFoundHandler = &handler.NotFoundHandler{}
+	} else {
+		router.NotFoundHandler = customization.NotFoundHandler()
+	}
 }
 
 func instrumentRouter(router *mux.Router) *mux.Router {

@@ -35,6 +35,8 @@ func verifyAll(t *testing.T) {
 	Routes = nil
 	Statics = nil
 	Middlewares = nil
+	NotFoundHandler = nil
+	MethodNotAllowedHandler = nil
 	InstrumentRouter = nil
 	HTTPRoundTripper = nil
 	WrapHTTPRequest = nil

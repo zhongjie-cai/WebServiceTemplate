@@ -100,6 +100,12 @@ var Statics func() []serverModel.Static
 // Middlewares is to customize the middlewares registration
 var Middlewares func() []serverModel.MiddlewareFunc
 
+// NotFoundHandler is to customize the handler for routes that are not found in router
+var NotFoundHandler func() http.Handler
+
+// MethodNotAllowedHandler is to customize the handler for routes with methods that are not allowed in router
+var MethodNotAllowedHandler func() http.Handler
+
 // InstrumentRouter is to customize the instrumentation on top of a fully configured router; usually useful for 3rd party monitoring tools such as new relic, etc.
 var InstrumentRouter func(router *mux.Router) *mux.Router
 
@@ -155,6 +161,8 @@ func Reset() {
 	Routes = nil
 	Statics = nil
 	Middlewares = nil
+	NotFoundHandler = nil
+	MethodNotAllowedHandler = nil
 	InstrumentRouter = nil
 	AppErrors = nil
 	HTTPRoundTripper = nil

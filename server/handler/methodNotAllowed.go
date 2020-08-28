@@ -8,11 +8,14 @@ import (
 type MethodNotAllowedHandler struct{}
 
 func (handler *MethodNotAllowedHandler) ServeHTTP(responseWriter http.ResponseWriter, httpRequest *http.Request) {
+	var requestString = requestFullDump(
+		httpRequest,
+	)
 	loggerAppRoot(
 		"RouteError",
 		"MethodNotAllowed",
 		"%v",
-		httpRequest,
+		requestString,
 	)
 	httpError(
 		responseWriter,

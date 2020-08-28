@@ -8,9 +8,15 @@ Library dependencies (must be present in vendor folder or in Go path):
 * [MUX](https://github.com/gorilla/mux): `go get -u github.com/gorilla/mux`
 * [Testify](https://github.com/stretchr/testify): `go get -u github.com/stretchr/testify` (For tests only)
 
+# Installation
+
+Simply use a command `go get -u github.com/zhongjie-cai/WebServiceTemplate` to install the library.
+
+# Samples
+
 A sample application is shown below:
 
-# main.go
+## main.go
 ```golang
 package main
 

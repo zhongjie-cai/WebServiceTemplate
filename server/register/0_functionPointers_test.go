@@ -18,44 +18,48 @@ import (
 )
 
 var (
-	stringsReplaceExpected                 int
-	stringsReplaceCalled                   int
-	fmtSprintfExpected                     int
-	fmtSprintfCalled                       int
-	loggerAppRootExpected                  int
-	loggerAppRootCalled                    int
-	routeHandleFuncExpected                int
-	routeHandleFuncCalled                  int
-	routeHostStaticExpected                int
-	routeHostStaticCalled                  int
-	routeAddMiddlewareExpected             int
-	routeAddMiddlewareCalled               int
-	routeCreateRouterExpected              int
-	routeCreateRouterCalled                int
-	routeWalkRegisteredRoutesExpected      int
-	routeWalkRegisteredRoutesCalled        int
-	apperrorWrapSimpleErrorExpected        int
-	apperrorWrapSimpleErrorCalled          int
-	handlerSessionExpected                 int
-	handlerSessionCalled                   int
-	doParameterReplacementFuncExpected     int
-	doParameterReplacementFuncCalled       int
-	evaluatePathWithParametersFuncExpected int
-	evaluatePathWithParametersFuncCalled   int
-	evaluateQueriesFuncExpected            int
-	evaluateQueriesFuncCalled              int
-	registerRoutesFuncExpected             int
-	registerRoutesFuncCalled               int
-	registerStaticsFuncExpected            int
-	registerStaticsFuncCalled              int
-	registerMiddlewaresFuncExpected        int
-	registerMiddlewaresFuncCalled          int
-	registerErrorHandlersFuncExpected      int
-	registerErrorHandlersFuncCalled        int
-	instrumentRouterFuncExpected           int
-	instrumentRouterFuncCalled             int
-	customizationInstrumentRouterExpected  int
-	customizationInstrumentRouterCalled    int
+	stringsReplaceExpected                       int
+	stringsReplaceCalled                         int
+	fmtSprintfExpected                           int
+	fmtSprintfCalled                             int
+	loggerAppRootExpected                        int
+	loggerAppRootCalled                          int
+	routeHandleFuncExpected                      int
+	routeHandleFuncCalled                        int
+	routeHostStaticExpected                      int
+	routeHostStaticCalled                        int
+	routeAddMiddlewareExpected                   int
+	routeAddMiddlewareCalled                     int
+	routeCreateRouterExpected                    int
+	routeCreateRouterCalled                      int
+	routeWalkRegisteredRoutesExpected            int
+	routeWalkRegisteredRoutesCalled              int
+	apperrorWrapSimpleErrorExpected              int
+	apperrorWrapSimpleErrorCalled                int
+	handlerSessionExpected                       int
+	handlerSessionCalled                         int
+	doParameterReplacementFuncExpected           int
+	doParameterReplacementFuncCalled             int
+	evaluatePathWithParametersFuncExpected       int
+	evaluatePathWithParametersFuncCalled         int
+	evaluateQueriesFuncExpected                  int
+	evaluateQueriesFuncCalled                    int
+	registerRoutesFuncExpected                   int
+	registerRoutesFuncCalled                     int
+	registerStaticsFuncExpected                  int
+	registerStaticsFuncCalled                    int
+	registerMiddlewaresFuncExpected              int
+	registerMiddlewaresFuncCalled                int
+	registerErrorHandlersFuncExpected            int
+	registerErrorHandlersFuncCalled              int
+	instrumentRouterFuncExpected                 int
+	instrumentRouterFuncCalled                   int
+	customizationInstrumentRouterExpected        int
+	customizationInstrumentRouterCalled          int
+	customizationMethodNotAllowedHandlerExpected int
+	customizationMethodNotAllowedHandlerCalled   int
+	customizationNotFoundHandlerExpected         int
+	customizationNotFoundHandlerCalled           int
 )
 
 func createMock(t *testing.T) {
@@ -163,6 +167,12 @@ func createMock(t *testing.T) {
 	customizationInstrumentRouterExpected = 0
 	customizationInstrumentRouterCalled = 0
 	customization.InstrumentRouter = nil
+	customizationMethodNotAllowedHandlerExpected = 0
+	customizationMethodNotAllowedHandlerCalled = 0
+	customization.MethodNotAllowedHandler = nil
+	customizationNotFoundHandlerExpected = 0
+	customizationNotFoundHandlerCalled = 0
+	customization.NotFoundHandler = nil
 }
 
 func verifyAll(t *testing.T) {
@@ -204,6 +214,10 @@ func verifyAll(t *testing.T) {
 	assert.Equal(t, instrumentRouterFuncExpected, instrumentRouterFuncCalled, "Unexpected number of calls to instrumentRouterFunc")
 	customization.InstrumentRouter = nil
 	assert.Equal(t, customizationInstrumentRouterExpected, customizationInstrumentRouterCalled, "Unexpected number of calls to customization.InstrumentRouter")
+	customization.MethodNotAllowedHandler = nil
+	assert.Equal(t, customizationMethodNotAllowedHandlerExpected, customizationMethodNotAllowedHandlerCalled, "Unexpected number of calls to customization.MethodNotAllowedHandler")
+	customization.NotFoundHandler = nil
+	assert.Equal(t, customizationNotFoundHandlerExpected, customizationNotFoundHandlerCalled, "Unexpected number of calls to customization.NotFoundHandler")
 }
 
 // mock structs

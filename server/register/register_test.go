@@ -603,7 +603,7 @@ func TestRegisterMiddlewares_ValidMiddlewares(t *testing.T) {
 	assert.Equal(t, MiddlewaresExpected, MiddlewaresCalled, "Unexpected number of calls to Middlewares")
 }
 
-func TestRegisterErrorHandlers(t *testing.T) {
+func TestRegisterErrorHandlers_NoCustomization(t *testing.T) {
 	// arrange
 	var dummyRouter = &mux.Router{}
 
@@ -618,6 +618,40 @@ func TestRegisterErrorHandlers(t *testing.T) {
 	// assert
 	assert.IsType(t, &handler.MethodNotAllowedHandler{}, dummyRouter.MethodNotAllowedHandler)
 	assert.IsType(t, &handler.NotFoundHandler{}, dummyRouter.NotFoundHandler)
+
+	// verify
+	verifyAll(t)
+}
+
+func TestRegisterErrorHandlers_WithCustomization(t *testing.T) {
+	// arrange
+	var dummyRouter = &mux.Router{}
+	var dummyMethodNotAllowedHandler = &handler.MethodNotAllowedHandler{}
+	var dummyNotFoundHandler = &handler.NotFoundHandler{}
+
+	// mock
+	createMock(t)
+
+	// expect
+	customizationMethodNotAllowedHandlerExpected = 1
+	customization.MethodNotAllowedHandler = func() http.Handler {
+		customizationMethodNotAllowedHandlerCalled++
+		return dummyMethodNotAllowedHandler
+	}
+	customizationNotFoundHandlerExpected = 1
+	customization.NotFoundHandler = func() http.Handler {
+		customizationNotFoundHandlerCalled++
+		return dummyNotFoundHandler
+	}
+
+	// SUT + act
+	registerErrorHandlers(
+		dummyRouter,
+	)
+
+	// assert
+	assert.IsType(t, dummyMethodNotAllowedHandler, dummyRouter.MethodNotAllowedHandler)
+	assert.IsType(t, dummyNotFoundHandler, dummyRouter.NotFoundHandler)
 
 	// verify
 	verifyAll(t)

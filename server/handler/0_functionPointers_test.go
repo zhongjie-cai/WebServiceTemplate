@@ -14,6 +14,7 @@ import (
 	"github.com/zhongjie-cai/WebServiceTemplate/logger/loglevel"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger/logtype"
 	networkModel "github.com/zhongjie-cai/WebServiceTemplate/network/model"
+	"github.com/zhongjie-cai/WebServiceTemplate/request"
 	"github.com/zhongjie-cai/WebServiceTemplate/response"
 	"github.com/zhongjie-cai/WebServiceTemplate/server/model"
 	"github.com/zhongjie-cai/WebServiceTemplate/server/panic"
@@ -48,6 +49,8 @@ var (
 	customizationPreActionFuncCalled      int
 	customizationPostActionFuncExpected   int
 	customizationPostActionFuncCalled     int
+	requestFullDumpExpected               int
+	requestFullDumpCalled                 int
 	loggerAppRootExpected                 int
 	loggerAppRootCalled                   int
 	httpErrorExpected                     int
@@ -123,6 +126,12 @@ func createMock(t *testing.T) {
 		customizationPostActionFuncCalled++
 		return nil
 	}
+	requestFullDumpExpected = 0
+	requestFullDumpCalled = 0
+	requestFullDump = func(httpRequest *http.Request) string {
+		requestFullDumpCalled++
+		return ""
+	}
 	loggerAppRootExpected = 0
 	loggerAppRootCalled = 0
 	loggerAppRoot = func(category string, subcategory string, messageFormat string, parameters ...interface{}) {
@@ -160,6 +169,8 @@ func verifyAll(t *testing.T) {
 	assert.Equal(t, customizationPreActionFuncExpected, customizationPreActionFuncCalled, "Unexpected number of calls to customization.PreActionFunc")
 	customization.PostActionFunc = nil
 	assert.Equal(t, customizationPostActionFuncExpected, customizationPostActionFuncCalled, "Unexpected number of calls to customization.PostActionFunc")
+	requestFullDump = request.FullDump
+	assert.Equal(t, requestFullDumpExpected, requestFullDumpCalled, "Unexpected number of calls to requestFullDump")
 	loggerAppRoot = logger.AppRoot
 	assert.Equal(t, loggerAppRootExpected, loggerAppRootCalled, "Unexpected number of calls to loggerAppRoot")
 	httpError = http.Error

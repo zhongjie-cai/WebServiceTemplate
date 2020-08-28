@@ -4,6 +4,8 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/zhongjie-cai/WebServiceTemplate/request"
+
 	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
 	"github.com/zhongjie-cai/WebServiceTemplate/logger"
 	"github.com/zhongjie-cai/WebServiceTemplate/response"
@@ -29,6 +31,7 @@ var (
 
 // func pointers for injection / testing: methodNotAllowed.go
 var (
-	loggerAppRoot = logger.AppRoot
-	httpError     = http.Error
+	requestFullDump = request.FullDump
+	loggerAppRoot   = logger.AppRoot
+	httpError       = http.Error
 )

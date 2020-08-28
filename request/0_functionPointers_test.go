@@ -2,8 +2,11 @@ package request
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"io/ioutil"
+	"net/http"
+	"net/http/httputil"
 	"testing"
 
 	"github.com/google/uuid"
@@ -26,6 +29,10 @@ var (
 	ioutilNopCloserCalled          int
 	bytesNewBufferExpected         int
 	bytesNewBufferCalled           int
+	httputilDumpRequestExpected    int
+	httputilDumpRequestCalled      int
+	fmtSprintfExpected             int
+	fmtSprintfCalled               int
 )
 
 func createMock(t *testing.T) {
@@ -65,6 +72,18 @@ func createMock(t *testing.T) {
 		bytesNewBufferCalled++
 		return nil
 	}
+	httputilDumpRequestExpected = 0
+	httputilDumpRequestCalled = 0
+	httputilDumpRequest = func(req *http.Request, body bool) ([]byte, error) {
+		httputilDumpRequestCalled++
+		return nil, nil
+	}
+	fmtSprintfExpected = 0
+	fmtSprintfCalled = 0
+	fmtSprintf = func(format string, a ...interface{}) string {
+		fmtSprintfCalled++
+		return ""
+	}
 }
 
 func verifyAll(t *testing.T) {
@@ -80,4 +99,8 @@ func verifyAll(t *testing.T) {
 	assert.Equal(t, ioutilNopCloserExpected, ioutilNopCloserCalled, "Unexpected number of calls to ioutilNopCloser")
 	bytesNewBuffer = bytes.NewBuffer
 	assert.Equal(t, bytesNewBufferExpected, bytesNewBufferCalled, "Unexpected number of calls to bytesNewBuffer")
+	httputilDumpRequest = httputil.DumpRequest
+	assert.Equal(t, httputilDumpRequestExpected, httputilDumpRequestCalled, "Unexpected number of calls to httputilDumpRequest")
+	fmtSprintf = fmt.Sprintf
+	assert.Equal(t, fmtSprintfExpected, fmtSprintfCalled, "Unexpected number of calls to fmtSprintf")
 }
