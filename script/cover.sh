@@ -1,14 +1,14 @@
 #!/bin/sh
 
-# -e  causes Exit immediately when a command exits with a non-zero status.
-# When a test fails in Go, it returns a non-zero status and causes the 
-# build pipeline to fail and exit when unit tests fails.
-#set -e
+# Load environment variables from second parameter if given
+if [ "$1" = "" ];
+then
+    echo "Using system environment variables"
+else
+    echo "Loading environment variables from file: $1"
+    export $(grep -v '^#' "$1" | xargs -0)
+fi
 
-# Install dependency libraries
-./init/dependency.sh
-
-# Ensure folder structure
 mkdir -p coverage
 
 allTestCoverResultFile="coverage/all.test.cover.result"
@@ -30,23 +30,27 @@ do
 done
 
 # Echo result for visibility
-FullReportLines=$(grep -e 'github.com' $allTestCoverResultFile)
+FullReportLines=$(grep -e '/WebServiceTemplate' $allTestCoverResultFile)
 
 echo ""
 echo "Coverage result:"
 echo "$FullReportLines"
 
+echo ""
 echo "Analyzed result:"
+echo ""
 
-FailedLines=$(echo "$FullReportLines" | grep -e 'FAIL')
-if [ -n "$FailedLines" ]
+# all fully covered as default success
+ReturnCode=0
+
+WronglySkippedLines=$(echo "$FullReportLines" | grep -e 'no test files' | grep -e '/enum' -e '/constant' -e '/model' -v)
+if [ -n "$WronglySkippedLines" ]
 then
-	# some tests failed during coverage call
-	echo "Failed packages:"
-	echo "$FailedLines"
+	# some wrongly skipped packages
+	echo "Wrongly skipped packages:"
+	echo "$WronglySkippedLines"
 	echo ""
-	echo "Some tests are not even passing! You should fix them NOW before anything committed!"
-	exit 3
+	ReturnCode=1
 fi
 
 UncoveredLines=$(echo "$FullReportLines" | grep -e 'ok' | grep -e '100.0% of statements' -e 'no test files' -e 'FAIL' -v)
@@ -56,21 +60,31 @@ then
 	echo "Not fully covered packages:"
 	echo "$UncoveredLines"
 	echo ""
-	echo "Some code lines are not covered! You should cover them ASAP before anything deployed!"
-	exit 2
+	ReturnCode=2
 fi
 
-WronglySkippedLines=$(echo "$FullReportLines" | grep -e 'no test files' | grep -e '/enum' -e '/constant' -e '/model' -v)
-if [ -n "$WronglySkippedLines" ]
+FailedLines=$(echo "$FullReportLines" | grep -e 'FAIL')
+if [ -n "$FailedLines" ]
 then
-	# some wrongly skipped packages
-	echo "Wrongly skipped packages:"
-	echo "$WronglySkippedLines"
+	# some tests failed during coverage call
+	echo "Failed packages:"
+	echo "$FailedLines"
 	echo ""
-	echo "Some code packages are wrongly skipped for coverage! You should cover them ASAP before anything deployed!"
-	exit 1
+	ReturnCode=3
 fi
 
-# all fully covered, so success
-echo "All code lines are covered! You are good to go!"
-exit 0
+case $ReturnCode in
+	0)
+		echo "All code lines are covered! You are good to go!"
+		;;
+	1)
+		echo "Some code packages are wrongly skipped for coverage! You should cover them ASAP before anything deployed!"
+		;;
+	2)
+		echo "Some code lines are not covered! You should cover them ASAP before anything deployed!"
+		;;
+	3)
+		echo "Some tests are not even passing! You should fix them NOW before anything committed!"
+		;;
+esac
+exit $ReturnCode

@@ -1,5 +1,5 @@
 #!/bin/bash
-export GO_VERSION=1.11
+export GO_VERSION=1.15
 export GO_DOWNLOAD_URL=https://storage.googleapis.com/golang/go$GO_VERSION.linux-amd64.tar.gz
 
 export GOPATH=$HOME/go

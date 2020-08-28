@@ -5,8 +5,14 @@
 # build pipeline to fail and exit when unit tests fails.
 set -e
 
-# Install dependency libraries
-./init/dependency.sh
+# Load environment variables from second parameter if given
+if [ "$2" = "" ];
+then
+    echo "Using system environment variables"
+else
+    echo "Loading environment variables from file: $2"
+    export $(grep -v '^#' "$2" | xargs -0)
+fi
 
 # Go Test all packages found within the main directory and subdirectories
 # The pipe is required to reverse the order of the comamnd, so that tee does not swallow the exit code
