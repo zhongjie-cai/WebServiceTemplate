@@ -22,8 +22,8 @@ var (
 	fmtErrorfCalled                        int
 	getRecoverErrorFuncExpected            int
 	getRecoverErrorFuncCalled              int
-	loggerAppRootExpected                  int
-	loggerAppRootCalled                    int
+	loggerMethodLogicExpected              int
+	loggerMethodLogicCalled                int
 	responseWriteExpected                  int
 	responseWriteCalled                    int
 	apperrorGetGeneralFailureErrorExpected int
@@ -45,10 +45,10 @@ func createMock(t *testing.T) {
 		getRecoverErrorFuncCalled++
 		return nil
 	}
-	loggerAppRootExpected = 0
-	loggerAppRootCalled = 0
-	loggerAppRoot = func(category string, subcategory string, messageFormat string, parameters ...interface{}) {
-		loggerAppRootCalled++
+	loggerMethodLogicExpected = 0
+	loggerMethodLogicCalled = 0
+	loggerMethodLogic = func(session sessionModel.Session, logLevel loglevel.LogLevel, category, subcategory, messageFormat string, parameters ...interface{}) {
+		loggerMethodLogicCalled++
 	}
 	responseWriteExpected = 0
 	responseWriteCalled = 0
@@ -74,8 +74,8 @@ func verifyAll(t *testing.T) {
 	assert.Equal(t, fmtErrorfExpected, fmtErrorfCalled, "Unexpected number of calls to fmtErrorf")
 	getRecoverErrorFunc = getRecoverError
 	assert.Equal(t, getRecoverErrorFuncExpected, getRecoverErrorFuncCalled, "Unexpected number of calls to getRecoverErrorFunc")
-	loggerAppRoot = logger.AppRoot
-	assert.Equal(t, loggerAppRootExpected, loggerAppRootCalled, "Unexpected number of calls to loggerAppRoot")
+	loggerMethodLogic = logger.MethodLogic
+	assert.Equal(t, loggerMethodLogicExpected, loggerMethodLogicCalled, "Unexpected number of calls to loggerMethodLogic")
 	responseWrite = response.Write
 	assert.Equal(t, responseWriteExpected, responseWriteCalled, "Unexpected number of calls to responseWrite")
 	apperrorGetGeneralFailureError = apperror.GetGeneralFailureError

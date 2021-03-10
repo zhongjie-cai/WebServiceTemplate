@@ -4,6 +4,7 @@ import (
 	"runtime/debug"
 
 	apperrorModel "github.com/zhongjie-cai/WebServiceTemplate/apperror/model"
+	"github.com/zhongjie-cai/WebServiceTemplate/logger/loglevel"
 	sessionModel "github.com/zhongjie-cai/WebServiceTemplate/session/model"
 )
 
@@ -30,7 +31,9 @@ func Handle(session sessionModel.Session, recoverResult interface{}) {
 			nil,
 			appError,
 		)
-		loggerAppRoot(
+		loggerMethodLogic(
+			session,
+			loglevel.Fatal,
 			"panic",
 			"Handle",
 			"%v\n%v",

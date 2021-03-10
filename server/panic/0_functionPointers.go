@@ -12,7 +12,7 @@ import (
 var (
 	fmtErrorf                      = fmt.Errorf
 	getRecoverErrorFunc            = getRecoverError
-	loggerAppRoot                  = logger.AppRoot
+	loggerMethodLogic              = logger.MethodLogic
 	responseWrite                  = response.Write
 	apperrorGetGeneralFailureError = apperror.GetGeneralFailureError
 	getDebugStackFunc              = getDebugStack

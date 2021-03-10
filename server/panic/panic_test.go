@@ -7,6 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/zhongjie-cai/WebServiceTemplate/apperror"
 	apperrorModel "github.com/zhongjie-cai/WebServiceTemplate/apperror/model"
+	"github.com/zhongjie-cai/WebServiceTemplate/logger/loglevel"
 	sessionModel "github.com/zhongjie-cai/WebServiceTemplate/session/model"
 )
 
@@ -118,9 +119,11 @@ func TestHandlePanic(t *testing.T) {
 		getDebugStackFuncCalled++
 		return dummyDebugStack
 	}
-	loggerAppRootExpected = 1
-	loggerAppRoot = func(category string, subcategory string, messageFormat string, parameters ...interface{}) {
-		loggerAppRootCalled++
+	loggerMethodLogicExpected = 1
+	loggerMethodLogic = func(session sessionModel.Session, logLevel loglevel.LogLevel, category, subcategory, messageFormat string, parameters ...interface{}) {
+		loggerMethodLogicCalled++
+		assert.Equal(t, dummySessionObject, session)
+		assert.Equal(t, loglevel.Fatal, logLevel)
 		assert.Equal(t, "panic", category)
 		assert.Equal(t, "Handle", subcategory)
 		assert.Equal(t, "%v\n%v", messageFormat)
